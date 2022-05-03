@@ -183,7 +183,16 @@ namespace
         region.setSize(rtProperties.shaderGroupHandleAlignment);
         return region;
     }
-}
+
+    vk::WriteDescriptorSet MakeWrite(vk::DescriptorSetLayoutBinding binding)
+    {
+        vk::WriteDescriptorSet write;
+        write.setDescriptorType(binding.descriptorType);
+        write.setDescriptorCount(binding.descriptorCount);
+        write.setDstBinding(binding.binding);
+        return write;
+    }
+} // namespace
 
 void Pipeline::UpdateDescSet(const std::string& name, vk::ImageView view, vk::Sampler sampler)
 {
@@ -192,14 +201,20 @@ void Pipeline::UpdateDescSet(const std::string& name, vk::ImageView view, vk::Sa
     descImageInfo.setSampler(sampler);
     descImageInfo.setImageLayout(vk::ImageLayout::eGeneral);
 
-    vk::DescriptorSetLayoutBinding binding = bindingMap[name];
-    vk::WriteDescriptorSet imageWrite;
-    imageWrite.setDstSet(*descSet);
-    imageWrite.setDescriptorType(binding.descriptorType);
-    imageWrite.setDescriptorCount(binding.descriptorCount);
-    imageWrite.setDstBinding(binding.binding);
-    imageWrite.setImageInfo(descImageInfo);
-    Vulkan::Device.updateDescriptorSets(imageWrite, nullptr);
+    vk::WriteDescriptorSet write = MakeWrite(bindingMap[name]);
+    write.setDstSet(*descSet);
+    write.setImageInfo(descImageInfo);
+    Vulkan::Device.updateDescriptorSets(write, nullptr);
+}
+
+void Pipeline::UpdateDescSet(const std::string& name, vk::AccelerationStructureKHR accel)
+{
+    vk::WriteDescriptorSetAccelerationStructureKHR accelInfo{ accel };
+
+    vk::WriteDescriptorSet write = MakeWrite(bindingMap[name]);
+    write.setDstSet(*descSet);
+    write.setPNext(&accelInfo);
+    Vulkan::Device.updateDescriptorSets(write, nullptr);
 }
 
 void ComputePipeline::Init(const std::string& path, size_t pushSize)

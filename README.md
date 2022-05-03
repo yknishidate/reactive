@@ -1,3 +1,3 @@
-# VRRE
+# Reactive
 
-Vulkan Realtime Raytracing Engine
+Realtime Ray Tracing Engine using Vulkan

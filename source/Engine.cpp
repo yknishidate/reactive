@@ -4,7 +4,6 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
-#include <glm/glm.hpp>
 
 namespace
 {
@@ -23,13 +22,6 @@ namespace
         SetImageLayout(commandBuffer, backImage, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eColorAttachmentOptimal);
     }
 }
-
-struct PushConstants
-{
-    glm::mat4 invView;
-    glm::mat4 invProj;
-    int frame = 0;
-};
 
 void Engine::Init()
 {
@@ -51,6 +43,7 @@ void Engine::Init()
                     "../shader/hello_raytracing/hello_raytracing.rmiss",
                     "../shader/hello_raytracing/hello_raytracing.rchit", sizeof(PushConstants));
     rtPipeline.UpdateDescSet("renderImage", renderImage.GetView(), renderImage.GetSampler());
+    rtPipeline.UpdateDescSet("topLevelAS", topAccel.GetAccel());
 
     using Vertex = glm::vec3;
     std::vector<Vertex> vertices{
@@ -64,17 +57,16 @@ void Engine::Init()
         vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress
     };
 
-    Buffer vertexBuffer;
-    Buffer indexBuffer;
     vertexBuffer.InitOnHost(sizeof(Vertex) * vertices.size(), usage);
     indexBuffer.InitOnHost(sizeof(uint32_t) * indices.size(), usage);
     vertexBuffer.Copy(vertices.data());
     indexBuffer.Copy(indices.data());
 
-    Accel bottomAccel;
-    Accel topAccel;
     bottomAccel.InitAsBottom(vertexBuffer, indexBuffer, sizeof(Vertex), vertices.size(), indices.size() / 3);
     topAccel.InitAsTop(bottomAccel);
+
+    pushConstants.invProj = glm::inverse(glm::perspective(glm::radians(45.0f), float(Window::GetWidth()) / Window::GetHeight(), 0.01f, 10000.0f));
+    pushConstants.invView = glm::inverse(glm::lookAt(glm::vec3{ 0, 0, 5 }, glm::vec3{ 0, 0, 3 }, { 0.0f, 1.0f, 0.0f }));
 }
 
 void Engine::Shutdown()
@@ -98,7 +90,7 @@ void Engine::Run()
             int height = Window::GetHeight();
             vk::CommandBuffer commandBuffer = Window::GetCurrentCommandBuffer();
             //pipeline.Run(commandBuffer, width, height);
-            rtPipeline.Run(commandBuffer, width, height);
+            rtPipeline.Run(commandBuffer, width, height, &pushConstants);
             CopyToBackImage(commandBuffer, width, height, renderImage.GetImage(), Window::GetBackImage());
 
             Window::RenderUI();
