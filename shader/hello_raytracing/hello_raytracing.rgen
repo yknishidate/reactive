@@ -1,0 +1,17 @@
+#version 460
+#extension GL_EXT_ray_tracing : enable
+
+layout(binding = 0, set = 0) uniform accelerationStructureEXT topLevelAS;
+layout(binding = 1, set = 0, rgba8) uniform image2D renderImage;
+layout(push_constant) uniform PushConstants {
+    mat4 invView;
+    mat4 invProj;
+    int frame;
+} pushConstants;
+
+layout(location = 0) rayPayloadEXT vec3 payLoad;
+
+void main()
+{
+    imageStore(renderImage, ivec2(gl_LaunchIDEXT.xy), vec4(1, 0, 1, 1));
+}
