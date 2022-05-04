@@ -4,18 +4,23 @@
 int main()
 {
     try {
-        Engine engine;
-        engine.Init();
-        engine.Run();
-        //engine.Shutdown();
-        //Engine::Init();
-        //Engine::Run();
-        //Engine::Shutdown();
+        spdlog::set_pattern("[%^%l%$] %v");
+
+        Window::Init(1920, 1080, "../asset/Vulkan.png");
+        Vulkan::Init();
+        Window::SetupUI();
+
+        {
+            Engine engine;
+            engine.Init();
+            engine.Run();
+        }
+
+        Window::Shutdown();
+        Vulkan::Shutdown();
     } catch (const std::exception& exception) {
         spdlog::error(exception.what());
     }
-    Window::Shutdown();
-    Vulkan::Shutdown();
 
     return 0;
 }

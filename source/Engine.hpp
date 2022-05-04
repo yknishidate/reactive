@@ -1,10 +1,9 @@
 #pragma once
-#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
+#include "Vulkan.hpp"
 #include <spdlog/spdlog.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan_hpp.h>
-#include <vulkan/vulkan.hpp>
 
 #include "Image.hpp"
 #include "Object.hpp"

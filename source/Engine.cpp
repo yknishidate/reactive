@@ -40,12 +40,7 @@ namespace
 
 void Engine::Init()
 {
-    // Init
-    spdlog::set_pattern("[%^%l%$] %v");
     spdlog::info("Engine::Init()");
-    Window::Init(1920, 1080, "../asset/Vulkan.png");
-    Vulkan::Init();
-    Window::SetupUI();
 
     // Create resources
     inputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
@@ -78,12 +73,6 @@ void Engine::Init()
     pushConstants.invView = glm::inverse(camera.GetView());
     pushConstants.frame = 0;
 }
-
-//void Engine::Shutdown()
-//{
-//    Vulkan::Device.waitIdle();
-//    Window::Shutdown();
-//}
 
 void Engine::Run()
 {
