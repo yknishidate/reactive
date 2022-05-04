@@ -18,6 +18,7 @@ struct MeshAddress
 {
     uint64_t vertices;
     uint64_t indices;
+    uint64_t objects;
 };
 
 struct Vertex
@@ -27,8 +28,15 @@ struct Vertex
     vec2 texCoord;
 };
 
+struct ObjectData
+{
+    mat4 matrix;
+    mat4 normalMatrix;
+};
+
 layout(buffer_reference, scalar) buffer Vertices { Vertex v[]; };
 layout(buffer_reference, scalar) buffer Indices { uvec3 i[]; };
+layout(buffer_reference, scalar) buffer Objects { ObjectData o[]; };
 layout(binding = 3) buffer Addresses { MeshAddress address[]; } addresses;
 layout(binding = 4) uniform sampler2D samplers[];
 
@@ -42,6 +50,7 @@ void main()
     MeshAddress address = addresses.address[0];
     Vertices vertices = Vertices(address.vertices);
     Indices indices = Indices(address.indices);
+    Objects objects = Objects(address.objects);
 
     uvec3 index = indices.i[gl_PrimitiveID];
     Vertex v0 = vertices.v[index.x];
@@ -53,6 +62,11 @@ void main()
     vec3 normal   = v0.normal   * barycentricCoords.x + v1.normal   * barycentricCoords.y + v2.normal   * barycentricCoords.z;
     vec2 texCoord = v0.texCoord * barycentricCoords.x + v1.texCoord * barycentricCoords.y + v2.texCoord * barycentricCoords.z;
     vec3 color = texture(samplers[0], texCoord).rgb;
+
+    mat4 matrix = objects.o[gl_InstanceID].matrix;
+    mat4 normalMatrix = objects.o[gl_InstanceID].normalMatrix;
+    pos = vec3(matrix * vec4(pos, 1));
+    normal = normalize(vec3(normalMatrix * vec4(normal, 0)));
 
     payLoad.position = pos;
     payLoad.normal = normal;

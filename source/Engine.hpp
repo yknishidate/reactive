@@ -18,6 +18,12 @@ struct PushConstants
     int frame = 0;
 };
 
+struct ObjectData
+{
+    glm::mat4 Matrix;
+    glm::mat4 NormalMatrix;
+};
+
 class Engine
 {
 public:
@@ -30,6 +36,10 @@ private:
     Image texture;
     RayTracingPipeline rtPipeline;
     std::vector<Object> objects;
+
+    std::vector<ObjectData> objectData;
+    Buffer objectBuffer;
+
     std::shared_ptr<Mesh> mesh;
     Camera camera;
     Accel topAccel;

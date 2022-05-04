@@ -13,6 +13,7 @@ struct BufferAddress
 {
     vk::DeviceAddress vertices;
     vk::DeviceAddress indices;
+    vk::DeviceAddress objects;
 };
 
 namespace
@@ -55,9 +56,19 @@ void Engine::Init()
     objects[1].GetTransform().Position.x = -1;
     topAccel.InitAsTop(objects);
 
+    // Create object data
+    for (auto&& object : objects) {
+        objectData.push_back({ object.GetTransform().GetMatrix(), object.GetTransform().GetNormalMatrix() });
+    }
+    objectBuffer.InitOnHost(sizeof(ObjectData) * objectData.size(),
+                            vk::BufferUsageFlagBits::eStorageBuffer |
+                            vk::BufferUsageFlagBits::eShaderDeviceAddress);
+    objectBuffer.Copy(objectData.data());
+
     BufferAddress address;
     address.vertices = mesh->GetVertexBufferAddress();
     address.indices = mesh->GetIndexBufferAddress();
+    address.objects = objectBuffer.GetAddress();
     addressBuffer.InitOnHost(sizeof(BufferAddress), vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress);
     addressBuffer.Copy(&address);
 
