@@ -36,14 +36,6 @@ void Engine::Init()
     // Create resources
     renderImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
 
-    pipeline.Init("../shader/simple.comp");
-    pipeline.UpdateDescSet("outImage", renderImage.GetView(), renderImage.GetSampler());
-
-    rtPipeline.Init("../shader/hello_raytracing/hello_raytracing.rgen",
-                    "../shader/hello_raytracing/hello_raytracing.rmiss",
-                    "../shader/hello_raytracing/hello_raytracing.rchit", sizeof(PushConstants));
-    rtPipeline.UpdateDescSet("renderImage", renderImage.GetView(), renderImage.GetSampler());
-    rtPipeline.UpdateDescSet("topLevelAS", topAccel.GetAccel());
 
     using Vertex = glm::vec3;
     std::vector<Vertex> vertices{
@@ -65,6 +57,17 @@ void Engine::Init()
     bottomAccel.InitAsBottom(vertexBuffer, indexBuffer, sizeof(Vertex), vertices.size(), indices.size() / 3);
     topAccel.InitAsTop(bottomAccel);
 
+    // Create pipelines
+    pipeline.Init("../shader/simple.comp");
+    pipeline.UpdateDescSet("outImage", renderImage.GetView(), renderImage.GetSampler());
+
+    rtPipeline.Init("../shader/hello_raytracing/hello_raytracing.rgen",
+                    "../shader/hello_raytracing/hello_raytracing.rmiss",
+                    "../shader/hello_raytracing/hello_raytracing.rchit", sizeof(PushConstants));
+    rtPipeline.UpdateDescSet("renderImage", renderImage.GetView(), renderImage.GetSampler());
+    rtPipeline.UpdateDescSet("topLevelAS", topAccel.GetAccel());
+
+    // Create push constants
     pushConstants.invProj = glm::inverse(glm::perspective(glm::radians(45.0f), float(Window::GetWidth()) / Window::GetHeight(), 0.01f, 10000.0f));
     pushConstants.invView = glm::inverse(glm::lookAt(glm::vec3{ 0, 0, 5 }, glm::vec3{ 0, 0, 3 }, { 0.0f, 1.0f, 0.0f }));
 }
