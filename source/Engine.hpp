@@ -27,9 +27,9 @@ public:
     static void Run();
 
 private:
-    static inline Image renderImage;
+    static inline Image inputImage;
+    static inline Image outputImage;
     static inline Image texture;
-    static inline ComputePipeline pipeline;
     static inline RayTracingPipeline rtPipeline;
     static inline Mesh mesh;
     static inline Camera camera;

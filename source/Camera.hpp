@@ -14,6 +14,7 @@ class Camera
 public:
     void Init(int width, int height);
     void ProcessInput();
+    bool CheckDirtyAndClean();
     glm::mat4 GetView();
     glm::mat4 GetProj();
 

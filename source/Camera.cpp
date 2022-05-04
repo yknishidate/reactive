@@ -53,3 +53,12 @@ glm::mat4 Camera::GetProj()
 {
     return glm::perspective(glm::radians(45.0f), aspect, 0.01f, 10000.0f);
 }
+
+bool Camera::CheckDirtyAndClean()
+{
+    if (dirty) {
+        dirty = false;
+        return true;
+    }
+    return false;
+}

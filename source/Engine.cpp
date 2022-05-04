@@ -17,18 +17,23 @@ struct BufferAddress
 
 namespace
 {
-    void CopyToBackImage(vk::CommandBuffer commandBuffer, int width, int height,
-                         vk::Image renderImage, vk::Image backImage)
+    void CopyImages(vk::CommandBuffer commandBuffer, int width, int height,
+                    vk::Image inputImage, vk::Image outputImage, vk::Image backImage)
     {
         vk::ImageCopy copyRegion;
         copyRegion.setSrcSubresource({ vk::ImageAspectFlagBits::eColor, 0, 0, 1 });
         copyRegion.setDstSubresource({ vk::ImageAspectFlagBits::eColor, 0, 0, 1 });
         copyRegion.setExtent({ uint32_t(width), uint32_t(height), 1 });
 
-        SetImageLayout(commandBuffer, renderImage, vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal);
+        SetImageLayout(commandBuffer, outputImage, vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal);
+        SetImageLayout(commandBuffer, inputImage, vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferDstOptimal);
         SetImageLayout(commandBuffer, backImage, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
-        CopyImage(commandBuffer, renderImage, backImage, copyRegion);
-        SetImageLayout(commandBuffer, renderImage, vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eGeneral);
+
+        CopyImage(commandBuffer, outputImage, inputImage, copyRegion);
+        CopyImage(commandBuffer, outputImage, backImage, copyRegion);
+
+        SetImageLayout(commandBuffer, outputImage, vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eGeneral);
+        SetImageLayout(commandBuffer, inputImage, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eGeneral);
         SetImageLayout(commandBuffer, backImage, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eColorAttachmentOptimal);
     }
 }
@@ -44,8 +49,8 @@ void Engine::Init()
     Window::SetupUI();
 
     // Create resources
-    renderImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
-
+    inputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
+    outputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
     mesh.Init("../asset/viking_room/viking_room.obj");
     texture.Init("../asset/viking_room/viking_room.png");
     topAccel.InitAsTop(mesh.GetAccel());
@@ -53,19 +58,15 @@ void Engine::Init()
     BufferAddress address;
     address.vertices = mesh.GetVertexBufferAddress();
     address.indices = mesh.GetIndexBufferAddress();
-
-    addressBuffer.InitOnHost(sizeof(BufferAddress), vk::BufferUsageFlagBits::eStorageBuffer |
-                             vk::BufferUsageFlagBits::eShaderDeviceAddress);
+    addressBuffer.InitOnHost(sizeof(BufferAddress), vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress);
     addressBuffer.Copy(&address);
 
-    // Create pipelines
-    pipeline.Init("../shader/simple.comp");
-    pipeline.UpdateDescSet("outImage", renderImage.GetView(), renderImage.GetSampler());
-
-    rtPipeline.Init("../shader/texture/texture.rgen",
-                    "../shader/texture/texture.rmiss",
-                    "../shader/texture/texture.rchit", sizeof(PushConstants));
-    rtPipeline.UpdateDescSet("renderImage", renderImage.GetView(), renderImage.GetSampler());
+    // Create pipeline
+    rtPipeline.Init("../shader/pathtracing/pathtracing.rgen",
+                    "../shader/pathtracing/pathtracing.rmiss",
+                    "../shader/pathtracing/pathtracing.rchit", sizeof(PushConstants));
+    rtPipeline.UpdateDescSet("inputImage", inputImage.GetView(), inputImage.GetSampler());
+    rtPipeline.UpdateDescSet("outputImage", outputImage.GetView(), outputImage.GetSampler());
     rtPipeline.UpdateDescSet("topLevelAS", topAccel.GetAccel());
     rtPipeline.UpdateDescSet("samplers", texture.GetView(), texture.GetSampler());
     rtPipeline.UpdateDescSet("Addresses", addressBuffer.GetBuffer(), addressBuffer.GetSize());
@@ -74,6 +75,7 @@ void Engine::Init()
     camera.Init(Window::GetWidth(), Window::GetHeight());
     pushConstants.invProj = glm::inverse(camera.GetProj());
     pushConstants.invView = glm::inverse(camera.GetView());
+    pushConstants.frame = 0;
 }
 
 void Engine::Shutdown()
@@ -90,10 +92,16 @@ void Engine::Run()
         Input::Update();
         Window::StartFrame();
 
+        // Update push constants
         camera.ProcessInput();
         pushConstants.invProj = glm::inverse(camera.GetProj());
         pushConstants.invView = glm::inverse(camera.GetView());
+        pushConstants.frame++;
+        if (camera.CheckDirtyAndClean()) {
+            pushConstants.frame = 0;
+        }
 
+        // Render
         if (!Window::IsMinimized()) {
             Window::WaitNextFrame();
             Window::BeginCommandBuffer();
@@ -101,9 +109,8 @@ void Engine::Run()
             int width = Window::GetWidth();
             int height = Window::GetHeight();
             vk::CommandBuffer commandBuffer = Window::GetCurrentCommandBuffer();
-            //pipeline.Run(commandBuffer, width, height);
             rtPipeline.Run(commandBuffer, width, height, &pushConstants);
-            CopyToBackImage(commandBuffer, width, height, renderImage.GetImage(), Window::GetBackImage());
+            CopyImages(commandBuffer, width, height, inputImage.GetImage(), outputImage.GetImage(), Window::GetBackImage());
 
             Window::RenderUI();
             Window::Submit();
