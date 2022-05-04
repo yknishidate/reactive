@@ -46,7 +46,7 @@ void Buffer::InitOnDevice(size_t size, vk::BufferUsageFlags usage)
     Init(size, usage, vk::MemoryPropertyFlagBits::eDeviceLocal);
 }
 
-void Buffer::Copy(void* data)
+void Buffer::Copy(const void* data)
 {
     if (!mapped) {
         mapped = Vulkan::Device.mapMemory(*memory, 0, size);

@@ -6,20 +6,8 @@
 #include <imgui_impl_vulkan_hpp.h>
 #include <vulkan/vulkan.hpp>
 
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_SWIZZLE
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/transform.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtx/quaternion.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/string_cast.hpp>
-
 #include "Image.hpp"
-#include "Buffer.hpp"
-#include "Accel.hpp"
+#include "Mesh.hpp"
 #include "Pipeline.hpp"
 #include "Window.hpp"
 
@@ -41,9 +29,7 @@ private:
     static inline Image renderImage;
     static inline ComputePipeline pipeline;
     static inline RayTracingPipeline rtPipeline;
-    static inline Buffer vertexBuffer;
-    static inline Buffer indexBuffer;
-    static inline Accel bottomAccel;
+    static inline Mesh mesh;
     static inline Accel topAccel;
     static inline PushConstants pushConstants;
 };

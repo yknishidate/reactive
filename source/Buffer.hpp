@@ -7,7 +7,7 @@ public:
     void Init(size_t size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memoryProp);
     void InitOnHost(size_t size, vk::BufferUsageFlags usage);
     void InitOnDevice(size_t size, vk::BufferUsageFlags usage);
-    void Copy(void* data);
+    void Copy(const void* data);
     vk::Buffer GetBuffer() const { return *buffer; }
     uint64_t GetAddress() const { return deviceAddress; }
 

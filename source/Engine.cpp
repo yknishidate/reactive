@@ -37,25 +37,14 @@ void Engine::Init()
     renderImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
 
 
-    using Vertex = glm::vec3;
     std::vector<Vertex> vertices{
-        { 1.0,  0.0, 0.0},
-        { 0.0, -1.0, 0.0},
-        {-1.0,  0.0, 0.0} };
+        { { 1.0,  0.0, 0.0} },
+        { { 0.0, -1.0, 0.0} },
+        { {-1.0,  0.0, 0.0} } };
     std::vector<uint32_t> indices{ 0, 1, 2 };
 
-    vk::BufferUsageFlags usage{
-        vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
-        vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress
-    };
-
-    vertexBuffer.InitOnHost(sizeof(Vertex) * vertices.size(), usage);
-    indexBuffer.InitOnHost(sizeof(uint32_t) * indices.size(), usage);
-    vertexBuffer.Copy(vertices.data());
-    indexBuffer.Copy(indices.data());
-
-    bottomAccel.InitAsBottom(vertexBuffer, indexBuffer, sizeof(Vertex), vertices.size(), indices.size() / 3);
-    topAccel.InitAsTop(bottomAccel);
+    mesh.Init(vertices, indices);
+    topAccel.InitAsTop(mesh.GetAccel());
 
     // Create pipelines
     pipeline.Init("../shader/simple.comp");
