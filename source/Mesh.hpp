@@ -16,28 +16,15 @@
 struct Vertex
 {
     glm::vec3 pos;
-    //glm::vec3 normal;
-    //glm::vec2 texCoord;
+    glm::vec3 normal;
+    glm::vec2 texCoord;
 };
 
 class Mesh
 {
 public:
-    void Init(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices)
-    {
-        vk::BufferUsageFlags usage{
-            vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
-            vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress
-        };
-
-        vertexBuffer.InitOnHost(sizeof(Vertex) * vertices.size(), usage);
-        indexBuffer.InitOnHost(sizeof(uint32_t) * indices.size(), usage);
-        vertexBuffer.Copy(vertices.data());
-        indexBuffer.Copy(indices.data());
-
-        bottomAccel.InitAsBottom(vertexBuffer, indexBuffer, sizeof(Vertex), vertices.size(), indices.size() / 3);
-    }
-
+    void Init(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
+    void Init(const std::string& filepath);
     const Accel& GetAccel() const { return bottomAccel; }
 
 private:

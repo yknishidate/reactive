@@ -5,6 +5,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#define TINYOBJLOADER_IMPLEMENTATION
+#include <tiny_obj_loader.h>
+
 namespace
 {
     void CopyToBackImage(vk::CommandBuffer commandBuffer, int width, int height,
@@ -36,23 +39,16 @@ void Engine::Init()
     // Create resources
     renderImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
 
-
-    std::vector<Vertex> vertices{
-        { { 1.0,  0.0, 0.0} },
-        { { 0.0, -1.0, 0.0} },
-        { {-1.0,  0.0, 0.0} } };
-    std::vector<uint32_t> indices{ 0, 1, 2 };
-
-    mesh.Init(vertices, indices);
+    mesh.Init("../asset/viking_room/viking_room.obj");
     topAccel.InitAsTop(mesh.GetAccel());
 
     // Create pipelines
     pipeline.Init("../shader/simple.comp");
     pipeline.UpdateDescSet("outImage", renderImage.GetView(), renderImage.GetSampler());
 
-    rtPipeline.Init("../shader/hello_raytracing/hello_raytracing.rgen",
-                    "../shader/hello_raytracing/hello_raytracing.rmiss",
-                    "../shader/hello_raytracing/hello_raytracing.rchit", sizeof(PushConstants));
+    rtPipeline.Init("../shader/texture/texture.rgen",
+                    "../shader/texture/texture.rmiss",
+                    "../shader/texture/texture.rchit", sizeof(PushConstants));
     rtPipeline.UpdateDescSet("renderImage", renderImage.GetView(), renderImage.GetSampler());
     rtPipeline.UpdateDescSet("topLevelAS", topAccel.GetAccel());
 
