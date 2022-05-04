@@ -70,8 +70,9 @@ void Engine::Init()
     rtPipeline.UpdateDescSet("Addresses", addressBuffer.GetBuffer(), addressBuffer.GetSize());
 
     // Create push constants
-    pushConstants.invProj = glm::inverse(glm::perspective(glm::radians(45.0f), float(Window::GetWidth()) / Window::GetHeight(), 0.01f, 10000.0f));
-    pushConstants.invView = glm::inverse(glm::lookAt(glm::vec3{ 0, 0, 5 }, glm::vec3{ 0, 0, 3 }, { 0.0f, 1.0f, 0.0f }));
+    camera.Init(Window::GetWidth(), Window::GetHeight());
+    pushConstants.invProj = glm::inverse(camera.GetProj());
+    pushConstants.invView = glm::inverse(camera.GetView());
 }
 
 void Engine::Shutdown()

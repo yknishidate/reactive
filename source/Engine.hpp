@@ -10,6 +10,7 @@
 #include "Mesh.hpp"
 #include "Pipeline.hpp"
 #include "Window.hpp"
+#include "Camera.hpp"
 
 struct PushConstants
 {
@@ -31,6 +32,7 @@ private:
     static inline ComputePipeline pipeline;
     static inline RayTracingPipeline rtPipeline;
     static inline Mesh mesh;
+    static inline Camera camera;
     static inline Accel topAccel;
     static inline PushConstants pushConstants;
     static inline Buffer addressBuffer;
