@@ -8,6 +8,12 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
 
+struct BufferAddress
+{
+    vk::DeviceAddress vertices;
+    vk::DeviceAddress indices;
+};
+
 namespace
 {
     void CopyToBackImage(vk::CommandBuffer commandBuffer, int width, int height,
@@ -43,6 +49,14 @@ void Engine::Init()
     texture.Init("../asset/viking_room/viking_room.png");
     topAccel.InitAsTop(mesh.GetAccel());
 
+    BufferAddress address;
+    address.vertices = mesh.GetVertexBufferAddress();
+    address.indices = mesh.GetIndexBufferAddress();
+
+    addressBuffer.InitOnHost(sizeof(BufferAddress), vk::BufferUsageFlagBits::eStorageBuffer |
+                             vk::BufferUsageFlagBits::eShaderDeviceAddress);
+    addressBuffer.Copy(&address);
+
     // Create pipelines
     pipeline.Init("../shader/simple.comp");
     pipeline.UpdateDescSet("outImage", renderImage.GetView(), renderImage.GetSampler());
@@ -53,6 +67,7 @@ void Engine::Init()
     rtPipeline.UpdateDescSet("renderImage", renderImage.GetView(), renderImage.GetSampler());
     rtPipeline.UpdateDescSet("topLevelAS", topAccel.GetAccel());
     rtPipeline.UpdateDescSet("samplers", texture.GetView(), texture.GetSampler());
+    rtPipeline.UpdateDescSet("Addresses", addressBuffer.GetBuffer(), addressBuffer.GetSize());
 
     // Create push constants
     pushConstants.invProj = glm::inverse(glm::perspective(glm::radians(45.0f), float(Window::GetWidth()) / Window::GetHeight(), 0.01f, 10000.0f));

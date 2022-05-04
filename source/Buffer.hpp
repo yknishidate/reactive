@@ -9,6 +9,7 @@ public:
     void InitOnDevice(size_t size, vk::BufferUsageFlags usage);
     void Copy(const void* data);
     vk::Buffer GetBuffer() const { return *buffer; }
+    vk::DeviceSize GetSize() const { return size; }
     uint64_t GetAddress() const { return deviceAddress; }
 
 private:

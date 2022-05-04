@@ -194,6 +194,16 @@ namespace
     }
 } // namespace
 
+void Pipeline::UpdateDescSet(const std::string& name, vk::Buffer buffer, size_t size)
+{
+    vk::DescriptorBufferInfo bufferInfo{ buffer, 0, size };
+
+    vk::WriteDescriptorSet write = MakeWrite(bindingMap[name]);
+    write.setDstSet(*descSet);
+    write.setBufferInfo(bufferInfo);
+    Vulkan::Device.updateDescriptorSets(write, nullptr);
+}
+
 void Pipeline::UpdateDescSet(const std::string& name, vk::ImageView view, vk::Sampler sampler)
 {
     vk::DescriptorImageInfo descImageInfo;

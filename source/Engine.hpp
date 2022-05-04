@@ -33,4 +33,5 @@ private:
     static inline Mesh mesh;
     static inline Accel topAccel;
     static inline PushConstants pushConstants;
+    static inline Buffer addressBuffer;
 };

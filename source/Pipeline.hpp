@@ -8,6 +8,7 @@
 class Pipeline
 {
 public:
+    void UpdateDescSet(const std::string& name, vk::Buffer buffer, size_t size);
     void UpdateDescSet(const std::string& name, vk::ImageView view, vk::Sampler sampler);
     void UpdateDescSet(const std::string& name, vk::AccelerationStructureKHR accel);
 
