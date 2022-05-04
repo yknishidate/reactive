@@ -8,6 +8,7 @@ public:
                       size_t vertexStride, size_t vertexCount, size_t primitiveCount);
 
     void InitAsTop(const Accel& bottom);
+    void InitAsTop(const Accel& bottom, const vk::TransformMatrixKHR& transform);
 
     vk::AccelerationStructureKHR GetAccel() const { return *accel; }
 

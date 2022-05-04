@@ -78,13 +78,17 @@ void Accel::InitAsBottom(const Buffer& vertexBuffer, const Buffer& indexBuffer, 
 
 void Accel::InitAsTop(const Accel& bottom)
 {
-    vk::TransformMatrixKHR transformMatrix = std::array{
+    vk::TransformMatrixKHR transform = std::array{
         std::array{1.0f, 0.0f, 0.0f, 0.0f},
         std::array{0.0f, 1.0f, 0.0f, 0.0f},
         std::array{0.0f, 0.0f, 1.0f, 0.0f} };
+    InitAsTop(bottom, transform);
+}
 
+void Accel::InitAsTop(const Accel& bottom, const vk::TransformMatrixKHR& transform)
+{
     vk::AccelerationStructureInstanceKHR instance;
-    instance.setTransform(transformMatrix);
+    instance.setTransform(transform);
     instance.setMask(0xFF);
     instance.setAccelerationStructureReference(bottom.buffer.GetAddress());
     instance.setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);

@@ -50,13 +50,15 @@ void Engine::Init()
     // Create resources
     inputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
     outputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
-    mesh.Init("../asset/viking_room/viking_room.obj");
+    mesh = std::make_shared<Mesh>("../asset/viking_room/viking_room.obj");
     texture.Init("../asset/viking_room/viking_room.png");
-    topAccel.InitAsTop(mesh.GetAccel());
+
+    object.Init(mesh);
+    topAccel.InitAsTop(object.GetMesh().GetAccel());
 
     BufferAddress address;
-    address.vertices = mesh.GetVertexBufferAddress();
-    address.indices = mesh.GetIndexBufferAddress();
+    address.vertices = mesh->GetVertexBufferAddress();
+    address.indices = mesh->GetIndexBufferAddress();
     addressBuffer.InitOnHost(sizeof(BufferAddress), vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress);
     addressBuffer.Copy(&address);
 

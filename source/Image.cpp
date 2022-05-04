@@ -1,7 +1,6 @@
 #include "Image.hpp"
 #include "Buffer.hpp"
 #include "Vulkan.hpp"
-#include <spdlog/spdlog.h>
 #include <stb_image.h>
 
 namespace
@@ -57,7 +56,6 @@ namespace
 
 void Image::Init(int width, int height, vk::Format format)
 {
-    spdlog::info("Image::Init");
     image = CreateImage(width, height, format);
     memory = AllocateMemory(*image);
     Vulkan::Device.bindImageMemory(*image, *memory, 0);

@@ -19,3 +19,14 @@ const vk::TransformMatrixKHR& Transform::GetVkMatrix()
     std::memcpy(&data, &transposed, sizeof(vk::TransformMatrixKHR));
     return vk::TransformMatrixKHR{ data };
 }
+
+void Object::Init(std::shared_ptr<Mesh> mesh)
+{
+    this->mesh = mesh;
+}
+
+const Mesh& Object::GetMesh() const
+{
+    assert(mesh && "Mesh is nullptr");
+    return *mesh;
+}

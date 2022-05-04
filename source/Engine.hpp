@@ -7,7 +7,7 @@
 #include <vulkan/vulkan.hpp>
 
 #include "Image.hpp"
-#include "Mesh.hpp"
+#include "Object.hpp"
 #include "Pipeline.hpp"
 #include "Window.hpp"
 #include "Camera.hpp"
@@ -31,7 +31,8 @@ private:
     static inline Image outputImage;
     static inline Image texture;
     static inline RayTracingPipeline rtPipeline;
-    static inline Mesh mesh;
+    static inline Object object;
+    static inline std::shared_ptr<Mesh> mesh;
     static inline Camera camera;
     static inline Accel topAccel;
     static inline PushConstants pushConstants;

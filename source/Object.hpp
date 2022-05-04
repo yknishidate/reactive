@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <vulkan/vulkan.hpp>
 #include "Mesh.hpp"
 
@@ -16,10 +17,11 @@ struct Transform
 class Object
 {
 public:
-    const Mesh& GetMesh() const { return mesh; }
+    void Init(std::shared_ptr<Mesh> mesh);
+    const Mesh& GetMesh() const;
     const Transform& GetTransform() const { return transform; }
 
 private:
-    Mesh& mesh;
-    Transform transform;
+    std::shared_ptr<Mesh> mesh;
+    Transform transform{};
 };
