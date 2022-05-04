@@ -46,7 +46,8 @@ void Engine::Init()
     // Create resources
     inputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
     outputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
-    mesh = std::make_shared<Mesh>("../asset/viking_room/viking_room.obj");
+    //mesh = std::make_shared<Mesh>("../asset/viking_room/viking_room.obj");
+    mesh = std::make_shared<Mesh>("../asset/Sphere.obj");
     texture.Init("../asset/viking_room/viking_room.png");
 
     objects.resize(2);
