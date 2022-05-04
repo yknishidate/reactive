@@ -2,17 +2,17 @@
 #include "Buffer.hpp"
 #include "Object.hpp"
 
-const glm::mat4& Transform::GetMatrix()
+glm::mat4 Transform::GetMatrix() const
 {
     return glm::translate(Position) * glm::toMat4(Rotation) * glm::scale(Scale);
 }
 
-const glm::mat3& Transform::GetNormalMatrix()
+glm::mat3 Transform::GetNormalMatrix() const
 {
     return glm::toMat3(Rotation);
 }
 
-const vk::TransformMatrixKHR& Transform::GetVkMatrix()
+vk::TransformMatrixKHR Transform::GetVkMatrix() const
 {
     glm::mat4 transposed = glm::transpose(GetMatrix());
     std::array<std::array<float, 4>, 3> data;
