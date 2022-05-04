@@ -1,13 +1,12 @@
 #include "Image.hpp"
 #include "Buffer.hpp"
-#include "Vulkan.hpp"
 #include <stb_image.h>
 
 namespace
 {
     vk::UniqueImage CreateImage(uint32_t width, uint32_t height, vk::Format format)
     {
-        vk::ImageCreateInfo imageCreateInfo;
+        vk::ImageCreateInfo imageCreateInfo{};
         imageCreateInfo.setImageType(vk::ImageType::e2D);
         imageCreateInfo.setFormat(format);
         imageCreateInfo.setExtent({ width, height, 1 });
@@ -22,7 +21,7 @@ namespace
     {
         vk::MemoryRequirements requirements = Vulkan::Device.getImageMemoryRequirements(image);
         uint32_t memoryTypeIndex = Vulkan::FindMemoryTypeIndex(requirements, vk::MemoryPropertyFlagBits::eDeviceLocal);
-        vk::MemoryAllocateInfo memoryAllocateInfo;
+        vk::MemoryAllocateInfo memoryAllocateInfo{};
         memoryAllocateInfo.setAllocationSize(requirements.size);
         memoryAllocateInfo.setMemoryTypeIndex(memoryTypeIndex);
         return Vulkan::Device.allocateMemoryUnique(memoryAllocateInfo);
@@ -30,7 +29,7 @@ namespace
 
     vk::UniqueImageView CreateImageView(vk::Image image, vk::Format format)
     {
-        vk::ImageViewCreateInfo imageViewCreateInfo;
+        vk::ImageViewCreateInfo imageViewCreateInfo{};
         imageViewCreateInfo.setImage(image);
         imageViewCreateInfo.setViewType(vk::ImageViewType::e2D);
         imageViewCreateInfo.setFormat(format);
@@ -40,7 +39,7 @@ namespace
 
     vk::UniqueSampler CreateSampler()
     {
-        vk::SamplerCreateInfo createInfo;
+        vk::SamplerCreateInfo createInfo{};
         createInfo.setMagFilter(vk::Filter::eLinear);
         createInfo.setMinFilter(vk::Filter::eLinear);
         createInfo.setAnisotropyEnable(VK_FALSE);
@@ -110,7 +109,7 @@ void Image::SetImageLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk:
     vk::PipelineStageFlags srcStageMask = vk::PipelineStageFlagBits::eAllCommands;
     vk::PipelineStageFlags dstStageMask = vk::PipelineStageFlagBits::eAllCommands;
 
-    vk::ImageMemoryBarrier barrier;
+    vk::ImageMemoryBarrier barrier{};
     barrier.setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
     barrier.setSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
     barrier.setImage(image);

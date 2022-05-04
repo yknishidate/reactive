@@ -190,7 +190,6 @@ void Window::Shutdown()
     ImGui::DestroyContext();
     glfwDestroyWindow(window);
     glfwTerminate();
-    spdlog::info("---");
 }
 
 bool Window::ShouldClose()

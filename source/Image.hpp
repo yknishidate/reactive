@@ -1,5 +1,5 @@
 #pragma once
-#include <vulkan/vulkan.hpp>
+#include "Vulkan.hpp"
 
 class Image
 {
@@ -16,8 +16,8 @@ public:
     static void CopyImage(vk::CommandBuffer commandBuffer, vk::Image src, vk::Image dst, vk::ImageCopy copyRegion);
 
 private:
-    vk::UniqueImage image;
-    vk::UniqueDeviceMemory memory;
-    vk::UniqueImageView view;
-    vk::UniqueSampler sampler;
+    vk::UniqueImage image{};
+    vk::UniqueDeviceMemory memory{};
+    vk::UniqueImageView view{};
+    vk::UniqueSampler sampler{};
 };

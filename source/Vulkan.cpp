@@ -216,7 +216,6 @@ void Vulkan::Shutdown()
     Instance.destroySurfaceKHR(Surface);
     Instance.destroyDebugUtilsMessengerEXT(DebugMessenger);
     Instance.destroy();
-    spdlog::info("---");
 }
 
 std::vector<vk::UniqueCommandBuffer> Vulkan::AllocateCommandBuffers(uint32_t count)

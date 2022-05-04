@@ -11,15 +11,15 @@
 
 struct Frame
 {
-    vk::CommandBuffer CommandBuffer;
-    vk::Fence Fence;
-    vk::Framebuffer Framebuffer;
+    vk::CommandBuffer CommandBuffer{};
+    vk::Fence Fence{};
+    vk::Framebuffer Framebuffer{};
 };
 
 struct FrameSemaphores
 {
-    vk::Semaphore ImageAcquiredSemaphore;
-    vk::Semaphore RenderCompleteSemaphore;
+    vk::Semaphore ImageAcquiredSemaphore{};
+    vk::Semaphore RenderCompleteSemaphore{};
 };
 
 class Window
@@ -68,14 +68,14 @@ private:
     static inline int minImageCount = 3;
     static inline bool swapchainRebuild = false;
 
-    static inline int Width;
-    static inline int Height;
-    static inline vk::RenderPass RenderPass;
-    static inline vk::Pipeline Pipeline;
-    static inline vk::ClearValue ClearValue;
+    static inline int Width{};
+    static inline int Height{};
+    static inline vk::RenderPass RenderPass{};
+    static inline vk::Pipeline Pipeline{};
+    static inline vk::ClearValue ClearValue{};
     static inline uint32_t FrameIndex = 0;
     static inline uint32_t ImageCount = 0;
     static inline uint32_t SemaphoreIndex = 0;
-    static inline std::vector<Frame> Frames;
-    static inline std::vector<FrameSemaphores> FrameSemaphores;
+    static inline std::vector<Frame> Frames{};
+    static inline std::vector<FrameSemaphores> FrameSemaphores{};
 };

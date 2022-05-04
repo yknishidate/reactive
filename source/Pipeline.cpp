@@ -119,8 +119,8 @@ namespace
     {
         vk::PipelineLayoutCreateInfo createInfo;
         createInfo.setSetLayouts(descSetLayout);
+        vk::PushConstantRange pushRange;
         if (pushSize) {
-            vk::PushConstantRange pushRange;
             pushRange.setOffset(0);
             pushRange.setSize(pushSize);
             pushRange.setStageFlags(shaderStage);
