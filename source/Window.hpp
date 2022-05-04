@@ -11,15 +11,15 @@
 
 struct Frame
 {
-    vk::UniqueCommandBuffer CommandBuffer;
-    vk::UniqueFence Fence;
-    vk::UniqueFramebuffer Framebuffer;
+    vk::CommandBuffer CommandBuffer;
+    vk::Fence Fence;
+    vk::Framebuffer Framebuffer;
 };
 
 struct FrameSemaphores
 {
-    vk::UniqueSemaphore ImageAcquiredSemaphore;
-    vk::UniqueSemaphore RenderCompleteSemaphore;
+    vk::Semaphore ImageAcquiredSemaphore;
+    vk::Semaphore RenderCompleteSemaphore;
 };
 
 class Window
@@ -70,8 +70,8 @@ private:
 
     static inline int Width;
     static inline int Height;
-    static inline vk::UniqueRenderPass RenderPass;
-    static inline vk::UniquePipeline Pipeline;
+    static inline vk::RenderPass RenderPass;
+    static inline vk::Pipeline Pipeline;
     static inline vk::ClearValue ClearValue;
     static inline uint32_t FrameIndex = 0;
     static inline uint32_t ImageCount = 0;

@@ -203,6 +203,22 @@ void Vulkan::Init()
     DescriptorPool = CraeteDescriptorPool(Device);
 }
 
+void Vulkan::Shutdown()
+{
+    spdlog::info("Vulkan::Shutdown()");
+    Device.destroyDescriptorPool(DescriptorPool);
+    Device.destroyCommandPool(CommandPool);
+    for (auto&& view : SwapchainImageViews) {
+        Device.destroyImageView(view);
+    }
+    Device.destroySwapchainKHR(Swapchain);
+    Device.destroy();
+    Instance.destroySurfaceKHR(Surface);
+    Instance.destroyDebugUtilsMessengerEXT(DebugMessenger);
+    Instance.destroy();
+    spdlog::info("---");
+}
+
 std::vector<vk::UniqueCommandBuffer> Vulkan::AllocateCommandBuffers(uint32_t count)
 {
     vk::CommandBufferAllocateInfo commandBufferInfo;

@@ -79,11 +79,11 @@ void Engine::Init()
     pushConstants.frame = 0;
 }
 
-void Engine::Shutdown()
-{
-    Vulkan::Device.waitIdle();
-    Window::Shutdown();
-}
+//void Engine::Shutdown()
+//{
+//    Vulkan::Device.waitIdle();
+//    Window::Shutdown();
+//}
 
 void Engine::Run()
 {
@@ -118,4 +118,5 @@ void Engine::Run()
             Window::Present();
         }
     }
+    Vulkan::Device.waitIdle();
 }

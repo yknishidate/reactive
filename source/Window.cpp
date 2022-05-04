@@ -67,7 +67,7 @@ void Window::SetupUI()
         info.pSubpasses = &subpass;
         info.dependencyCount = 1;
         info.pDependencies = &dependency;
-        RenderPass = Vulkan::Device.createRenderPassUnique(info);
+        RenderPass = Vulkan::Device.createRenderPass(info);
     }
 
     // Create Framebuffer
@@ -77,7 +77,7 @@ void Window::SetupUI()
     {
         vk::ImageView attachment[1];
         vk::FramebufferCreateInfo info{};
-        info.renderPass = *RenderPass;
+        info.renderPass = RenderPass;
         info.attachmentCount = 1;
         info.pAttachments = attachment;
         info.width = Window::GetWidth();
@@ -86,24 +86,29 @@ void Window::SetupUI()
 
         for (uint32_t i = 0; i < imageCount; i++) {
             attachment[0] = Vulkan::SwapchainImageViews[i];
-            Frames[i].Framebuffer = Vulkan::Device.createFramebufferUnique(info);
+            Frames[i].Framebuffer = Vulkan::Device.createFramebuffer(info);
         }
     }
 
     // Create Command Buffers
     for (uint32_t i = 0; i < imageCount; i++) {
         {
-            Frames[i].CommandBuffer = Vulkan::AllocateCommandBuffer();
+            vk::CommandBufferAllocateInfo commandBufferInfo;
+            commandBufferInfo.setCommandPool(Vulkan::CommandPool);
+            commandBufferInfo.setLevel(vk::CommandBufferLevel::ePrimary);
+            commandBufferInfo.setCommandBufferCount(1);
+            Frames[i].CommandBuffer = Vulkan::Device.allocateCommandBuffers(commandBufferInfo)[0];
+            //Frames[i].CommandBuffer = Vulkan::AllocateCommandBuffer();
         }
         {
             vk::FenceCreateInfo info{};
             info.flags = vk::FenceCreateFlagBits::eSignaled;
-            Frames[i].Fence = Vulkan::Device.createFenceUnique(info);
+            Frames[i].Fence = Vulkan::Device.createFence(info);
         }
         {
             vk::SemaphoreCreateInfo info{};
-            FrameSemaphores[i].ImageAcquiredSemaphore = Vulkan::Device.createSemaphoreUnique({});
-            FrameSemaphores[i].RenderCompleteSemaphore = Vulkan::Device.createSemaphoreUnique({});
+            FrameSemaphores[i].ImageAcquiredSemaphore = Vulkan::Device.createSemaphore({});
+            FrameSemaphores[i].RenderCompleteSemaphore = Vulkan::Device.createSemaphore({});
         }
     }
 
@@ -131,7 +136,7 @@ void Window::SetupUI()
     initInfo.ImageCount = imageCount;
     initInfo.MSAASamples = vk::SampleCountFlagBits::e1;
     initInfo.Allocator = nullptr;
-    ImGui_ImplVulkan_Init(&initInfo, *RenderPass);
+    ImGui_ImplVulkan_Init(&initInfo, RenderPass);
 
     io.Fonts->AddFontFromFileTTF("../asset/Roboto-Medium.ttf", 24.0f);
     {
@@ -157,7 +162,7 @@ int Window::GetHeight()
 
 vk::CommandBuffer Window::GetCurrentCommandBuffer()
 {
-    return *Frames[FrameIndex].CommandBuffer;
+    return Frames[FrameIndex].CommandBuffer;
 }
 
 vk::Image Window::GetBackImage()
@@ -167,10 +172,25 @@ vk::Image Window::GetBackImage()
 
 void Window::Shutdown()
 {
+    spdlog::info("Window::Shutdown()");
+    for (auto&& semaphores : FrameSemaphores) {
+        Vulkan::Device.destroySemaphore(semaphores.ImageAcquiredSemaphore);
+        Vulkan::Device.destroySemaphore(semaphores.RenderCompleteSemaphore);
+    }
+    for (auto&& frame : Frames) {
+        Vulkan::Device.freeCommandBuffers(Vulkan::CommandPool, frame.CommandBuffer);
+        Vulkan::Device.destroyFence(frame.Fence);
+        Vulkan::Device.destroyFramebuffer(frame.Framebuffer);
+    }
+    Vulkan::Device.destroyPipeline(Pipeline);
+    Vulkan::Device.destroyRenderPass(RenderPass);
+
     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
     glfwDestroyWindow(window);
     glfwTerminate();
+    spdlog::info("---");
 }
 
 bool Window::ShouldClose()
@@ -220,8 +240,8 @@ bool Window::IsMinimized()
 
 void Window::WaitNextFrame()
 {
-    vk::Semaphore imageAcquiredSemaphore = *FrameSemaphores[SemaphoreIndex].ImageAcquiredSemaphore;
-    vk::Semaphore renderCompleteSemaphore = *FrameSemaphores[SemaphoreIndex].RenderCompleteSemaphore;
+    vk::Semaphore imageAcquiredSemaphore = FrameSemaphores[SemaphoreIndex].ImageAcquiredSemaphore;
+    vk::Semaphore renderCompleteSemaphore = FrameSemaphores[SemaphoreIndex].RenderCompleteSemaphore;
     try {
         FrameIndex = Vulkan::Device.acquireNextImageKHR(Vulkan::Swapchain, UINT64_MAX, imageAcquiredSemaphore).value;
     } catch (std::exception exception) {
@@ -229,7 +249,7 @@ void Window::WaitNextFrame()
         return;
     }
 
-    vk::Fence fence = *Frames[FrameIndex].Fence;
+    vk::Fence fence = Frames[FrameIndex].Fence;
     Vulkan::Device.waitForFences(fence, VK_TRUE, UINT64_MAX);
     Vulkan::Device.resetFences(fence);
 }
@@ -242,19 +262,19 @@ void Window::BeginCommandBuffer()
 
 void Window::Submit()
 {
-    vk::CommandBuffer commandBuffer = *Frames[FrameIndex].CommandBuffer;
+    vk::CommandBuffer commandBuffer = Frames[FrameIndex].CommandBuffer;
     vk::PipelineStageFlags waitStage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
     vk::SubmitInfo info{};
     info.waitSemaphoreCount = 1;
-    info.pWaitSemaphores = &*FrameSemaphores[SemaphoreIndex].ImageAcquiredSemaphore;
+    info.pWaitSemaphores = &FrameSemaphores[SemaphoreIndex].ImageAcquiredSemaphore;
     info.pWaitDstStageMask = &waitStage;
     info.commandBufferCount = 1;
     info.pCommandBuffers = &commandBuffer;
     info.signalSemaphoreCount = 1;
-    info.pSignalSemaphores = &*FrameSemaphores[SemaphoreIndex].RenderCompleteSemaphore;
+    info.pSignalSemaphores = &FrameSemaphores[SemaphoreIndex].RenderCompleteSemaphore;
 
     commandBuffer.end();
-    vk::Fence fence = *Frames[FrameIndex].Fence;
+    vk::Fence fence = Frames[FrameIndex].Fence;
     Vulkan::Queue.submit(info, fence);
 }
 
@@ -263,17 +283,17 @@ void Window::RenderUI()
     ImDrawData* drawData = ImGui::GetDrawData();
 
     vk::RenderPassBeginInfo info{};
-    info.renderPass = *RenderPass;
-    info.framebuffer = *Frames[FrameIndex].Framebuffer;
+    info.renderPass = RenderPass;
+    info.framebuffer = Frames[FrameIndex].Framebuffer;
     info.renderArea.extent.width = Width;
     info.renderArea.extent.height = Height;
     info.clearValueCount = 1;
     info.pClearValues = &ClearValue;
-    Frames[FrameIndex].CommandBuffer->beginRenderPass(info, vk::SubpassContents::eInline);
+    Frames[FrameIndex].CommandBuffer.beginRenderPass(info, vk::SubpassContents::eInline);
 
-    ImGui_ImplVulkan_RenderDrawData(drawData, *Frames[FrameIndex].CommandBuffer);
+    ImGui_ImplVulkan_RenderDrawData(drawData, Frames[FrameIndex].CommandBuffer);
 
-    Frames[FrameIndex].CommandBuffer->endRenderPass();
+    Frames[FrameIndex].CommandBuffer.endRenderPass();
 }
 
 void Window::Present()
@@ -283,7 +303,7 @@ void Window::Present()
     }
     vk::PresentInfoKHR info{};
     info.waitSemaphoreCount = 1;
-    info.pWaitSemaphores = &*FrameSemaphores[SemaphoreIndex].RenderCompleteSemaphore;
+    info.pWaitSemaphores = &FrameSemaphores[SemaphoreIndex].RenderCompleteSemaphore;
     info.swapchainCount = 1;
     info.pSwapchains = &Vulkan::Swapchain;
     info.pImageIndices = &FrameIndex;

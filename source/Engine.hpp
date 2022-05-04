@@ -22,19 +22,18 @@ struct PushConstants
 class Engine
 {
 public:
-    static void Init();
-    static void Shutdown();
-    static void Run();
+    void Init();
+    void Run();
 
 private:
-    static inline Image inputImage;
-    static inline Image outputImage;
-    static inline Image texture;
-    static inline RayTracingPipeline rtPipeline;
-    static inline Object object;
-    static inline std::shared_ptr<Mesh> mesh;
-    static inline Camera camera;
-    static inline Accel topAccel;
-    static inline PushConstants pushConstants;
-    static inline Buffer addressBuffer;
+    Image inputImage;
+    Image outputImage;
+    Image texture;
+    RayTracingPipeline rtPipeline;
+    Object object;
+    std::shared_ptr<Mesh> mesh;
+    Camera camera;
+    Accel topAccel;
+    PushConstants pushConstants;
+    Buffer addressBuffer;
 };
