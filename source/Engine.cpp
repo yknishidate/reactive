@@ -49,7 +49,7 @@ void Engine::Init()
     texture.Init("../asset/viking_room/viking_room.png");
 
     object.Init(mesh);
-    topAccel.InitAsTop(object.GetMesh().GetAccel());
+    topAccel.InitAsTop(object);
 
     BufferAddress address;
     address.vertices = mesh->GetVertexBufferAddress();

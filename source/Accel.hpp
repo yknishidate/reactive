@@ -1,6 +1,8 @@
 #pragma once
 #include "Buffer.hpp"
 
+class Object;
+
 class Accel
 {
 public:
@@ -9,6 +11,7 @@ public:
 
     void InitAsTop(const Accel& bottom);
     void InitAsTop(const Accel& bottom, const vk::TransformMatrixKHR& transform);
+    void InitAsTop(const Object& object);
 
     vk::AccelerationStructureKHR GetAccel() const { return *accel; }
 

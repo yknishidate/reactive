@@ -1,5 +1,6 @@
 #include "Vulkan.hpp"
 #include "Accel.hpp"
+#include "Object.hpp"
 
 namespace
 {
@@ -120,4 +121,9 @@ void Accel::InitAsTop(const Accel& bottom, const vk::TransformMatrixKHR& transfo
     buffer = CreateAccelBuffer(size, type, geometry);
     accel = CreateAccel(buffer.GetBuffer(), size, type);
     BuildAccel(*accel, size, primitiveCount, geometryInfo);
+}
+
+void Accel::InitAsTop(const Object& object)
+{
+    InitAsTop(object.GetMesh().GetAccel());
 }
