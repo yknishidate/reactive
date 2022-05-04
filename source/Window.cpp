@@ -3,7 +3,7 @@
 #include <spdlog/spdlog.h>
 #include <stb_image.h>
 
-void Window::Init(int width, int height)
+void Window::Init(int width, int height, const std::string& icon)
 {
     spdlog::info("Window::Init()");
     Window::Width = width;
@@ -11,7 +11,7 @@ void Window::Init(int width, int height)
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     window = glfwCreateWindow(width, height, "Window", nullptr, nullptr);
-    SetIcon("../asset/Vulkan.png");
+    SetIcon(icon);
 }
 
 void Window::SetIcon(const std::string& filepath)

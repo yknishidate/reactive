@@ -43,7 +43,7 @@ void Engine::Init()
     // Init
     spdlog::set_pattern("[%^%l%$] %v");
     spdlog::info("Engine::Init()");
-    Window::Init(1920, 1080);
+    Window::Init(1920, 1080, "../asset/Vulkan.png");
     Vulkan::Init();
     Window::SetupUI();
 

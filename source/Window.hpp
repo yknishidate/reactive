@@ -25,7 +25,7 @@ struct FrameSemaphores
 class Window
 {
 public:
-    static void Init(int width, int height);
+    static void Init(int width, int height, const std::string& icon = {});
 
     static void SetIcon(const std::string& filepath);
 

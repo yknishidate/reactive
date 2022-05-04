@@ -14,13 +14,11 @@ namespace Key
 class Input
 {
 public:
-    static void Init() {}
     static void Update();
-
-    static glm::vec2 GetMousePos() { return currMousePos; }
-    static glm::vec2 GetMouseMotion() { return currMousePos - lastMousePos; }
     static bool MousePressed();
     static bool KeyPressed(int key);
+    static glm::vec2 GetMousePos() { return currMousePos; }
+    static glm::vec2 GetMouseMotion() { return currMousePos - lastMousePos; }
 
 private:
     static inline glm::vec2 currMousePos = { 0.0f, 0.0f };
