@@ -31,10 +31,6 @@ public:
 
     static void SetupUI();
 
-    static std::vector<const char*> GetExtensions();
-
-    static vk::SurfaceKHR CreateSurface();
-
     static int GetWidth();
 
     static int GetHeight();
@@ -76,7 +72,6 @@ private:
     static inline int Height;
     static inline vk::UniqueRenderPass RenderPass;
     static inline vk::UniquePipeline Pipeline;
-    static inline bool ClearEnable;
     static inline vk::ClearValue ClearValue;
     static inline uint32_t FrameIndex = 0;
     static inline uint32_t ImageCount = 0;

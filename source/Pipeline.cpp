@@ -229,7 +229,7 @@ void Pipeline::UpdateDescSet(const std::string& name, vk::AccelerationStructureK
 
 void ComputePipeline::Init(const std::string& path, size_t pushSize)
 {
-    spdlog::info("ComputePipeline::Init");
+    spdlog::info("ComputePipeline::Init()");
     this->pushSize = pushSize;
 
     std::vector spirvCode = CompileToSPV(ReadFile(path), EShLangCompute);
@@ -254,7 +254,7 @@ void ComputePipeline::Run(vk::CommandBuffer commandBuffer, uint32_t groupCountX,
 
 void RayTracingPipeline::Init(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath, size_t pushSize)
 {
-    spdlog::info("RayTracingPipeline::Init");
+    spdlog::info("RayTracingPipeline::Init()");
     this->pushSize = pushSize;
     const uint32_t rgenIndex = 0;
     const uint32_t missIndex = 1;

@@ -164,17 +164,35 @@ namespace
         descPoolCI.setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);
         return device.createDescriptorPool(descPoolCI);
     }
+
+    std::vector<const char*> GetExtensions()
+    {
+        uint32_t glfwExtensionCount = 0;
+        const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+        std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        return extensions;
+    }
+
+    vk::SurfaceKHR CreateSurface()
+    {
+        VkSurfaceKHR _surface;
+        if (glfwCreateWindowSurface(VkInstance(Vulkan::Instance), Window::GetWindow(), nullptr, &_surface) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create window surface!");
+        }
+        return { _surface };
+    }
 }
 
 void Vulkan::Init()
 {
     spdlog::info("Vulkan::Init()");
     std::vector layers{ "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_monitor" };
-    Instance = CreateInstance(Window::GetExtensions(), layers);
+    Instance = CreateInstance(GetExtensions(), layers);
     VULKAN_HPP_DEFAULT_DISPATCHER.init(Instance);
     DebugMessenger = CreateDebugMessenger(Instance);
     PhysicalDevice = Instance.enumeratePhysicalDevices().front();
-    Surface = Window::CreateSurface();
+    Surface = CreateSurface();
     QueueFamily = FindQueueFamily(PhysicalDevice, Surface);
     Device = CreateDevice(PhysicalDevice, QueueFamily);
     Queue = Device.getQueue(QueueFamily, 0);
