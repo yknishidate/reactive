@@ -48,8 +48,12 @@ void Engine::Init()
     mesh = std::make_shared<Mesh>("../asset/viking_room/viking_room.obj");
     texture.Init("../asset/viking_room/viking_room.png");
 
-    object.Init(mesh);
-    topAccel.InitAsTop(object);
+    objects.resize(2);
+    objects[0].Init(mesh);
+    objects[0].GetTransform().Position.x = 1;
+    objects[1].Init(mesh);
+    objects[1].GetTransform().Position.x = -1;
+    topAccel.InitAsTop(objects);
 
     BufferAddress address;
     address.vertices = mesh->GetVertexBufferAddress();

@@ -29,7 +29,7 @@ private:
     Image outputImage;
     Image texture;
     RayTracingPipeline rtPipeline;
-    Object object;
+    std::vector<Object> objects;
     std::shared_ptr<Mesh> mesh;
     Camera camera;
     Accel topAccel;

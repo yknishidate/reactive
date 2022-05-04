@@ -12,6 +12,7 @@ public:
     void InitAsTop(const Accel& bottom);
     void InitAsTop(const Accel& bottom, const vk::TransformMatrixKHR& transform);
     void InitAsTop(const Object& object);
+    void InitAsTop(const std::vector<Object>& objects);
 
     vk::AccelerationStructureKHR GetAccel() const { return *accel; }
 
