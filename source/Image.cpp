@@ -119,7 +119,7 @@ void Image::Init(const std::string& filepath)
     stbi_image_free(data);
 }
 
-void SetImageLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout)
+void Image::SetImageLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout)
 {
     vk::PipelineStageFlags srcStageMask = vk::PipelineStageFlagBits::eAllCommands;
     vk::PipelineStageFlags dstStageMask = vk::PipelineStageFlagBits::eAllCommands;
@@ -161,7 +161,7 @@ void SetImageLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk::ImageL
     commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, {}, {}, {}, barrier);
 }
 
-void CopyImage(vk::CommandBuffer commandBuffer, vk::Image src, vk::Image dst, vk::ImageCopy copyRegion)
+void Image::CopyImage(vk::CommandBuffer commandBuffer, vk::Image src, vk::Image dst, vk::ImageCopy copyRegion)
 {
     commandBuffer.copyImage(src, vk::ImageLayout::eTransferSrcOptimal,
                             dst, vk::ImageLayout::eTransferDstOptimal, copyRegion);

@@ -1,10 +1,6 @@
 #pragma once
 #include <vulkan/vulkan.hpp>
 
-void SetImageLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout);
-
-void CopyImage(vk::CommandBuffer commandBuffer, vk::Image src, vk::Image dst, vk::ImageCopy copyRegion);
-
 class Image
 {
 public:
@@ -15,6 +11,9 @@ public:
     vk::Image GetImage() const { return *image; }
     vk::ImageView GetView() const { return *view; }
     vk::Sampler GetSampler() const { return *sampler; }
+
+    static void SetImageLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout);
+    static void CopyImage(vk::CommandBuffer commandBuffer, vk::Image src, vk::Image dst, vk::ImageCopy copyRegion);
 
 private:
     vk::UniqueImage image;
