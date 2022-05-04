@@ -13,15 +13,16 @@
 
 struct PushConstants
 {
-    glm::mat4 InvView;
-    glm::mat4 InvProj;
+    glm::mat4 InvView{ 1 };
+    glm::mat4 InvProj{ 1 };
     int Frame = 0;
 };
 
 struct ObjectData
 {
-    glm::mat4 Matrix;
-    glm::mat4 NormalMatrix;
+    glm::mat4 Matrix{ 1 };
+    glm::mat4 NormalMatrix{ 1 };
+    int TextureIndex = -1;
 };
 
 class Engine

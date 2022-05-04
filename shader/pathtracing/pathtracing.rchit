@@ -32,6 +32,7 @@ struct ObjectData
 {
     mat4 matrix;
     mat4 normalMatrix;
+    int textureIndex;
 };
 
 layout(buffer_reference, scalar) buffer Vertices { Vertex v[]; };
@@ -61,7 +62,12 @@ void main()
     vec3 pos      = v0.pos      * barycentricCoords.x + v1.pos      * barycentricCoords.y + v2.pos      * barycentricCoords.z;
     vec3 normal   = v0.normal   * barycentricCoords.x + v1.normal   * barycentricCoords.y + v2.normal   * barycentricCoords.z;
     vec2 texCoord = v0.texCoord * barycentricCoords.x + v1.texCoord * barycentricCoords.y + v2.texCoord * barycentricCoords.z;
-    vec3 color = texture(samplers[0], texCoord).rgb;
+
+    vec3 color = vec3(1);
+    int textureIndex = objects.o[gl_InstanceID].textureIndex;
+    if(textureIndex != -1){
+        color = texture(samplers[textureIndex], texCoord).rgb;
+    }
 
     mat4 matrix = objects.o[gl_InstanceID].matrix;
     mat4 normalMatrix = objects.o[gl_InstanceID].normalMatrix;

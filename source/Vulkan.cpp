@@ -79,12 +79,17 @@ namespace
 
         vk::PhysicalDeviceFeatures deviceFeatures;
         deviceFeatures.shaderInt64 = true;
+
+        vk::PhysicalDeviceDescriptorIndexingFeatures descFeatures;
+        descFeatures.runtimeDescriptorArray = true;
+
         vk::DeviceCreateInfo createInfo{ {}, queueCI, {}, deviceExtensions, &deviceFeatures };
         vk::StructureChain<vk::DeviceCreateInfo,
             vk::PhysicalDeviceBufferDeviceAddressFeatures,
             vk::PhysicalDeviceRayTracingPipelineFeaturesKHR,
-            vk::PhysicalDeviceAccelerationStructureFeaturesKHR>
-            createInfoChain{ createInfo, {true}, {true}, {true} };
+            vk::PhysicalDeviceAccelerationStructureFeaturesKHR,
+            vk::PhysicalDeviceDescriptorIndexingFeatures>
+            createInfoChain{ createInfo, {true}, {true}, {true}, descFeatures };
 
         return physicalDevice.createDevice(createInfoChain.get<vk::DeviceCreateInfo>());
     }

@@ -47,19 +47,16 @@ void Engine::Init()
     inputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
     outputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
     //mesh = std::make_shared<Mesh>("../asset/viking_room/viking_room.obj");
-    mesh = std::make_shared<Mesh>("../asset/Sphere.obj");
+    mesh = std::make_shared<Mesh>("../asset/CornellBox.obj");
     texture.Init("../asset/viking_room/viking_room.png");
 
-    objects.resize(2);
+    objects.resize(1);
     objects[0].Init(mesh);
-    objects[0].GetTransform().Position.x = 1;
-    objects[1].Init(mesh);
-    objects[1].GetTransform().Position.x = -1;
     topAccel.InitAsTop(objects);
 
     // Create object data
     for (auto&& object : objects) {
-        objectData.push_back({ object.GetTransform().GetMatrix(), object.GetTransform().GetNormalMatrix() });
+        objectData.push_back({ object.GetTransform().GetMatrix(), object.GetTransform().GetNormalMatrix(), -1 });
     }
     objectBuffer.InitOnHost(sizeof(ObjectData) * objectData.size(),
                             vk::BufferUsageFlagBits::eStorageBuffer |
