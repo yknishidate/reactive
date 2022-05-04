@@ -77,57 +77,6 @@ void Accel::InitAsBottom(const Buffer& vertexBuffer, const Buffer& indexBuffer, 
     BuildAccel(*accel, size, primitiveCount, geometryInfo);
 }
 
-void Accel::InitAsTop(const Accel& bottom)
-{
-    vk::TransformMatrixKHR transform = std::array{
-        std::array{1.0f, 0.0f, 0.0f, 0.0f},
-        std::array{0.0f, 1.0f, 0.0f, 0.0f},
-        std::array{0.0f, 0.0f, 1.0f, 0.0f} };
-    InitAsTop(bottom, transform);
-}
-
-void Accel::InitAsTop(const Accel& bottom, const vk::TransformMatrixKHR& transform)
-{
-    vk::AccelerationStructureInstanceKHR instance;
-    instance.setTransform(transform);
-    instance.setMask(0xFF);
-    instance.setAccelerationStructureReference(bottom.buffer.GetAddress());
-    instance.setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);
-
-    Buffer instanceBuffer;
-    instanceBuffer.InitOnHost(sizeof(vk::AccelerationStructureInstanceKHR),
-                              vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
-                              vk::BufferUsageFlagBits::eShaderDeviceAddress);
-    instanceBuffer.Copy(&instance);
-
-    vk::AccelerationStructureGeometryInstancesDataKHR instancesData;
-    instancesData.setArrayOfPointers(false);
-    instancesData.setData(instanceBuffer.GetAddress());
-
-    vk::AccelerationStructureGeometryKHR geometry;
-    geometry.setGeometryType(vk::GeometryTypeKHR::eInstances);
-    geometry.setGeometry({ instancesData });
-    geometry.setFlags(vk::GeometryFlagBitsKHR::eOpaque);
-
-    vk::AccelerationStructureTypeKHR type = vk::AccelerationStructureTypeKHR::eTopLevel;
-    uint32_t primitiveCount = 1;
-
-    vk::AccelerationStructureBuildGeometryInfoKHR geometryInfo;
-    geometryInfo.setType(type);
-    geometryInfo.setFlags(vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace);
-    geometryInfo.setGeometries(geometry);
-
-    vk::DeviceSize size = GetAccelSize(geometryInfo, primitiveCount);
-    buffer = CreateAccelBuffer(size, type, geometry);
-    accel = CreateAccel(buffer.GetBuffer(), size, type);
-    BuildAccel(*accel, size, primitiveCount, geometryInfo);
-}
-
-void Accel::InitAsTop(const Object& object)
-{
-    InitAsTop(object.GetMesh().GetAccel());
-}
-
 void Accel::InitAsTop(const std::vector<Object>& objects)
 {
     uint32_t primitiveCount = objects.size();
@@ -168,4 +117,9 @@ void Accel::InitAsTop(const std::vector<Object>& objects)
     buffer = CreateAccelBuffer(size, type, geometry);
     accel = CreateAccel(buffer.GetBuffer(), size, type);
     BuildAccel(*accel, size, primitiveCount, geometryInfo);
+}
+
+void Accel::InitAsTop(const Object& object)
+{
+    InitAsTop({ object });
 }
