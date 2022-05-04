@@ -61,5 +61,5 @@ Mesh::Mesh(const std::string& filepath)
     vertexBuffer.Copy(vertices.data());
     indexBuffer.Copy(indices.data());
 
-    bottomAccel.InitAsBottom(vertexBuffer, indexBuffer, sizeof(Vertex), vertices.size(), indices.size() / 3);
+    bottomAccel.InitAsBottom(vertexBuffer, indexBuffer, vertices.size(), indices.size() / 3);
 }

@@ -49,12 +49,12 @@ namespace
     }
 }
 
-void Accel::InitAsBottom(const Buffer& vertexBuffer, const Buffer& indexBuffer, size_t vertexStride, size_t vertexCount, size_t primitiveCount)
+void Accel::InitAsBottom(const Buffer& vertexBuffer, const Buffer& indexBuffer, size_t vertexCount, size_t primitiveCount)
 {
     vk::AccelerationStructureGeometryTrianglesDataKHR triangleData;
     triangleData.setVertexFormat(vk::Format::eR32G32B32Sfloat);
     triangleData.setVertexData(vertexBuffer.GetAddress());
-    triangleData.setVertexStride(vertexStride);
+    triangleData.setVertexStride(sizeof(Vertex));
     triangleData.setMaxVertex(vertexCount);
     triangleData.setIndexType(vk::IndexType::eUint32);
     triangleData.setIndexData(indexBuffer.GetAddress());
