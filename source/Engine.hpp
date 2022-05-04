@@ -27,6 +27,7 @@ public:
 
 private:
     static inline Image renderImage;
+    static inline Image texture;
     static inline ComputePipeline pipeline;
     static inline RayTracingPipeline rtPipeline;
     static inline Mesh mesh;

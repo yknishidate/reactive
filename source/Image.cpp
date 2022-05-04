@@ -1,6 +1,8 @@
 #include "Image.hpp"
+#include "Buffer.hpp"
 #include "Vulkan.hpp"
 #include <spdlog/spdlog.h>
+#include <stb_image.h>
 
 namespace
 {
@@ -71,6 +73,50 @@ void Image::Init(int width, int height, vk::Format format)
 void Image::Init(uint32_t width, uint32_t height, vk::Format format)
 {
     Init(static_cast<int>(width), static_cast<int>(height), format);
+}
+
+void Image::Init(const std::string& filepath)
+{
+    // TODO: desire 4 channel
+    int width, height, channels;
+    unsigned char* data = stbi_load(filepath.c_str(), &width, &height, &channels, 0);
+    if (!data) {
+        throw std::runtime_error("Failed to load texture");
+    }
+
+    std::vector<uint8_t> rgba(width * height * 4);
+    for (int h = 0; h < height; h++) {
+        for (int w = 0; w < width; w++) {
+            int index = h * width + w;
+            rgba[index * 4 + 0] = data[index * 3 + 0];
+            rgba[index * 4 + 1] = data[index * 3 + 1];
+            rgba[index * 4 + 2] = data[index * 3 + 2];
+            rgba[index * 4 + 3] = 0;
+        }
+    }
+
+    Init(width, height, vk::Format::eR8G8B8A8Unorm);
+
+    Buffer staging;
+    staging.InitOnHost(width * height * 4, vk::BufferUsageFlagBits::eTransferSrc);
+    staging.Copy(rgba.data());
+
+    Vulkan::OneTimeSubmit(
+        [&](vk::CommandBuffer commandBuffer)
+        {
+            vk::BufferImageCopy region{};
+            region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+            region.imageSubresource.mipLevel = 0;
+            region.imageSubresource.baseArrayLayer = 0;
+            region.imageSubresource.layerCount = 1;
+            region.imageExtent = vk::Extent3D{ static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1 };
+
+            SetImageLayout(commandBuffer, *image, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+            commandBuffer.copyBufferToImage(staging.GetBuffer(), *image, vk::ImageLayout::eTransferDstOptimal, region);
+            SetImageLayout(commandBuffer, *image, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eGeneral);
+        });
+
+    stbi_image_free(data);
 }
 
 void SetImageLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout)

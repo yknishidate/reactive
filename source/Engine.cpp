@@ -40,6 +40,7 @@ void Engine::Init()
     renderImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
 
     mesh.Init("../asset/viking_room/viking_room.obj");
+    texture.Init("../asset/viking_room/viking_room.png");
     topAccel.InitAsTop(mesh.GetAccel());
 
     // Create pipelines
@@ -51,6 +52,7 @@ void Engine::Init()
                     "../shader/texture/texture.rchit", sizeof(PushConstants));
     rtPipeline.UpdateDescSet("renderImage", renderImage.GetView(), renderImage.GetSampler());
     rtPipeline.UpdateDescSet("topLevelAS", topAccel.GetAccel());
+    rtPipeline.UpdateDescSet("samplers", texture.GetView(), texture.GetSampler());
 
     // Create push constants
     pushConstants.invProj = glm::inverse(glm::perspective(glm::radians(45.0f), float(Window::GetWidth()) / Window::GetHeight(), 0.01f, 10000.0f));

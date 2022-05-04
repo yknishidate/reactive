@@ -10,6 +10,7 @@ class Image
 public:
     void Init(int width, int height, vk::Format format);
     void Init(uint32_t width, uint32_t height, vk::Format format);
+    void Init(const std::string& filepath);
 
     vk::Image GetImage() const { return *image; }
     vk::ImageView GetView() const { return *view; }
