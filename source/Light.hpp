@@ -1,17 +1,14 @@
 #pragma once
+#include <glm/glm.hpp>
 
-class Light
+struct PointLight
 {
-public:
-
-private:
-
+    glm::vec3 Intensity{ 1 };
+    glm::vec3 Position{ 1 };
 };
 
-class DirectionalLight : public Light
+struct DirectionalLight
 {
-public:
-
-private:
-
+    glm::vec3 Intensity{ 1 };
+    glm::vec3 Direction{ 0, -1, 0 };
 };

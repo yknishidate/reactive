@@ -13,9 +13,9 @@
 
 struct PushConstants
 {
-    glm::mat4 invView;
-    glm::mat4 invProj;
-    int frame = 0;
+    glm::mat4 InvView;
+    glm::mat4 InvProj;
+    int Frame = 0;
 };
 
 struct ObjectData

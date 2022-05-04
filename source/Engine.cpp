@@ -84,9 +84,9 @@ void Engine::Init()
 
     // Create push constants
     camera.Init(Window::GetWidth(), Window::GetHeight());
-    pushConstants.invProj = glm::inverse(camera.GetProj());
-    pushConstants.invView = glm::inverse(camera.GetView());
-    pushConstants.frame = 0;
+    pushConstants.InvProj = glm::inverse(camera.GetProj());
+    pushConstants.InvView = glm::inverse(camera.GetView());
+    pushConstants.Frame = 0;
 }
 
 void Engine::Run()
@@ -99,11 +99,11 @@ void Engine::Run()
 
         // Update push constants
         camera.ProcessInput();
-        pushConstants.invProj = glm::inverse(camera.GetProj());
-        pushConstants.invView = glm::inverse(camera.GetView());
-        pushConstants.frame++;
+        pushConstants.InvProj = glm::inverse(camera.GetProj());
+        pushConstants.InvView = glm::inverse(camera.GetView());
+        pushConstants.Frame++;
         if (camera.CheckDirtyAndClean()) {
-            pushConstants.frame = 0;
+            pushConstants.Frame = 0;
         }
 
         // Render
