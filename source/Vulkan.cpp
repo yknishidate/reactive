@@ -166,11 +166,11 @@ namespace
     }
 }
 
-void Vulkan::Init(const std::vector<const char*>& extensions,
-                  const std::vector<const char*>& layers)
+void Vulkan::Init()
 {
     spdlog::info("Vulkan::Init()");
-    Instance = CreateInstance(extensions, layers);
+    std::vector layers{ "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_monitor" };
+    Instance = CreateInstance(Window::GetExtensions(), layers);
     VULKAN_HPP_DEFAULT_DISPATCHER.init(Instance);
     DebugMessenger = CreateDebugMessenger(Instance);
     PhysicalDevice = Instance.enumeratePhysicalDevices().front();

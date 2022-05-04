@@ -5,8 +5,7 @@
 
 struct Vulkan
 {
-    static void Init(const std::vector<const char*>& extensions,
-                     const std::vector<const char*>& layers);
+    static void Init();
 
     static auto AllocateCommandBuffers(uint32_t count)->std::vector<vk::UniqueCommandBuffer>;
     static auto AllocateCommandBuffer()->vk::UniqueCommandBuffer;

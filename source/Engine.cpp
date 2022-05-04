@@ -44,8 +44,7 @@ void Engine::Init()
     spdlog::set_pattern("[%^%l%$] %v");
     spdlog::info("Engine::Init()");
     Window::Init(1920, 1080);
-    std::vector layers{ "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_monitor" };
-    Vulkan::Init(Window::GetExtensions(), layers);
+    Vulkan::Init();
     Window::SetupUI();
 
     // Create resources
