@@ -77,29 +77,17 @@ void Image::Init(uint32_t width, uint32_t height, vk::Format format)
 
 void Image::Init(const std::string& filepath)
 {
-    // TODO: desire 4 channel
     int width, height, channels;
-    unsigned char* data = stbi_load(filepath.c_str(), &width, &height, &channels, 0);
+    unsigned char* data = stbi_load(filepath.c_str(), &width, &height, &channels, sizeof(unsigned char) * 4);
     if (!data) {
         throw std::runtime_error("Failed to load texture");
-    }
-
-    std::vector<uint8_t> rgba(width * height * 4);
-    for (int h = 0; h < height; h++) {
-        for (int w = 0; w < width; w++) {
-            int index = h * width + w;
-            rgba[index * 4 + 0] = data[index * 3 + 0];
-            rgba[index * 4 + 1] = data[index * 3 + 1];
-            rgba[index * 4 + 2] = data[index * 3 + 2];
-            rgba[index * 4 + 3] = 0;
-        }
     }
 
     Init(width, height, vk::Format::eR8G8B8A8Unorm);
 
     Buffer staging;
     staging.InitOnHost(width * height * 4, vk::BufferUsageFlagBits::eTransferSrc);
-    staging.Copy(rgba.data());
+    staging.Copy(data);
 
     Vulkan::OneTimeSubmit(
         [&](vk::CommandBuffer commandBuffer)
