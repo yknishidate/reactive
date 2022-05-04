@@ -65,6 +65,8 @@ public:
 
     static void Present();
 
+    static GLFWwindow* GetWindow();
+
 private:
     static inline GLFWwindow* window;
     static inline int minImageCount = 3;

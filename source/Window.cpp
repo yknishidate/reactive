@@ -311,3 +311,8 @@ void Window::Present()
     }
     SemaphoreIndex = (SemaphoreIndex + 1) % Vulkan::SwapchainImages.size();
 }
+
+GLFWwindow* Window::GetWindow()
+{
+    return window;
+}

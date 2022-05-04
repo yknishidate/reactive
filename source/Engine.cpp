@@ -1,6 +1,7 @@
 #include <functional>
 #include "Engine.hpp"
 #include "Vulkan.hpp"
+#include "Input.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -86,7 +87,12 @@ void Engine::Run()
     spdlog::info("Engine::Run()");
     while (!Window::ShouldClose()) {
         Window::PollEvents();
+        Input::Update();
         Window::StartFrame();
+
+        camera.ProcessInput();
+        pushConstants.invProj = glm::inverse(camera.GetProj());
+        pushConstants.invView = glm::inverse(camera.GetView());
 
         if (!Window::IsMinimized()) {
             Window::WaitNextFrame();
