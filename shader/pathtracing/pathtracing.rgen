@@ -27,42 +27,36 @@ uint pcg(inout uint state)
 {
     uint prev = state * 747796405u + 2891336453u;
     uint word = ((prev >> ((prev >> 28u) + 4u)) ^ prev) * 277803737u;
-    state     = prev;
+    state = prev;
     return (word >> 22u) ^ word;
 }
 
 uvec2 pcg2d(uvec2 v)
 {
     v = v * 1664525u + 1013904223u;
-
     v.x += v.y * 1664525u;
     v.y += v.x * 1664525u;
-
     v = v ^ (v >> 16u);
-
     v.x += v.y * 1664525u;
     v.y += v.x * 1664525u;
-
     v = v ^ (v >> 16u);
-
     return v;
 }
 
 float rand(inout uint seed)
 {
     uint val = pcg(seed);
-    return (float(val) * (1.0 / float(0xffffffffu)));
+    return float(val) * (1.0 / float(0xffffffffu));
 }
 
 vec3 cosineSampleHemisphere(float u1, float u2)
 {
-    vec3  dir;
-    float r   = sqrt(u1);
+    vec3 dir;
+    float r = sqrt(u1);
     float phi = 2.0 * M_PI * u2;
-    dir.x     = r * cos(phi);
-    dir.y     = r * sin(phi);
-    dir.z     = sqrt(max(0.0, 1.0 - dir.x * dir.x - dir.y * dir.y));
-
+    dir.x = r * cos(phi);
+    dir.y = r * sin(phi);
+    dir.z = sqrt(max(0.0, 1.0 - dir.x * dir.x - dir.y * dir.y));
     return dir;
 }
 
@@ -77,8 +71,8 @@ void createCoordinateSystem(in vec3 N, out vec3 Nt, out vec3 Nb)
 
 vec3 sampleHemisphere(vec2 randVal, in vec3 x, in vec3 y, in vec3 z)
 {
-    float r1        = randVal.x;
-    float r2        = randVal.y;
+    float r1 = randVal.x;
+    float r2 = randVal.y;
     vec3  direction = cosineSampleHemisphere(r1, r2);
     return direction.x * x + direction.y * y + direction.z * z;
 }
@@ -94,8 +88,6 @@ vec3 sampleDirection(vec2 randVal, vec3 normal)
 
 void main()
 {
-    float tmin = 0.001;
-    float tmax = 10000.0;
     uint maxDepth = 4;
     uint maxSamples = 16;
     vec3 color = vec3(0.0);
@@ -126,9 +118,9 @@ void main()
                 0,    // sbtRecordStride
                 0,    // missIndex
                 origin.xyz,
-                tmin,
+                0.001,
                 direction.xyz,
-                tmax,
+                10000.0,
                 0     // payloadLocation
             );
             if(payLoad.done){

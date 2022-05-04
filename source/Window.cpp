@@ -9,9 +9,12 @@ void Window::Init(int width, int height, const std::string& icon)
     Window::Width = width;
     Window::Height = height;
     glfwInit();
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     window = glfwCreateWindow(width, height, "Window", nullptr, nullptr);
-    SetIcon(icon);
+    if (!icon.empty()) {
+        SetIcon(icon);
+    }
 }
 
 void Window::SetIcon(const std::string& filepath)
