@@ -74,9 +74,6 @@ void Engine::Init()
     inputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
     outputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
     denoisedImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
-    //mesh = std::make_shared<Mesh>("../asset/viking_room/viking_room.obj");
-    //mesh = std::make_shared<Mesh>("../asset/CornellBox.obj");
-    //mesh = std::make_shared<Mesh>("../asset/crytek_sponza/sponza.obj");
     Loader::LoadFromFile("../asset/crytek_sponza/sponza.obj", meshes);
     texture.Init("../asset/viking_room/viking_room.png");
     spdlog::info("Meshes: {}", meshes.size());

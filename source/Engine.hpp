@@ -44,7 +44,6 @@ private:
     std::vector<ObjectData> objectData;
     Buffer objectBuffer;
 
-    //std::shared_ptr<Mesh> mesh;
     std::vector<std::shared_ptr<Mesh>> meshes;
     Camera camera;
     Accel topAccel;
