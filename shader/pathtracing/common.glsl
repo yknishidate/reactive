@@ -1,2 +1,9 @@
 
-const highp float M_2PI = 6.28;
+struct HitPayload
+{
+    vec3 position;
+    vec3 normal;
+    vec3 emittion;
+    vec3 brdf;
+    bool done;
+};

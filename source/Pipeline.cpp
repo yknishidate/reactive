@@ -1,3 +1,5 @@
+#include <filesystem>
+#include <regex>
 #include "Vulkan.hpp"
 #include "Pipeline.hpp"
 #include <SPIRV/GlslangToSpv.h>
@@ -16,12 +18,44 @@ namespace
         return { (std::istreambuf_iterator<char>{input_file}), std::istreambuf_iterator<char>{} };
     }
 
-    std::vector<uint32_t> CompileToSPV(const std::string& glslShader, EShLanguage stage)
+    EShLanguage GetShaderStage(const std::string& filepath)
     {
+        if (filepath.ends_with("vert")) return EShLangVertex;
+        else if (filepath.ends_with("frag")) return EShLangFragment;
+        else if (filepath.ends_with("comp")) return EShLangCompute;
+        else if (filepath.ends_with("rgen")) return EShLangRayGenNV;
+        else if (filepath.ends_with("rmiss")) return EShLangMissNV;
+        else if (filepath.ends_with("rchit")) return EShLangClosestHitNV;
+        else if (filepath.ends_with("rahit")) return EShLangAnyHitNV;
+        else assert(false && "Unknown shader stage");
+    }
+
+    std::string Include(const std::string& filepath, const std::string& sourceText)
+    {
+        using std::filesystem::path;
+        path dir = path{ filepath }.parent_path();
+
+        std::string included = sourceText;
+        std::regex regex{ "#include \"(.*)\"" };
+        std::smatch results;
+        while (std::regex_search(included, results, regex)) {
+            path includePath = dir / results[1].str();
+            std::string includeText = ReadFile(includePath.string());
+            included.replace(results.position(), results.length(), includeText);
+        }
+        return included;
+    }
+
+    std::vector<uint32_t> CompileToSPV(const std::string& filepath)
+    {
+        std::string glslShader = ReadFile(filepath);
+        EShLanguage stage = GetShaderStage(filepath);
+        std::string included = Include(filepath, glslShader);
+
         glslang::InitializeProcess();
 
         const char* shaderStrings[1];
-        shaderStrings[0] = glslShader.data();
+        shaderStrings[0] = included.data();
 
         glslang::TShader shader(stage);
         shader.setEnvTarget(glslang::EShTargetLanguage::EShTargetSpv, glslang::EShTargetLanguageVersion::EShTargetSpv_1_4);
@@ -232,7 +266,7 @@ void ComputePipeline::Init(const std::string& path, size_t pushSize)
     spdlog::info("ComputePipeline::Init()");
     this->pushSize = pushSize;
 
-    std::vector spirvCode = CompileToSPV(ReadFile(path), EShLangCompute);
+    std::vector spirvCode = CompileToSPV(path);
     AddBindingMap(spirvCode, bindingMap, vk::ShaderStageFlagBits::eCompute);
 
     shaderModule = CreateShaderModule(spirvCode);
@@ -261,9 +295,9 @@ void RayTracingPipeline::Init(const std::string& rgenPath, const std::string& mi
     const uint32_t chitIndex = 2;
 
     // Compile shaders
-    std::vector rgenShader = CompileToSPV(ReadFile(rgenPath), EShLangRayGen);
-    std::vector missShader = CompileToSPV(ReadFile(missPath), EShLangMiss);
-    std::vector chitShader = CompileToSPV(ReadFile(chitPath), EShLangClosestHit);
+    std::vector rgenShader = CompileToSPV(rgenPath);
+    std::vector missShader = CompileToSPV(missPath);
+    std::vector chitShader = CompileToSPV(chitPath);
 
     // Get bindings
     AddBindingMap(rgenShader, bindingMap, vk::ShaderStageFlagBits::eRaygenKHR);
