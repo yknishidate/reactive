@@ -34,7 +34,10 @@ public:
 private:
     Image inputImage;
     Image outputImage;
+    Image denoisedImage;
     Image texture;
+    ComputePipeline meanPipeline;
+    ComputePipeline medianPipeline;
     RayTracingPipeline rtPipeline;
     std::vector<Object> objects;
 

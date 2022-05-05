@@ -21,6 +21,8 @@ namespace
     void CopyImages(vk::CommandBuffer commandBuffer, int width, int height,
                     vk::Image inputImage, vk::Image outputImage, vk::Image backImage)
     {
+        // output -> input
+        // output -> back
         vk::ImageCopy copyRegion;
         copyRegion.setSrcSubresource({ vk::ImageAspectFlagBits::eColor, 0, 0, 1 });
         copyRegion.setDstSubresource({ vk::ImageAspectFlagBits::eColor, 0, 0, 1 });
@@ -37,6 +39,30 @@ namespace
         Image::SetImageLayout(commandBuffer, inputImage, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eGeneral);
         Image::SetImageLayout(commandBuffer, backImage, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eColorAttachmentOptimal);
     }
+
+    void CopyImages(vk::CommandBuffer commandBuffer, int width, int height,
+                    vk::Image inputImage, vk::Image outputImage, vk::Image denoisedImage, vk::Image backImage)
+    {
+        // denoised -> back
+        // output -> input
+        vk::ImageCopy copyRegion;
+        copyRegion.setSrcSubresource({ vk::ImageAspectFlagBits::eColor, 0, 0, 1 });
+        copyRegion.setDstSubresource({ vk::ImageAspectFlagBits::eColor, 0, 0, 1 });
+        copyRegion.setExtent({ uint32_t(width), uint32_t(height), 1 });
+
+        Image::SetImageLayout(commandBuffer, denoisedImage, vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal);
+        Image::SetImageLayout(commandBuffer, outputImage, vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal);
+        Image::SetImageLayout(commandBuffer, inputImage, vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferDstOptimal);
+        Image::SetImageLayout(commandBuffer, backImage, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+
+        Image::CopyImage(commandBuffer, denoisedImage, backImage, copyRegion);
+        Image::CopyImage(commandBuffer, outputImage, inputImage, copyRegion);
+
+        Image::SetImageLayout(commandBuffer, denoisedImage, vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eGeneral);
+        Image::SetImageLayout(commandBuffer, outputImage, vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eGeneral);
+        Image::SetImageLayout(commandBuffer, inputImage, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eGeneral);
+        Image::SetImageLayout(commandBuffer, backImage, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eColorAttachmentOptimal);
+    }
 }
 
 void Engine::Init()
@@ -46,6 +72,7 @@ void Engine::Init()
     // Create resources
     inputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
     outputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
+    denoisedImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
     //mesh = std::make_shared<Mesh>("../asset/viking_room/viking_room.obj");
     //mesh = std::make_shared<Mesh>("../asset/CornellBox.obj");
     mesh = std::make_shared<Mesh>("../asset/crytek_sponza/sponza.obj");
@@ -54,7 +81,8 @@ void Engine::Init()
     objects.resize(1);
     objects[0].Init(mesh);
     objects[0].GetTransform().Position.y = 1.0;
-    objects[0].GetTransform().Scale = glm::vec3(0.01);
+    objects[0].GetTransform().Scale = glm::vec3{ 0.01 };
+    objects[0].GetTransform().Rotation = glm::quat{ glm::vec3{ 0, glm::radians(90.0f), 0 } };
     topAccel.InitAsTop(objects);
 
     // Create object data
@@ -73,7 +101,7 @@ void Engine::Init()
     addressBuffer.InitOnHost(sizeof(BufferAddress), vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress);
     addressBuffer.Copy(&address);
 
-    // Create pipeline
+    // Create pipelines
     rtPipeline.Init("../shader/pathtracing/pathtracing.rgen",
                     "../shader/pathtracing/pathtracing.rmiss",
                     "../shader/pathtracing/pathtracing.rchit", sizeof(PushConstants));
@@ -82,6 +110,10 @@ void Engine::Init()
     rtPipeline.UpdateDescSet("topLevelAS", topAccel.GetAccel());
     rtPipeline.UpdateDescSet("samplers", texture.GetView(), texture.GetSampler());
     rtPipeline.UpdateDescSet("Addresses", addressBuffer.GetBuffer(), addressBuffer.GetSize());
+
+    medianPipeline.Init("../shader/denoise/median.comp", sizeof(PushConstants));
+    medianPipeline.UpdateDescSet("inputImage", outputImage.GetView(), outputImage.GetSampler());
+    medianPipeline.UpdateDescSet("outputImage", denoisedImage.GetView(), denoisedImage.GetSampler());
 
     // Create push constants
     camera.Init(Window::GetWidth(), Window::GetHeight());
@@ -93,15 +125,15 @@ void Engine::Init()
 void Engine::Run()
 {
     static bool accumulation = true;
-    static bool activatePanel = true;
+    static int denoise = 0;
     spdlog::info("Engine::Run()");
     while (!Window::ShouldClose()) {
         Window::PollEvents();
         Input::Update();
         Window::StartFrame();
 
-        ImGui::Text("Hello, world %d", 123);
         ImGui::Checkbox("Accumulation", &accumulation);
+        ImGui::Combo("Denoise", &denoise, "Off\0Median\0");
         ImGui::Render();
 
         // Update push constants
@@ -123,7 +155,12 @@ void Engine::Run()
             int height = Window::GetHeight();
             vk::CommandBuffer commandBuffer = Window::GetCurrentCommandBuffer();
             rtPipeline.Run(commandBuffer, width, height, &pushConstants);
-            CopyImages(commandBuffer, width, height, inputImage.GetImage(), outputImage.GetImage(), Window::GetBackImage());
+            if (denoise) {
+                medianPipeline.Run(commandBuffer, width, height, &pushConstants);
+                CopyImages(commandBuffer, width, height, inputImage.GetImage(), outputImage.GetImage(), denoisedImage.GetImage(), Window::GetBackImage());
+            } else {
+                CopyImages(commandBuffer, width, height, inputImage.GetImage(), outputImage.GetImage(), Window::GetBackImage());
+            }
 
             Window::RenderUI();
             Window::Submit();
