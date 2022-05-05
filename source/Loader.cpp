@@ -46,3 +46,23 @@ void Loader::LoadFromFile(const std::string& filepath,
         LoadShape(attrib, shape, vertices, indices);
     }
 }
+
+// Load as multiple mesh
+void Loader::LoadFromFile(const std::string& filepath, std::vector<std::shared_ptr<Mesh>>& meshes)
+{
+    tinyobj::attrib_t attrib;
+    std::vector<tinyobj::shape_t> shapes;
+    std::vector<tinyobj::material_t> materials;
+    std::string warn, err;
+
+    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filepath.c_str())) {
+        throw std::runtime_error(warn + err);
+    }
+
+    for (const auto& shape : shapes) {
+        std::vector<Vertex> vertices{};
+        std::vector<uint32_t> indices{};
+        LoadShape(attrib, shape, vertices, indices);
+        meshes.push_back(std::make_shared<Mesh>(vertices, indices));
+    }
+}
