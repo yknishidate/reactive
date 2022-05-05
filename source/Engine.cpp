@@ -79,6 +79,7 @@ void Engine::Init()
     //mesh = std::make_shared<Mesh>("../asset/crytek_sponza/sponza.obj");
     Loader::LoadFromFile("../asset/crytek_sponza/sponza.obj", meshes);
     texture.Init("../asset/viking_room/viking_room.png");
+    spdlog::info("Meshes: {}", meshes.size());
 
     objects.resize(meshes.size());
     for (int i = 0; i < meshes.size(); i++) {
