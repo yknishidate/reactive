@@ -36,13 +36,13 @@ struct ObjectData
     int textureIndex;
 };
 
-//layout(buffer_reference, scalar) buffer Vertices { Vertex v[]; };
-//layout(buffer_reference, scalar) buffer Indices { uvec3 i[]; };
-//layout(buffer_reference, scalar) buffer Objects { ObjectData o[]; };
+layout(buffer_reference, scalar) buffer Vertices { Vertex v[]; };
+layout(buffer_reference, scalar) buffer Indices { uvec3 i[]; };
+layout(buffer_reference, scalar) buffer Objects { ObjectData o[]; };
 layout(binding = 0, set = 0) uniform accelerationStructureEXT topLevelAS;
 layout(binding = 1, set = 0, rgba8) uniform image2D inputImage;
 layout(binding = 2, set = 0, rgba8) uniform image2D outputImage;
-//layout(binding = 3) buffer Addresses { MeshAddress address[]; } addresses;
+layout(binding = 3) buffer Addresses { MeshAddress address[]; } addresses;
 layout(binding = 4) uniform sampler2D samplers[];
 
 layout(push_constant) uniform PushConstants{

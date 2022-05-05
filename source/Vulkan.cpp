@@ -1,5 +1,6 @@
 #include "Vulkan.hpp"
 #include <iostream>
+#include <regex>
 #include <spdlog/spdlog.h>
 #include "Window.hpp"
 
@@ -12,7 +13,14 @@ namespace
                                                 VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData,
                                                 void* pUserData)
     {
-        std::cerr << pCallbackData->pMessage << std::endl;
+        std::string message{ pCallbackData->pMessage };
+        std::regex regex{ "The Vulkan spec states: " };
+        std::smatch result;
+        if (std::regex_search(message, result, regex)) {
+            spdlog::error("Validation Error: \n{}\n", message.substr(result.position()));
+        } else {
+            spdlog::error("Validation Error: \n{}\n", message);
+        }
         //assert(false);
         return VK_FALSE;
     }

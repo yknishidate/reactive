@@ -99,12 +99,14 @@ void Engine::Init()
                             vk::BufferUsageFlagBits::eShaderDeviceAddress);
     objectBuffer.Copy(objectData.data());
 
-    //BufferAddress address;
-    //address.vertices = mesh->GetVertexBufferAddress();
-    //address.indices = mesh->GetIndexBufferAddress();
-    //address.objects = objectBuffer.GetAddress();
-    //addressBuffer.InitOnHost(sizeof(BufferAddress), vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress);
-    //addressBuffer.Copy(&address);
+    std::vector<BufferAddress> addresses(meshes.size());
+    for (int i = 0; i < meshes.size(); i++) {
+        addresses[i].vertices = meshes[i]->GetVertexBufferAddress();
+        addresses[i].indices = meshes[i]->GetIndexBufferAddress();
+        addresses[i].objects = objectBuffer.GetAddress();
+    }
+    addressBuffer.InitOnHost(sizeof(BufferAddress) * addresses.size(), vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress);
+    addressBuffer.Copy(addresses.data());
 
     // Create pipelines
     rtPipeline.Init("../shader/pathtracing/pathtracing.rgen",
@@ -114,7 +116,7 @@ void Engine::Init()
     rtPipeline.UpdateDescSet("outputImage", outputImage.GetView(), outputImage.GetSampler());
     rtPipeline.UpdateDescSet("topLevelAS", topAccel.GetAccel());
     rtPipeline.UpdateDescSet("samplers", texture.GetView(), texture.GetSampler());
-    //rtPipeline.UpdateDescSet("Addresses", addressBuffer.GetBuffer(), addressBuffer.GetSize());
+    rtPipeline.UpdateDescSet("Addresses", addressBuffer.GetBuffer(), addressBuffer.GetSize());
 
     medianPipeline.Init("../shader/denoise/median.comp", sizeof(PushConstants));
     medianPipeline.UpdateDescSet("inputImage", outputImage.GetView(), outputImage.GetSampler());
