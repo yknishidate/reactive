@@ -2,6 +2,7 @@
 #include "Engine.hpp"
 #include "Vulkan.hpp"
 #include "Input.hpp"
+#include "Loader.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -75,14 +76,17 @@ void Engine::Init()
     denoisedImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
     //mesh = std::make_shared<Mesh>("../asset/viking_room/viking_room.obj");
     //mesh = std::make_shared<Mesh>("../asset/CornellBox.obj");
-    mesh = std::make_shared<Mesh>("../asset/crytek_sponza/sponza.obj");
+    //mesh = std::make_shared<Mesh>("../asset/crytek_sponza/sponza.obj");
+    Loader::LoadFromFile("../asset/crytek_sponza/sponza.obj", meshes);
     texture.Init("../asset/viking_room/viking_room.png");
 
-    objects.resize(1);
-    objects[0].Init(mesh);
-    objects[0].GetTransform().Position.y = 1.0;
-    objects[0].GetTransform().Scale = glm::vec3{ 0.01 };
-    objects[0].GetTransform().Rotation = glm::quat{ glm::vec3{ 0, glm::radians(90.0f), 0 } };
+    objects.resize(meshes.size());
+    for (int i = 0; i < meshes.size(); i++) {
+        objects[i].Init(meshes[i]);
+        objects[i].GetTransform().Position.y = 1.0;
+        objects[i].GetTransform().Scale = glm::vec3{ 0.01 };
+        objects[i].GetTransform().Rotation = glm::quat{ glm::vec3{ 0, glm::radians(90.0f), 0 } };
+    }
     topAccel.InitAsTop(objects);
 
     // Create object data
@@ -94,12 +98,12 @@ void Engine::Init()
                             vk::BufferUsageFlagBits::eShaderDeviceAddress);
     objectBuffer.Copy(objectData.data());
 
-    BufferAddress address;
-    address.vertices = mesh->GetVertexBufferAddress();
-    address.indices = mesh->GetIndexBufferAddress();
-    address.objects = objectBuffer.GetAddress();
-    addressBuffer.InitOnHost(sizeof(BufferAddress), vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress);
-    addressBuffer.Copy(&address);
+    //BufferAddress address;
+    //address.vertices = mesh->GetVertexBufferAddress();
+    //address.indices = mesh->GetIndexBufferAddress();
+    //address.objects = objectBuffer.GetAddress();
+    //addressBuffer.InitOnHost(sizeof(BufferAddress), vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress);
+    //addressBuffer.Copy(&address);
 
     // Create pipelines
     rtPipeline.Init("../shader/pathtracing/pathtracing.rgen",
@@ -109,7 +113,7 @@ void Engine::Init()
     rtPipeline.UpdateDescSet("outputImage", outputImage.GetView(), outputImage.GetSampler());
     rtPipeline.UpdateDescSet("topLevelAS", topAccel.GetAccel());
     rtPipeline.UpdateDescSet("samplers", texture.GetView(), texture.GetSampler());
-    rtPipeline.UpdateDescSet("Addresses", addressBuffer.GetBuffer(), addressBuffer.GetSize());
+    //rtPipeline.UpdateDescSet("Addresses", addressBuffer.GetBuffer(), addressBuffer.GetSize());
 
     medianPipeline.Init("../shader/denoise/median.comp", sizeof(PushConstants));
     medianPipeline.UpdateDescSet("inputImage", outputImage.GetView(), outputImage.GetSampler());
