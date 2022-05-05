@@ -216,8 +216,6 @@ void Window::RebuildSwapchain()
 
 void Window::StartFrame()
 {
-    static bool showDemoWindow = true;
-
     if (swapchainRebuild) {
         RebuildSwapchain();
     }
@@ -225,10 +223,6 @@ void Window::StartFrame()
     ImGui_ImplVulkan_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-    if (showDemoWindow) {
-        ImGui::ShowDemoWindow(&showDemoWindow);
-    }
-    ImGui::Render();
 }
 
 bool Window::IsMinimized()

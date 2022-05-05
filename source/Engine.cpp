@@ -92,19 +92,26 @@ void Engine::Init()
 
 void Engine::Run()
 {
+    static bool accumulation = true;
+    static bool activatePanel = true;
     spdlog::info("Engine::Run()");
     while (!Window::ShouldClose()) {
         Window::PollEvents();
         Input::Update();
         Window::StartFrame();
 
+        ImGui::Text("Hello, world %d", 123);
+        ImGui::Checkbox("Accumulation", &accumulation);
+        ImGui::Render();
+
         // Update push constants
         camera.ProcessInput();
         pushConstants.InvProj = glm::inverse(camera.GetProj());
         pushConstants.InvView = glm::inverse(camera.GetView());
-        pushConstants.Frame++;
-        if (camera.CheckDirtyAndClean()) {
+        if (!accumulation || camera.CheckDirtyAndClean()) {
             pushConstants.Frame = 0;
+        } else {
+            pushConstants.Frame++;
         }
 
         // Render
