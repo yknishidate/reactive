@@ -37,6 +37,7 @@ private:
     Image outputImage;
     Image denoisedImage;
     Image texture;
+    std::vector<Image> textures;
     ComputePipeline meanPipeline;
     ComputePipeline medianPipeline;
     RayTracingPipeline rtPipeline;

@@ -74,7 +74,7 @@ void Engine::Init()
     inputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
     outputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
     denoisedImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
-    Loader::LoadFromFile("../asset/crytek_sponza/sponza.obj", meshes);
+    Loader::LoadFromFile("../asset/crytek_sponza/sponza.obj", meshes, textures);
     texture.Init("../asset/viking_room/viking_room.png");
     spdlog::info("Meshes: {}", meshes.size());
 
