@@ -50,25 +50,20 @@ namespace
             LoadShape(attrib, shape, vertices, indices);
         }
     }
+}
 
-    // Load as multiple mesh
-    void LoadFromFile(const std::string& filepath,
-                      std::vector<std::vector<Vertex>>& verticesList,
-                      std::vector<std::vector<uint32_t>>& indicesList)
-    {
-        tinyobj::attrib_t attrib;
-        std::vector<tinyobj::shape_t> shapes;
-        std::vector<tinyobj::material_t> materials;
-        std::string warn, err;
+Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices)
+{
+    vk::BufferUsageFlags usage{
+        vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
+        vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress
+    };
 
-        if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filepath.c_str())) {
-            throw std::runtime_error(warn + err);
-        }
-
-        for (int meshIndex = 0; meshIndex < shapes.size(); meshIndex++) {
-            LoadShape(attrib, shapes[meshIndex], verticesList[meshIndex], indicesList[meshIndex]);
-        }
-    }
+    vertexBuffer.InitOnHost(sizeof(Vertex) * vertices.size(), usage);
+    indexBuffer.InitOnHost(sizeof(uint32_t) * indices.size(), usage);
+    vertexBuffer.Copy(vertices.data());
+    indexBuffer.Copy(indices.data());
+    bottomAccel.InitAsBottom(vertexBuffer, indexBuffer, vertices.size(), indices.size() / 3);
 }
 
 Mesh::Mesh(const std::string& filepath)
@@ -86,6 +81,5 @@ Mesh::Mesh(const std::string& filepath)
     indexBuffer.InitOnHost(sizeof(uint32_t) * indices.size(), usage);
     vertexBuffer.Copy(vertices.data());
     indexBuffer.Copy(indices.data());
-
     bottomAccel.InitAsBottom(vertexBuffer, indexBuffer, vertices.size(), indices.size() / 3);
 }
