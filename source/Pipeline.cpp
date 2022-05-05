@@ -16,7 +16,7 @@ namespace
         return { (std::istreambuf_iterator<char>{input_file}), std::istreambuf_iterator<char>{} };
     }
 
-    std::vector<unsigned int> CompileToSPV(const std::string& glslShader, EShLanguage stage)
+    std::vector<uint32_t> CompileToSPV(const std::string& glslShader, EShLanguage stage)
     {
         glslang::InitializeProcess();
 
@@ -40,7 +40,7 @@ namespace
             throw std::runtime_error(glslShader + "\n" + shader.getInfoLog());
         }
 
-        std::vector<unsigned int> spvShader;
+        std::vector<uint32_t> spvShader;
         glslang::GlslangToSpv(*program.getIntermediate(stage), spvShader);
         glslang::FinalizeProcess();
 
@@ -67,7 +67,7 @@ namespace
         }
     }
 
-    void AddBindingMap(const std::vector<unsigned int>& spvShader,
+    void AddBindingMap(const std::vector<uint32_t>& spvShader,
                        std::unordered_map<std::string, vk::DescriptorSetLayoutBinding>& map,
                        vk::ShaderStageFlags stage)
     {
@@ -91,7 +91,7 @@ namespace
         }
     }
 
-    vk::UniqueShaderModule CreateShaderModule(const std::vector<unsigned int>& code)
+    vk::UniqueShaderModule CreateShaderModule(const std::vector<uint32_t>& code)
     {
         vk::ShaderModuleCreateInfo createInfo;
         createInfo.setCode(code);

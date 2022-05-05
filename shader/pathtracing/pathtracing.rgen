@@ -60,20 +60,20 @@ vec3 cosineSampleHemisphere(float u1, float u2)
     return dir;
 }
 
-void createCoordinateSystem(in vec3 N, out vec3 Nt, out vec3 Nb)
+void createCoordinateSystem(in vec3 N, out vec3 T, out vec3 B)
 {
     if(abs(N.x) > abs(N.y))
-        Nt = vec3(N.z, 0, -N.x) / sqrt(N.x * N.x + N.z * N.z);
+        T = vec3(N.z, 0, -N.x) / sqrt(N.x * N.x + N.z * N.z);
     else
-        Nt = vec3(0, -N.z, N.y) / sqrt(N.y * N.y + N.z * N.z);
-    Nb = cross(N, Nt);
+        T = vec3(0, -N.z, N.y) / sqrt(N.y * N.y + N.z * N.z);
+    B = cross(N, T);
 }
 
 vec3 sampleHemisphere(vec2 randVal, in vec3 x, in vec3 y, in vec3 z)
 {
     float r1 = randVal.x;
     float r2 = randVal.y;
-    vec3  direction = cosineSampleHemisphere(r1, r2);
+    vec3 direction = cosineSampleHemisphere(r1, r2);
     return direction.x * x + direction.y * y + direction.z * z;
 }
 
@@ -89,7 +89,7 @@ vec3 sampleDirection(vec2 randVal, vec3 normal)
 void main()
 {
     uint maxDepth = 4;
-    uint maxSamples = 16;
+    uint maxSamples = 1;
     vec3 color = vec3(0.0);
 
     for(uint sampleCount = 0; sampleCount < maxSamples; sampleCount++){

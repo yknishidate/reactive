@@ -47,11 +47,14 @@ void Engine::Init()
     inputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
     outputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
     //mesh = std::make_shared<Mesh>("../asset/viking_room/viking_room.obj");
-    mesh = std::make_shared<Mesh>("../asset/CornellBox.obj");
+    //mesh = std::make_shared<Mesh>("../asset/CornellBox.obj");
+    mesh = std::make_shared<Mesh>("../asset/crytek_sponza/sponza.obj");
     texture.Init("../asset/viking_room/viking_room.png");
 
     objects.resize(1);
     objects[0].Init(mesh);
+    objects[0].GetTransform().Position.y = 1.0;
+    objects[0].GetTransform().Scale = glm::vec3(0.01);
     topAccel.InitAsTop(objects);
 
     // Create object data
