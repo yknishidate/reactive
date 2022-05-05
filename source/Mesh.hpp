@@ -37,7 +37,7 @@ struct Material
 class Mesh
 {
 public:
-    Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, int materialIndex = -1);
+    Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, Material material = {});
     Mesh(const std::string& filepath);
     const Accel& GetAccel() const { return bottomAccel; }
     uint64_t GetVertexBufferAddress() const { return vertexBuffer.GetAddress(); }
@@ -47,5 +47,5 @@ private:
     Buffer vertexBuffer{};
     Buffer indexBuffer{};
     Accel bottomAccel{};
-    int materialIndex = -1;
+    Material material{};
 };

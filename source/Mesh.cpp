@@ -2,9 +2,9 @@
 #include "Mesh.hpp"
 #include "Loader.hpp"
 
-Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, int materialIndex)
+Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, Material material)
 {
-    this->materialIndex = materialIndex;
+    this->material = material;
     vk::BufferUsageFlags usage{
     vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress
