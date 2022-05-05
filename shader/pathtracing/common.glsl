@@ -33,6 +33,7 @@ struct ObjectData
 {
     mat4 matrix;
     mat4 normalMatrix;
+    vec4 diffuse;
     int textureIndex;
 };
 

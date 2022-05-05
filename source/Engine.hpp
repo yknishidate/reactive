@@ -22,6 +22,7 @@ struct ObjectData
 {
     glm::mat4 Matrix{ 1 };
     glm::mat4 NormalMatrix{ 1 };
+    glm::vec4 Diffuse{ 1.0 };
     int TextureIndex = -1;
 };
 

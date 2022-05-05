@@ -89,7 +89,10 @@ void Engine::Init()
 
     // Create object data
     for (auto&& object : objects) {
-        objectData.push_back({ object.GetTransform().GetMatrix(), object.GetTransform().GetNormalMatrix(), -1 });
+        glm::mat4 matrix = object.GetTransform().GetMatrix();
+        glm::mat4 normalMatrix = object.GetTransform().GetNormalMatrix();
+        glm::vec3 diffuse = object.GetMesh().GetMaterial().Diffuse;
+        objectData.push_back({ matrix, normalMatrix, glm::vec4(diffuse, 1), -1 });
     }
     objectBuffer.InitOnHost(sizeof(ObjectData) * objectData.size(),
                             vk::BufferUsageFlagBits::eStorageBuffer |

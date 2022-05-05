@@ -1,5 +1,6 @@
-#include "Loader.hpp"
 #include <filesystem>
+#include "Loader.hpp"
+#include <spdlog/spdlog.h>
 
 void Loader::LoadShape(const tinyobj::attrib_t& attrib, const tinyobj::shape_t& shape,
                        std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
@@ -52,6 +53,7 @@ void Loader::LoadFromFile(const std::string& filepath,
 // Load as multiple mesh
 void Loader::LoadFromFile(const std::string& filepath, std::vector<std::shared_ptr<Mesh>>& meshes)
 {
+    spdlog::info("Load file: {}", filepath);
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;

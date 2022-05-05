@@ -42,6 +42,7 @@ public:
     const Accel& GetAccel() const { return bottomAccel; }
     uint64_t GetVertexBufferAddress() const { return vertexBuffer.GetAddress(); }
     uint64_t GetIndexBufferAddress() const { return indexBuffer.GetAddress(); }
+    Material GetMaterial() const { return material; }
 
 private:
     Buffer vertexBuffer{};

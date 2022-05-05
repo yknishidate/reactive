@@ -1,9 +1,11 @@
 #include "Vulkan.hpp"
 #include "Mesh.hpp"
 #include "Loader.hpp"
+#include <spdlog/spdlog.h>
 
 Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, Material material)
 {
+    spdlog::info("Diffuse: {}", glm::to_string(material.Diffuse));
     this->material = material;
     vk::BufferUsageFlags usage{
     vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
