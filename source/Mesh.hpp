@@ -20,10 +20,24 @@ struct Vertex
     glm::vec2 texCoord;
 };
 
+struct Material
+{
+    glm::vec3 Ambient{ 1.0 };
+    glm::vec3 Diffuse{ 1.0 };
+    glm::vec3 Specular{ 0.0 };
+    glm::vec3 Emission{ 0.0 };
+    float Shininess = 0.0;
+    float IOR = 1.0;
+    int AmbientTexture = -1;
+    int DiffuseTexture = -1;
+    int SpecularTexture = -1;
+    int AlphaTexture = -1;
+};
+
 class Mesh
 {
 public:
-    Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
+    Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, int materialIndex = -1);
     Mesh(const std::string& filepath);
     const Accel& GetAccel() const { return bottomAccel; }
     uint64_t GetVertexBufferAddress() const { return vertexBuffer.GetAddress(); }
@@ -33,4 +47,5 @@ private:
     Buffer vertexBuffer{};
     Buffer indexBuffer{};
     Accel bottomAccel{};
+    int materialIndex = -1;
 };
