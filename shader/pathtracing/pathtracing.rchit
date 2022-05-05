@@ -1,50 +1,9 @@
 #version 460
-#extension GL_EXT_ray_tracing : enable
-#extension GL_EXT_scalar_block_layout : enable
-#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
-#extension GL_EXT_buffer_reference2 : require
-#extension GL_EXT_nonuniform_qualifier : enable
-
-struct HitPayload
-{
-    vec3 position;
-    vec3 normal;
-    vec3 emittion;
-    vec3 brdf;
-    bool done;
-};
-
-struct MeshAddress
-{
-    uint64_t vertices;
-    uint64_t indices;
-    uint64_t objects;
-};
-
-struct Vertex
-{
-    vec3 pos;
-    vec3 normal;
-    vec2 texCoord;
-};
-
-struct ObjectData
-{
-    mat4 matrix;
-    mat4 normalMatrix;
-    int textureIndex;
-};
-
-layout(buffer_reference, scalar) buffer Vertices { Vertex v[]; };
-layout(buffer_reference, scalar) buffer Indices { uvec3 i[]; };
-layout(buffer_reference, scalar) buffer Objects { ObjectData o[]; };
-layout(binding = 3) buffer Addresses { MeshAddress address[]; } addresses;
-layout(binding = 4) uniform sampler2D samplers[];
+#extension GL_GOOGLE_include_directive : enable
+#include "common.glsl"
 
 layout(location = 0) rayPayloadInEXT HitPayload payLoad;
 hitAttributeEXT vec3 attribs;
-
-const highp float M_PI = 3.14159265358979323846;
 
 void main()
 {
