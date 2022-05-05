@@ -13,7 +13,7 @@ namespace
     {
         std::ifstream input_file{ path };
         if (!input_file.is_open()) {
-            throw std::runtime_error("failed to open file: " + path);
+            throw std::runtime_error("Failed to open file: " + path);
         }
         return { (std::istreambuf_iterator<char>{input_file}), std::istreambuf_iterator<char>{} };
     }
@@ -48,36 +48,32 @@ namespace
 
     std::vector<uint32_t> CompileToSPV(const std::string& filepath)
     {
+        spdlog::info("Compile shader: {}", filepath);
         std::string glslShader = ReadFile(filepath);
         EShLanguage stage = GetShaderStage(filepath);
         std::string included = Include(filepath, glslShader);
 
         glslang::InitializeProcess();
 
-        const char* shaderStrings[1];
-        shaderStrings[0] = included.data();
-
+        const char* shaderStrings = included.data();
         glslang::TShader shader(stage);
         shader.setEnvTarget(glslang::EShTargetLanguage::EShTargetSpv, glslang::EShTargetLanguageVersion::EShTargetSpv_1_4);
-        shader.setStrings(shaderStrings, 1);
+        shader.setStrings(&shaderStrings, 1);
 
         EShMessages messages = (EShMessages)(EShMsgSpvRules | EShMsgVulkanRules);
-
         if (!shader.parse(&glslang::DefaultTBuiltInResource, 100, false, messages)) {
-            throw std::runtime_error(glslShader + "\n" + shader.getInfoLog());
+            throw std::runtime_error("Failed to parse: " + glslShader + "\n" + shader.getInfoLog());
         }
 
         glslang::TProgram program;
         program.addShader(&shader);
-
         if (!program.link(messages)) {
-            throw std::runtime_error(glslShader + "\n" + shader.getInfoLog());
+            throw std::runtime_error("Failed to link: " + glslShader + "\n" + shader.getInfoLog());
         }
 
         std::vector<uint32_t> spvShader;
         glslang::GlslangToSpv(*program.getIntermediate(stage), spvShader);
         glslang::FinalizeProcess();
-
         return spvShader;
     }
 
