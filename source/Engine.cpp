@@ -110,7 +110,7 @@ void Engine::Run()
         ImGui::Render();
 
         // Update push constants
-        scene->GetCamera().ProcessInput();
+        scene->ProcessInput();
         pushConstants.InvProj = glm::inverse(scene->GetCamera().GetProj());
         pushConstants.InvView = glm::inverse(scene->GetCamera().GetView());
         if (!accumulation || scene->GetCamera().CheckDirtyAndClean()) {

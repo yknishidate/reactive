@@ -48,3 +48,8 @@ Scene::Scene(const std::string& filepath)
 
     camera.Init(Window::GetWidth(), Window::GetHeight());
 }
+
+void Scene::ProcessInput()
+{
+    camera.ProcessInput();
+}

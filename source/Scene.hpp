@@ -20,6 +20,8 @@ class Scene
 public:
     explicit Scene(const std::string& filepath);
 
+    void ProcessInput();
+
     vk::AccelerationStructureKHR GetAccel() const { return topAccel.GetAccel(); }
     const std::vector<Image>& GetTextures() const { return textures; }
     const Buffer& GetAddressBuffer() const { return addressBuffer; }
