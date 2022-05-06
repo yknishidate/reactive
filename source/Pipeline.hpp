@@ -44,7 +44,6 @@ class RayTracingPipeline : public Pipeline
 public:
     void LoadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath);
     void Setup(size_t pushSize = 0);
-    void Init(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath, size_t pushSize = 0);
     void Run(vk::CommandBuffer commandBuffer, uint32_t countX, uint32_t countY, void* pushData = nullptr);
 
 private:
