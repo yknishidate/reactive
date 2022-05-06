@@ -21,6 +21,10 @@ Scene::Scene(const std::string& filepath)
         objects[i].GetTransform().Scale = glm::vec3{ 0.01 };
         objects[i].GetTransform().Rotation = glm::quat{ glm::vec3{ 0, glm::radians(90.0f), 0 } };
     }
+}
+
+void Scene::Setup()
+{
     topAccel.InitAsTop(objects);
 
     // Create object data
@@ -49,7 +53,28 @@ Scene::Scene(const std::string& filepath)
     camera.Init(Window::GetWidth(), Window::GetHeight());
 }
 
+void Scene::Update(float dt)
+{
+    for (auto&& obj : objects) {
+        obj.Update(dt);
+    }
+}
+
 void Scene::ProcessInput()
 {
     camera.ProcessInput();
+}
+
+const std::shared_ptr<Mesh>& Scene::AddMesh(const std::string& filepath)
+{
+    meshes.push_back(std::make_shared<Mesh>(filepath));
+    return meshes.back();
+}
+
+const Object& Scene::AddObject(std::shared_ptr<Mesh> mesh)
+{
+    Object object;
+    object.Init(mesh);
+    objects.push_back(object);
+    return objects.back();
 }

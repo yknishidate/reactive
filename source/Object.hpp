@@ -21,6 +21,7 @@ public:
     const Mesh& GetMesh() const;
     const Transform& GetTransform() const { return transform; }
     Transform& GetTransform() { return transform; }
+    virtual void Update(float dt) {}
 
 private:
     std::shared_ptr<Mesh> mesh;
