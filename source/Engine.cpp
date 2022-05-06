@@ -77,16 +77,16 @@ void Engine::Init()
                            "../shader/pathtracing/pathtracing.rmiss",
                            "../shader/pathtracing/pathtracing.rchit");
 
-    rtPipeline.Register("inputImage", inputImage.GetView(), inputImage.GetSampler());
-    rtPipeline.Register("outputImage", outputImage.GetView(), outputImage.GetSampler());
+    rtPipeline.Register("inputImage", inputImage);
+    rtPipeline.Register("outputImage", outputImage);
     rtPipeline.Register("topLevelAS", scene->GetAccel());
     rtPipeline.Register("samplers", scene->GetTextures());
-    rtPipeline.Register("Addresses", scene->GetAddressBuffer().GetBuffer(), scene->GetAddressBuffer().GetSize());
+    rtPipeline.Register("Addresses", scene->GetAddressBuffer());
     rtPipeline.Setup(sizeof(PushConstants));
 
     medianPipeline.LoadShaders("../shader/denoise/median.comp");
-    medianPipeline.Register("inputImage", outputImage.GetView(), outputImage.GetSampler());
-    medianPipeline.Register("outputImage", denoisedImage.GetView(), denoisedImage.GetSampler());
+    medianPipeline.Register("inputImage", outputImage);
+    medianPipeline.Register("outputImage", denoisedImage);
     medianPipeline.Setup(sizeof(PushConstants));
 
     // Create push constants

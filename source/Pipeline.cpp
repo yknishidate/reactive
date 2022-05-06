@@ -277,6 +277,16 @@ void Pipeline::Register(const std::string& name, const std::vector<Image>& image
     writes.push_back(write);
 }
 
+void Pipeline::Register(const std::string& name, const Buffer& buffer)
+{
+    Register(name, buffer.GetBuffer(), buffer.GetSize());
+}
+
+void Pipeline::Register(const std::string& name, const Image& image)
+{
+    Register(name, image.GetView(), image.GetSampler());
+}
+
 void Pipeline::Register(const std::string& name, const vk::AccelerationStructureKHR& accel)
 {
     vk::WriteDescriptorSetAccelerationStructureKHR accelInfo{ accel };
