@@ -223,6 +223,14 @@ namespace
         write.setDstBinding(binding.binding);
         return write;
     }
+
+    void UpdateDescSet(vk::DescriptorSet descSet, std::vector<vk::WriteDescriptorSet>& writes)
+    {
+        for (auto&& write : writes) {
+            write.setDstSet(descSet);
+        }
+        Vulkan::Device.updateDescriptorSets(writes, nullptr);
+    }
 } // namespace
 
 void Pipeline::Register(const std::string& name, vk::Buffer buffer, size_t size)
@@ -234,7 +242,6 @@ void Pipeline::Register(const std::string& name, vk::Buffer buffer, size_t size)
     vk::WriteDescriptorSet write = MakeWrite(bindingMap[name]);
     write.setBufferInfo(bufferInfos.back());
     writes.push_back(write);
-    //Vulkan::Device.updateDescriptorSets(write, nullptr);
 }
 
 void Pipeline::Register(const std::string& name, vk::ImageView view, vk::Sampler sampler)
@@ -249,7 +256,6 @@ void Pipeline::Register(const std::string& name, vk::ImageView view, vk::Sampler
     vk::WriteDescriptorSet write = MakeWrite(bindingMap[name]);
     write.setImageInfo(imageInfos.back());
     writes.push_back(write);
-    //Vulkan::Device.updateDescriptorSets(write, nullptr);
 }
 
 void Pipeline::Register(const std::string& name, const std::vector<Image>& images)
@@ -264,13 +270,11 @@ void Pipeline::Register(const std::string& name, const std::vector<Image>& image
     }
     imageInfos.push_back(infos);
 
-    // update count
     bindingMap[name].descriptorCount = images.size();
 
     vk::WriteDescriptorSet write = MakeWrite(bindingMap[name]);
     write.setImageInfo(imageInfos.back());
     writes.push_back(write);
-    //Vulkan::Device.updateDescriptorSets(write, nullptr);
 }
 
 void Pipeline::Register(const std::string& name, const vk::AccelerationStructureKHR& accel)
@@ -301,10 +305,7 @@ void ComputePipeline::Setup(size_t pushSize)
     pipelineLayout = CreatePipelineLayout(*descSetLayout, pushSize, vk::ShaderStageFlagBits::eCompute);
     pipeline = CreateComputePipeline(*shaderModule, vk::ShaderStageFlagBits::eCompute, *pipelineLayout);
     descSet = AllocateDescSet(*descSetLayout);
-    for (auto&& write : writes) {
-        write.setDstSet(*descSet);
-    }
-    Vulkan::Device.updateDescriptorSets(writes, nullptr);
+    UpdateDescSet(*descSet, writes);
 }
 
 void ComputePipeline::Run(vk::CommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY, void* pushData)
@@ -398,10 +399,7 @@ void RayTracingPipeline::Setup(size_t pushSize)
     hitSBT.Copy(shaderHandleStorage.data() + 2 * handleSizeAligned);
 
     descSet = AllocateDescSet(*descSetLayout);
-    for (auto&& write : writes) {
-        write.setDstSet(*descSet);
-    }
-    Vulkan::Device.updateDescriptorSets(writes, nullptr);
+    UpdateDescSet(*descSet, writes);
 }
 
 void RayTracingPipeline::Run(vk::CommandBuffer commandBuffer, uint32_t countX, uint32_t countY, void* pushData)
