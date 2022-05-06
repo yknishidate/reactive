@@ -12,6 +12,12 @@ void Camera::ProcessInput()
         glm::vec2 motion = Input::GetMouseMotion();
         yaw = glm::mod(yaw - motion.x * 0.1f, 360.0f);
         pitch = glm::clamp(pitch + motion.y * 0.1f, -89.9f, 89.9f);
+
+        glm::mat4 rotation{ 1.0 };
+        rotation *= glm::rotate(glm::radians(yaw), glm::vec3{ 0, 1, 0 });
+        rotation *= glm::rotate(glm::radians(pitch), glm::vec3{ 1, 0, 0 });
+        front = { rotation * glm::vec4{0, 0, -1, 1} };
+
         dirty = true;
     }
 
@@ -40,16 +46,12 @@ void Camera::ProcessInput()
     }
 }
 
-glm::mat4 Camera::GetView()
+glm::mat4 Camera::GetView() const
 {
-    glm::mat4 rotation{ 1.0 };
-    rotation *= glm::rotate(glm::radians(yaw), glm::vec3{ 0, 1, 0 });
-    rotation *= glm::rotate(glm::radians(pitch), glm::vec3{ 1, 0, 0 });
-    front = { rotation * glm::vec4{0, 0, -1, 1} };
     return glm::lookAt(position, position + front, { 0.0f, 1.0f, 0.0f });
 }
 
-glm::mat4 Camera::GetProj()
+glm::mat4 Camera::GetProj() const
 {
     return glm::perspective(glm::radians(45.0f), aspect, 0.01f, 10000.0f);
 }
