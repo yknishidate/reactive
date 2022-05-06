@@ -51,9 +51,10 @@ void main()
     pos = vec3(matrix * vec4(pos, 1));
     normal = normalize(vec3(normalMatrix * vec4(normal, 0)));
 
-    payLoad.done = true;
-    payLoad.emittion = color;
-//    payLoad.position = pos;
-//    payLoad.normal = normal;
-//    payLoad.brdf = color / M_PI;
+//  for debug
+//    payLoad.done = true;
+//    payLoad.emittion = color;
+    payLoad.position = pos;
+    payLoad.normal = normal;
+    payLoad.brdf = color / M_PI;
 }
