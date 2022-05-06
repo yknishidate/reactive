@@ -75,8 +75,6 @@ void Engine::Init()
     outputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
     denoisedImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
     Loader::LoadFromFile("../asset/crytek_sponza/sponza.obj", meshes, textures);
-    //texture.Init("../asset/viking_room/viking_room.png");
-    spdlog::info("Meshes: {}", meshes.size());
 
     objects.resize(meshes.size());
     for (int i = 0; i < meshes.size(); i++) {
@@ -114,13 +112,9 @@ void Engine::Init()
                            "../shader/pathtracing/pathtracing.rmiss",
                            "../shader/pathtracing/pathtracing.rchit");
 
-    //rtPipeline.Init("../shader/pathtracing/pathtracing.rgen",
-    //                "../shader/pathtracing/pathtracing.rmiss",
-    //                "../shader/pathtracing/pathtracing.rchit", sizeof(PushConstants));
     rtPipeline.Register("inputImage", inputImage.GetView(), inputImage.GetSampler());
     rtPipeline.Register("outputImage", outputImage.GetView(), outputImage.GetSampler());
     rtPipeline.Register("topLevelAS", topAccel.GetAccel());
-    //rtPipeline.Register("samplers", texture.GetView(), texture.GetSampler());
     rtPipeline.Register("samplers", textures);
     rtPipeline.Register("Addresses", addressBuffer.GetBuffer(), addressBuffer.GetSize());
     rtPipeline.Setup(sizeof(PushConstants));
