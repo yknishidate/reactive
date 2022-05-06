@@ -125,9 +125,10 @@ void Engine::Init()
     rtPipeline.Register("Addresses", addressBuffer.GetBuffer(), addressBuffer.GetSize());
     rtPipeline.Setup(sizeof(PushConstants));
 
-    medianPipeline.Init("../shader/denoise/median.comp", sizeof(PushConstants));
+    medianPipeline.LoadShaders("../shader/denoise/median.comp");
     medianPipeline.Register("inputImage", outputImage.GetView(), outputImage.GetSampler());
     medianPipeline.Register("outputImage", denoisedImage.GetView(), denoisedImage.GetSampler());
+    medianPipeline.Setup(sizeof(PushConstants));
 
     // Create push constants
     camera.Init(Window::GetWidth(), Window::GetHeight());

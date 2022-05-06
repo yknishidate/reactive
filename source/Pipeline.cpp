@@ -284,19 +284,27 @@ void Pipeline::Register(const std::string& name, const vk::AccelerationStructure
     writes.push_back(write);
 }
 
-void ComputePipeline::Init(const std::string& path, size_t pushSize)
+void ComputePipeline::LoadShaders(const std::string& path)
 {
-    spdlog::info("ComputePipeline::Init()");
-    this->pushSize = pushSize;
+    spdlog::info("ComputePipeline::LoadShaders()");
 
     std::vector spirvCode = CompileToSPV(path);
     AddBindingMap(spirvCode, bindingMap, vk::ShaderStageFlagBits::eCompute);
 
     shaderModule = CreateShaderModule(spirvCode);
+}
+
+void ComputePipeline::Setup(size_t pushSize)
+{
+    this->pushSize = pushSize;
     descSetLayout = CreateDescSetLayout(GetBindings(bindingMap));
     pipelineLayout = CreatePipelineLayout(*descSetLayout, pushSize, vk::ShaderStageFlagBits::eCompute);
     pipeline = CreateComputePipeline(*shaderModule, vk::ShaderStageFlagBits::eCompute, *pipelineLayout);
     descSet = AllocateDescSet(*descSetLayout);
+    for (auto&& write : writes) {
+        write.setDstSet(*descSet);
+    }
+    Vulkan::Device.updateDescriptorSets(writes, nullptr);
 }
 
 void ComputePipeline::Run(vk::CommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY, void* pushData)

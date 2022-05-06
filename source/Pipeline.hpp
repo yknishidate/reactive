@@ -32,7 +32,8 @@ protected:
 class ComputePipeline : public Pipeline
 {
 public:
-    void Init(const std::string& path, size_t pushSize = 0);
+    void LoadShaders(const std::string& path);
+    void Setup(size_t pushSize = 0);
     void Run(vk::CommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY, void* pushData = nullptr);
 
 private:
