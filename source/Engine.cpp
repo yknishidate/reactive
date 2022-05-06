@@ -117,17 +117,17 @@ void Engine::Init()
     //rtPipeline.Init("../shader/pathtracing/pathtracing.rgen",
     //                "../shader/pathtracing/pathtracing.rmiss",
     //                "../shader/pathtracing/pathtracing.rchit", sizeof(PushConstants));
-    rtPipeline.UpdateDescSet("inputImage", inputImage.GetView(), inputImage.GetSampler());
-    rtPipeline.UpdateDescSet("outputImage", outputImage.GetView(), outputImage.GetSampler());
-    rtPipeline.UpdateDescSet("topLevelAS", topAccel.GetAccel());
-    //rtPipeline.UpdateDescSet("samplers", texture.GetView(), texture.GetSampler());
-    rtPipeline.UpdateDescSet("samplers", textures);
-    rtPipeline.UpdateDescSet("Addresses", addressBuffer.GetBuffer(), addressBuffer.GetSize());
+    rtPipeline.Register("inputImage", inputImage.GetView(), inputImage.GetSampler());
+    rtPipeline.Register("outputImage", outputImage.GetView(), outputImage.GetSampler());
+    rtPipeline.Register("topLevelAS", topAccel.GetAccel());
+    //rtPipeline.Register("samplers", texture.GetView(), texture.GetSampler());
+    rtPipeline.Register("samplers", textures);
+    rtPipeline.Register("Addresses", addressBuffer.GetBuffer(), addressBuffer.GetSize());
     rtPipeline.Setup(sizeof(PushConstants));
 
     medianPipeline.Init("../shader/denoise/median.comp", sizeof(PushConstants));
-    medianPipeline.UpdateDescSet("inputImage", outputImage.GetView(), outputImage.GetSampler());
-    medianPipeline.UpdateDescSet("outputImage", denoisedImage.GetView(), denoisedImage.GetSampler());
+    medianPipeline.Register("inputImage", outputImage.GetView(), outputImage.GetSampler());
+    medianPipeline.Register("outputImage", denoisedImage.GetView(), denoisedImage.GetSampler());
 
     // Create push constants
     camera.Init(Window::GetWidth(), Window::GetHeight());

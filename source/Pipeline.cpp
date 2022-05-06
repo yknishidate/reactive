@@ -225,7 +225,7 @@ namespace
     }
 } // namespace
 
-void Pipeline::UpdateDescSet(const std::string& name, vk::Buffer buffer, size_t size)
+void Pipeline::Register(const std::string& name, vk::Buffer buffer, size_t size)
 {
     vk::DescriptorBufferInfo bufferInfo{ buffer, 0, size };
     bufferInfos.push_back({ bufferInfo });
@@ -237,7 +237,7 @@ void Pipeline::UpdateDescSet(const std::string& name, vk::Buffer buffer, size_t 
     //Vulkan::Device.updateDescriptorSets(write, nullptr);
 }
 
-void Pipeline::UpdateDescSet(const std::string& name, vk::ImageView view, vk::Sampler sampler)
+void Pipeline::Register(const std::string& name, vk::ImageView view, vk::Sampler sampler)
 {
     vk::DescriptorImageInfo imageInfo;
     imageInfo.setImageView(view);
@@ -252,7 +252,7 @@ void Pipeline::UpdateDescSet(const std::string& name, vk::ImageView view, vk::Sa
     //Vulkan::Device.updateDescriptorSets(write, nullptr);
 }
 
-void Pipeline::UpdateDescSet(const std::string& name, const std::vector<Image>& images)
+void Pipeline::Register(const std::string& name, const std::vector<Image>& images)
 {
     std::vector<vk::DescriptorImageInfo> infos;
     for (auto&& image : images) {
@@ -273,7 +273,7 @@ void Pipeline::UpdateDescSet(const std::string& name, const std::vector<Image>& 
     //Vulkan::Device.updateDescriptorSets(write, nullptr);
 }
 
-void Pipeline::UpdateDescSet(const std::string& name, const vk::AccelerationStructureKHR& accel)
+void Pipeline::Register(const std::string& name, const vk::AccelerationStructureKHR& accel)
 {
     vk::WriteDescriptorSetAccelerationStructureKHR accelInfo{ accel };
     accelInfos.push_back(accelInfo);
@@ -311,8 +311,7 @@ void ComputePipeline::Run(vk::CommandBuffer commandBuffer, uint32_t groupCountX,
 
 void RayTracingPipeline::LoadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath)
 {
-
-    spdlog::info("RayTracingPipeline::Init()");
+    spdlog::info("RayTracingPipeline::LoadShaders()");
     this->pushSize = pushSize;
     const uint32_t rgenIndex = 0;
     const uint32_t missIndex = 1;

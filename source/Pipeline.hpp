@@ -10,10 +10,10 @@ class Image;
 class Pipeline
 {
 public:
-    void UpdateDescSet(const std::string& name, vk::Buffer buffer, size_t size);
-    void UpdateDescSet(const std::string& name, vk::ImageView view, vk::Sampler sampler);
-    void UpdateDescSet(const std::string& name, const std::vector<Image>& images);
-    void UpdateDescSet(const std::string& name, const vk::AccelerationStructureKHR& accel);
+    void Register(const std::string& name, vk::Buffer buffer, size_t size);
+    void Register(const std::string& name, vk::ImageView view, vk::Sampler sampler);
+    void Register(const std::string& name, const std::vector<Image>& images);
+    void Register(const std::string& name, const vk::AccelerationStructureKHR& accel);
 
 protected:
     vk::UniqueDescriptorSetLayout descSetLayout;
