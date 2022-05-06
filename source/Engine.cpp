@@ -3,19 +3,14 @@
 #include "Vulkan.hpp"
 #include "Input.hpp"
 #include "Loader.hpp"
+#include "Scene.hpp"
+#include "Object.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
-
-struct BufferAddress
-{
-    vk::DeviceAddress vertices;
-    vk::DeviceAddress indices;
-    vk::DeviceAddress objects;
-};
 
 namespace
 {
@@ -74,38 +69,8 @@ void Engine::Init()
     inputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
     outputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
     denoisedImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
-    Loader::LoadFromFile("../asset/crytek_sponza/sponza.obj", meshes, textures);
 
-    objects.resize(meshes.size());
-    for (int i = 0; i < meshes.size(); i++) {
-        objects[i].Init(meshes[i]);
-        objects[i].GetTransform().Position.y = 1.0;
-        objects[i].GetTransform().Scale = glm::vec3{ 0.01 };
-        objects[i].GetTransform().Rotation = glm::quat{ glm::vec3{ 0, glm::radians(90.0f), 0 } };
-    }
-    topAccel.InitAsTop(objects);
-
-    // Create object data
-    for (auto&& object : objects) {
-        glm::mat4 matrix = object.GetTransform().GetMatrix();
-        glm::mat4 normalMatrix = object.GetTransform().GetNormalMatrix();
-        glm::vec3 diffuse = object.GetMesh().GetMaterial().Diffuse;
-        int texIndex = object.GetMesh().GetMaterial().DiffuseTexture;
-        objectData.push_back({ matrix, normalMatrix, glm::vec4(diffuse, 1), texIndex });
-    }
-    objectBuffer.InitOnHost(sizeof(ObjectData) * objectData.size(),
-                            vk::BufferUsageFlagBits::eStorageBuffer |
-                            vk::BufferUsageFlagBits::eShaderDeviceAddress);
-    objectBuffer.Copy(objectData.data());
-
-    std::vector<BufferAddress> addresses(meshes.size());
-    for (int i = 0; i < meshes.size(); i++) {
-        addresses[i].vertices = meshes[i]->GetVertexBufferAddress();
-        addresses[i].indices = meshes[i]->GetIndexBufferAddress();
-        addresses[i].objects = objectBuffer.GetAddress();
-    }
-    addressBuffer.InitOnHost(sizeof(BufferAddress) * addresses.size(), vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress);
-    addressBuffer.Copy(addresses.data());
+    scene = std::make_unique<Scene>("../asset/crytek_sponza/sponza.obj");
 
     // Create pipelines
     rtPipeline.LoadShaders("../shader/pathtracing/pathtracing.rgen",
@@ -114,9 +79,9 @@ void Engine::Init()
 
     rtPipeline.Register("inputImage", inputImage.GetView(), inputImage.GetSampler());
     rtPipeline.Register("outputImage", outputImage.GetView(), outputImage.GetSampler());
-    rtPipeline.Register("topLevelAS", topAccel.GetAccel());
-    rtPipeline.Register("samplers", textures);
-    rtPipeline.Register("Addresses", addressBuffer.GetBuffer(), addressBuffer.GetSize());
+    rtPipeline.Register("topLevelAS", scene->GetAccel());
+    rtPipeline.Register("samplers", scene->GetTextures());
+    rtPipeline.Register("Addresses", scene->GetAddressBuffer().GetBuffer(), scene->GetAddressBuffer().GetSize());
     rtPipeline.Setup(sizeof(PushConstants));
 
     medianPipeline.LoadShaders("../shader/denoise/median.comp");
@@ -125,9 +90,8 @@ void Engine::Init()
     medianPipeline.Setup(sizeof(PushConstants));
 
     // Create push constants
-    camera.Init(Window::GetWidth(), Window::GetHeight());
-    pushConstants.InvProj = glm::inverse(camera.GetProj());
-    pushConstants.InvView = glm::inverse(camera.GetView());
+    pushConstants.InvProj = glm::inverse(scene->GetCamera().GetProj());
+    pushConstants.InvView = glm::inverse(scene->GetCamera().GetView());
     pushConstants.Frame = 0;
 }
 
@@ -146,10 +110,10 @@ void Engine::Run()
         ImGui::Render();
 
         // Update push constants
-        camera.ProcessInput();
-        pushConstants.InvProj = glm::inverse(camera.GetProj());
-        pushConstants.InvView = glm::inverse(camera.GetView());
-        if (!accumulation || camera.CheckDirtyAndClean()) {
+        scene->GetCamera().ProcessInput();
+        pushConstants.InvProj = glm::inverse(scene->GetCamera().GetProj());
+        pushConstants.InvView = glm::inverse(scene->GetCamera().GetView());
+        if (!accumulation || scene->GetCamera().CheckDirtyAndClean()) {
             pushConstants.Frame = 0;
         } else {
             pushConstants.Frame++;
