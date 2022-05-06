@@ -75,7 +75,7 @@ void Engine::Init()
     outputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
     denoisedImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
     Loader::LoadFromFile("../asset/crytek_sponza/sponza.obj", meshes, textures);
-    texture.Init("../asset/viking_room/viking_room.png");
+    //texture.Init("../asset/viking_room/viking_room.png");
     spdlog::info("Meshes: {}", meshes.size());
 
     objects.resize(meshes.size());
@@ -92,7 +92,8 @@ void Engine::Init()
         glm::mat4 matrix = object.GetTransform().GetMatrix();
         glm::mat4 normalMatrix = object.GetTransform().GetNormalMatrix();
         glm::vec3 diffuse = object.GetMesh().GetMaterial().Diffuse;
-        objectData.push_back({ matrix, normalMatrix, glm::vec4(diffuse, 1), -1 });
+        int texIndex = object.GetMesh().GetMaterial().DiffuseTexture;
+        objectData.push_back({ matrix, normalMatrix, glm::vec4(diffuse, 1), texIndex });
     }
     objectBuffer.InitOnHost(sizeof(ObjectData) * objectData.size(),
                             vk::BufferUsageFlagBits::eStorageBuffer |
@@ -109,14 +110,20 @@ void Engine::Init()
     addressBuffer.Copy(addresses.data());
 
     // Create pipelines
-    rtPipeline.Init("../shader/pathtracing/pathtracing.rgen",
-                    "../shader/pathtracing/pathtracing.rmiss",
-                    "../shader/pathtracing/pathtracing.rchit", sizeof(PushConstants));
+    rtPipeline.LoadShaders("../shader/pathtracing/pathtracing.rgen",
+                           "../shader/pathtracing/pathtracing.rmiss",
+                           "../shader/pathtracing/pathtracing.rchit");
+
+    //rtPipeline.Init("../shader/pathtracing/pathtracing.rgen",
+    //                "../shader/pathtracing/pathtracing.rmiss",
+    //                "../shader/pathtracing/pathtracing.rchit", sizeof(PushConstants));
     rtPipeline.UpdateDescSet("inputImage", inputImage.GetView(), inputImage.GetSampler());
     rtPipeline.UpdateDescSet("outputImage", outputImage.GetView(), outputImage.GetSampler());
     rtPipeline.UpdateDescSet("topLevelAS", topAccel.GetAccel());
-    rtPipeline.UpdateDescSet("samplers", texture.GetView(), texture.GetSampler());
+    //rtPipeline.UpdateDescSet("samplers", texture.GetView(), texture.GetSampler());
+    rtPipeline.UpdateDescSet("samplers", textures);
     rtPipeline.UpdateDescSet("Addresses", addressBuffer.GetBuffer(), addressBuffer.GetSize());
+    rtPipeline.Setup(sizeof(PushConstants));
 
     medianPipeline.Init("../shader/denoise/median.comp", sizeof(PushConstants));
     medianPipeline.UpdateDescSet("inputImage", outputImage.GetView(), outputImage.GetSampler());

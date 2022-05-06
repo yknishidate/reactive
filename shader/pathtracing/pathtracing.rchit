@@ -42,7 +42,7 @@ void main()
 
     vec3 color = objects.o[gl_InstanceID].diffuse.rgb;
     int textureIndex = objects.o[gl_InstanceID].textureIndex;
-    if(textureIndex != -1){
+    if(textureIndex >= 0){
         color = texture(samplers[textureIndex], texCoord).rgb;
     }
 
@@ -51,7 +51,9 @@ void main()
     pos = vec3(matrix * vec4(pos, 1));
     normal = normalize(vec3(normalMatrix * vec4(normal, 0)));
 
-    payLoad.position = pos;
-    payLoad.normal = normal;
-    payLoad.brdf = color / M_PI;
+    payLoad.done = true;
+    payLoad.emittion = color;
+//    payLoad.position = pos;
+//    payLoad.normal = normal;
+//    payLoad.brdf = color / M_PI;
 }

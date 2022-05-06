@@ -5,12 +5,15 @@
 #include <vulkan/vulkan.hpp>
 #include "Buffer.hpp"
 
+class Image;
+
 class Pipeline
 {
 public:
     void UpdateDescSet(const std::string& name, vk::Buffer buffer, size_t size);
     void UpdateDescSet(const std::string& name, vk::ImageView view, vk::Sampler sampler);
-    void UpdateDescSet(const std::string& name, vk::AccelerationStructureKHR accel);
+    void UpdateDescSet(const std::string& name, const std::vector<Image>& images);
+    void UpdateDescSet(const std::string& name, const vk::AccelerationStructureKHR& accel);
 
 protected:
     vk::UniqueDescriptorSetLayout descSetLayout;
@@ -19,6 +22,11 @@ protected:
     vk::UniqueDescriptorSet descSet;
     size_t pushSize;
     std::unordered_map<std::string, vk::DescriptorSetLayoutBinding> bindingMap;
+
+    std::vector<std::vector<vk::DescriptorImageInfo>> imageInfos;
+    std::vector<std::vector<vk::DescriptorBufferInfo>> bufferInfos;
+    std::vector<vk::WriteDescriptorSetAccelerationStructureKHR> accelInfos;
+    std::vector<vk::WriteDescriptorSet> writes;
 };
 
 class ComputePipeline : public Pipeline
@@ -34,6 +42,8 @@ private:
 class RayTracingPipeline : public Pipeline
 {
 public:
+    void LoadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath);
+    void Setup(size_t pushSize = 0);
     void Init(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath, size_t pushSize = 0);
     void Run(vk::CommandBuffer commandBuffer, uint32_t countX, uint32_t countY, void* pushData = nullptr);
 

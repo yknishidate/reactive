@@ -6,6 +6,7 @@
 #include <StandAlone/ResourceLimits.h>
 #include <spirv_glsl.hpp>
 #include <spdlog/spdlog.h>
+#include "Image.hpp"
 
 namespace
 {
@@ -227,34 +228,60 @@ namespace
 void Pipeline::UpdateDescSet(const std::string& name, vk::Buffer buffer, size_t size)
 {
     vk::DescriptorBufferInfo bufferInfo{ buffer, 0, size };
+    bufferInfos.push_back({ bufferInfo });
+    bindingMap[name].descriptorCount = 1;
 
     vk::WriteDescriptorSet write = MakeWrite(bindingMap[name]);
-    write.setDstSet(*descSet);
-    write.setBufferInfo(bufferInfo);
-    Vulkan::Device.updateDescriptorSets(write, nullptr);
+    write.setBufferInfo(bufferInfos.back());
+    writes.push_back(write);
+    //Vulkan::Device.updateDescriptorSets(write, nullptr);
 }
 
 void Pipeline::UpdateDescSet(const std::string& name, vk::ImageView view, vk::Sampler sampler)
 {
-    vk::DescriptorImageInfo descImageInfo;
-    descImageInfo.setImageView(view);
-    descImageInfo.setSampler(sampler);
-    descImageInfo.setImageLayout(vk::ImageLayout::eGeneral);
+    vk::DescriptorImageInfo imageInfo;
+    imageInfo.setImageView(view);
+    imageInfo.setSampler(sampler);
+    imageInfo.setImageLayout(vk::ImageLayout::eGeneral);
+    imageInfos.push_back({ imageInfo });
+    bindingMap[name].descriptorCount = 1;
 
     vk::WriteDescriptorSet write = MakeWrite(bindingMap[name]);
-    write.setDstSet(*descSet);
-    write.setImageInfo(descImageInfo);
-    Vulkan::Device.updateDescriptorSets(write, nullptr);
+    write.setImageInfo(imageInfos.back());
+    writes.push_back(write);
+    //Vulkan::Device.updateDescriptorSets(write, nullptr);
 }
 
-void Pipeline::UpdateDescSet(const std::string& name, vk::AccelerationStructureKHR accel)
+void Pipeline::UpdateDescSet(const std::string& name, const std::vector<Image>& images)
 {
-    vk::WriteDescriptorSetAccelerationStructureKHR accelInfo{ accel };
+    std::vector<vk::DescriptorImageInfo> infos;
+    for (auto&& image : images) {
+        vk::DescriptorImageInfo info;
+        info.setImageView(image.GetView());
+        info.setSampler(image.GetSampler());
+        info.setImageLayout(vk::ImageLayout::eGeneral);
+        infos.push_back(info);
+    }
+    imageInfos.push_back(infos);
+
+    // update count
+    bindingMap[name].descriptorCount = images.size();
 
     vk::WriteDescriptorSet write = MakeWrite(bindingMap[name]);
-    write.setDstSet(*descSet);
-    write.setPNext(&accelInfo);
-    Vulkan::Device.updateDescriptorSets(write, nullptr);
+    write.setImageInfo(imageInfos.back());
+    writes.push_back(write);
+    //Vulkan::Device.updateDescriptorSets(write, nullptr);
+}
+
+void Pipeline::UpdateDescSet(const std::string& name, const vk::AccelerationStructureKHR& accel)
+{
+    vk::WriteDescriptorSetAccelerationStructureKHR accelInfo{ accel };
+    accelInfos.push_back(accelInfo);
+    bindingMap[name].descriptorCount = 1;
+
+    vk::WriteDescriptorSet write = MakeWrite(bindingMap[name]);
+    write.setPNext(&accelInfos.back());
+    writes.push_back(write);
 }
 
 void ComputePipeline::Init(const std::string& path, size_t pushSize)
@@ -281,6 +308,95 @@ void ComputePipeline::Run(vk::CommandBuffer commandBuffer, uint32_t groupCountX,
     }
     commandBuffer.dispatch(groupCountX, groupCountY, 1);
 }
+
+void RayTracingPipeline::LoadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath)
+{
+
+    spdlog::info("RayTracingPipeline::Init()");
+    this->pushSize = pushSize;
+    const uint32_t rgenIndex = 0;
+    const uint32_t missIndex = 1;
+    const uint32_t chitIndex = 2;
+
+    // Compile shaders
+    std::vector rgenShader = CompileToSPV(rgenPath);
+    std::vector missShader = CompileToSPV(missPath);
+    std::vector chitShader = CompileToSPV(chitPath);
+
+    // Get bindings
+    AddBindingMap(rgenShader, bindingMap, vk::ShaderStageFlagBits::eRaygenKHR);
+    AddBindingMap(missShader, bindingMap, vk::ShaderStageFlagBits::eMissKHR);
+    AddBindingMap(chitShader, bindingMap, vk::ShaderStageFlagBits::eClosestHitKHR);
+
+    shaderModules.push_back(CreateShaderModule(rgenShader));
+    shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eRaygenKHR, *shaderModules.back(), "main" });
+    shaderGroups.push_back({ vk::RayTracingShaderGroupTypeKHR::eGeneral,
+                           rgenIndex, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR });
+
+    shaderModules.push_back(CreateShaderModule(missShader));
+    shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eMissKHR, *shaderModules.back(), "main" });
+    shaderGroups.push_back({ vk::RayTracingShaderGroupTypeKHR::eGeneral,
+                           missIndex, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR });
+
+    shaderModules.push_back(CreateShaderModule(chitShader));
+    shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eClosestHitKHR, *shaderModules.back(), "main" });
+    shaderGroups.push_back({ vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup,
+                           VK_SHADER_UNUSED_KHR, chitIndex, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR });
+
+}
+
+void RayTracingPipeline::Setup(size_t pushSize)
+{
+    this->pushSize = pushSize;
+    std::vector bindings = GetBindings(bindingMap);
+
+    descSetLayout = CreateDescSetLayout(bindings);
+    pipelineLayout = CreatePipelineLayout(*descSetLayout, pushSize, vk::ShaderStageFlagBits::eRaygenKHR);
+    pipeline = CreateRayTracingPipeline(shaderStages, shaderGroups, *pipelineLayout);
+
+    // Get Ray Tracing Properties
+    using vkRTP = vk::PhysicalDeviceRayTracingPipelinePropertiesKHR;
+    auto rtProperties = Vulkan::PhysicalDevice.getProperties2<vk::PhysicalDeviceProperties2, vkRTP>().get<vkRTP>();
+
+    // Calculate SBT size
+    uint32_t handleSize = rtProperties.shaderGroupHandleSize;
+    size_t handleSizeAligned = rtProperties.shaderGroupHandleAlignment;
+    size_t groupCount = shaderGroups.size();
+    size_t sbtSize = groupCount * handleSizeAligned;
+
+    // Get shader group handles
+    std::vector<uint8_t> shaderHandleStorage(sbtSize);
+    vk::Result groupRes = Vulkan::Device.getRayTracingShaderGroupHandlesKHR(*pipeline, 0, groupCount, sbtSize,
+                                                                            shaderHandleStorage.data());
+    if (groupRes != vk::Result::eSuccess) {
+        throw std::runtime_error("failed to get ray tracing shader group handles.");
+    }
+
+    // Create shader binding table
+    vk::BufferUsageFlags usage =
+        vk::BufferUsageFlagBits::eShaderBindingTableKHR |
+        vk::BufferUsageFlagBits::eTransferSrc |
+        vk::BufferUsageFlagBits::eShaderDeviceAddress;
+
+    raygenSBT.InitOnHost(handleSize, usage);
+    missSBT.InitOnHost(handleSize, usage);
+    hitSBT.InitOnHost(handleSize, usage);
+
+    raygenRegion = CreateAddressRegion(rtProperties, raygenSBT.GetAddress());
+    missRegion = CreateAddressRegion(rtProperties, missSBT.GetAddress());
+    hitRegion = CreateAddressRegion(rtProperties, hitSBT.GetAddress());
+
+    raygenSBT.Copy(shaderHandleStorage.data() + 0 * handleSizeAligned);
+    missSBT.Copy(shaderHandleStorage.data() + 1 * handleSizeAligned);
+    hitSBT.Copy(shaderHandleStorage.data() + 2 * handleSizeAligned);
+
+    descSet = AllocateDescSet(*descSetLayout);
+    for (auto&& write : writes) {
+        write.setDstSet(*descSet);
+    }
+    Vulkan::Device.updateDescriptorSets(writes, nullptr);
+}
+
 
 void RayTracingPipeline::Init(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath, size_t pushSize)
 {

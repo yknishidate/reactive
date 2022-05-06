@@ -46,9 +46,9 @@ namespace
         createInfo.setMaxLod(0.0f);
         createInfo.setMinLod(0.0f);
         createInfo.setMipmapMode(vk::SamplerMipmapMode::eLinear);
-        createInfo.setAddressModeU(vk::SamplerAddressMode::eClampToBorder);
-        createInfo.setAddressModeV(vk::SamplerAddressMode::eClampToBorder);
-        createInfo.setAddressModeW(vk::SamplerAddressMode::eClampToBorder);
+        createInfo.setAddressModeU(vk::SamplerAddressMode::eRepeat);
+        createInfo.setAddressModeV(vk::SamplerAddressMode::eRepeat);
+        createInfo.setAddressModeW(vk::SamplerAddressMode::eRepeat);
         return Vulkan::Device.createSamplerUnique(createInfo);
     }
 }
