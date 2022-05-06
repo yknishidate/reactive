@@ -260,6 +260,9 @@ void Pipeline::Register(const std::string& name, vk::ImageView view, vk::Sampler
 
 void Pipeline::Register(const std::string& name, const std::vector<Image>& images)
 {
+    if (images.size() == 0) {
+        return;
+    }
     std::vector<vk::DescriptorImageInfo> infos;
     for (auto&& image : images) {
         vk::DescriptorImageInfo info;

@@ -29,6 +29,7 @@ public:
     const std::vector<Image>& GetTextures() const { return textures; }
     const Buffer& GetAddressBuffer() const { return addressBuffer; }
     Camera& GetCamera() { return camera; }
+    std::vector<Object>& GetObjects() { return objects; }
 
 private:
     std::vector<std::shared_ptr<Mesh>> meshes;

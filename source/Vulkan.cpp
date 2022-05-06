@@ -17,9 +17,9 @@ namespace
         std::regex regex{ "The Vulkan spec states: " };
         std::smatch result;
         if (std::regex_search(message, result, regex)) {
-            spdlog::error("Validation Error: \n{}\n", message.substr(result.position()));
+            spdlog::error("{}\n {}\n", message.substr(0, result.position()), message.substr(result.position()));
         } else {
-            spdlog::error("Validation Error: \n{}\n", message);
+            spdlog::error("{}\n", message);
         }
         //assert(false);
         return VK_FALSE;

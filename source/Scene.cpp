@@ -17,9 +17,9 @@ Scene::Scene(const std::string& filepath)
     objects.resize(meshes.size());
     for (int i = 0; i < meshes.size(); i++) {
         objects[i].Init(meshes[i]);
-        objects[i].GetTransform().Position.y = 1.0;
-        objects[i].GetTransform().Scale = glm::vec3{ 0.01 };
-        objects[i].GetTransform().Rotation = glm::quat{ glm::vec3{ 0, glm::radians(90.0f), 0 } };
+        //objects[i].GetTransform().Position.y = 1.0;
+        //objects[i].GetTransform().Scale = glm::vec3{ 0.01 };
+        //objects[i].GetTransform().Rotation = glm::quat{ glm::vec3{ 0, glm::radians(90.0f), 0 } };
     }
 }
 
@@ -55,8 +55,10 @@ void Scene::Setup()
 
 void Scene::Update(float dt)
 {
+    static float time = 0.0f;
+    time += dt;
     for (auto&& obj : objects) {
-        obj.Update(dt);
+        obj.GetTransform().Rotation = glm::quat{ glm::vec3(0.0f, time, 0.0f) };
     }
 }
 

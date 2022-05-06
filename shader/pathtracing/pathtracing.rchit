@@ -40,7 +40,8 @@ void main()
     vec3 normal   = v0.normal   * barycentricCoords.x + v1.normal   * barycentricCoords.y + v2.normal   * barycentricCoords.z;
     vec2 texCoord = v0.texCoord * barycentricCoords.x + v1.texCoord * barycentricCoords.y + v2.texCoord * barycentricCoords.z;
 
-    vec3 color = objects.o[gl_InstanceID].diffuse.rgb;
+//    vec3 color = objects.o[gl_InstanceID].diffuse.rgb;
+    vec3 color = getInstanceColor();
     int textureIndex = objects.o[gl_InstanceID].textureIndex;
     if(textureIndex >= 0){
         color = texture(samplers[textureIndex], texCoord).rgb;

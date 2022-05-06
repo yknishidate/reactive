@@ -70,7 +70,8 @@ void Engine::Init()
     outputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
     denoisedImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
 
-    scene = std::make_unique<Scene>("../asset/crytek_sponza/sponza.obj");
+    //scene = std::make_unique<Scene>("../asset/crytek_sponza/sponza.obj");
+    scene = std::make_unique<Scene>("../asset/CornellBox.obj");
     scene->Setup();
 
     // Create pipelines
@@ -80,6 +81,7 @@ void Engine::Init()
 
     rtPipeline.Register("inputImage", inputImage);
     rtPipeline.Register("outputImage", outputImage);
+    rtPipeline.Register("samplers", outputImage); // Dummy
     rtPipeline.Register("topLevelAS", scene->GetAccel());
     rtPipeline.Register("samplers", scene->GetTextures());
     rtPipeline.Register("Addresses", scene->GetAddressBuffer());
@@ -109,6 +111,9 @@ void Engine::Run()
         ImGui::Checkbox("Accumulation", &accumulation);
         ImGui::Combo("Denoise", &denoise, "Off\0Median\0");
         ImGui::Render();
+
+        // Scene update
+        scene->Update(0.1);
 
         // Update push constants
         scene->ProcessInput();

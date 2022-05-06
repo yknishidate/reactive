@@ -157,6 +157,10 @@ void Loader::LoadFromFile(const std::string& filepath,
         std::vector<uint32_t> indices{};
         LoadShape(attrib, shape, vertices, indices);
         int matIndex = shape.mesh.material_ids[0];
-        meshes.push_back(std::make_shared<Mesh>(vertices, indices, mats[matIndex]));
+        if (matIndex >= 0) {
+            meshes.push_back(std::make_shared<Mesh>(vertices, indices, mats[matIndex]));
+        } else {
+            meshes.push_back(std::make_shared<Mesh>(vertices, indices));
+        }
     }
 }
