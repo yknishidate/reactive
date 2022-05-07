@@ -72,12 +72,13 @@ void Engine::Init()
 
     //scene = std::make_unique<Scene>("../asset/crytek_sponza/sponza.obj");
     scene = std::make_unique<Scene>("../asset/CornellBox.obj");
-    scene->Setup();
+    scene->Setup(true);
 
     // Create pipelines
-    rtPipeline.LoadShaders("../shader/pathtracing/pathtracing.rgen",
-                           "../shader/pathtracing/pathtracing.rmiss",
-                           "../shader/pathtracing/pathtracing.rchit");
+    rtPipeline.LoadShaders("../shader/ray_align/ray_align.rgen",
+                           "../shader/ray_align/ray_align.rmiss",
+                           "../shader/ray_align/ray_align.rchit",
+                           "../shader/ray_align/ray_align.rahit");
 
     rtPipeline.Register("inputImage", inputImage);
     rtPipeline.Register("outputImage", outputImage);

@@ -3,7 +3,8 @@
 #include "Loader.hpp"
 #include <spdlog/spdlog.h>
 
-Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, Material material)
+Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, Material material,
+           vk::GeometryFlagBitsKHR geomertyFlag)
 {
     this->material = material;
     vk::BufferUsageFlags usage{
@@ -15,10 +16,10 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& ind
     indexBuffer.InitOnHost(sizeof(uint32_t) * indices.size(), usage);
     vertexBuffer.Copy(vertices.data());
     indexBuffer.Copy(indices.data());
-    bottomAccel.Init(vertexBuffer, indexBuffer, vertices.size(), indices.size() / 3);
+    bottomAccel.Init(vertexBuffer, indexBuffer, vertices.size(), indices.size() / 3, geomertyFlag);
 }
 
-Mesh::Mesh(const std::string& filepath)
+Mesh::Mesh(const std::string& filepath, vk::GeometryFlagBitsKHR geomertyFlag)
 {
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
@@ -33,5 +34,5 @@ Mesh::Mesh(const std::string& filepath)
     indexBuffer.InitOnHost(sizeof(uint32_t) * indices.size(), usage);
     vertexBuffer.Copy(vertices.data());
     indexBuffer.Copy(indices.data());
-    bottomAccel.Init(vertexBuffer, indexBuffer, vertices.size(), indices.size() / 3);
+    bottomAccel.Init(vertexBuffer, indexBuffer, vertices.size(), indices.size() / 3, geomertyFlag);
 }

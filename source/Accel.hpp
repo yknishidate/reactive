@@ -18,7 +18,7 @@ class BottomAccel : public Accel
 {
 public:
     void Init(const Buffer& vertexBuffer, const Buffer& indexBuffer,
-              size_t vertexCount, size_t primitiveCount);
+              size_t vertexCount, size_t primitiveCount, vk::GeometryFlagBitsKHR geomertyFlag);
 
 private:
 
@@ -27,10 +27,11 @@ private:
 class TopAccel : public Accel
 {
 public:
-    void Init(const std::vector<Object>& objects);
-    void Init(const Object& object);
+    void Init(const std::vector<Object>& objects, vk::GeometryFlagBitsKHR geomertyFlag = vk::GeometryFlagBitsKHR::eOpaque);
+    void Init(const Object& object, vk::GeometryFlagBitsKHR geomertyFlag = vk::GeometryFlagBitsKHR::eOpaque);
     void Rebuild(const std::vector<Object>& objects);
 
 private:
     Buffer instanceBuffer;
+    vk::GeometryFlagBitsKHR geomertyFlag;
 };

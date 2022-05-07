@@ -49,7 +49,9 @@ namespace
     }
 }
 
-void BottomAccel::Init(const Buffer& vertexBuffer, const Buffer& indexBuffer, size_t vertexCount, size_t primitiveCount)
+void BottomAccel::Init(const Buffer& vertexBuffer, const Buffer& indexBuffer,
+                       size_t vertexCount, size_t primitiveCount,
+                       vk::GeometryFlagBitsKHR geomertyFlag)
 {
     vk::AccelerationStructureGeometryTrianglesDataKHR triangleData;
     triangleData.setVertexFormat(vk::Format::eR32G32B32Sfloat);
@@ -62,7 +64,7 @@ void BottomAccel::Init(const Buffer& vertexBuffer, const Buffer& indexBuffer, si
     vk::AccelerationStructureGeometryKHR geometry;
     geometry.setGeometryType(vk::GeometryTypeKHR::eTriangles);
     geometry.setGeometry({ triangleData });
-    geometry.setFlags(vk::GeometryFlagBitsKHR::eOpaque);
+    geometry.setFlags(geomertyFlag);
 
     vk::AccelerationStructureTypeKHR type = vk::AccelerationStructureTypeKHR::eBottomLevel;
 
@@ -77,8 +79,9 @@ void BottomAccel::Init(const Buffer& vertexBuffer, const Buffer& indexBuffer, si
     BuildAccel(*accel, size, primitiveCount, geometryInfo);
 }
 
-void TopAccel::Init(const std::vector<Object>& objects)
+void TopAccel::Init(const std::vector<Object>& objects, vk::GeometryFlagBitsKHR geomertyFlag)
 {
+    this->geomertyFlag = geomertyFlag;
     uint32_t primitiveCount = objects.size();
 
     std::vector<vk::AccelerationStructureInstanceKHR> instances;
@@ -103,7 +106,7 @@ void TopAccel::Init(const std::vector<Object>& objects)
     vk::AccelerationStructureGeometryKHR geometry;
     geometry.setGeometryType(vk::GeometryTypeKHR::eInstances);
     geometry.setGeometry({ instancesData });
-    geometry.setFlags(vk::GeometryFlagBitsKHR::eOpaque);
+    geometry.setFlags(geomertyFlag);
 
     vk::AccelerationStructureTypeKHR type = vk::AccelerationStructureTypeKHR::eTopLevel;
 
@@ -118,9 +121,9 @@ void TopAccel::Init(const std::vector<Object>& objects)
     BuildAccel(*accel, size, primitiveCount, geometryInfo);
 }
 
-void TopAccel::Init(const Object& object)
+void TopAccel::Init(const Object& object, vk::GeometryFlagBitsKHR geomertyFlag)
 {
-    Init({ object });
+    Init({ object }, geomertyFlag);
 }
 
 void TopAccel::Rebuild(const std::vector<Object>& objects)
@@ -146,7 +149,7 @@ void TopAccel::Rebuild(const std::vector<Object>& objects)
     vk::AccelerationStructureGeometryKHR geometry;
     geometry.setGeometryType(vk::GeometryTypeKHR::eInstances);
     geometry.setGeometry({ instancesData });
-    geometry.setFlags(vk::GeometryFlagBitsKHR::eOpaque);
+    geometry.setFlags(geomertyFlag);
 
     vk::AccelerationStructureTypeKHR type = vk::AccelerationStructureTypeKHR::eTopLevel;
 

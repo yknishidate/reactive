@@ -13,6 +13,7 @@ struct HitPayload
     vec3 emittion;
     vec3 brdf;
     bool done;
+    int count;
 };
 
 struct MeshAddress
