@@ -100,7 +100,7 @@ void Engine::Init()
 
 void Engine::Run()
 {
-    static bool accumulation = true;
+    static bool accumulation = false;
     static int denoise = 0;
     spdlog::info("Engine::Run()");
     while (!Window::ShouldClose()) {

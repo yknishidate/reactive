@@ -57,9 +57,13 @@ void Scene::Update(float dt)
 {
     static float time = 0.0f;
     time += dt;
-    for (auto&& obj : objects) {
-        obj.GetTransform().Rotation = glm::quat{ glm::vec3(0.0f, time, 0.0f) };
+    for (int i = 0; i < objects.size(); i++) {
+        objects[i].GetTransform().Rotation = glm::quat{ glm::vec3(0.0f, time * 0.1, 0.0f) };
+        objectData[i].Matrix = objects[i].GetTransform().GetMatrix();
+        objectData[i].NormalMatrix = objects[i].GetTransform().GetNormalMatrix();
     }
+    objectBuffer.Copy(objectData.data());
+    topAccel.Rebuild(objects);
 }
 
 void Scene::ProcessInput()
