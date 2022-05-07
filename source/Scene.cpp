@@ -23,13 +23,9 @@ Scene::Scene(const std::string& filepath)
     }
 }
 
-void Scene::Setup(bool useAnyHit)
+void Scene::Setup()
 {
-    if (useAnyHit) {
-        topAccel.Init(objects, vk::GeometryFlagBitsKHR::eNoDuplicateAnyHitInvocation);
-    } else {
-        topAccel.Init(objects);
-    }
+    topAccel.Init(objects, vk::GeometryFlagBitsKHR::eNoDuplicateAnyHitInvocation);
 
     // Create object data
     for (auto&& object : objects) {

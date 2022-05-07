@@ -19,7 +19,7 @@ class Scene
 {
 public:
     explicit Scene(const std::string& filepath);
-    void Setup(bool useAnyHit = false);
+    void Setup();
     void Update(float dt);
     void ProcessInput();
     const std::shared_ptr<Mesh>& AddMesh(const std::string& filepath);

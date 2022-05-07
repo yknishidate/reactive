@@ -8,5 +8,5 @@ hitAttributeEXT vec3 attribs;
 void main()
 {
     payLoad.count = payLoad.count + 1;
-    //ignoreIntersectionEXT;
+    ignoreIntersectionEXT;
 }

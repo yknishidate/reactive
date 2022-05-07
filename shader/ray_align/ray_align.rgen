@@ -11,9 +11,8 @@ vec3 countToColor(int count)
                   vec3(1, 0, 0),
                   vec3(0, 1, 0),
                   vec3(0, 0, 1),
-                  vec3(0, 1, 1),
-                  vec3(1, 0, 1),
-                  vec3(1, 1, 0))[count];
+                  vec3(1, 1, 0),
+                  vec3(1, 1, 1))[count];
 }
 
 void main()
@@ -32,7 +31,7 @@ void main()
     vec3 color = vec3(0.0);
     traceRayEXT(
         topLevelAS,
-        gl_RayFlagsNoOpaqueEXT,
+        gl_RayFlagsSkipClosestHitShaderEXT,
         0xff, // cullMask
         0,    // sbtRecordOffset
         0,    // sbtRecordStride
@@ -43,12 +42,6 @@ void main()
         10000.0,
         0     // payloadLocation
     );
-    if(payLoad.done){
-        color = payLoad.emittion;
-    }else{
-//        color = payLoad.brdf * dot(payLoad.normal, lightDir);
-        color = countToColor(payLoad.count);
-    }
-
+    color = countToColor(payLoad.count);
     imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(color, 1.0));
 }

@@ -27,8 +27,8 @@ private:
 class TopAccel : public Accel
 {
 public:
-    void Init(const std::vector<Object>& objects, vk::GeometryFlagBitsKHR geomertyFlag = vk::GeometryFlagBitsKHR::eOpaque);
-    void Init(const Object& object, vk::GeometryFlagBitsKHR geomertyFlag = vk::GeometryFlagBitsKHR::eOpaque);
+    void Init(const std::vector<Object>& objects, vk::GeometryFlagBitsKHR geomertyFlag);
+    void Init(const Object& object, vk::GeometryFlagBitsKHR geomertyFlag);
     void Rebuild(const std::vector<Object>& objects);
 
 private:

@@ -37,9 +37,8 @@ struct Material
 class Mesh
 {
 public:
-    Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, Material material = {},
-         vk::GeometryFlagBitsKHR geomertyFlag = vk::GeometryFlagBitsKHR::eOpaque);
-    Mesh(const std::string& filepath, vk::GeometryFlagBitsKHR geomertyFlag = vk::GeometryFlagBitsKHR::eOpaque);
+    Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, Material material = {});
+    Mesh(const std::string& filepath);
     const Accel& GetAccel() const { return bottomAccel; }
     uint64_t GetVertexBufferAddress() const { return vertexBuffer.GetAddress(); }
     uint64_t GetIndexBufferAddress() const { return indexBuffer.GetAddress(); }

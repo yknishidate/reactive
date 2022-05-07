@@ -72,7 +72,7 @@ void Engine::Init()
 
     //scene = std::make_unique<Scene>("../asset/crytek_sponza/sponza.obj");
     scene = std::make_unique<Scene>("../asset/CornellBox.obj");
-    scene->Setup(true);
+    scene->Setup();
 
     // Create pipelines
     rtPipeline.LoadShaders("../shader/ray_align/ray_align.rgen",
