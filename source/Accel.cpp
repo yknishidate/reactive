@@ -49,7 +49,7 @@ namespace
     }
 }
 
-void Accel::InitAsBottom(const Buffer& vertexBuffer, const Buffer& indexBuffer, size_t vertexCount, size_t primitiveCount)
+void BottomAccel::Init(const Buffer& vertexBuffer, const Buffer& indexBuffer, size_t vertexCount, size_t primitiveCount)
 {
     vk::AccelerationStructureGeometryTrianglesDataKHR triangleData;
     triangleData.setVertexFormat(vk::Format::eR32G32B32Sfloat);
@@ -77,7 +77,7 @@ void Accel::InitAsBottom(const Buffer& vertexBuffer, const Buffer& indexBuffer, 
     BuildAccel(*accel, size, primitiveCount, geometryInfo);
 }
 
-void Accel::InitAsTop(const std::vector<Object>& objects)
+void TopAccel::Init(const std::vector<Object>& objects)
 {
     uint32_t primitiveCount = objects.size();
 
@@ -86,7 +86,7 @@ void Accel::InitAsTop(const std::vector<Object>& objects)
         vk::AccelerationStructureInstanceKHR instance;
         instance.setTransform(object.GetTransform().GetVkMatrix());
         instance.setMask(0xFF);
-        instance.setAccelerationStructureReference(object.GetMesh().GetAccel().buffer.GetAddress());
+        instance.setAccelerationStructureReference(object.GetMesh().GetAccel().GetBufferAddress());
         instance.setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);
         instances.push_back(instance);
     }
@@ -118,12 +118,12 @@ void Accel::InitAsTop(const std::vector<Object>& objects)
     BuildAccel(*accel, size, primitiveCount, geometryInfo);
 }
 
-void Accel::InitAsTop(const Object& object)
+void TopAccel::Init(const Object& object)
 {
-    InitAsTop({ object });
+    Init({ object });
 }
 
-void Accel::Rebuild(const std::vector<Object>& objects)
+void TopAccel::Rebuild(const std::vector<Object>& objects)
 {
     uint32_t primitiveCount = objects.size();
 
@@ -132,7 +132,7 @@ void Accel::Rebuild(const std::vector<Object>& objects)
         vk::AccelerationStructureInstanceKHR instance;
         instance.setTransform(object.GetTransform().GetVkMatrix());
         instance.setMask(0xFF);
-        instance.setAccelerationStructureReference(object.GetMesh().GetAccel().buffer.GetAddress());
+        instance.setAccelerationStructureReference(object.GetMesh().GetAccel().GetBufferAddress());
         instance.setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);
         instances.push_back(instance);
     }

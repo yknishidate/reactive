@@ -15,7 +15,7 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& ind
     indexBuffer.InitOnHost(sizeof(uint32_t) * indices.size(), usage);
     vertexBuffer.Copy(vertices.data());
     indexBuffer.Copy(indices.data());
-    bottomAccel.InitAsBottom(vertexBuffer, indexBuffer, vertices.size(), indices.size() / 3);
+    bottomAccel.Init(vertexBuffer, indexBuffer, vertices.size(), indices.size() / 3);
 }
 
 Mesh::Mesh(const std::string& filepath)
@@ -33,5 +33,5 @@ Mesh::Mesh(const std::string& filepath)
     indexBuffer.InitOnHost(sizeof(uint32_t) * indices.size(), usage);
     vertexBuffer.Copy(vertices.data());
     indexBuffer.Copy(indices.data());
-    bottomAccel.InitAsBottom(vertexBuffer, indexBuffer, vertices.size(), indices.size() / 3);
+    bottomAccel.Init(vertexBuffer, indexBuffer, vertices.size(), indices.size() / 3);
 }

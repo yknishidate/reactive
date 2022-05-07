@@ -25,7 +25,7 @@ Scene::Scene(const std::string& filepath)
 
 void Scene::Setup()
 {
-    topAccel.InitAsTop(objects);
+    topAccel.Init(objects);
 
     // Create object data
     for (auto&& object : objects) {

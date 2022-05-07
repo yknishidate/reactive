@@ -38,7 +38,7 @@ private:
     std::vector<Object> objects;
     std::vector<ObjectData> objectData;
 
-    Accel topAccel;
+    TopAccel topAccel;
     Camera camera;
 
     Buffer objectBuffer;

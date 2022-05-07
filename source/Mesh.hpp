@@ -47,6 +47,6 @@ public:
 private:
     Buffer vertexBuffer{};
     Buffer indexBuffer{};
-    Accel bottomAccel{};
+    BottomAccel bottomAccel{};
     Material material{};
 };
