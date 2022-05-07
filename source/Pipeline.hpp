@@ -46,6 +46,7 @@ class RayTracingPipeline : public Pipeline
 {
 public:
     void LoadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath);
+    void LoadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath, const std::string& ahitPath);
     void Setup(size_t pushSize = 0);
     void Run(vk::CommandBuffer commandBuffer, uint32_t countX, uint32_t countY, void* pushData = nullptr);
 
@@ -61,4 +62,8 @@ private:
     Buffer raygenSBT;
     Buffer missSBT;
     Buffer hitSBT;
+
+    int rgenCount = 0;
+    int missCount = 0;
+    int hitCount = 0;
 };

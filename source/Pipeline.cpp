@@ -335,6 +335,10 @@ void RayTracingPipeline::LoadShaders(const std::string& rgenPath, const std::str
 {
     spdlog::info("RayTracingPipeline::LoadShaders()");
     this->pushSize = pushSize;
+    rgenCount = 1;
+    missCount = 1;
+    hitCount = 1;
+
     const uint32_t rgenIndex = 0;
     const uint32_t missIndex = 1;
     const uint32_t chitIndex = 2;
@@ -364,6 +368,50 @@ void RayTracingPipeline::LoadShaders(const std::string& rgenPath, const std::str
     shaderGroups.push_back({ vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup,
                            VK_SHADER_UNUSED_KHR, chitIndex, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR });
 
+}
+
+void RayTracingPipeline::LoadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath, const std::string& ahitPath)
+{
+    spdlog::info("RayTracingPipeline::LoadShaders()");
+    this->pushSize = pushSize;
+    rgenCount = 1;
+    missCount = 1;
+    hitCount = 2;
+
+    const uint32_t rgenIndex = 0;
+    const uint32_t missIndex = 1;
+    const uint32_t chitIndex = 2;
+    const uint32_t ahitIndex = 3;
+
+    // Compile shaders
+    std::vector rgenShader = CompileToSPV(rgenPath);
+    std::vector missShader = CompileToSPV(missPath);
+    std::vector chitShader = CompileToSPV(chitPath);
+    std::vector ahitShader = CompileToSPV(ahitPath);
+
+    // Get bindings
+    AddBindingMap(rgenShader, bindingMap, vk::ShaderStageFlagBits::eRaygenKHR);
+    AddBindingMap(missShader, bindingMap, vk::ShaderStageFlagBits::eMissKHR);
+    AddBindingMap(chitShader, bindingMap, vk::ShaderStageFlagBits::eClosestHitKHR);
+    AddBindingMap(ahitShader, bindingMap, vk::ShaderStageFlagBits::eAnyHitKHR);
+
+
+    shaderModules.push_back(CreateShaderModule(rgenShader));
+    shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eRaygenKHR, *shaderModules.back(), "main" });
+    shaderGroups.push_back({ vk::RayTracingShaderGroupTypeKHR::eGeneral,
+                           rgenIndex, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR });
+
+    shaderModules.push_back(CreateShaderModule(missShader));
+    shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eMissKHR, *shaderModules.back(), "main" });
+    shaderGroups.push_back({ vk::RayTracingShaderGroupTypeKHR::eGeneral,
+                           missIndex, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR });
+
+    shaderModules.push_back(CreateShaderModule(chitShader));
+    shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eClosestHitKHR, *shaderModules.back(), "main" });
+    shaderModules.push_back(CreateShaderModule(ahitShader));
+    shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eAnyHitKHR, *shaderModules.back(), "main" });
+    shaderGroups.push_back({ vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup,
+                           VK_SHADER_UNUSED_KHR, chitIndex, ahitIndex, VK_SHADER_UNUSED_KHR });
 }
 
 void RayTracingPipeline::Setup(size_t pushSize)
@@ -399,9 +447,9 @@ void RayTracingPipeline::Setup(size_t pushSize)
         vk::BufferUsageFlagBits::eTransferSrc |
         vk::BufferUsageFlagBits::eShaderDeviceAddress;
 
-    raygenSBT.InitOnHost(handleSize, usage);
-    missSBT.InitOnHost(handleSize, usage);
-    hitSBT.InitOnHost(handleSize, usage);
+    raygenSBT.InitOnHost(handleSize * rgenCount, usage);
+    missSBT.InitOnHost(handleSize * missCount, usage);
+    hitSBT.InitOnHost(handleSize * hitCount, usage);
 
     raygenRegion = CreateAddressRegion(rtProperties, raygenSBT.GetAddress());
     missRegion = CreateAddressRegion(rtProperties, missSBT.GetAddress());
