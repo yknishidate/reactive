@@ -41,10 +41,10 @@ void Scene::Setup()
     objectBuffer.Copy(objectData.data());
 
     // Buffer references
-    std::vector<BufferAddress> addresses(meshes.size());
-    for (int i = 0; i < meshes.size(); i++) {
-        addresses[i].vertices = meshes[i]->GetVertexBufferAddress();
-        addresses[i].indices = meshes[i]->GetIndexBufferAddress();
+    std::vector<BufferAddress> addresses(objects.size());
+    for (int i = 0; i < objects.size(); i++) {
+        addresses[i].vertices = objects[i].GetMesh().GetVertexBufferAddress();
+        addresses[i].indices = objects[i].GetMesh().GetIndexBufferAddress();
         addresses[i].objects = objectBuffer.GetAddress();
     }
     addressBuffer.InitOnHost(sizeof(BufferAddress) * addresses.size(), vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress);

@@ -6,31 +6,34 @@
 #include "Loader.hpp"
 #include "Image.hpp"
 
-void Loader::LoadShape(const tinyobj::attrib_t& attrib, const tinyobj::shape_t& shape,
-                       std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
+namespace
 {
-    for (const auto& index : shape.mesh.indices) {
-        Vertex vertex{};
+    void LoadShape(const tinyobj::attrib_t& attrib, const tinyobj::shape_t& shape,
+                   std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
+    {
+        for (const auto& index : shape.mesh.indices) {
+            Vertex vertex{};
 
-        vertex.pos = {
-            attrib.vertices[3 * index.vertex_index + 0],
-           -attrib.vertices[3 * index.vertex_index + 1],
-            attrib.vertices[3 * index.vertex_index + 2],
-        };
+            vertex.pos = {
+                attrib.vertices[3 * index.vertex_index + 0],
+               -attrib.vertices[3 * index.vertex_index + 1],
+                attrib.vertices[3 * index.vertex_index + 2],
+            };
 
-        vertex.normal = {
-            attrib.normals[3 * index.normal_index + 0],
-           -attrib.normals[3 * index.normal_index + 1],
-            attrib.normals[3 * index.normal_index + 2],
-        };
+            vertex.normal = {
+                attrib.normals[3 * index.normal_index + 0],
+               -attrib.normals[3 * index.normal_index + 1],
+                attrib.normals[3 * index.normal_index + 2],
+            };
 
-        vertex.texCoord = {
-            attrib.texcoords[2 * index.texcoord_index + 0],
-            1.0f - attrib.texcoords[2 * index.texcoord_index + 1],
-        };
+            vertex.texCoord = {
+                attrib.texcoords[2 * index.texcoord_index + 0],
+                1.0f - attrib.texcoords[2 * index.texcoord_index + 1],
+            };
 
-        vertices.push_back(vertex);
-        indices.push_back(indices.size());
+            vertices.push_back(vertex);
+            indices.push_back(indices.size());
+        }
     }
 }
 

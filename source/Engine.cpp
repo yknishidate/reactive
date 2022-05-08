@@ -75,10 +75,9 @@ void Engine::Init()
     scene->Setup();
 
     // Create pipelines
-    rtPipeline.LoadShaders("../shader/ray_align/ray_align.rgen",
-                           "../shader/ray_align/ray_align.rmiss",
-                           "../shader/ray_align/ray_align.rchit",
-                           "../shader/ray_align/ray_align.rahit");
+    rtPipeline.LoadShaders("../shader/pathtracing/pathtracing.rgen",
+                           "../shader/pathtracing/pathtracing.rmiss",
+                           "../shader/pathtracing/pathtracing.rchit");
 
     rtPipeline.Register("inputImage", inputImage);
     rtPipeline.Register("outputImage", outputImage);

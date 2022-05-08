@@ -49,7 +49,7 @@ namespace
 
     std::vector<uint32_t> CompileToSPV(const std::string& filepath)
     {
-        spdlog::info("Compile shader: {}", filepath);
+        spdlog::info("  Compile shader: {}", filepath);
         std::string glslShader = ReadFile(filepath);
         EShLanguage stage = GetShaderStage(filepath);
         std::string included = Include(filepath, glslShader);
