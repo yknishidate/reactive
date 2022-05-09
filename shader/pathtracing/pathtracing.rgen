@@ -25,27 +25,47 @@ void createCoordinateSystem(in vec3 N, out vec3 T, out vec3 B)
     B = cross(N, T);
 }
 
-vec3 sampleHemisphere(vec2 randVal, in vec3 x, in vec3 y, in vec3 z)
+vec3 sampleHemisphere(in float rand1, in float rand2)
 {
-    float r1 = randVal.x;
-    float r2 = randVal.y;
-    vec3 direction = cosineSampleHemisphere(r1, r2);
-    return direction.x * x + direction.y * y + direction.z * z;
+    vec3 dir;
+    dir.x = cos(2 * M_PI * rand2) * sqrt(1 - rand1 * rand1);
+    dir.y = sin(2 * M_PI * rand2) * sqrt(1 - rand1 * rand1);
+    dir.z = rand1;
+    return dir;
 }
 
-vec3 sampleDirection(vec2 randVal, vec3 normal)
+float calcPDF(in vec3 dir)
+{
+    if(pushConstants.importance == 1) {
+        // 2/2pi * cos(theta)
+        float cosTheta = dir.z;
+        return (1.0 / M_PI) * cosTheta;
+    } else {
+        // 1/2pi
+        return 1.0 / (2.0 * M_PI);
+    }
+}
+
+vec3 sampleDirection(in vec2 randVal, in vec3 normal, out float pdf)
 {
     vec3 tangent;
     vec3 bitangent;
     createCoordinateSystem(normal, tangent, bitangent);
-    vec3 dir = cosineSampleHemisphere(randVal.x, randVal.y);
+    vec3 dir;
+    if(pushConstants.importance == 1) {
+        dir = cosineSampleHemisphere(randVal.x, randVal.y);
+        pdf = calcPDF(dir);
+    } else {
+        dir = sampleHemisphere(randVal.x, randVal.y);
+        pdf = calcPDF(dir);
+    }
     return dir.x * tangent + dir.y * bitangent + dir.z * normal;
 }
 
 void main()
 {
     uint maxDepth = 4;
-    uint maxSamples = 1;
+    uint maxSamples = 4;
     vec3 color = vec3(0.0);
 
     for(uint sampleCount = 0; sampleCount < maxSamples; sampleCount++){
@@ -85,8 +105,8 @@ void main()
             }else{
                 vec2 randVal = vec2(rand(seed), rand(seed));
                 origin = vec4(payLoad.position + payLoad.normal * 0.001, 1.0);
-                direction = vec4(sampleDirection(randVal, payLoad.normal), 1.0);
-                float pdf = 1.0 / (2.0 * M_PI);
+                float pdf;
+                direction = vec4(sampleDirection(randVal, payLoad.normal, pdf), 1.0);
                 weight *= payLoad.brdf * dot(direction.xyz, payLoad.normal) / pdf;
             }
         }

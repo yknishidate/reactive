@@ -50,4 +50,5 @@ layout(push_constant) uniform PushConstants{
     mat4 invView;
     mat4 invProj;
     int frame;
+    int importance;
 } pushConstants;

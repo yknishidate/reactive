@@ -101,6 +101,7 @@ void Engine::Init()
 void Engine::Run()
 {
     static bool accumulation = false;
+    static bool importance = false;
     static int denoise = 0;
     spdlog::info("Engine::Run()");
     while (!Window::ShouldClose()) {
@@ -109,16 +110,18 @@ void Engine::Run()
         Window::StartFrame();
 
         ImGui::Checkbox("Accumulation", &accumulation);
+        ImGui::Checkbox("Importance sampling", &importance);
         ImGui::Combo("Denoise", &denoise, "Off\0Median\0");
         ImGui::Render();
 
         // Scene update
-        scene->Update(0.1);
+        //scene->Update(0.1);
 
         // Update push constants
         scene->ProcessInput();
         pushConstants.InvProj = glm::inverse(scene->GetCamera().GetProj());
         pushConstants.InvView = glm::inverse(scene->GetCamera().GetView());
+        pushConstants.Importance = static_cast<int>(importance);
         if (!accumulation || scene->GetCamera().CheckDirtyAndClean()) {
             pushConstants.Frame = 0;
         } else {
