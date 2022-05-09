@@ -71,7 +71,6 @@ void Engine::Init()
     denoisedImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
 
     //scene = std::make_unique<Scene>("../asset/crytek_sponza/sponza.obj");
-    //scene = std::make_unique<Scene>("../asset/CornellBox.obj");
     scene = std::make_unique<Scene>("../asset/CornellBox/CornellBox-Glossy.obj");
     scene->Setup();
 

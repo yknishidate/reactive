@@ -20,7 +20,7 @@ struct PushConstants
     int Importance = 0;
     int Depth = 4;
     int Samples = 4;
-    float SkyColor[4];
+    float SkyColor[4] = { 0, 0, 0, 0 };
 };
 
 class Engine
