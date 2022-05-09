@@ -53,11 +53,16 @@ void main()
     pos = vec3(matrix * vec4(pos, 1));
     normal = normalize(vec3(normalMatrix * vec4(normal, 0)));
 
+    vec3 brdf = diffuse / M_PI;
+
     // Next event estimation
     {
         PointLight light = lights.p[0];
+        vec3 dir = light.position - pos;
+        float invDistPow2 = 1.0 / (dir.x*dir.x + dir.y*dir.y + dir.z*dir.z);
+        float cosTheta = dot(normalize(dir), normal);
         float pdf = 1.0;
-        //payload.color += 
+        payload.color += payload.weight * light.intensity * brdf * invDistPow2 * cosTheta / pdf;
     }
 
 //  for debug
@@ -65,5 +70,5 @@ void main()
     payload.emission = emission;
     payload.position = pos;
     payload.normal = normal;
-    payload.brdf = diffuse / M_PI;
+    payload.brdf = brdf;
 }

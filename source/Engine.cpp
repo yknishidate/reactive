@@ -77,7 +77,7 @@ void Engine::Init()
     //scene = std::make_unique<Scene>("../asset/CornellBox/CornellBox-Glossy.obj");
 
     // Add lights
-    //PointLight& light = scene->AddPointLight(glm::vec3{ 10.0f }, glm::vec3{ 0.0f });
+    PointLight& light = scene->AddPointLight(glm::vec3{ 10.0f }, glm::vec3{ 0.0f });
     scene->Setup();
 
     // Create pipelines
