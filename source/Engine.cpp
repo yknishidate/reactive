@@ -111,8 +111,10 @@ void Engine::Run()
         Window::StartFrame();
 
         ImGui::Checkbox("Accumulation", &accumulation);
-
-        bool changed = ImGui::Checkbox("Importance sampling", &importance);
+        bool refresh = false;
+        refresh |= ImGui::Checkbox("Importance sampling", &importance);
+        refresh |= ImGui::SliderInt("Depth", &pushConstants.Depth, 0, 8);
+        refresh |= ImGui::SliderInt("Samples", &pushConstants.Samples, 1, 32);
         ImGui::Combo("Denoise", &denoise, "Off\0Median\0");
         ImGui::Render();
 
@@ -124,7 +126,7 @@ void Engine::Run()
         pushConstants.InvProj = glm::inverse(scene->GetCamera().GetProj());
         pushConstants.InvView = glm::inverse(scene->GetCamera().GetView());
         pushConstants.Importance = static_cast<int>(importance);
-        if (changed || !accumulation || scene->GetCamera().CheckDirtyAndClean()) {
+        if (refresh || !accumulation || scene->GetCamera().CheckDirtyAndClean()) {
             pushConstants.Frame = 0;
         } else {
             pushConstants.Frame++;

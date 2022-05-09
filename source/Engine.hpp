@@ -18,6 +18,8 @@ struct PushConstants
     glm::mat4 InvProj{ 1 };
     int Frame = 0;
     int Importance = 0;
+    int Depth = 4;
+    int Samples = 4;
 };
 
 class Engine

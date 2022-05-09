@@ -53,4 +53,6 @@ layout(push_constant) uniform PushConstants{
     mat4 invProj;
     int frame;
     int importance;
+    int depth;
+    int samples;
 } pushConstants;

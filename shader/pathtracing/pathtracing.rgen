@@ -64,8 +64,8 @@ vec3 sampleDirection(in vec2 randVal, in vec3 normal, out float pdf)
 
 void main()
 {
-    uint maxDepth = 4;
-    uint maxSamples = 4;
+    uint maxDepth = pushConstants.depth;
+    uint maxSamples = pushConstants.samples;
     vec3 color = vec3(0.0);
 
     for(uint sampleCount = 0; sampleCount < maxSamples; sampleCount++){
