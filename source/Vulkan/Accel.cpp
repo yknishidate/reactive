@@ -20,9 +20,9 @@ namespace
         return buildSizes.accelerationStructureSize;
     }
 
-    Buffer CreateAccelBuffer(vk::DeviceSize size,
-                             vk::AccelerationStructureTypeKHR type,
-                             vk::AccelerationStructureGeometryKHR geometry)
+    DeviceBuffer CreateAccelBuffer(vk::DeviceSize size,
+                                   vk::AccelerationStructureTypeKHR type,
+                                   vk::AccelerationStructureGeometryKHR geometry)
     {
         DeviceBuffer buffer;
         buffer.Init(vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR |
@@ -95,7 +95,8 @@ void TopAccel::Init(const std::vector<Object>& objects, vk::GeometryFlagBitsKHR 
     }
 
     instanceBuffer.Init(vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
-                        vk::BufferUsageFlagBits::eShaderDeviceAddress,
+                        vk::BufferUsageFlagBits::eShaderDeviceAddress |
+                        vk::BufferUsageFlagBits::eTransferDst,
                         instances);
 
     vk::AccelerationStructureGeometryInstancesDataKHR instancesData;

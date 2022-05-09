@@ -448,7 +448,7 @@ void RayTracingPipeline::Setup(size_t pushSize)
     // Create shader binding table
     vk::BufferUsageFlags usage =
         vk::BufferUsageFlagBits::eShaderBindingTableKHR |
-        vk::BufferUsageFlagBits::eTransferSrc |
+        vk::BufferUsageFlagBits::eTransferDst |
         vk::BufferUsageFlagBits::eShaderDeviceAddress;
 
     raygenSBT.Init(usage, handleSize * rgenCount);
