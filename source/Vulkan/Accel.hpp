@@ -32,6 +32,6 @@ public:
     void Rebuild(const std::vector<Object>& objects);
 
 private:
-    Buffer instanceBuffer;
+    HostBuffer instanceBuffer;
     vk::GeometryFlagBitsKHR geomertyFlag;
 };

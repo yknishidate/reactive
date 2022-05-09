@@ -24,18 +24,18 @@ namespace
                              vk::AccelerationStructureTypeKHR type,
                              vk::AccelerationStructureGeometryKHR geometry)
     {
-        Buffer buffer;
-        buffer.InitOnDevice(size,
-                            vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR |
-                            vk::BufferUsageFlagBits::eShaderDeviceAddress);
+        DeviceBuffer buffer;
+        buffer.Init(vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR |
+                    vk::BufferUsageFlagBits::eShaderDeviceAddress, size);
         return buffer;
     }
 
     void BuildAccel(vk::AccelerationStructureKHR accel, vk::DeviceSize size, uint32_t primitiveCount,
                     vk::AccelerationStructureBuildGeometryInfoKHR geometryInfo)
     {
-        Buffer scratchBuffer;
-        scratchBuffer.InitOnDevice(size, vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress);
+        DeviceBuffer scratchBuffer;
+        scratchBuffer.Init(vk::BufferUsageFlagBits::eStorageBuffer |
+                           vk::BufferUsageFlagBits::eShaderDeviceAddress, size);
 
         geometryInfo.setScratchData(scratchBuffer.GetAddress());
         geometryInfo.setDstAccelerationStructure(accel);
@@ -94,10 +94,9 @@ void TopAccel::Init(const std::vector<Object>& objects, vk::GeometryFlagBitsKHR 
         instances.push_back(instance);
     }
 
-    instanceBuffer.InitOnHost(sizeof(vk::AccelerationStructureInstanceKHR) * primitiveCount,
-                              vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
-                              vk::BufferUsageFlagBits::eShaderDeviceAddress);
-    instanceBuffer.Copy(instances.data());
+    instanceBuffer.Init(vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
+                        vk::BufferUsageFlagBits::eShaderDeviceAddress,
+                        instances);
 
     vk::AccelerationStructureGeometryInstancesDataKHR instancesData;
     instancesData.setArrayOfPointers(false);

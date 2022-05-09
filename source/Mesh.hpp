@@ -45,8 +45,8 @@ public:
     Material GetMaterial() const { return material; }
 
 private:
-    Buffer vertexBuffer{};
-    Buffer indexBuffer{};
+    DeviceBuffer vertexBuffer{};
+    DeviceBuffer indexBuffer{};
     BottomAccel bottomAccel{};
     Material material{};
 };

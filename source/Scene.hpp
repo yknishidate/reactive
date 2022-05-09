@@ -48,9 +48,9 @@ private:
     TopAccel topAccel;
     Camera camera;
 
-    Buffer objectBuffer;
-    Buffer addressBuffer;
+    DeviceBuffer objectBuffer;
+    DeviceBuffer addressBuffer;
 
     std::vector<PointLight> pointLights;
-    Buffer lightBuffer;
+    DeviceBuffer lightBuffer;
 };

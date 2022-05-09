@@ -6,6 +6,6 @@ layout(location = 0) rayPayloadInEXT HitPayload payLoad;
 
 void main()
 {
-    payLoad.emission = pushConstants.skyColor.rgb;
+    payLoad.emission = pushConstants.skyColor.rgb * 5;
     payLoad.done = true;
 }

@@ -39,9 +39,9 @@ void Scene::Setup()
                              glm::vec4{diffuse, 1}, glm::vec4{emission, 1}, glm::vec4{0.0},
                              texIndex });
     }
-    objectBuffer.InitOnDevice(vk::BufferUsageFlagBits::eStorageBuffer |
-                              vk::BufferUsageFlagBits::eShaderDeviceAddress,
-                              objectData);
+    objectBuffer.Init(vk::BufferUsageFlagBits::eStorageBuffer |
+                      vk::BufferUsageFlagBits::eShaderDeviceAddress,
+                      objectData);
 
     // Light buffer
     //lightBuffer.InitOnHost(sizeof)
@@ -53,9 +53,9 @@ void Scene::Setup()
         addresses[i].indices = objects[i].GetMesh().GetIndexBufferAddress();
         addresses[i].objects = objectBuffer.GetAddress();
     }
-    addressBuffer.InitOnDevice(vk::BufferUsageFlagBits::eStorageBuffer |
-                               vk::BufferUsageFlagBits::eShaderDeviceAddress,
-                               addresses);
+    addressBuffer.Init(vk::BufferUsageFlagBits::eStorageBuffer |
+                       vk::BufferUsageFlagBits::eShaderDeviceAddress,
+                       addresses);
 
     camera.Init(Window::GetWidth(), Window::GetHeight());
 }

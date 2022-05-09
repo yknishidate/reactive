@@ -24,7 +24,7 @@ namespace
     }
 }
 
-void Buffer::Init(size_t size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memoryProp)
+void Buffer::Init(vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memoryProp, size_t size)
 {
     this->size = size;
     buffer = createBuffer(size, usage);
@@ -36,20 +36,35 @@ void Buffer::Init(size_t size, vk::BufferUsageFlags usage, vk::MemoryPropertyFla
     }
 }
 
-void Buffer::InitOnHost(size_t size, vk::BufferUsageFlags usage)
+void HostBuffer::Init(vk::BufferUsageFlags usage, size_t size)
 {
-    Init(size, usage, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+    Buffer::Init(usage, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, size);
 }
 
-void Buffer::InitOnDevice(size_t size, vk::BufferUsageFlags usage)
-{
-    Init(size, usage, vk::MemoryPropertyFlagBits::eDeviceLocal);
-}
-
-void Buffer::Copy(const void* data)
+void HostBuffer::Copy(const void* data)
 {
     if (!mapped) {
         mapped = Vulkan::Device.mapMemory(*memory, 0, size);
     }
     std::memcpy(mapped, data, static_cast<size_t>(size));
+}
+
+void DeviceBuffer::Init(vk::BufferUsageFlags usage, size_t size)
+{
+    this->usage = usage;
+    Buffer::Init(usage, vk::MemoryPropertyFlagBits::eDeviceLocal, size);
+}
+
+void DeviceBuffer::Copy(const void* data)
+{
+    HostBuffer staginBuffer;
+    staginBuffer.Init(usage | vk::BufferUsageFlagBits::eTransferSrc, size);
+    staginBuffer.Copy(data);
+
+    Vulkan::OneTimeSubmit(
+        [&](vk::CommandBuffer commandBuffer)
+        {
+            vk::BufferCopy region{ 0, 0, size };
+            commandBuffer.copyBuffer(staginBuffer.GetBuffer(), *buffer, region);
+        });
 }
