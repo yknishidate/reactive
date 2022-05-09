@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 project(Reactive LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 
@@ -39,6 +39,8 @@ add_executable(${PROJECT_NAME}
     ${headers}
     ${shaders}
 )
+
+target_precompile_headers(${PROJECT_NAME} PUBLIC source/pch.h)
 
 target_link_libraries(
     ${PROJECT_NAME} PUBLIC 
