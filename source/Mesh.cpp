@@ -11,10 +11,8 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& ind
     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress
     };
 
-    vertexBuffer.InitOnHost(sizeof(Vertex) * vertices.size(), usage);
-    indexBuffer.InitOnHost(sizeof(uint32_t) * indices.size(), usage);
-    vertexBuffer.Copy(vertices.data());
-    indexBuffer.Copy(indices.data());
+    vertexBuffer.InitOnDevice(usage, vertices);
+    indexBuffer.InitOnDevice(usage, indices);
     bottomAccel.Init(vertexBuffer, indexBuffer, vertices.size(), indices.size() / 3, vk::GeometryFlagBitsKHR::eNoDuplicateAnyHitInvocation);
 }
 
@@ -29,10 +27,8 @@ Mesh::Mesh(const std::string& filepath)
         vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress
     };
 
-    vertexBuffer.InitOnHost(sizeof(Vertex) * vertices.size(), usage);
-    indexBuffer.InitOnHost(sizeof(uint32_t) * indices.size(), usage);
-    vertexBuffer.Copy(vertices.data());
-    indexBuffer.Copy(indices.data());
+    vertexBuffer.InitOnDevice(usage, vertices);
+    indexBuffer.InitOnDevice(usage, indices);
     bottomAccel.Init(vertexBuffer, indexBuffer, vertices.size(), indices.size() / 3,
                      vk::GeometryFlagBitsKHR::eNoDuplicateAnyHitInvocation);
 }

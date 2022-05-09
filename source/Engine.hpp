@@ -19,7 +19,7 @@ struct PushConstants
     int Frame = 0;
     int Importance = 0;
     int Depth = 4;
-    int Samples = 4;
+    int Samples = 1;
     float SkyColor[4] = { 1, 1, 1, 0 };
 };
 

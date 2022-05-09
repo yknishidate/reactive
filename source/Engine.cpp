@@ -71,7 +71,8 @@ void Engine::Init()
     denoisedImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
 
     scene = std::make_unique<Scene>("../asset/crytek_sponza/sponza.obj",
-                                    glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 0.01f }, glm::vec3{ 0.0f, glm::radians(90.0f), 0.0f });
+                                    glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 0.01f },
+                                    glm::vec3{ 0.0f, glm::radians(90.0f), 0.0f });
     //scene = std::make_unique<Scene>("../asset/CornellBox/CornellBox-Glossy.obj");
     PointLight& light = scene->AddPointLight(glm::vec3{ 10.0f }, glm::vec3{ 0.0f });
     scene->Setup();

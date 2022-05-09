@@ -19,6 +19,22 @@ public:
         Copy(data.data());
     }
 
+    template <typename T>
+    void InitOnDevice(vk::BufferUsageFlags usage, std::vector<T> data)
+    {
+        size_t size = sizeof(T) * data.size();
+        InitOnDevice(size, usage | vk::BufferUsageFlagBits::eTransferDst);
+
+        Buffer staginBuffer;
+        staginBuffer.InitOnHost(usage | vk::BufferUsageFlagBits::eTransferSrc, data);
+        Vulkan::OneTimeSubmit(
+            [&](vk::CommandBuffer cmdBuf)
+            {
+                vk::BufferCopy region{ 0, 0, size };
+                cmdBuf.copyBuffer(staginBuffer.GetBuffer(), *buffer, region);
+            });
+    }
+
 private:
     vk::UniqueBuffer buffer;
     vk::UniqueDeviceMemory memory;
