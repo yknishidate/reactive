@@ -3,7 +3,7 @@
 #include "common.glsl"
 #include "random.glsl"
 
-layout(location = 0) rayPayloadEXT HitPayload payLoad;
+layout(location = 0) rayPayloadEXT HitPayload payload;
 
 vec3 cosineSampleHemisphere(float u1, float u2)
 {
@@ -66,8 +66,8 @@ void main()
 {
     uint maxDepth = pushConstants.depth;
     uint maxSamples = pushConstants.samples;
-    vec3 color = vec3(0.0);
 
+    vec3 color = vec3(0.0);
     for(uint sampleCount = 0; sampleCount < maxSamples; sampleCount++){
         // Calc seed
         uvec2 s = pcg2d(ivec2(gl_LaunchIDEXT.xy) * (sampleCount + pushConstants.frame * maxSamples + 1));
@@ -83,7 +83,8 @@ void main()
         vec4 direction = pushConstants.invView * vec4(normalize(target.xyz), 0) ;
         
         vec3 weight = vec3(1.0);
-        payLoad.done = false;
+        payload.done = false;
+        payload.color = vec3(0.0);
 
         for(uint depth = 0; depth < maxDepth; depth++){
             traceRayEXT(
@@ -100,25 +101,26 @@ void main()
                 0     // payloadLocation
             );
             
-            color += weight * payLoad.emission;
-            if(payLoad.done){
+            payload.color += weight * payload.emission;
+            if(payload.done){
                 break;
             }
             
             vec2 randVal = vec2(rand(seed), rand(seed));
-            origin = vec4(payLoad.position + payLoad.normal * 0.001, 1.0);
+            origin = vec4(payload.position + payload.normal * 0.001, 1.0);
             
             float pdf;
-            direction = vec4(sampleDirection(randVal, payLoad.normal, pdf), 1.0);
+            direction = vec4(sampleDirection(randVal, payload.normal, pdf), 1.0);
             
-            weight *= payLoad.brdf * dot(direction.xyz, payLoad.normal) / pdf;
+            weight *= payload.brdf * dot(direction.xyz, payload.normal) / pdf;
         }
+        color += payload.color;
     }
     color /= maxSamples;
 
     float weight = 1.0 / (pushConstants.frame + 1);
     vec4 oldColor = imageLoad(inputImage, ivec2(gl_LaunchIDEXT.xy));
-    vec4 newColor = vec4(color, 0.0);
+    vec4 newColor = vec4(payload.color, 0.0);
     newColor = oldColor * (1.0 - weight) + newColor * weight;
     imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), newColor);
 }

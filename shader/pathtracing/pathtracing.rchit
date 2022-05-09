@@ -2,7 +2,7 @@
 #extension GL_GOOGLE_include_directive : enable
 #include "common.glsl"
 
-layout(location = 0) rayPayloadInEXT HitPayload payLoad;
+layout(location = 0) rayPayloadInEXT HitPayload payload;
 hitAttributeEXT vec3 attribs;
 
 vec3 getWorldPos()
@@ -29,6 +29,7 @@ void main()
     Vertices vertices = Vertices(address.vertices);
     Indices indices = Indices(address.indices);
     Objects objects = Objects(address.objects);
+    PointLights lights = PointLights(address.lights);
 
     uvec3 index = indices.i[gl_PrimitiveID];
     Vertex v0 = vertices.v[index.x];
@@ -52,10 +53,17 @@ void main()
     pos = vec3(matrix * vec4(pos, 1));
     normal = normalize(vec3(normalMatrix * vec4(normal, 0)));
 
+    // Next event estimation
+    {
+        PointLight light = lights.p[0];
+        float pdf = 1.0;
+        //payload.color += 
+    }
+
 //  for debug
-//    payLoad.done = true;
-    payLoad.emission = emission;
-    payLoad.position = pos;
-    payLoad.normal = normal;
-    payLoad.brdf = diffuse / M_PI;
+//    payload.done = true;
+    payload.emission = emission;
+    payload.position = pos;
+    payload.normal = normal;
+    payload.brdf = diffuse / M_PI;
 }

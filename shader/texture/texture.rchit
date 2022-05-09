@@ -23,7 +23,7 @@ layout(buffer_reference, scalar) buffer Indices { uvec3 i[]; };
 layout(binding = 3) buffer Addresses { MeshAddress address[]; } addresses;
 layout(binding = 4) uniform sampler2D samplers[];
 
-layout(location = 0) rayPayloadInEXT vec3 payLoad;
+layout(location = 0) rayPayloadInEXT vec3 payload;
 hitAttributeEXT vec3 attribs;
 
 void main()
@@ -43,5 +43,5 @@ void main()
     vec2 texCoord = v0.texCoord * barycentricCoords.x + v1.texCoord * barycentricCoords.y + v2.texCoord * barycentricCoords.z;
     vec3 color = texture(samplers[0], texCoord).rgb;
 
-    payLoad = color;
+    payload = color;
 }

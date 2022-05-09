@@ -9,7 +9,7 @@ layout(push_constant) uniform PushConstants {
     int frame;
 } pushConstants;
 
-layout(location = 0) rayPayloadEXT vec3 payLoad;
+layout(location = 0) rayPayloadEXT vec3 payload;
 
 void main()
 {
@@ -32,5 +32,5 @@ void main()
         10000.0,
         0     // payloadLocation
     );
-    imageStore(renderImage, ivec2(gl_LaunchIDEXT.xy), vec4(payLoad, 1));
+    imageStore(renderImage, ivec2(gl_LaunchIDEXT.xy), vec4(payload, 1));
 }

@@ -12,6 +12,8 @@ struct HitPayload
     vec3 normal;
     vec3 emission;
     vec3 brdf;
+    vec3 color;
+    vec3 weight;
     bool done;
 };
 
@@ -20,6 +22,7 @@ struct MeshAddress
     uint64_t vertices;
     uint64_t indices;
     uint64_t objects;
+    uint64_t lights;
 };
 
 struct Vertex
@@ -39,9 +42,16 @@ struct ObjectData
     int textureIndex;
 };
 
+struct PointLight
+{
+    vec3 intensity;
+    vec3 position;
+};
+
 layout(buffer_reference, scalar) buffer Vertices { Vertex v[]; };
 layout(buffer_reference, scalar) buffer Indices { uvec3 i[]; };
 layout(buffer_reference, scalar) buffer Objects { ObjectData o[]; };
+layout(buffer_reference, scalar) buffer PointLights { PointLight p[]; };
 layout(binding = 0, set = 0) uniform accelerationStructureEXT topLevelAS;
 layout(binding = 1, set = 0, rgba8) uniform image2D inputImage;
 layout(binding = 2, set = 0, rgba8) uniform image2D outputImage;

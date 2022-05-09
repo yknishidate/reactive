@@ -3,13 +3,6 @@
 #include "Loader.hpp"
 #include "Window.hpp"
 
-struct BufferAddress
-{
-    vk::DeviceAddress vertices;
-    vk::DeviceAddress indices;
-    vk::DeviceAddress objects;
-};
-
 Scene::Scene(const std::string& filepath,
              glm::vec3 position, glm::vec3 scale, glm::vec3 rotation)
 {
@@ -39,12 +32,13 @@ void Scene::Setup()
                              glm::vec4{diffuse, 1}, glm::vec4{emission, 1}, glm::vec4{0.0},
                              texIndex });
     }
-    objectBuffer.Init(vk::BufferUsageFlagBits::eStorageBuffer |
-                      vk::BufferUsageFlagBits::eShaderDeviceAddress,
-                      objectData);
-
-    // Light buffer
-    //lightBuffer.InitOnHost(sizeof)
+    vk::BufferUsageFlags usage =
+        vk::BufferUsageFlagBits::eStorageBuffer |
+        vk::BufferUsageFlagBits::eShaderDeviceAddress;
+    objectBuffer.Init(usage, objectData);
+    if (!pointLights.empty()) {
+        lightBuffer.Init(usage, pointLights);
+    }
 
     // Buffer references
     std::vector<BufferAddress> addresses(objects.size());
@@ -52,10 +46,11 @@ void Scene::Setup()
         addresses[i].vertices = objects[i].GetMesh().GetVertexBufferAddress();
         addresses[i].indices = objects[i].GetMesh().GetIndexBufferAddress();
         addresses[i].objects = objectBuffer.GetAddress();
+        if (!pointLights.empty()) {
+            addresses[i].lights = lightBuffer.GetAddress();
+        }
     }
-    addressBuffer.Init(vk::BufferUsageFlagBits::eStorageBuffer |
-                       vk::BufferUsageFlagBits::eShaderDeviceAddress,
-                       addresses);
+    addressBuffer.Init(usage, addresses);
 
     camera.Init(Window::GetWidth(), Window::GetHeight());
 }

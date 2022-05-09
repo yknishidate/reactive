@@ -18,6 +18,14 @@ struct ObjectData
     int TextureIndex = -1;
 };
 
+struct BufferAddress
+{
+    vk::DeviceAddress vertices;
+    vk::DeviceAddress indices;
+    vk::DeviceAddress objects;
+    vk::DeviceAddress lights;
+};
+
 class Scene
 {
 public:
