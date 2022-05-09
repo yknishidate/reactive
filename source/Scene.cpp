@@ -32,8 +32,11 @@ void Scene::Setup()
         glm::mat4 matrix = object.GetTransform().GetMatrix();
         glm::mat4 normalMatrix = object.GetTransform().GetNormalMatrix();
         glm::vec3 diffuse = object.GetMesh().GetMaterial().Diffuse;
+        glm::vec3 emission = object.GetMesh().GetMaterial().Emission;
         int texIndex = object.GetMesh().GetMaterial().DiffuseTexture;
-        objectData.push_back({ matrix, normalMatrix, glm::vec4(diffuse, 1), texIndex });
+        objectData.push_back({ matrix, normalMatrix,
+                             glm::vec4{diffuse, 1}, glm::vec4{emission, 1}, glm::vec4{0.0},
+                             texIndex });
     }
     objectBuffer.InitOnHost(sizeof(ObjectData) * objectData.size(),
                             vk::BufferUsageFlagBits::eStorageBuffer |

@@ -10,7 +10,7 @@ struct HitPayload
 {
     vec3 position;
     vec3 normal;
-    vec3 emittion;
+    vec3 emission;
     vec3 brdf;
     bool done;
 };
@@ -34,6 +34,8 @@ struct ObjectData
     mat4 matrix;
     mat4 normalMatrix;
     vec4 diffuse;
+    vec4 emission;
+    vec4 specular;
     int textureIndex;
 };
 

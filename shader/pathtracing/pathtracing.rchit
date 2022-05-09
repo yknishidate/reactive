@@ -40,10 +40,11 @@ void main()
     vec3 normal   = v0.normal   * barycentricCoords.x + v1.normal   * barycentricCoords.y + v2.normal   * barycentricCoords.z;
     vec2 texCoord = v0.texCoord * barycentricCoords.x + v1.texCoord * barycentricCoords.y + v2.texCoord * barycentricCoords.z;
 
-    vec3 color = objects.o[gl_InstanceID].diffuse.rgb;
+    vec3 diffuse = objects.o[gl_InstanceID].diffuse.rgb;
+    vec3 emission = objects.o[gl_InstanceID].emission.rgb;
     int textureIndex = objects.o[gl_InstanceID].textureIndex;
     if(textureIndex >= 0){
-        color = texture(samplers[textureIndex], texCoord).rgb;
+        diffuse = texture(samplers[textureIndex], texCoord).rgb;
     }
 
     mat4 matrix = objects.o[gl_InstanceID].matrix;
@@ -53,8 +54,8 @@ void main()
 
 //  for debug
 //    payLoad.done = true;
-//    payLoad.emittion = color;
+    payLoad.emission = emission;
     payLoad.position = pos;
     payLoad.normal = normal;
-    payLoad.brdf = color / M_PI;
+    payLoad.brdf = diffuse / M_PI;
 }

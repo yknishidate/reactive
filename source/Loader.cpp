@@ -20,12 +20,18 @@ namespace
                 attrib.vertices[3 * index.vertex_index + 2],
             };
 
+            if (attrib.normals.size() < 1) {
+                throw std::runtime_error("This shape dosen't have normals.");
+            }
             vertex.normal = {
                 attrib.normals[3 * index.normal_index + 0],
                -attrib.normals[3 * index.normal_index + 1],
                 attrib.normals[3 * index.normal_index + 2],
             };
 
+            if (attrib.texcoords.size() < 1) {
+                throw std::runtime_error("This shape dosen't have texcoords.");
+            }
             vertex.texCoord = {
                 attrib.texcoords[2 * index.texcoord_index + 0],
                 1.0f - attrib.texcoords[2 * index.texcoord_index + 1],

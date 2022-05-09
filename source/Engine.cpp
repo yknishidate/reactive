@@ -71,7 +71,8 @@ void Engine::Init()
     denoisedImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
 
     //scene = std::make_unique<Scene>("../asset/crytek_sponza/sponza.obj");
-    scene = std::make_unique<Scene>("../asset/CornellBox.obj");
+    //scene = std::make_unique<Scene>("../asset/CornellBox.obj");
+    scene = std::make_unique<Scene>("../asset/CornellBox/CornellBox-Glossy.obj");
     scene->Setup();
 
     // Create pipelines
@@ -110,7 +111,8 @@ void Engine::Run()
         Window::StartFrame();
 
         ImGui::Checkbox("Accumulation", &accumulation);
-        ImGui::Checkbox("Importance sampling", &importance);
+
+        bool changed = ImGui::Checkbox("Importance sampling", &importance);
         ImGui::Combo("Denoise", &denoise, "Off\0Median\0");
         ImGui::Render();
 
@@ -122,7 +124,7 @@ void Engine::Run()
         pushConstants.InvProj = glm::inverse(scene->GetCamera().GetProj());
         pushConstants.InvView = glm::inverse(scene->GetCamera().GetView());
         pushConstants.Importance = static_cast<int>(importance);
-        if (!accumulation || scene->GetCamera().CheckDirtyAndClean()) {
+        if (changed || !accumulation || scene->GetCamera().CheckDirtyAndClean()) {
             pushConstants.Frame = 0;
         } else {
             pushConstants.Frame++;

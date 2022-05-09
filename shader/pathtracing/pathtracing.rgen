@@ -99,15 +99,19 @@ void main()
                 10000.0,
                 0     // payloadLocation
             );
+            
+            
+            vec2 randVal = vec2(rand(seed), rand(seed));
+            origin = vec4(payLoad.position + payLoad.normal * 0.001, 1.0);
+            
+            float pdf;
+            direction = vec4(sampleDirection(randVal, payLoad.normal, pdf), 1.0);
+            
+            color += weight * payLoad.emission;
+            weight *= payLoad.brdf * dot(direction.xyz, payLoad.normal) / pdf;
+            
             if(payLoad.done){
-                color += weight * payLoad.emittion;
                 break;
-            }else{
-                vec2 randVal = vec2(rand(seed), rand(seed));
-                origin = vec4(payLoad.position + payLoad.normal * 0.001, 1.0);
-                float pdf;
-                direction = vec4(sampleDirection(randVal, payLoad.normal, pdf), 1.0);
-                weight *= payLoad.brdf * dot(direction.xyz, payLoad.normal) / pdf;
             }
         }
     }
