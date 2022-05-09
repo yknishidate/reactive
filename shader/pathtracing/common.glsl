@@ -55,4 +55,5 @@ layout(push_constant) uniform PushConstants{
     int importance;
     int depth;
     int samples;
+    vec4 skyColor;
 } pushConstants;

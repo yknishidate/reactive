@@ -420,7 +420,7 @@ void RayTracingPipeline::Setup(size_t pushSize)
     std::vector bindings = GetBindings(bindingMap);
 
     descSetLayout = CreateDescSetLayout(bindings);
-    pipelineLayout = CreatePipelineLayout(*descSetLayout, pushSize, vk::ShaderStageFlagBits::eRaygenKHR);
+    pipelineLayout = CreatePipelineLayout(*descSetLayout, pushSize, vk::ShaderStageFlagBits::eRaygenKHR | vk::ShaderStageFlagBits::eMissKHR);
     pipeline = CreateRayTracingPipeline(shaderStages, shaderGroups, *pipelineLayout);
 
     // Get Ray Tracing Properties
@@ -468,7 +468,10 @@ void RayTracingPipeline::Run(vk::CommandBuffer commandBuffer, uint32_t countX, u
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, *pipeline);
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eRayTracingKHR, *pipelineLayout, 0, *descSet, nullptr);
     if (pushData) {
-        commandBuffer.pushConstants(*pipelineLayout, vk::ShaderStageFlagBits::eRaygenKHR, 0, pushSize, pushData);
+        commandBuffer.pushConstants(*pipelineLayout,
+                                    vk::ShaderStageFlagBits::eRaygenKHR |
+                                    vk::ShaderStageFlagBits::eMissKHR
+                                    , 0, pushSize, pushData);
     }
     commandBuffer.traceRaysKHR(raygenRegion, missRegion, hitRegion, {}, countX, countY, 1);
 }

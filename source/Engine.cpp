@@ -113,9 +113,10 @@ void Engine::Run()
         ImGui::Checkbox("Accumulation", &accumulation);
         bool refresh = false;
         refresh |= ImGui::Checkbox("Importance sampling", &importance);
+        ImGui::Combo("Denoise", &denoise, "Off\0Median\0");
         refresh |= ImGui::SliderInt("Depth", &pushConstants.Depth, 0, 8);
         refresh |= ImGui::SliderInt("Samples", &pushConstants.Samples, 1, 32);
-        ImGui::Combo("Denoise", &denoise, "Off\0Median\0");
+        refresh |= ImGui::ColorPicker4("Sky color", pushConstants.SkyColor);
         ImGui::Render();
 
         // Scene update
