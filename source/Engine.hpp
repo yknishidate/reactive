@@ -1,13 +1,13 @@
 #pragma once
 #include <memory>
-#include "Vulkan.hpp"
+#include "Vulkan/Vulkan.hpp"
 #include <spdlog/spdlog.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan_hpp.h>
 
-#include "Image.hpp"
-#include "Pipeline.hpp"
+#include "Vulkan/Image.hpp"
+#include "Vulkan/Pipeline.hpp"
 #include "Window.hpp"
 #include "Mesh.hpp"
 #include "Scene.hpp"

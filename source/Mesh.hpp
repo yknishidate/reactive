@@ -1,6 +1,6 @@
 #pragma once
-#include "Buffer.hpp"
-#include "Accel.hpp"
+#include "Vulkan/Buffer.hpp"
+#include "Vulkan/Accel.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_SWIZZLE

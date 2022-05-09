@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <spdlog/spdlog.h>
 #include "Loader.hpp"
-#include "Image.hpp"
+#include "Vulkan/Image.hpp"
 
 namespace
 {

@@ -1,6 +1,6 @@
 #include <functional>
 #include "Engine.hpp"
-#include "Vulkan.hpp"
+#include "Vulkan/Vulkan.hpp"
 #include "Input.hpp"
 #include "Loader.hpp"
 #include "Scene.hpp"
@@ -113,7 +113,7 @@ void Engine::Run()
         bool refresh = false;
         refresh |= ImGui::Checkbox("Importance sampling", &importance);
         ImGui::Combo("Denoise", &denoise, "Off\0Median\0");
-        refresh |= ImGui::SliderInt("Depth", &pushConstants.Depth, 0, 8);
+        refresh |= ImGui::SliderInt("Depth", &pushConstants.Depth, 1, 8);
         refresh |= ImGui::SliderInt("Samples", &pushConstants.Samples, 1, 32);
         refresh |= ImGui::ColorPicker4("Sky color", pushConstants.SkyColor);
         ImGui::Render();

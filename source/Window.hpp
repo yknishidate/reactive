@@ -6,8 +6,8 @@
 #include <vector>
 #include <vulkan/vulkan.hpp>
 #include <GLFW/glfw3.h>
-#include "Image.hpp"
-#include "Pipeline.hpp"
+#include "Vulkan/Image.hpp"
+#include "Vulkan/Pipeline.hpp"
 
 struct Frame
 {
