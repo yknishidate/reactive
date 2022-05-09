@@ -12,6 +12,13 @@ public:
     vk::DeviceSize GetSize() const { return size; }
     uint64_t GetAddress() const { return deviceAddress; }
 
+    template <typename T>
+    void InitOnHost(vk::BufferUsageFlags usage, std::vector<T> data)
+    {
+        InitOnHost(sizeof(T) * data.size(), usage);
+        Copy(data.data());
+    }
+
 private:
     vk::UniqueBuffer buffer;
     vk::UniqueDeviceMemory memory;

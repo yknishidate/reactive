@@ -10,16 +10,17 @@ struct BufferAddress
     vk::DeviceAddress objects;
 };
 
-Scene::Scene(const std::string& filepath)
+Scene::Scene(const std::string& filepath,
+             glm::vec3 position, glm::vec3 scale, glm::vec3 rotation)
 {
     Loader::LoadFromFile(filepath, meshes, textures);
 
     objects.resize(meshes.size());
     for (int i = 0; i < meshes.size(); i++) {
         objects[i].Init(meshes[i]);
-        //objects[i].GetTransform().Position.y = 1.0;
-        //objects[i].GetTransform().Scale = glm::vec3{ 0.01 };
-        //objects[i].GetTransform().Rotation = glm::quat{ glm::vec3{ 0, glm::radians(90.0f), 0 } };
+        objects[i].GetTransform().Position = position;
+        objects[i].GetTransform().Scale = scale;
+        objects[i].GetTransform().Rotation = glm::quat{ rotation };
     }
 }
 
@@ -38,10 +39,12 @@ void Scene::Setup()
                              glm::vec4{diffuse, 1}, glm::vec4{emission, 1}, glm::vec4{0.0},
                              texIndex });
     }
-    objectBuffer.InitOnHost(sizeof(ObjectData) * objectData.size(),
-                            vk::BufferUsageFlagBits::eStorageBuffer |
-                            vk::BufferUsageFlagBits::eShaderDeviceAddress);
-    objectBuffer.Copy(objectData.data());
+    objectBuffer.InitOnHost(vk::BufferUsageFlagBits::eStorageBuffer |
+                            vk::BufferUsageFlagBits::eShaderDeviceAddress,
+                            objectData);
+
+    // Light buffer
+    //lightBuffer.InitOnHost(sizeof)
 
     // Buffer references
     std::vector<BufferAddress> addresses(objects.size());
@@ -50,8 +53,9 @@ void Scene::Setup()
         addresses[i].indices = objects[i].GetMesh().GetIndexBufferAddress();
         addresses[i].objects = objectBuffer.GetAddress();
     }
-    addressBuffer.InitOnHost(sizeof(BufferAddress) * addresses.size(), vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress);
-    addressBuffer.Copy(addresses.data());
+    addressBuffer.InitOnHost(vk::BufferUsageFlagBits::eStorageBuffer |
+                             vk::BufferUsageFlagBits::eShaderDeviceAddress,
+                             addresses);
 
     camera.Init(Window::GetWidth(), Window::GetHeight());
 }
@@ -74,16 +78,22 @@ void Scene::ProcessInput()
     camera.ProcessInput();
 }
 
-const std::shared_ptr<Mesh>& Scene::AddMesh(const std::string& filepath)
+std::shared_ptr<Mesh>& Scene::AddMesh(const std::string& filepath)
 {
     meshes.push_back(std::make_shared<Mesh>(filepath));
     return meshes.back();
 }
 
-const Object& Scene::AddObject(std::shared_ptr<Mesh> mesh)
+Object& Scene::AddObject(std::shared_ptr<Mesh> mesh)
 {
     Object object;
     object.Init(mesh);
     objects.push_back(object);
     return objects.back();
+}
+
+PointLight& Scene::AddPointLight(glm::vec3 intensity, glm::vec3 position)
+{
+    pointLights.emplace_back(intensity, position);
+    return pointLights.back();
 }

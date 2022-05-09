@@ -4,6 +4,7 @@
 #include "Mesh.hpp"
 #include "Camera.hpp"
 #include "Object.hpp"
+#include "Light.hpp"
 
 class Image;
 
@@ -20,12 +21,16 @@ struct ObjectData
 class Scene
 {
 public:
-    explicit Scene(const std::string& filepath);
+    explicit Scene(const std::string& filepath,
+                   glm::vec3 position = glm::vec3{ 0.0f },
+                   glm::vec3 scale = glm::vec3{ 1.0f },
+                   glm::vec3 rotation = glm::vec3{ 0.0f });
     void Setup();
     void Update(float dt);
     void ProcessInput();
-    const std::shared_ptr<Mesh>& AddMesh(const std::string& filepath);
-    const Object& AddObject(std::shared_ptr<Mesh> mesh);
+    std::shared_ptr<Mesh>& AddMesh(const std::string& filepath);
+    Object& AddObject(std::shared_ptr<Mesh> mesh);
+    PointLight& AddPointLight(glm::vec3 intensity, glm::vec3 position);
 
     vk::AccelerationStructureKHR GetAccel() const { return topAccel.GetAccel(); }
     const std::vector<Image>& GetTextures() const { return textures; }
@@ -45,4 +50,7 @@ private:
 
     Buffer objectBuffer;
     Buffer addressBuffer;
+
+    std::vector<PointLight> pointLights;
+    Buffer lightBuffer;
 };
