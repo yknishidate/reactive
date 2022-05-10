@@ -4,6 +4,8 @@
 #include "common.glsl"
 #include "random.glsl"
 
+#define NUM_CANDIDATES 32
+
 layout(location = 0) rayPayloadInEXT HitPayload payload;
 hitAttributeEXT vec3 attribs;
 
@@ -110,10 +112,10 @@ void main()
             lightIndex = sampleLightUniform();
         }else if(pushConstants.nee == 2){
 
-            int candidates[16];
-            float weights[16];
+            int candidates[NUM_CANDIDATES];
+            float weights[NUM_CANDIDATES];
             float sumWeights = 0.0;
-            for(int i = 0; i < 16; i++){
+            for(int i = 0; i < NUM_CANDIDATES; i++){
                 // Sample candidates
                 int candidate = sampleLightUniform();
                 candidates[i] = candidate;
@@ -132,7 +134,7 @@ void main()
             // Sample using weights
             float cumulation = 0.0;
             float threshold = rand(payload.seed) * sumWeights;
-            for(int i = 0; i < 16; i++){
+            for(int i = 0; i < NUM_CANDIDATES; i++){
                 cumulation += weights[i];
                 if (threshold < cumulation) {
                     lightIndex = candidates[i];

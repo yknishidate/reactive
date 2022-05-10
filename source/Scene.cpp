@@ -114,7 +114,7 @@ SphereLight& Scene::AddSphereLight(glm::vec3 intensity, glm::vec3 position, floa
         lightMaterial.Diffuse = glm::vec3{ 0.0f };
         lightMaterial.Emission = glm::vec3{ 1.0f };
 
-        auto mesh = AddMesh("../asset/Sphere.obj");
+        auto mesh = AddMesh("../asset/Sphere_low.obj");
         mesh->SetMaterial(lightMaterial);
         sphereMeshIndex = meshes.size() - 1;
     }
