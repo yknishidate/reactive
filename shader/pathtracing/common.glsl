@@ -77,3 +77,21 @@ layout(push_constant) uniform PushConstants{
     vec4 skyColor;
     int nee;
 } pushConstants;
+
+void createCoordinateSystem(in vec3 N, out vec3 T, out vec3 B)
+{
+    if (abs(N.x) > abs(N.y))
+        T = vec3(N.z, 0, -N.x) / sqrt(N.x * N.x + N.z * N.z);
+    else
+        T = vec3(0, -N.z, N.y) / sqrt(N.y * N.y + N.z * N.z);
+    B = cross(N, T);
+}
+
+vec3 sampleHemisphere(in float rand1, in float rand2)
+{
+    vec3 dir;
+    dir.x = cos(2 * M_PI * rand2) * sqrt(1 - rand1 * rand1);
+    dir.y = sin(2 * M_PI * rand2) * sqrt(1 - rand1 * rand1);
+    dir.z = rand1;
+    return dir;
+}

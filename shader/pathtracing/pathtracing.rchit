@@ -1,6 +1,7 @@
 #version 460
 #extension GL_GOOGLE_include_directive : enable
 #include "common.glsl"
+#include "random.glsl"
 
 layout(location = 0) rayPayloadInEXT HitPayload payload;
 hitAttributeEXT vec3 attribs;
@@ -21,6 +22,17 @@ vec3 getInstanceColor()
 {
     float hue = gl_InstanceID % 25 / 25.0;
     return hsv2rgb(vec3(hue, 0.7, 1.0));
+}
+
+vec3 sampleSphereLight(in vec2 randVal, in vec3 dir)
+{
+    vec3 normal = -normalize(dir);
+    vec3 tangent;
+    vec3 bitangent;
+    createCoordinateSystem(normal, tangent, bitangent);
+
+    vec3 sampleDir = sampleHemisphere(randVal.x, randVal.y);
+    return sampleDir.x * tangent + sampleDir.y * bitangent + sampleDir.z * normal;
 }
 
 void main()
@@ -56,36 +68,38 @@ void main()
 
     vec3 brdf = diffuse / M_PI;
 
-//    // Next event estimation
-//    if(pushConstants.nee == 1) {
-//        PointLight pointLight = pointLights.p[0];
-//        vec3 dir = pointLight.position - pos;
-//        float dist = sqrt(dir.x*dir.x + dir.y*dir.y + dir.z*dir.z);
-//
-//        traceRayEXT(
-//            topLevelAS,
-//            gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
-//            0xff, // cullMask
-//            0,    // sbtRecordOffset
-//            0,    // sbtRecordStride
-//            0,    // missIndex
-//            pos + normal * 0.001,
-//            0.001,
-//            normalize(dir),
-//            dist,
-//            0     // payloadLocation
-//        );
-//        if(payload.done){
-//            float invDistPow2 = 1.0 / dist * dist;
-//            float cosTheta = dot(normalize(dir), normal);
-//            float pdf = 1.0;
-////            payload.color += payload.weight * pointLight.intensity * brdf * invDistPow2 * cosTheta / pdf;
-//            payload.done = false;
-//        }
-//    }
+    // Next event estimation
+    if(pushConstants.nee == 1) {
+        SphereLight sphereLight = sphereLights.s[0];
+        vec3 dir = sphereLight.position - pos;
+        
+        uvec2 s = pcg2d(ivec2(gl_LaunchIDEXT.xy) * (pushConstants.frame + 1));
+        uint seed = s.x + s.y;
+        vec3 point = sphereLight.position + sphereLight.radius * sampleSphereLight(vec2(rand(seed), rand(seed)), dir);
+        dir = point - pos;
 
-//  for debug
-//    payload.done = true;
+        float dist = sqrt(dir.x*dir.x + dir.y*dir.y + dir.z*dir.z);
+
+        traceRayEXT(
+            topLevelAS,
+            gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
+            0xff, // cullMask
+            0,    // sbtRecordOffset
+            0,    // sbtRecordStride
+            0,    // missIndex
+            pos,            0.001,
+            normalize(dir), dist,
+            0     // payloadLocation
+        );
+        if(payload.done){
+            float invDistPow2 = 1.0 / (dist * dist);
+            float cosTheta = abs(dot(normalize(dir), normal));
+            float pdf = 1.0 / (2.0 * M_PI * sphereLight.radius * sphereLight.radius);
+            payload.color += payload.weight * sphereLight.intensity * brdf * invDistPow2 * cosTheta / pdf;
+            payload.done = false;
+        }
+    }
+
     payload.emission = emission;
     payload.position = pos;
     payload.normal = normal;

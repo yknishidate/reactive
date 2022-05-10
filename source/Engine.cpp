@@ -78,7 +78,7 @@ void Engine::Init()
 
     // Add lights
 //    scene->AddPointLight(glm::vec3{ 5.0f }, glm::vec3{ 0.0f });
-    scene->AddSphereLight(glm::vec3{ 50.0f }, glm::vec3{ 0.0f, -0.75f, 0.0f }, 0.1f);
+    scene->AddSphereLight(glm::vec3{ 10.0f }, glm::vec3{ 0.0f, -0.5f, 0.0f }, 0.2f);
     scene->Setup();
 
     // Create pipelines

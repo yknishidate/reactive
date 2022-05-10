@@ -16,24 +16,6 @@ vec3 cosineSampleHemisphere(float u1, float u2)
     return dir;
 }
 
-void createCoordinateSystem(in vec3 N, out vec3 T, out vec3 B)
-{
-    if(abs(N.x) > abs(N.y))
-        T = vec3(N.z, 0, -N.x) / sqrt(N.x * N.x + N.z * N.z);
-    else
-        T = vec3(0, -N.z, N.y) / sqrt(N.y * N.y + N.z * N.z);
-    B = cross(N, T);
-}
-
-vec3 sampleHemisphere(in float rand1, in float rand2)
-{
-    vec3 dir;
-    dir.x = cos(2 * M_PI * rand2) * sqrt(1 - rand1 * rand1);
-    dir.y = sin(2 * M_PI * rand2) * sqrt(1 - rand1 * rand1);
-    dir.z = rand1;
-    return dir;
-}
-
 float calcPDF(in vec3 dir)
 {
     if(pushConstants.importance == 1) {
@@ -103,20 +85,21 @@ void main()
                 0     // payloadLocation
             );
             
-//            if(pushConstants.nee == 0) {
-//            }
-            payload.color += payload.weight * payload.emission;
+            if(depth == 0 || pushConstants.nee == 0) {
+                payload.color += payload.weight * payload.emission;
+            }
             if(payload.done){
+                payload.color += payload.weight * payload.emission;
                 break;
             }
             
             vec2 randVal = vec2(rand(seed), rand(seed));
-            origin = vec4(payload.position + payload.normal * 0.001, 1.0);
+            origin = vec4(payload.position, 1.0);
             
             float pdf;
             direction = vec4(sampleDirection(randVal, payload.normal, pdf), 1.0);
             
-            payload.weight *= payload.brdf * dot(direction.xyz, payload.normal) / pdf;
+            payload.weight *= payload.brdf * abs(dot(direction.xyz, payload.normal)) / pdf;
 
         }
         color += payload.color;
