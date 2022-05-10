@@ -65,6 +65,7 @@ void main()
         vec4 direction = pushConstants.invView * vec4(normalize(target.xyz), 0) ;
         
         payload.done = false;
+        payload.skip = false;
         payload.weight = vec3(1.0);
         payload.color = vec3(0.0);
 
@@ -84,7 +85,12 @@ void main()
                 10000.0,
                 0     // payloadLocation
             );
-            
+            if(payload.skip){
+                depth--;
+                origin = vec4(payload.position, 1.0);
+                payload.skip = false;
+                continue;
+            }
             if(depth == 0 || pushConstants.nee == 0) {
                 payload.color += payload.weight * payload.emission;
             }

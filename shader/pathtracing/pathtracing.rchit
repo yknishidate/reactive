@@ -56,16 +56,22 @@ void main()
 
     vec3 diffuse = objects.o[gl_InstanceID].diffuse.rgb;
     vec3 emission = objects.o[gl_InstanceID].emission.rgb;
-    int textureIndex = objects.o[gl_InstanceID].textureIndex;
-    if(textureIndex >= 0){
-        diffuse = texture(samplers[textureIndex], texCoord).rgb;
+    int diffuseTexture = objects.o[gl_InstanceID].diffuseTexture;
+    if(diffuseTexture >= 0){
+        vec4 value = texture(samplers[diffuseTexture], texCoord);
+        diffuse = value.rgb;
+        if(value.a < 1.0){
+            payload.position = getWorldPos();
+            payload.skip = true;
+            return;
+        }
     }
 
     mat4 matrix = objects.o[gl_InstanceID].matrix;
     mat4 normalMatrix = objects.o[gl_InstanceID].normalMatrix;
     pos = vec3(matrix * vec4(pos, 1));
-    normal = normalize(vec3(normalMatrix * vec4(normal, 0)));
 
+    normal = normalize(vec3(normalMatrix * vec4(normal, 0)));
     vec3 brdf = diffuse / M_PI;
 
     // Next event estimation

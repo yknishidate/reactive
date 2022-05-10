@@ -15,6 +15,7 @@ struct HitPayload
     vec3 color;
     vec3 weight;
     bool done;
+    bool skip;
 };
 
 struct MeshAddress
@@ -40,7 +41,8 @@ struct ObjectData
     vec4 diffuse;
     vec4 emission;
     vec4 specular;
-    int textureIndex;
+    int diffuseTexture;
+    int alphaTexture;
 };
 
 struct PointLight

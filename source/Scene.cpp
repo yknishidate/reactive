@@ -28,14 +28,15 @@ void Scene::Setup()
 
     // Create object data
     for (auto&& object : objects) {
-        glm::mat4 matrix = object.GetTransform().GetMatrix();
-        glm::mat4 normalMatrix = object.GetTransform().GetNormalMatrix();
-        glm::vec3 diffuse = object.GetMaterial().Diffuse;
-        glm::vec3 emission = object.GetMaterial().Emission;
-        int texIndex = object.GetMaterial().DiffuseTexture;
-        objectData.push_back({ matrix, normalMatrix,
-                             glm::vec4{diffuse, 1}, glm::vec4{emission, 1}, glm::vec4{0.0},
-                             texIndex });
+        ObjectData data;
+        data.Matrix = object.GetTransform().GetMatrix();
+        data.NormalMatrix = object.GetTransform().GetNormalMatrix();
+        data.Diffuse = glm::vec4{ object.GetMaterial().Diffuse, 1 };
+        data.Emission = glm::vec4{ object.GetMaterial().Emission, 1 };
+        data.Specular = glm::vec4{ 0.0f };
+        data.DiffuseTexture = object.GetMaterial().DiffuseTexture;
+        data.AlphaTexture = object.GetMaterial().AlphaTexture;
+        objectData.push_back(data);
     }
     vk::BufferUsageFlags usage =
         vk::BufferUsageFlagBits::eStorageBuffer |
