@@ -53,10 +53,10 @@ void main()
     for(uint sampleCount = 0; sampleCount < maxSamples; sampleCount++){
         // Calc seed
         uvec2 s = pcg2d(ivec2(gl_LaunchIDEXT.xy) * (sampleCount + pushConstants.frame * maxSamples + 1));
-        uint seed = s.x + s.y;
+        payload.seed = s.x + s.y;
 
         // Calc ray
-        const vec2 screenPos = vec2(gl_LaunchIDEXT.xy) + vec2(rand(seed), rand(seed));
+        const vec2 screenPos = vec2(gl_LaunchIDEXT.xy) + vec2(rand(payload.seed), rand(payload.seed));
         const vec2 inUV = screenPos / vec2(gl_LaunchSizeEXT.xy);
         vec2 d = inUV * 2.0 - 1.0;
 
@@ -99,7 +99,7 @@ void main()
                 break;
             }
             
-            vec2 randVal = vec2(rand(seed), rand(seed));
+            vec2 randVal = vec2(rand(payload.seed), rand(payload.seed));
             origin = vec4(payload.position, 1.0);
             
             float pdf;

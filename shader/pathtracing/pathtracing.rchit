@@ -35,6 +35,11 @@ vec3 sampleSphereLight(in vec2 randVal, in vec3 dir)
     return sampleDir.x * tangent + sampleDir.y * bitangent + sampleDir.z * normal;
 }
 
+int sampleLightUniform()
+{
+    return 0;
+}
+
 void main()
 {
     // Get buffer addresses
@@ -84,16 +89,13 @@ void main()
 
     // Next event estimation
     if(pushConstants.nee == 1) {
-        uvec2 s = pcg2d(ivec2(gl_LaunchIDEXT.xy) * (pushConstants.frame + 1));
-        uint seed = s.x + s.y;
-        
         // Sample light
-        int lightIndex = int(rand(seed) * (pushConstants.numLights - 1));
+        int lightIndex = int(rand(payload.seed) * (pushConstants.numLights - 1));
         SphereLight sphereLight = sphereLights.s[lightIndex];
 
         // Sample point on light
         vec3 dir = sphereLight.position - pos;
-        vec3 point = sphereLight.position + sphereLight.radius * sampleSphereLight(vec2(rand(seed), rand(seed)), dir);
+        vec3 point = sphereLight.position + sphereLight.radius * sampleSphereLight(vec2(rand(payload.seed), rand(payload.seed)), dir);
         dir = point - pos;
         float dist = sqrt(dir.x*dir.x + dir.y*dir.y + dir.z*dir.z);
 

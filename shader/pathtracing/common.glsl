@@ -14,6 +14,7 @@ struct HitPayload
     vec3 brdf;
     vec3 color;
     vec3 weight;
+    uint seed;
     bool done;
     bool skip;
 };
