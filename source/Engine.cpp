@@ -80,10 +80,10 @@ void Engine::Init()
         BoundingBox bbox = scene->GetBoundingBox();
 
         std::mt19937 mt{ std::random_device{}() };
-        std::uniform_real_distribution<float> distX(bbox.min.x, bbox.max.x);
-        std::uniform_real_distribution<float> distY(bbox.min.y, bbox.max.y);
-        std::uniform_real_distribution<float> distZ(bbox.min.z, bbox.max.z);
-        std::uniform_real_distribution<float> dist(0.0f, 10.0f);
+        std::uniform_real_distribution<float> distX{ bbox.min.x, bbox.max.x };
+        std::uniform_real_distribution<float> distY{ bbox.min.y, bbox.max.y };
+        std::uniform_real_distribution<float> distZ{ bbox.min.z, bbox.max.z };
+        std::uniform_real_distribution<float> dist{ 0.0f, 10.0f };
 
         for (int index = 0; index < pushConstants.NumLights; index++) {
             const glm::vec3 position = { distX(mt), distY(mt), distZ(mt) };

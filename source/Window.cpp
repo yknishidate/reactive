@@ -11,7 +11,7 @@ void Window::Init(int width, int height, const std::string& icon)
     glfwInit();
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    window = glfwCreateWindow(width, height, "Window", nullptr, nullptr);
+    window = glfwCreateWindow(width, height, "Reactive", nullptr, nullptr);
     if (!icon.empty()) {
         SetIcon(icon);
     }
