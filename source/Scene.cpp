@@ -37,7 +37,10 @@ void Scene::Setup()
         vk::BufferUsageFlagBits::eShaderDeviceAddress;
     objectBuffer.Init(usage, objectData);
     if (!pointLights.empty()) {
-        lightBuffer.Init(usage, pointLights);
+        pointLightBuffer.Init(usage, pointLights);
+    }
+    if (!sphereLights.empty()) {
+        sphereLightBuffer.Init(usage, sphereLights);
     }
 
     // Buffer references
@@ -47,7 +50,10 @@ void Scene::Setup()
         addresses[i].indices = objects[i].GetMesh().GetIndexBufferAddress();
         addresses[i].objects = objectBuffer.GetAddress();
         if (!pointLights.empty()) {
-            addresses[i].lights = lightBuffer.GetAddress();
+            addresses[i].pointLights = pointLightBuffer.GetAddress();
+        }
+        if (!sphereLights.empty()) {
+            addresses[i].sphereLights = sphereLightBuffer.GetAddress();
         }
     }
     addressBuffer.Init(usage, addresses);
@@ -91,4 +97,10 @@ PointLight& Scene::AddPointLight(glm::vec3 intensity, glm::vec3 position)
 {
     pointLights.emplace_back(intensity, position);
     return pointLights.back();
+}
+
+SphereLight& Scene::AddSphereLight(glm::vec3 intensity, glm::vec3 position, float radius)
+{
+    sphereLights.emplace_back(intensity, position, radius);
+    return sphereLights.back();
 }

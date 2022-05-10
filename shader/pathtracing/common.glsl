@@ -22,7 +22,8 @@ struct MeshAddress
     uint64_t vertices;
     uint64_t indices;
     uint64_t objects;
-    uint64_t lights;
+    uint64_t pointLights;
+    uint64_t sphereLights;
 };
 
 struct Vertex
@@ -48,10 +49,18 @@ struct PointLight
     vec3 position;
 };
 
+struct SphereLight
+{
+    vec3 intensity;
+    vec3 position;
+    float radius;
+};
+
 layout(buffer_reference, scalar) buffer Vertices { Vertex v[]; };
 layout(buffer_reference, scalar) buffer Indices { uvec3 i[]; };
 layout(buffer_reference, scalar) buffer Objects { ObjectData o[]; };
 layout(buffer_reference, scalar) buffer PointLights { PointLight p[]; };
+layout(buffer_reference, scalar) buffer SphereLights { SphereLight s[]; };
 layout(binding = 0, set = 0) uniform accelerationStructureEXT topLevelAS;
 layout(binding = 1, set = 0, rgba8) uniform image2D inputImage;
 layout(binding = 2, set = 0, rgba8) uniform image2D outputImage;
@@ -66,4 +75,5 @@ layout(push_constant) uniform PushConstants{
     int depth;
     int samples;
     vec4 skyColor;
+    int nee;
 } pushConstants;

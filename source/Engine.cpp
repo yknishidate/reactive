@@ -77,7 +77,8 @@ void Engine::Init()
     //scene = std::make_unique<Scene>("../asset/CornellBox/CornellBox-Glossy.obj");
 
     // Add lights
-    PointLight& light = scene->AddPointLight(glm::vec3{ 10.0f }, glm::vec3{ 0.0f });
+    scene->AddPointLight(glm::vec3{ 5.0f }, glm::vec3{ 0.0f });
+    scene->AddSphereLight(glm::vec3{ 5.0f }, glm::vec3{ 0.5f }, 0.01f);
     scene->Setup();
 
     // Create pipelines
@@ -108,6 +109,7 @@ void Engine::Run()
 {
     static bool accumulation = false;
     static bool importance = false;
+    static bool nee = false;
     static int denoise = 0;
     spdlog::info("Engine::Run()");
     while (!Window::ShouldClose()) {
@@ -118,6 +120,7 @@ void Engine::Run()
         ImGui::Checkbox("Accumulation", &accumulation);
         bool refresh = false;
         refresh |= ImGui::Checkbox("Importance sampling", &importance);
+        refresh |= ImGui::Checkbox("NEE", &nee);
         ImGui::Combo("Denoise", &denoise, "Off\0Median\0");
         refresh |= ImGui::SliderInt("Depth", &pushConstants.Depth, 1, 8);
         refresh |= ImGui::SliderInt("Samples", &pushConstants.Samples, 1, 32);
@@ -132,6 +135,7 @@ void Engine::Run()
         pushConstants.InvProj = glm::inverse(scene->GetCamera().GetProj());
         pushConstants.InvView = glm::inverse(scene->GetCamera().GetView());
         pushConstants.Importance = static_cast<int>(importance);
+        pushConstants.NEE = static_cast<int>(nee);
         if (refresh || !accumulation || scene->GetCamera().CheckDirtyAndClean()) {
             pushConstants.Frame = 0;
         } else {

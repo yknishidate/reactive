@@ -29,7 +29,8 @@ void main()
     Vertices vertices = Vertices(address.vertices);
     Indices indices = Indices(address.indices);
     Objects objects = Objects(address.objects);
-    PointLights lights = PointLights(address.lights);
+    PointLights pointLights = PointLights(address.pointLights);
+    SphereLights sphereLights = SphereLights(address.sphereLights);
 
     uvec3 index = indices.i[gl_PrimitiveID];
     Vertex v0 = vertices.v[index.x];
@@ -56,13 +57,31 @@ void main()
     vec3 brdf = diffuse / M_PI;
 
     // Next event estimation
-    {
-        PointLight light = lights.p[0];
-        vec3 dir = light.position - pos;
-        float invDistPow2 = 1.0 / (dir.x*dir.x + dir.y*dir.y + dir.z*dir.z);
-        float cosTheta = dot(normalize(dir), normal);
-        float pdf = 1.0;
-        payload.color += payload.weight * light.intensity * brdf * invDistPow2 * cosTheta / pdf;
+    if(pushConstants.nee == 1) {
+        PointLight pointLight = pointLights.p[0];
+        vec3 dir = pointLight.position - pos;
+        float dist = sqrt(dir.x*dir.x + dir.y*dir.y + dir.z*dir.z);
+
+        traceRayEXT(
+            topLevelAS,
+            gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
+            0xff, // cullMask
+            0,    // sbtRecordOffset
+            0,    // sbtRecordStride
+            0,    // missIndex
+            pos + normal * 0.001,
+            0.001,
+            normalize(dir),
+            dist,
+            0     // payloadLocation
+        );
+        if(payload.done){
+            float invDistPow2 = 1.0 / dist * dist;
+            float cosTheta = dot(normalize(dir), normal);
+            float pdf = 1.0;
+            payload.color += payload.weight * pointLight.intensity * brdf * invDistPow2 * cosTheta / pdf;
+            payload.done = false;
+        }
     }
 
 //  for debug

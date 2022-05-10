@@ -23,7 +23,8 @@ struct BufferAddress
     vk::DeviceAddress vertices;
     vk::DeviceAddress indices;
     vk::DeviceAddress objects;
-    vk::DeviceAddress lights;
+    vk::DeviceAddress pointLights;
+    vk::DeviceAddress sphereLights;
 };
 
 class Scene
@@ -39,12 +40,15 @@ public:
     std::shared_ptr<Mesh>& AddMesh(const std::string& filepath);
     Object& AddObject(std::shared_ptr<Mesh> mesh);
     PointLight& AddPointLight(glm::vec3 intensity, glm::vec3 position);
+    SphereLight& AddSphereLight(glm::vec3 intensity, glm::vec3 position, float radius);
 
     vk::AccelerationStructureKHR GetAccel() const { return topAccel.GetAccel(); }
     const std::vector<Image>& GetTextures() const { return textures; }
     const Buffer& GetAddressBuffer() const { return addressBuffer; }
     Camera& GetCamera() { return camera; }
     std::vector<Object>& GetObjects() { return objects; }
+    int GetNumPointLights() const { return pointLights.size(); }
+    int GetNumSphereLights() const { return sphereLights.size(); }
 
 private:
     std::vector<std::shared_ptr<Mesh>> meshes;
@@ -60,5 +64,7 @@ private:
     DeviceBuffer addressBuffer;
 
     std::vector<PointLight> pointLights;
-    DeviceBuffer lightBuffer;
+    std::vector<SphereLight> sphereLights;
+    DeviceBuffer pointLightBuffer;
+    DeviceBuffer sphereLightBuffer;
 };

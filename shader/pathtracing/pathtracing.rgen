@@ -83,10 +83,12 @@ void main()
         vec4 direction = pushConstants.invView * vec4(normalize(target.xyz), 0) ;
         
         payload.done = false;
-        payload.color = vec3(0.0);
         payload.weight = vec3(1.0);
 
         for(uint depth = 0; depth < maxDepth; depth++){
+            payload.color = vec3(0.0);
+            payload.emission = vec3(0.0);
+            payload.brdf = vec3(0.0);
             traceRayEXT(
                 topLevelAS,
                 gl_RayFlagsOpaqueEXT,
@@ -101,7 +103,9 @@ void main()
                 0     // payloadLocation
             );
             
-            payload.color += payload.weight * payload.emission;
+            if(pushConstants.nee == 0) {
+                payload.color += payload.weight * payload.emission;
+            }
             if(payload.done){
                 break;
             }
@@ -113,8 +117,9 @@ void main()
             direction = vec4(sampleDirection(randVal, payload.normal, pdf), 1.0);
             
             payload.weight *= payload.brdf * dot(direction.xyz, payload.normal) / pdf;
+
+            color += payload.color;
         }
-        color += payload.color;
     }
     color /= maxSamples;
 
