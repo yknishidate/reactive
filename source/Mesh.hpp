@@ -44,10 +44,14 @@ public:
     uint64_t GetIndexBufferAddress() const { return indexBuffer.GetAddress(); }
     Material GetMaterial() const { return material; }
     void SetMaterial(const Material& material);
+    const std::vector<Vertex>& GetVertices() const { return vertices; }
+    const std::vector<uint32_t>& GetIndices() const { return indices; }
 
 private:
     DeviceBuffer vertexBuffer{};
     DeviceBuffer indexBuffer{};
     BottomAccel bottomAccel{};
     Material material{};
+    std::vector<Vertex> vertices;
+    std::vector<uint32_t> indices;
 };

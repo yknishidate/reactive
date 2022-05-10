@@ -76,6 +76,7 @@ layout(push_constant) uniform PushConstants{
     int samples;
     vec4 skyColor;
     int nee;
+    int numLights;
 } pushConstants;
 
 void createCoordinateSystem(in vec3 N, out vec3 T, out vec3 B)

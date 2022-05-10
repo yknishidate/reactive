@@ -14,6 +14,11 @@ Scene::Scene(const std::string& filepath,
         objects[i].GetTransform().Position = position;
         objects[i].GetTransform().Scale = scale;
         objects[i].GetTransform().Rotation = glm::quat{ rotation };
+        for (const auto& vertex : meshes[i]->GetVertices()) {
+            glm::vec3 pos = objects[i].GetTransform().GetMatrix() * glm::vec4{ vertex.pos, 1.0 };
+            bbox.min = glm::min(bbox.min, pos);
+            bbox.max = glm::max(bbox.max, pos);
+        }
     }
 }
 
@@ -25,9 +30,9 @@ void Scene::Setup()
     for (auto&& object : objects) {
         glm::mat4 matrix = object.GetTransform().GetMatrix();
         glm::mat4 normalMatrix = object.GetTransform().GetNormalMatrix();
-        glm::vec3 diffuse = object.GetMesh().GetMaterial().Diffuse;
-        glm::vec3 emission = object.GetMesh().GetMaterial().Emission;
-        int texIndex = object.GetMesh().GetMaterial().DiffuseTexture;
+        glm::vec3 diffuse = object.GetMaterial().Diffuse;
+        glm::vec3 emission = object.GetMaterial().Emission;
+        int texIndex = object.GetMaterial().DiffuseTexture;
         objectData.push_back({ matrix, normalMatrix,
                              glm::vec4{diffuse, 1}, glm::vec4{emission, 1}, glm::vec4{0.0},
                              texIndex });
@@ -106,7 +111,7 @@ SphereLight& Scene::AddSphereLight(glm::vec3 intensity, glm::vec3 position, floa
     if (!added) {
         Material lightMaterial;
         lightMaterial.Diffuse = glm::vec3{ 0.0f };
-        lightMaterial.Emission = intensity;
+        lightMaterial.Emission = glm::vec3{ 1.0f };
 
         auto mesh = AddMesh("../asset/Sphere.obj");
         mesh->SetMaterial(lightMaterial);
@@ -114,10 +119,15 @@ SphereLight& Scene::AddSphereLight(glm::vec3 intensity, glm::vec3 position, floa
     }
     added = true;
 
+    Material lightMaterial;
+    lightMaterial.Diffuse = glm::vec3{ 0.0f };
+    lightMaterial.Emission = intensity;
+
     objects.push_back({});
     objects.back().Init(meshes[sphereMeshIndex]);
     objects.back().GetTransform().Position = position;
     objects.back().GetTransform().Scale = glm::vec3{ radius };
+    objects.back().SetMaterial(lightMaterial);
 
     sphereLights.emplace_back(intensity, position, radius);
     return sphereLights.back();

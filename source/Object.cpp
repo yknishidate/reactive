@@ -30,3 +30,16 @@ const Mesh& Object::GetMesh() const
     assert(mesh && "Mesh is nullptr");
     return *mesh;
 }
+
+Material Object::GetMaterial()
+{
+    if (material) {
+        return material.value();
+    }
+    return mesh->GetMaterial();
+}
+
+void Object::SetMaterial(const Material& material)
+{
+    this->material = material;
+}

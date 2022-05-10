@@ -1,3 +1,4 @@
+#include <random>
 #include <functional>
 #include "Engine.hpp"
 #include "Vulkan/Vulkan.hpp"
@@ -71,14 +72,30 @@ void Engine::Init()
     denoisedImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
 
     // Load scene
-    //scene = std::make_unique<Scene>("../asset/crytek_sponza/sponza.obj",
-    //                                glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 0.01f },
-    //                                glm::vec3{ 0.0f, glm::radians(90.0f), 0.0f });
-    scene = std::make_unique<Scene>("../asset/CornellBox/CornellBox-Glossy.obj", glm::vec3{ 0.0f, 0.75f, 0.0f });
+    {
+        scene = std::make_unique<Scene>("../asset/crytek_sponza/sponza.obj",
+                                        glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 0.01f },
+                                        glm::vec3{ 0.0f, glm::radians(90.0f), 0.0f });
 
-    // Add lights
-//    scene->AddPointLight(glm::vec3{ 5.0f }, glm::vec3{ 0.0f });
-    scene->AddSphereLight(glm::vec3{ 10.0f }, glm::vec3{ 0.0f, -0.5f, 0.0f }, 0.2f);
+        BoundingBox bbox = scene->GetBoundingBox();
+
+        std::mt19937 mt{ std::random_device{}() };
+        std::uniform_real_distribution<float> distX(bbox.min.x, bbox.max.x);
+        std::uniform_real_distribution<float> distY(bbox.min.y, bbox.max.y);
+        std::uniform_real_distribution<float> distZ(bbox.min.z, bbox.max.z);
+        std::uniform_real_distribution<float> dist(0.0f, 10.0f);
+
+        for (int index = 0; index < pushConstants.NumLights; index++) {
+            const glm::vec3 position = { distX(mt), distY(mt), distZ(mt) };
+            const glm::vec3 color = { dist(mt), dist(mt), dist(mt) };
+            scene->AddSphereLight(color, position, 0.1f);
+        }
+    }
+    {
+        //scene = std::make_unique<Scene>("../asset/CornellBox/CornellBox-Glossy.obj", glm::vec3{ 0.0f, 0.75f, 0.0f });
+        //scene->AddSphereLight(glm::vec3{ 10.0f }, glm::vec3{ 0.0f, -0.5f, 0.0f }, 0.2f);
+    }
+
     scene->Setup();
 
     // Create pipelines

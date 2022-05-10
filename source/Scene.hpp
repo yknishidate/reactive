@@ -27,6 +27,12 @@ struct BufferAddress
     vk::DeviceAddress sphereLights;
 };
 
+struct BoundingBox
+{
+    glm::vec3 min{ FLT_MAX };
+    glm::vec3 max{ -FLT_MAX };
+};
+
 class Scene
 {
 public:
@@ -49,6 +55,7 @@ public:
     std::vector<Object>& GetObjects() { return objects; }
     int GetNumPointLights() const { return pointLights.size(); }
     int GetNumSphereLights() const { return sphereLights.size(); }
+    BoundingBox GetBoundingBox() const { return bbox; }
 
 private:
     std::vector<std::shared_ptr<Mesh>> meshes;
@@ -56,6 +63,8 @@ private:
 
     std::vector<Object> objects;
     std::vector<ObjectData> objectData;
+
+    BoundingBox bbox;
 
     TopAccel topAccel;
     Camera camera;

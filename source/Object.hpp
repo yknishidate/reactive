@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <optional>
 #include <vulkan/vulkan.hpp>
 #include "Mesh.hpp"
 
@@ -23,7 +24,11 @@ public:
     Transform& GetTransform() { return transform; }
     virtual void Update(float dt) {}
 
+    Material GetMaterial();
+    void SetMaterial(const Material& material);
+
 private:
     std::shared_ptr<Mesh> mesh;
     Transform transform{};
+    std::optional<Material> material;
 };
