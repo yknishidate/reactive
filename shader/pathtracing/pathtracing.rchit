@@ -1,5 +1,6 @@
 #version 460
 #extension GL_GOOGLE_include_directive : enable
+#extension GL_EXT_debug_printf : enable
 #include "common.glsl"
 #include "random.glsl"
 
@@ -24,6 +25,7 @@ vec3 getInstanceColor()
     return hsv2rgb(vec3(hue, 0.7, 1.0));
 }
 
+// TODO: rename
 vec3 sampleSphereLight(in vec2 randVal, in vec3 dir)
 {
     vec3 normal = -normalize(dir);
@@ -37,8 +39,21 @@ vec3 sampleSphereLight(in vec2 randVal, in vec3 dir)
 
 int sampleLightUniform()
 {
-    return 0;
+    return int(rand(payload.seed) * (pushConstants.numLights - 1));
 }
+
+float targetPDF(in vec3 lightPos, in vec3 pos, in vec3 normal, in vec3 brdf)
+{
+    vec3 dir = lightPos - pos;
+    float invDistPow2 = 1.0 / (dir.x*dir.x + dir.y*dir.y + dir.z*dir.z);
+    float cosTheta = abs(dot(normalize(dir), normal));
+    //return length(brdf) * length(sphereLight.intensity) * invDistPow2 * cosTheta;
+    return length(brdf) * invDistPow2 * cosTheta;
+}
+
+// Sample light using Importance Resampling
+// Source PDF: Uniform
+// Target PDF: Le * brdf * G
 
 void main()
 {
@@ -49,7 +64,7 @@ void main()
     Objects objects = Objects(address.objects);
     PointLights pointLights = PointLights(address.pointLights);
     SphereLights sphereLights = SphereLights(address.sphereLights);
-
+    
     // Get vertices
     uvec3 index = indices.i[gl_PrimitiveID];
     Vertex v0 = vertices.v[index.x];
@@ -88,9 +103,43 @@ void main()
     normal = normalize(vec3(normalMatrix * vec4(normal, 0)));
 
     // Next event estimation
-    if(pushConstants.nee == 1) {
+    if(pushConstants.nee != 0) {
         // Sample light
-        int lightIndex = int(rand(payload.seed) * (pushConstants.numLights - 1));
+        int lightIndex = 0;
+        if(pushConstants.nee == 1){
+            lightIndex = sampleLightUniform();
+        }else if(pushConstants.nee == 2){
+
+            int candidates[16];
+            float weights[16];
+            float sumWeights = 0.0;
+            for(int i = 0; i < 16; i++){
+                // Sample candidates
+                int candidate = sampleLightUniform();
+                candidates[i] = candidate;
+                debugPrintfEXT("candidate is %d", candidate);
+
+                // Calc weights
+                float sourcePDF = 1.0 / (pushConstants.numLights);
+                float targetPDF = targetPDF(sphereLights.s[candidate].position, pos, normal, brdf);
+                float weight = targetPDF / sourcePDF;
+                debugPrintfEXT("weight is %f", weight);
+
+                weights[i] = weight;
+                sumWeights += weight;
+            }
+
+            // Sample using weights
+            float cumulation = 0.0;
+            float threshold = rand(payload.seed) * sumWeights;
+            for(int i = 0; i < 16; i++){
+                cumulation += weights[i];
+                if (threshold < cumulation) {
+                    lightIndex = candidates[i];
+                    break;
+                }
+            }
+        }
         SphereLight sphereLight = sphereLights.s[lightIndex];
 
         // Sample point on light

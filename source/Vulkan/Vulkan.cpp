@@ -83,10 +83,13 @@ namespace
             VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
             VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
             VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
+            VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME,
         };
 
         vk::PhysicalDeviceFeatures deviceFeatures;
         deviceFeatures.shaderInt64 = true;
+        deviceFeatures.fragmentStoresAndAtomics = true;
+        deviceFeatures.vertexPipelineStoresAndAtomics = true;
 
         vk::PhysicalDeviceDescriptorIndexingFeatures descFeatures;
         descFeatures.runtimeDescriptorArray = true;

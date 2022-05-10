@@ -4,6 +4,8 @@
 #extension GL_EXT_buffer_reference2 : require
 #extension GL_EXT_nonuniform_qualifier : enable
 
+precision highp float;
+
 const highp float M_PI = 3.14159265358979323846;
 
 struct HitPayload
