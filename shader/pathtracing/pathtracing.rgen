@@ -84,9 +84,9 @@ void main()
         
         payload.done = false;
         payload.weight = vec3(1.0);
+        payload.color = vec3(0.0);
 
         for(uint depth = 0; depth < maxDepth; depth++){
-            payload.color = vec3(0.0);
             payload.emission = vec3(0.0);
             payload.brdf = vec3(0.0);
             traceRayEXT(
@@ -103,9 +103,9 @@ void main()
                 0     // payloadLocation
             );
             
-            if(pushConstants.nee == 0) {
-                payload.color += payload.weight * payload.emission;
-            }
+//            if(pushConstants.nee == 0) {
+//            }
+            payload.color += payload.weight * payload.emission;
             if(payload.done){
                 break;
             }
@@ -118,8 +118,8 @@ void main()
             
             payload.weight *= payload.brdf * dot(direction.xyz, payload.normal) / pdf;
 
-            color += payload.color;
         }
+        color += payload.color;
     }
     color /= maxSamples;
 

@@ -48,6 +48,7 @@ void Loader::LoadFromFile(const std::string& filepath,
                           std::vector<Vertex>& vertices,
                           std::vector<uint32_t>& indices)
 {
+    spdlog::info("Load file: {}", filepath);
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
@@ -157,7 +158,7 @@ void Loader::LoadFromFile(const std::string& filepath,
         std::string path = name;
         std::replace(path.begin(), path.end(), '\\', '/');
         path = dir + "/" + path;
-        spdlog::info("texture {}: {}", index, path);
+        spdlog::info("  texture {}: {}", index, path);
         textures[index].Init(path);
     }
 

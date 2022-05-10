@@ -32,3 +32,8 @@ Mesh::Mesh(const std::string& filepath)
     bottomAccel.Init(vertexBuffer, indexBuffer, vertices.size(), indices.size() / 3,
                      vk::GeometryFlagBitsKHR::eNoDuplicateAnyHitInvocation);
 }
+
+void Mesh::SetMaterial(const Material& material)
+{
+    this->material = material;
+}

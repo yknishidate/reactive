@@ -101,6 +101,24 @@ PointLight& Scene::AddPointLight(glm::vec3 intensity, glm::vec3 position)
 
 SphereLight& Scene::AddSphereLight(glm::vec3 intensity, glm::vec3 position, float radius)
 {
+    static bool added = false;
+    static int sphereMeshIndex;
+    if (!added) {
+        Material lightMaterial;
+        lightMaterial.Diffuse = glm::vec3{ 0.0f };
+        lightMaterial.Emission = intensity;
+
+        auto mesh = AddMesh("../asset/Sphere.obj");
+        mesh->SetMaterial(lightMaterial);
+        sphereMeshIndex = meshes.size() - 1;
+    }
+    added = true;
+
+    objects.push_back({});
+    objects.back().Init(meshes[sphereMeshIndex]);
+    objects.back().GetTransform().Position = position;
+    objects.back().GetTransform().Scale = glm::vec3{ radius };
+
     sphereLights.emplace_back(intensity, position, radius);
     return sphereLights.back();
 }

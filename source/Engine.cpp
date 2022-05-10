@@ -71,14 +71,14 @@ void Engine::Init()
     denoisedImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
 
     // Load scene
-    scene = std::make_unique<Scene>("../asset/crytek_sponza/sponza.obj",
-                                    glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 0.01f },
-                                    glm::vec3{ 0.0f, glm::radians(90.0f), 0.0f });
-    //scene = std::make_unique<Scene>("../asset/CornellBox/CornellBox-Glossy.obj");
+    //scene = std::make_unique<Scene>("../asset/crytek_sponza/sponza.obj",
+    //                                glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 0.01f },
+    //                                glm::vec3{ 0.0f, glm::radians(90.0f), 0.0f });
+    scene = std::make_unique<Scene>("../asset/CornellBox/CornellBox-Glossy.obj", glm::vec3{ 0.0f, 0.75f, 0.0f });
 
     // Add lights
-    scene->AddPointLight(glm::vec3{ 5.0f }, glm::vec3{ 0.0f });
-    scene->AddSphereLight(glm::vec3{ 5.0f }, glm::vec3{ 0.5f }, 0.01f);
+//    scene->AddPointLight(glm::vec3{ 5.0f }, glm::vec3{ 0.0f });
+    scene->AddSphereLight(glm::vec3{ 50.0f }, glm::vec3{ 0.0f, -0.75f, 0.0f }, 0.1f);
     scene->Setup();
 
     // Create pipelines

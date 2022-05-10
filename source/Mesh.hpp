@@ -43,6 +43,7 @@ public:
     uint64_t GetVertexBufferAddress() const { return vertexBuffer.GetAddress(); }
     uint64_t GetIndexBufferAddress() const { return indexBuffer.GetAddress(); }
     Material GetMaterial() const { return material; }
+    void SetMaterial(const Material& material);
 
 private:
     DeviceBuffer vertexBuffer{};
