@@ -37,6 +37,7 @@ vec3 sampleSphereLight(in vec2 randVal, in vec3 dir)
 
 void main()
 {
+    // Get buffer addresses
     MeshAddress address = addresses.address[gl_InstanceID];
     Vertices vertices = Vertices(address.vertices);
     Indices indices = Indices(address.indices);
@@ -44,48 +45,59 @@ void main()
     PointLights pointLights = PointLights(address.pointLights);
     SphereLights sphereLights = SphereLights(address.sphereLights);
 
+    // Get vertices
     uvec3 index = indices.i[gl_PrimitiveID];
     Vertex v0 = vertices.v[index.x];
     Vertex v1 = vertices.v[index.y];
     Vertex v2 = vertices.v[index.z];
 
+    // Calc attributes
     const vec3 barycentricCoords = vec3(1.0f - attribs.x - attribs.y, attribs.x, attribs.y);
     vec3 pos      = v0.pos      * barycentricCoords.x + v1.pos      * barycentricCoords.y + v2.pos      * barycentricCoords.z;
     vec3 normal   = v0.normal   * barycentricCoords.x + v1.normal   * barycentricCoords.y + v2.normal   * barycentricCoords.z;
     vec2 texCoord = v0.texCoord * barycentricCoords.x + v1.texCoord * barycentricCoords.y + v2.texCoord * barycentricCoords.z;
 
+    // Get material
     vec3 diffuse = objects.o[gl_InstanceID].diffuse.rgb;
     vec3 emission = objects.o[gl_InstanceID].emission.rgb;
+
+    // Sample diffuse texture
     int diffuseTexture = objects.o[gl_InstanceID].diffuseTexture;
     if(diffuseTexture >= 0){
         vec4 value = texture(samplers[diffuseTexture], texCoord);
         diffuse = value.rgb;
+
+        // Skip transparence
         if(value.a < 1.0){
             payload.position = getWorldPos();
             payload.skip = true;
             return;
         }
     }
+    vec3 brdf = diffuse / M_PI;
 
+    // Get matrix
     mat4 matrix = objects.o[gl_InstanceID].matrix;
     mat4 normalMatrix = objects.o[gl_InstanceID].normalMatrix;
     pos = vec3(matrix * vec4(pos, 1));
-
     normal = normalize(vec3(normalMatrix * vec4(normal, 0)));
-    vec3 brdf = diffuse / M_PI;
 
     // Next event estimation
     if(pushConstants.nee == 1) {
-        SphereLight sphereLight = sphereLights.s[0];
-        vec3 dir = sphereLight.position - pos;
-        
         uvec2 s = pcg2d(ivec2(gl_LaunchIDEXT.xy) * (pushConstants.frame + 1));
         uint seed = s.x + s.y;
+        
+        // Sample light
+        int lightIndex = int(rand(seed) * (pushConstants.numLights - 1));
+        SphereLight sphereLight = sphereLights.s[lightIndex];
+
+        // Sample point on light
+        vec3 dir = sphereLight.position - pos;
         vec3 point = sphereLight.position + sphereLight.radius * sampleSphereLight(vec2(rand(seed), rand(seed)), dir);
         dir = point - pos;
-
         float dist = sqrt(dir.x*dir.x + dir.y*dir.y + dir.z*dir.z);
 
+        // Trace rays
         traceRayEXT(
             topLevelAS,
             gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
@@ -97,6 +109,8 @@ void main()
             normalize(dir), dist,
             0     // payloadLocation
         );
+
+        // If not shadowed, add contributes
         if(payload.done){
             float invDistPow2 = 1.0 / (dist * dist);
             float cosTheta = abs(dot(normalize(dir), normal));
