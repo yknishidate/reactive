@@ -41,21 +41,14 @@ int sampleLightUniform()
     return int(rand(payload.seed) * float(pushConstants.numLights - 1.0));
 }
 
-float targetPDF(vec3 lightPos, vec3 pos, vec3 normal, vec3 brdf)
+// Target PDF: brdf * Le * G
+float targetPDF(vec3 lightPos, vec3 intensity, vec3 pos, vec3 normal, vec3 brdf)
 {
-    // if hit a light, brdf is vec3(0.0)
     vec3 dir = lightPos - pos;
-    float invDistPow2 = 1.0 / (dir.x*dir.x + dir.y*dir.y + dir.z*dir.z);
-    //float cosTheta = abs(dot(normalize(dir), normal));
+    float invDistPow2 = 1.0 / length(dir);
     float cosTheta = dot(normalize(dir), normal);
-    //return length(brdf) * length(sphereLight.intensity) * invDistPow2 * cosTheta;
-    //return length(brdf) * invDistPow2 * cosTheta;
-    return invDistPow2 * cosTheta;
+    return max(0.0, length(brdf) * length(intensity) * invDistPow2 * cosTheta);
 }
-
-// Sample light using Importance Resampling
-// Source PDF: Uniform
-// Target PDF: Le * brdf * G
 
 void main()
 {
@@ -112,15 +105,11 @@ void main()
         return;
     }
 
-    // Next event estimation
     // Sample light
-    float averageWeight = 1.0;
     float pdf = 1.0;
-    int lightIndex = -1; // for debug
+    int lightIndex = -1;
     if(pushConstants.nee == 1){
         lightIndex = sampleLightUniform();
-        //pdf = 1.0 / float(pushConstants.numLights);
-        //pdf = 1.0;
     } else if(pushConstants.nee == 2) {
         int candidates[32];
         float weights[32];
@@ -133,10 +122,9 @@ void main()
             // Calc weights
             SphereLight sphereLight = sphereLights.s[candidate];
             vec3 lightPos = sphereLight.position;
-            //float srcPDF = 1.0 / float(pushConstants.numLights);
-            float tgtPDF = max(targetPDF(lightPos, pos, normal, brdf), 0.0);
-            //float weight = tgtPDF / srcPDF;
-            float weight = tgtPDF;
+            vec3 intensity = sphereLight.intensity;
+            float tgtPDF = targetPDF(lightPos, intensity, pos, normal, brdf);
+            float weight = tgtPDF; // srcPDF = 1.0
             
             weights[i] = weight;
             sumWeights += weight;
@@ -145,20 +133,17 @@ void main()
         // Sample using weights
         float cumulation = 0.0;
         float threshold = rand(payload.seed) * sumWeights;
+        float tgtPDF;
         for(int i = 0; i < 32; i++){
             cumulation += weights[i];
             if (threshold <= cumulation) {
                 lightIndex = candidates[i];
+                tgtPDF = weights[i]; // WARN: pdf != weight
                 break;
             }
         }
-        //averageWeight = sumWeights / 32.0;
-        //pdf = weights[lightIndex] / averageWeight;
-        //pdf = weights[lightIndex] / sumWeights * 32.0;
-        //payload.emission = vec3(weights[lightIndex] / averageWeight);
-        //payload.done = true;
-        //return;
-    }
+        pdf = tgtPDF / sumWeights * 32.0;
+    } 
     SphereLight sphereLight = sphereLights.s[lightIndex];
 
     // Sample point on light
@@ -166,25 +151,26 @@ void main()
     float dist = length(dir) - sphereLight.radius;
     
     // Trace rays
-    traceRayEXT(
-        topLevelAS,
-        gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
-        0xff, // cullMask
-        0,    // sbtRecordOffset
-        0,    // sbtRecordStride
-        0,    // missIndex
-        pos,            0.01,
-        normalize(dir), dist,
-        0     // payloadLocation
-    );
+    //traceRayEXT(
+    //    topLevelAS,
+    //    gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
+    //    0xff, // cullMask
+    //    0,    // sbtRecordOffset
+    //    0,    // sbtRecordStride
+    //    0,    // missIndex
+    //    pos,            0.01,
+    //    normalize(dir), dist,
+    //    0     // payloadLocation
+    //);
 
     // If not shadowed, add contributes
-    if(payload.done){
+    //if(payload.done){
         float invDistPow2 = 1.0 / (dist * dist);
         float cosTheta = abs(dot(normalize(dir), normal));
+        //pdf *= 1.0 / (4.0 * M_PI * (sphereLight.radius * sphereLight.radius));
         payload.color += payload.weight * sphereLight.intensity * brdf * invDistPow2 * cosTheta / pdf;
         payload.done = false;
-    }
+    //}
 
     payload.emission = emission;
     payload.position = pos;

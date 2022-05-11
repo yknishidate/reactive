@@ -83,13 +83,13 @@ void Engine::Init()
         std::uniform_real_distribution<float> distX{ bbox.min.x, bbox.max.x };
         std::uniform_real_distribution<float> distY{ bbox.min.y, bbox.max.y };
         std::uniform_real_distribution<float> distZ{ bbox.min.z, bbox.max.z };
-        std::uniform_real_distribution<float> dist{ 25.0f, 100.0f };
+        std::uniform_real_distribution<float> dist{ 400.0f, 800.0f };
 
         pushConstants.NumLights = 2000;
         for (int index = 0; index < pushConstants.NumLights; index++) {
             const glm::vec3 position = { distX(mt), distY(mt), distZ(mt) };
             const glm::vec3 color = { dist(mt), dist(mt), dist(mt) };
-            scene->AddSphereLight(color, position, 0.01f);
+            scene->AddSphereLight(color, position, 0.02f);
         }
     }
     {
