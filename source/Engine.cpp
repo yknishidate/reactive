@@ -60,6 +60,18 @@ namespace
         Image::SetImageLayout(commandBuffer, inputImage, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eGeneral);
         Image::SetImageLayout(commandBuffer, backImage, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eColorAttachmentOptimal);
     }
+
+    glm::vec3 ToRGB(glm::vec3 c)
+    {
+        glm::vec4 K = glm::vec4{ 1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0 };
+        glm::vec3 p = glm::abs(fract(c.xxx + K.xyz) * 6.0f - K.www);
+        return c.z * glm::mix(glm::vec3{ K.xxx }, glm::clamp(p - K.xxx, 0.0f, 1.0f), c.y);
+    }
+
+    glm::vec3 GetColorFromHue(float hue)
+    {
+        return ToRGB(glm::vec3{ hue, 0.7, 1.0 });
+    }
 }
 
 void Engine::Init()
@@ -83,13 +95,14 @@ void Engine::Init()
         std::uniform_real_distribution<float> distX{ bbox.min.x, bbox.max.x };
         std::uniform_real_distribution<float> distY{ bbox.min.y, bbox.max.y };
         std::uniform_real_distribution<float> distZ{ bbox.min.z, bbox.max.z };
-        std::uniform_real_distribution<float> dist{ 400.0f, 800.0f };
+        std::uniform_real_distribution<float> distHue{ 0.0f, 1.0f };
+        std::uniform_real_distribution<float> distStrength{ 80.0f, 160.0f };
 
-        pushConstants.NumLights = 2000;
+        pushConstants.NumLights = 800;
         for (int index = 0; index < pushConstants.NumLights; index++) {
-            const glm::vec3 position = { distX(mt), distY(mt), distZ(mt) };
-            const glm::vec3 color = { dist(mt), dist(mt), dist(mt) };
-            scene->AddSphereLight(color, position, 0.02f);
+            const glm::vec3 position = glm::vec3{ distX(mt), distY(mt), distZ(mt) } / 1.5f;
+            const glm::vec3 color = GetColorFromHue(distHue(mt)) * distStrength(mt);
+            scene->AddSphereLight(color, position, 0.05f);
         }
     }
     {

@@ -2,6 +2,7 @@
 #extension GL_GOOGLE_include_directive : enable
 #include "common.glsl"
 #include "random.glsl"
+#define NUM_CANDIDATES 16
 
 layout(location = 0) rayPayloadInEXT HitPayload payload;
 hitAttributeEXT vec3 attribs;
@@ -45,7 +46,7 @@ int sampleLightUniform()
 float targetPDF(vec3 lightPos, vec3 intensity, vec3 pos, vec3 normal, vec3 brdf)
 {
     vec3 dir = lightPos - pos;
-    float invDistPow2 = 1.0 / length(dir);
+    float invDistPow2 = 1.0 / (dir.x*dir.x + dir.y*dir.y + dir.z*dir.z);
     float cosTheta = dot(normalize(dir), normal);
     return max(0.0, length(brdf) * length(intensity) * invDistPow2 * cosTheta);
 }
@@ -96,7 +97,7 @@ void main()
     mat4 normalMatrix = objects.o[gl_InstanceID].normalMatrix;
     pos = vec3(matrix * vec4(pos, 1));
     normal = normalize(vec3(normalMatrix * vec4(normal, 0)));
-
+    
     if(pushConstants.nee == 0){
         payload.emission = emission;
         payload.position = pos;
@@ -111,10 +112,10 @@ void main()
     if(pushConstants.nee == 1){
         lightIndex = sampleLightUniform();
     } else if(pushConstants.nee == 2) {
-        int candidates[32];
-        float weights[32];
+        int candidates[NUM_CANDIDATES];
+        float weights[NUM_CANDIDATES];
         float sumWeights = 0.0;
-        for(int i = 0; i < 32; i++){
+        for(int i = 0; i < NUM_CANDIDATES; i++){
             // Sample candidates
             int candidate = sampleLightUniform();
             candidates[i] = candidate;
@@ -134,7 +135,7 @@ void main()
         float cumulation = 0.0;
         float threshold = rand(payload.seed) * sumWeights;
         float tgtPDF;
-        for(int i = 0; i < 32; i++){
+        for(int i = 0; i < NUM_CANDIDATES; i++){
             cumulation += weights[i];
             if (threshold <= cumulation) {
                 lightIndex = candidates[i];
@@ -142,35 +143,66 @@ void main()
                 break;
             }
         }
-        pdf = tgtPDF / sumWeights * 32.0;
-    } 
+        pdf = tgtPDF / sumWeights * float(NUM_CANDIDATES);
+    } else if (pushConstants.nee == 3) {
+        // WRS
+        int y = 0;
+        float yWeight = 0.0;
+        float sumWeights = 0.0;
+
+        for(int i = 0; i < NUM_CANDIDATES; i++){
+            // Sample candidates
+            int candidate = sampleLightUniform();
+        
+            // Calc weights
+            SphereLight sphereLight = sphereLights.s[candidate];
+            vec3 lightPos = sphereLight.position;
+            vec3 intensity = sphereLight.intensity;
+            float tgtPDF = targetPDF(lightPos, intensity, pos, normal, brdf);
+            float weight = tgtPDF; // srcPDF = 1.0
+
+            // Update reservoir
+            sumWeights += weight;
+            if (rand(payload.seed) < (weight / sumWeights)){
+                y = candidate;
+                yWeight = weight;
+            }
+        }
+        lightIndex = y;
+        pdf = yWeight / sumWeights * float(NUM_CANDIDATES);
+    }
     SphereLight sphereLight = sphereLights.s[lightIndex];
 
     // Sample point on light
     vec3 dir = sphereLight.position - pos;
-    float dist = length(dir) - sphereLight.radius;
+    vec3 lightNormal = sampleSphereLight(vec2(rand(payload.seed), rand(payload.seed)), dir);
+    vec3 point = sphereLight.position + sphereLight.radius * lightNormal;
+    dir = point - pos;
+    float dist = length(dir);
     
     // Trace rays
-    //traceRayEXT(
-    //    topLevelAS,
-    //    gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
-    //    0xff, // cullMask
-    //    0,    // sbtRecordOffset
-    //    0,    // sbtRecordStride
-    //    0,    // missIndex
-    //    pos,            0.01,
-    //    normalize(dir), dist,
-    //    0     // payloadLocation
-    //);
+    traceRayEXT(
+        topLevelAS,
+        gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
+        0xff, // cullMask
+        0,    // sbtRecordOffset
+        0,    // sbtRecordStride
+        0,    // missIndex
+        pos,            0.01,
+        normalize(dir), dist,
+        0     // payloadLocation
+    );
 
     // If not shadowed, add contributes
-    //if(payload.done){
+    if(payload.done){
         float invDistPow2 = 1.0 / (dist * dist);
-        float cosTheta = abs(dot(normalize(dir), normal));
-        //pdf *= 1.0 / (4.0 * M_PI * (sphereLight.radius * sphereLight.radius));
-        payload.color += payload.weight * sphereLight.intensity * brdf * invDistPow2 * cosTheta / pdf;
+        float cosTheta = max(0.0, dot(normalize(dir), normal));
+        float cosThetaLight = max(0.0, dot(normalize(-dir), lightNormal));
+        pdf *= 1.0 / pushConstants.numLights;
+        pdf *= 1.0 / (2.0 * M_PI * sphereLight.radius * sphereLight.radius);
+        payload.color += payload.weight * sphereLight.intensity * brdf * invDistPow2 * cosTheta * cosThetaLight / pdf;
         payload.done = false;
-    //}
+    }
 
     payload.emission = emission;
     payload.position = pos;
