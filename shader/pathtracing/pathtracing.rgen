@@ -91,20 +91,25 @@ void main()
                 payload.skip = false;
                 continue;
             }
+
+            // Light
             if(depth == 0 || pushConstants.nee == 0) {
                 payload.color += payload.weight * payload.emission;
             }
+
+            // Sky
             if(payload.done){
                 payload.color += payload.weight * payload.emission;
                 break;
             }
             
+            // Next
             vec2 randVal = vec2(rand(payload.seed), rand(payload.seed));
-            origin = vec4(payload.position, 1.0);
-            
             float pdf;
+            origin = vec4(payload.position, 1.0);
             direction = vec4(sampleDirection(randVal, payload.normal, pdf), 1.0);
             
+            // Update weight
             payload.weight *= payload.brdf * abs(dot(direction.xyz, payload.normal)) / pdf;
 
         }

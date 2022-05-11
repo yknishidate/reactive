@@ -25,11 +25,11 @@ void Camera::ProcessInput()
     glm::vec3 right = glm::normalize(glm::cross(-glm::vec3{ 0, 1, 0 }, forward));
 
     if (Input::KeyPressed(Key::W)) {
-        position += forward * 0.2f;
+        position += forward * 0.15f;
         dirty = true;
     }
     if (Input::KeyPressed(Key::S)) {
-        position -= forward * 0.2f;
+        position -= forward * 0.15f;
         dirty = true;
     }
     if (Input::KeyPressed(Key::D)) {
