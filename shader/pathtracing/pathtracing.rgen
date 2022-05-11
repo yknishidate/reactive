@@ -112,9 +112,12 @@ void main()
     }
     color /= maxSamples;
 
+    
+    //imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(color, 0.0));
+
     float weight = 1.0 / (pushConstants.frame + 1);
     vec4 oldColor = imageLoad(inputImage, ivec2(gl_LaunchIDEXT.xy));
-    vec4 newColor = vec4(payload.color, 0.0);
+    vec4 newColor = vec4(color, 0.0);
     newColor = oldColor * (1.0 - weight) + newColor * weight;
     imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), newColor);
 }

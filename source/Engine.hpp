@@ -18,9 +18,9 @@ struct PushConstants
     glm::mat4 InvProj{ 1 };
     int Frame = 0;
     int Importance = 1;
-    int Depth = 4;
-    int Samples = 4;
-    float SkyColor[4] = { 1, 1, 1, 0 };
+    int Depth = 1;
+    int Samples = 16;
+    float SkyColor[4] = { 0, 0, 0, 0 };
     int NEE = 0;
     int NumLights = 500;
 };

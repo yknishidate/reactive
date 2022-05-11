@@ -137,7 +137,9 @@ void Engine::Run()
         ImGui::Checkbox("Accumulation", &accumulation);
         bool refresh = false;
         refresh |= ImGui::Checkbox("Importance sampling", &importance);
-        refresh |= ImGui::Combo("NEE", &pushConstants.NEE, "Off\0Uniform\0RIS\0WRS\0");
+        bool neeChanged = ImGui::Combo("NEE", &pushConstants.NEE, "Off\0Uniform\0RIS\0WRS\0");
+        if (neeChanged) spdlog::info("NEE: {}", pushConstants.NEE);
+        refresh |= neeChanged;
         ImGui::Combo("Denoise", &denoise, "Off\0Median\0");
         refresh |= ImGui::SliderInt("Depth", &pushConstants.Depth, 1, 8);
         refresh |= ImGui::SliderInt("Samples", &pushConstants.Samples, 1, 32);
