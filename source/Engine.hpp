@@ -22,7 +22,7 @@ struct PushConstants
     int Samples = 16;
     float SkyColor[4] = { 0, 0, 0, 0 };
     int NEE = 0;
-    int NumLights = 500;
+    int NumLights = 0;
 };
 
 class Engine

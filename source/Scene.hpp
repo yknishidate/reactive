@@ -57,6 +57,7 @@ public:
     int GetNumPointLights() const { return pointLights.size(); }
     int GetNumSphereLights() const { return sphereLights.size(); }
     BoundingBox GetBoundingBox() const { return bbox; }
+    glm::vec3 GetCenter() const { return (bbox.min + bbox.max) / 2.0f; }
 
 private:
     std::vector<std::shared_ptr<Mesh>> meshes;

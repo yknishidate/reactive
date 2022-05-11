@@ -39,6 +39,7 @@ vec3 sampleSphereLight(in vec2 randVal, in vec3 dir)
 
 int sampleLightUniform()
 {
+    if(pushConstants.numLights == 1) return 0;
     return int(rand(payload.seed) * float(pushConstants.numLights - 1.0));
 }
 
@@ -143,7 +144,9 @@ void main()
                 break;
             }
         }
-        pdf = tgtPDF / sumWeights * float(NUM_CANDIDATES);
+        if (tgtPDF != 0.0) {
+            pdf = tgtPDF / sumWeights * float(NUM_CANDIDATES);
+        }
     } else if (pushConstants.nee == 3) {
         // WRS
         int y = 0;
@@ -168,8 +171,13 @@ void main()
                 yWeight = weight;
             }
         }
+        //payload.emission = vec3(yWeight);
+        //payload.done = true;
+        //return;
         lightIndex = y;
-        pdf = yWeight / sumWeights * float(NUM_CANDIDATES);
+        if (yWeight != 0.0) {
+            pdf = yWeight / sumWeights * float(NUM_CANDIDATES);
+        }
     }
     SphereLight sphereLight = sphereLights.s[lightIndex];
 
