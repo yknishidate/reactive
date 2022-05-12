@@ -146,7 +146,7 @@ void Engine::Run()
     while (!Window::ShouldClose()) {
         Window::PollEvents();
         Input::Update();
-        Window::StartFrame();
+        Vulkan::StartFrame();
 
         ImGui::Checkbox("Accumulation", &accumulation);
         bool refresh = false;
@@ -176,23 +176,23 @@ void Engine::Run()
 
         // Render
         if (!Window::IsMinimized()) {
-            Window::WaitNextFrame();
-            Window::BeginCommandBuffer();
+            Vulkan::WaitNextFrame();
+            Vulkan::BeginCommandBuffer();
 
             int width = Window::GetWidth();
             int height = Window::GetHeight();
-            vk::CommandBuffer commandBuffer = Window::GetCurrentCommandBuffer();
+            vk::CommandBuffer commandBuffer = Vulkan::GetCurrentCommandBuffer();
             rtPipeline.Run(commandBuffer, width, height, &pushConstants);
             if (denoise) {
                 medianPipeline.Run(commandBuffer, width, height, &pushConstants);
-                CopyImages(commandBuffer, width, height, inputImage.GetImage(), outputImage.GetImage(), denoisedImage.GetImage(), Window::GetBackImage());
+                CopyImages(commandBuffer, width, height, inputImage.GetImage(), outputImage.GetImage(), denoisedImage.GetImage(), Vulkan::GetBackImage());
             } else {
-                CopyImages(commandBuffer, width, height, inputImage.GetImage(), outputImage.GetImage(), Window::GetBackImage());
+                CopyImages(commandBuffer, width, height, inputImage.GetImage(), outputImage.GetImage(), Vulkan::GetBackImage());
             }
 
-            Window::RenderUI();
-            Window::Submit();
-            Window::Present();
+            Vulkan::RenderUI();
+            Vulkan::Submit();
+            Vulkan::Present();
         }
     }
     Vulkan::device.waitIdle();

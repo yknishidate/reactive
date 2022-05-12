@@ -3,6 +3,19 @@
 #include <vector>
 #include <vulkan/vulkan.hpp>
 
+struct Frame
+{
+    vk::CommandBuffer commandBuffer{};
+    vk::Fence fence{};
+    vk::Framebuffer framebuffer{};
+};
+
+struct FrameSemaphores
+{
+    vk::Semaphore imageAcquiredSemaphore{};
+    vk::Semaphore renderCompleteSemaphore{};
+};
+
 struct Vulkan
 {
     static void Init();
@@ -13,6 +26,17 @@ struct Vulkan
     static void SubmitAndWait(vk::CommandBuffer commandBuffer);
     static void OneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command);
     static auto FindMemoryTypeIndex(vk::MemoryRequirements requirements, vk::MemoryPropertyFlags memoryProp)->uint32_t;
+
+    static vk::CommandBuffer GetCurrentCommandBuffer();
+    static vk::Image GetBackImage();
+    static void SetupUI();
+    static void StartFrame();
+    static void WaitNextFrame();
+    static void BeginCommandBuffer();
+    static void Submit();
+    static void RenderUI();
+    static void Present();
+    static void RebuildSwapchain();
 
     static inline vk::Instance instance;
     static inline vk::DebugUtilsMessengerEXT debugMessenger;
@@ -26,4 +50,15 @@ struct Vulkan
     static inline vk::Queue queue;
     static inline vk::CommandPool commandPool;
     static inline vk::DescriptorPool descriptorPool;
+
+    static inline bool swapchainRebuild = false;
+    static inline int minImageCount = 3;
+    static inline vk::RenderPass renderPass{};
+    static inline vk::Pipeline pipeline{};
+    static inline vk::ClearValue clearValue{};
+    static inline uint32_t frameIndex = 0;
+    static inline uint32_t imageCount = 0;
+    static inline uint32_t semaphoreIndex = 0;
+    static inline std::vector<Frame> frames{};
+    static inline std::vector<FrameSemaphores> frameSemaphores{};
 };

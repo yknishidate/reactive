@@ -8,7 +8,7 @@ int main()
 
         Window::Init(1920, 1080, "../asset/Vulkan.png");
         Vulkan::Init();
-        Window::SetupUI();
+        Vulkan::SetupUI();
 
         {
             Engine engine;
@@ -16,8 +16,8 @@ int main()
             engine.Run();
         }
 
-        Window::Shutdown();
         Vulkan::Shutdown();
+        Window::Shutdown();
     } catch (const std::exception& exception) {
         spdlog::error(exception.what());
     }
