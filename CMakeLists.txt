@@ -82,4 +82,5 @@ target_include_directories(
     "${PROJECT_SOURCE_DIR}/external/imgui/backends"
     "${PROJECT_SOURCE_DIR}/external/imgui-vulkan-hpp-backend"
     "${PROJECT_SOURCE_DIR}/source"
+    "${PROJECT_SOURCE_DIR}/"
 )

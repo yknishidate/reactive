@@ -4,7 +4,6 @@
 #include "Mesh.hpp"
 #include "Camera.hpp"
 #include "Object.hpp"
-#include "Light.hpp"
 
 class Image;
 

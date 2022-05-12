@@ -30,12 +30,7 @@ struct MeshAddress
     uint64_t sphereLights;
 };
 
-struct Vertex
-{
-    vec3 pos;
-    vec3 normal;
-    vec2 texCoord;
-};
+#include "../../share/structure.inc"
 
 struct ObjectData
 {
@@ -46,19 +41,6 @@ struct ObjectData
     vec4 specular;
     int diffuseTexture;
     int alphaTexture;
-};
-
-struct PointLight
-{
-    vec3 intensity;
-    vec3 position;
-};
-
-struct SphereLight
-{
-    vec3 intensity;
-    vec3 position;
-    float radius;
 };
 
 layout(buffer_reference, scalar) buffer Vertices { Vertex v[]; };

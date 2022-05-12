@@ -13,12 +13,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-struct Vertex
-{
-    glm::vec3 pos;
-    glm::vec3 normal;
-    glm::vec2 texCoord;
-};
+#include "share/structure.inc"
 
 struct Material
 {
