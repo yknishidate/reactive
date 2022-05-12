@@ -9,71 +9,11 @@ void UI::Init()
 {
     spdlog::info("UI::Init()");
 
-    // Create the Render Pass
-    {
-        vk::AttachmentDescription attachment{};
-        attachment.format = vk::Format::eB8G8R8A8Unorm;
-        attachment.samples = vk::SampleCountFlagBits::e1;
-        attachment.loadOp = vk::AttachmentLoadOp::eDontCare;
-        attachment.storeOp = vk::AttachmentStoreOp::eStore;
-        attachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
-        attachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
-        attachment.initialLayout = vk::ImageLayout::eUndefined;
-        attachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
-
-        vk::AttachmentReference color_attachment{};
-        color_attachment.attachment = 0;
-        color_attachment.layout = vk::ImageLayout::eColorAttachmentOptimal;
-
-        vk::SubpassDescription subpass{};
-        subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
-        subpass.colorAttachmentCount = 1;
-        subpass.pColorAttachments = &color_attachment;
-
-        vk::SubpassDependency dependency{};
-        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-        dependency.dstSubpass = 0;
-        dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-        dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-        dependency.srcAccessMask = {};
-        dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
-
-        vk::RenderPassCreateInfo info{};
-        info.attachmentCount = 1;
-        info.pAttachments = &attachment;
-        info.subpassCount = 1;
-        info.pSubpasses = &subpass;
-        info.dependencyCount = 1;
-        info.pDependencies = &dependency;
-        renderPass = Vulkan::device.createRenderPassUnique(info);
-    }
-
-    // Create Framebuffer
-    size_t imageCount = Vulkan::swapchainImages.size();
-    framebuffers.resize(imageCount);
-    {
-        vk::ImageView attachment[1];
-        vk::FramebufferCreateInfo info{};
-        info.renderPass = *renderPass;
-        info.attachmentCount = 1;
-        info.pAttachments = attachment;
-        info.width = Window::GetWidth();
-        info.height = Window::GetHeight();
-        info.layers = 1;
-
-        for (uint32_t i = 0; i < imageCount; i++) {
-            attachment[0] = Vulkan::swapchainImageViews[i];
-            framebuffers[i] = Vulkan::device.createFramebufferUnique(info);
-        }
-    }
-
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-
-    // Setup Dear ImGui style
     ImGui::StyleColorsDark();
 
     // Setup Platform/Renderer backends
@@ -88,11 +28,12 @@ void UI::Init()
     initInfo.DescriptorPool = Vulkan::descriptorPool;
     initInfo.Subpass = 0;
     initInfo.MinImageCount = Vulkan::minImageCount;
-    initInfo.ImageCount = imageCount;
+    initInfo.ImageCount = Vulkan::swapchainImages.size();
     initInfo.MSAASamples = vk::SampleCountFlagBits::e1;
     initInfo.Allocator = nullptr;
-    ImGui_ImplVulkan_Init(&initInfo, *renderPass);
+    ImGui_ImplVulkan_Init(&initInfo, Vulkan::renderPass);
 
+    // Setup font
     io.Fonts->AddFontFromFileTTF("../asset/Roboto-Medium.ttf", 24.0f);
     {
         Vulkan::OneTimeSubmit(
@@ -122,20 +63,10 @@ void UI::Prepare()
 
 void UI::Render(vk::CommandBuffer commandBuffer)
 {
+    Vulkan::BeginRenderPass();
     ImDrawData* drawData = ImGui::GetDrawData();
-
-    vk::RenderPassBeginInfo info{};
-    info.renderPass = *renderPass;
-    info.framebuffer = *framebuffers[Vulkan::GetCurrentImageIndex()];
-    info.renderArea.extent.width = Window::GetWidth();
-    info.renderArea.extent.height = Window::GetHeight();
-    info.clearValueCount = 1;
-    info.pClearValues = &clearValue;
-    commandBuffer.beginRenderPass(info, vk::SubpassContents::eInline);
-
     ImGui_ImplVulkan_RenderDrawData(drawData, commandBuffer);
-
-    commandBuffer.endRenderPass();
+    Vulkan::EndRenderPass();
 }
 
 bool UI::Checkbox(const std::string& label, bool& value)

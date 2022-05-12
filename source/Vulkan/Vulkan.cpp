@@ -218,11 +218,64 @@ void Vulkan::Init()
     swapchainImageViews = CreateImageViews();
     descriptorPool = CraeteDescriptorPool(device);
 
+
+    // Create the Render Pass
+    {
+        vk::AttachmentDescription attachment{};
+        attachment.format = vk::Format::eB8G8R8A8Unorm;
+        attachment.samples = vk::SampleCountFlagBits::e1;
+        attachment.loadOp = vk::AttachmentLoadOp::eDontCare;
+        attachment.storeOp = vk::AttachmentStoreOp::eStore;
+        attachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+        attachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+        attachment.initialLayout = vk::ImageLayout::eUndefined;
+        attachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
+
+        vk::AttachmentReference color_attachment{};
+        color_attachment.attachment = 0;
+        color_attachment.layout = vk::ImageLayout::eColorAttachmentOptimal;
+
+        vk::SubpassDescription subpass{};
+        subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
+        subpass.colorAttachmentCount = 1;
+        subpass.pColorAttachments = &color_attachment;
+
+        vk::SubpassDependency dependency{};
+        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependency.dstSubpass = 0;
+        dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+        dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+        dependency.srcAccessMask = {};
+        dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+
+        vk::RenderPassCreateInfo info{};
+        info.attachmentCount = 1;
+        info.pAttachments = &attachment;
+        info.subpassCount = 1;
+        info.pSubpasses = &subpass;
+        info.dependencyCount = 1;
+        info.pDependencies = &dependency;
+        renderPass = Vulkan::device.createRenderPass(info);
+    }
+
+
     // Create Command Buffers
     size_t imageCount = Vulkan::swapchainImages.size();
     frames.resize(imageCount);
     frameSemaphores.resize(imageCount);
     for (uint32_t i = 0; i < imageCount; i++) {
+        {
+            vk::ImageView attachment[1];
+            vk::FramebufferCreateInfo info{};
+            info.renderPass = renderPass;
+            info.attachmentCount = 1;
+            info.pAttachments = attachment;
+            info.width = Window::GetWidth();
+            info.height = Window::GetHeight();
+            info.layers = 1;
+            attachment[0] = Vulkan::swapchainImageViews[i];
+            frames[i].framebuffer = Vulkan::device.createFramebuffer(info);
+        }
         {
             vk::CommandBufferAllocateInfo commandBufferInfo;
             commandBufferInfo.setCommandPool(Vulkan::commandPool);
@@ -256,9 +309,11 @@ void Vulkan::Shutdown()
     }
     for (auto&& frame : frames) {
         Vulkan::device.freeCommandBuffers(Vulkan::commandPool, frame.commandBuffer);
+        Vulkan::device.destroyFramebuffer(frame.framebuffer);
         Vulkan::device.destroyFence(frame.fence);
     }
 
+    device.destroyRenderPass(renderPass);
     device.destroyDescriptorPool(descriptorPool);
     device.destroyCommandPool(commandPool);
     for (auto&& view : swapchainImageViews) {
@@ -317,19 +372,26 @@ uint32_t Vulkan::FindMemoryTypeIndex(vk::MemoryRequirements requirements, vk::Me
     throw std::runtime_error("Failed to find memory type index.");
 }
 
-int Vulkan::GetCurrentImageIndex()
-{
-    return frameIndex;
-}
-
-vk::CommandBuffer Vulkan::GetCurrentCommandBuffer()
-{
-    return frames[frameIndex].commandBuffer;
-}
-
 vk::Image Vulkan::GetBackImage()
 {
     return swapchainImages[frameIndex];
+}
+
+void Vulkan::BeginRenderPass()
+{
+    vk::RenderPassBeginInfo info{};
+    info.renderPass = Vulkan::renderPass;
+    info.framebuffer = frames[frameIndex].framebuffer;
+    info.renderArea.extent.width = Window::GetWidth();
+    info.renderArea.extent.height = Window::GetHeight();
+    info.clearValueCount = 1;
+    info.pClearValues = &clearValue;
+    frames[frameIndex].commandBuffer.beginRenderPass(info, vk::SubpassContents::eInline);
+}
+
+void Vulkan::EndRenderPass()
+{
+    frames[frameIndex].commandBuffer.endRenderPass();
 }
 
 void Vulkan::WaitNextFrame()
@@ -348,15 +410,15 @@ void Vulkan::WaitNextFrame()
     Vulkan::device.resetFences(fence);
 }
 
-void Vulkan::BeginCommandBuffer()
+vk::CommandBuffer Vulkan::BeginCommandBuffer()
 {
     vk::CommandBufferBeginInfo info{ vk::CommandBufferUsageFlagBits::eOneTimeSubmit };
-    GetCurrentCommandBuffer().begin(info);
+    frames[frameIndex].commandBuffer.begin(info);
+    return frames[frameIndex].commandBuffer;
 }
 
-void Vulkan::Submit()
+void Vulkan::Submit(vk::CommandBuffer commandBuffer)
 {
-    vk::CommandBuffer commandBuffer = frames[frameIndex].commandBuffer;
     vk::PipelineStageFlags waitStage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
     vk::SubmitInfo info{};
     info.waitSemaphoreCount = 1;

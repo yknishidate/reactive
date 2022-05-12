@@ -5,6 +5,7 @@
 
 struct Frame
 {
+    vk::Framebuffer framebuffer{};
     vk::CommandBuffer commandBuffer{};
     vk::Fence fence{};
 };
@@ -26,12 +27,12 @@ struct Vulkan
     static void OneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command);
     static auto FindMemoryTypeIndex(vk::MemoryRequirements requirements, vk::MemoryPropertyFlags memoryProp)->uint32_t;
 
-    static int GetCurrentImageIndex();
-    static vk::CommandBuffer GetCurrentCommandBuffer();
     static vk::Image GetBackImage();
+    static void BeginRenderPass();
+    static void EndRenderPass();
     static void WaitNextFrame();
-    static void BeginCommandBuffer();
-    static void Submit();
+    static vk::CommandBuffer BeginCommandBuffer();
+    static void Submit(vk::CommandBuffer commandBuffer);
     static void Present();
     static void RebuildSwapchain();
 
@@ -53,6 +54,8 @@ struct Vulkan
     static inline uint32_t frameIndex = 0;
     static inline uint32_t imageCount = 0;
     static inline uint32_t semaphoreIndex = 0;
+    static inline vk::RenderPass renderPass;
+    static inline vk::ClearValue clearValue{};
     static inline std::vector<Frame> frames{};
     static inline std::vector<FrameSemaphores> frameSemaphores{};
 };

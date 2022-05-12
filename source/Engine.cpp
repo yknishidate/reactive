@@ -6,6 +6,7 @@
 #include "Loader.hpp"
 #include "Scene.hpp"
 #include "Object.hpp"
+#include "UI.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -77,7 +78,7 @@ namespace
 void Engine::Init()
 {
     spdlog::info("Engine::Init()");
-    ui.Init();
+    UI::Init();
 
     // Create resources
     inputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
@@ -149,16 +150,16 @@ void Engine::Run()
         Input::Update();
 
         // Setup UI
-        ui.StartFrame();
-        ui.Checkbox("Accumulation", accumulation);
+        UI::StartFrame();
+        UI::Checkbox("Accumulation", accumulation);
         bool refresh = false;
-        refresh |= ui.Checkbox("Importance sampling", importance);
-        refresh |= ui.Combo("NEE", pushConstants.nee, { "Off", "Uniform", "RIS", "WRS" });
-        ui.Combo("Denoise", denoise, { "Off", "Median" });
-        refresh |= ui.SliderInt("Depth", pushConstants.depth, 1, 8);
-        refresh |= ui.SliderInt("Samples", pushConstants.samples, 1, 32);
-        refresh |= ui.ColorPicker4("Sky color", pushConstants.skyColor);
-        ui.Prepare();
+        refresh |= UI::Checkbox("Importance sampling", importance);
+        refresh |= UI::Combo("NEE", pushConstants.nee, { "Off", "Uniform", "RIS", "WRS" });
+        UI::Combo("Denoise", denoise, { "Off", "Median" });
+        refresh |= UI::SliderInt("Depth", pushConstants.depth, 1, 8);
+        refresh |= UI::SliderInt("Samples", pushConstants.samples, 1, 32);
+        refresh |= UI::ColorPicker4("Sky color", pushConstants.skyColor);
+        UI::Prepare();
 
         // Scene update
         //scene->Update(0.1);
@@ -177,11 +178,10 @@ void Engine::Run()
         // Render
         if (!Window::IsMinimized()) {
             Vulkan::WaitNextFrame();
-            Vulkan::BeginCommandBuffer();
+            vk::CommandBuffer commandBuffer = Vulkan::BeginCommandBuffer();
 
             int width = Window::GetWidth();
             int height = Window::GetHeight();
-            vk::CommandBuffer commandBuffer = Vulkan::GetCurrentCommandBuffer();
             rtPipeline.Run(commandBuffer, width, height, &pushConstants);
             if (denoise) {
                 medianPipeline.Run(commandBuffer, width, height, &pushConstants);
@@ -190,8 +190,8 @@ void Engine::Run()
                 CopyImages(commandBuffer, width, height, inputImage.GetImage(), outputImage.GetImage(), Vulkan::GetBackImage());
             }
 
-            ui.Render(commandBuffer);
-            Vulkan::Submit();
+            UI::Render(commandBuffer);
+            Vulkan::Submit(commandBuffer);
             Vulkan::Present();
         }
     }
