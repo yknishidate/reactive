@@ -77,6 +77,7 @@ namespace
 void Engine::Init()
 {
     spdlog::info("Engine::Init()");
+    ui.Init();
 
     // Create resources
     inputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
@@ -191,7 +192,7 @@ void Engine::Run()
                 CopyImages(commandBuffer, width, height, inputImage.GetImage(), outputImage.GetImage(), Vulkan::GetBackImage());
             }
 
-            Vulkan::RenderUI();
+            ui.Render();
             Vulkan::Submit();
             Vulkan::Present();
         }

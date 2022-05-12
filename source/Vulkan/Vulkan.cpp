@@ -217,6 +217,30 @@ void Vulkan::Init()
     swapchainImages = device.getSwapchainImagesKHR(swapchain);
     swapchainImageViews = CreateImageViews();
     descriptorPool = CraeteDescriptorPool(device);
+
+    // Create Command Buffers
+    size_t imageCount = Vulkan::swapchainImages.size();
+    frames.resize(imageCount);
+    frameSemaphores.resize(imageCount);
+    for (uint32_t i = 0; i < imageCount; i++) {
+        {
+            vk::CommandBufferAllocateInfo commandBufferInfo;
+            commandBufferInfo.setCommandPool(Vulkan::commandPool);
+            commandBufferInfo.setLevel(vk::CommandBufferLevel::ePrimary);
+            commandBufferInfo.setCommandBufferCount(1);
+            frames[i].commandBuffer = Vulkan::device.allocateCommandBuffers(commandBufferInfo)[0];
+        }
+        {
+            vk::FenceCreateInfo info{};
+            info.flags = vk::FenceCreateFlagBits::eSignaled;
+            frames[i].fence = Vulkan::device.createFence(info);
+        }
+        {
+            vk::SemaphoreCreateInfo info{};
+            frameSemaphores[i].imageAcquiredSemaphore = Vulkan::device.createSemaphore({});
+            frameSemaphores[i].renderCompleteSemaphore = Vulkan::device.createSemaphore({});
+        }
+    }
 }
 
 void Vulkan::Shutdown()
@@ -233,10 +257,7 @@ void Vulkan::Shutdown()
     for (auto&& frame : frames) {
         Vulkan::device.freeCommandBuffers(Vulkan::commandPool, frame.commandBuffer);
         Vulkan::device.destroyFence(frame.fence);
-        Vulkan::device.destroyFramebuffer(frame.framebuffer);
     }
-    Vulkan::device.destroyPipeline(pipeline);
-    Vulkan::device.destroyRenderPass(renderPass);
 
     device.destroyDescriptorPool(descriptorPool);
     device.destroyCommandPool(commandPool);
@@ -296,126 +317,9 @@ uint32_t Vulkan::FindMemoryTypeIndex(vk::MemoryRequirements requirements, vk::Me
     throw std::runtime_error("Failed to find memory type index.");
 }
 
-void Vulkan::SetupUI()
+int Vulkan::GetCurrentImageIndex()
 {
-    spdlog::info("Window::SetupUI()");
-
-    // Create the Render Pass
-    {
-        vk::AttachmentDescription attachment{};
-        attachment.format = vk::Format::eB8G8R8A8Unorm;
-        attachment.samples = vk::SampleCountFlagBits::e1;
-        attachment.loadOp = vk::AttachmentLoadOp::eDontCare;
-        attachment.storeOp = vk::AttachmentStoreOp::eStore;
-        attachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
-        attachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
-        attachment.initialLayout = vk::ImageLayout::eUndefined;
-        attachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
-
-        vk::AttachmentReference color_attachment{};
-        color_attachment.attachment = 0;
-        color_attachment.layout = vk::ImageLayout::eColorAttachmentOptimal;
-
-        vk::SubpassDescription subpass{};
-        subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
-        subpass.colorAttachmentCount = 1;
-        subpass.pColorAttachments = &color_attachment;
-
-        vk::SubpassDependency dependency{};
-        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-        dependency.dstSubpass = 0;
-        dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-        dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-        dependency.srcAccessMask = {};
-        dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
-
-        vk::RenderPassCreateInfo info{};
-        info.attachmentCount = 1;
-        info.pAttachments = &attachment;
-        info.subpassCount = 1;
-        info.pSubpasses = &subpass;
-        info.dependencyCount = 1;
-        info.pDependencies = &dependency;
-        renderPass = Vulkan::device.createRenderPass(info);
-    }
-
-    // Create Framebuffer
-    size_t imageCount = Vulkan::swapchainImages.size();
-    frames.resize(imageCount);
-    frameSemaphores.resize(imageCount);
-    {
-        vk::ImageView attachment[1];
-        vk::FramebufferCreateInfo info{};
-        info.renderPass = renderPass;
-        info.attachmentCount = 1;
-        info.pAttachments = attachment;
-        info.width = Window::GetWidth();
-        info.height = Window::GetHeight();
-        info.layers = 1;
-
-        for (uint32_t i = 0; i < imageCount; i++) {
-            attachment[0] = Vulkan::swapchainImageViews[i];
-            frames[i].framebuffer = Vulkan::device.createFramebuffer(info);
-        }
-    }
-
-    // Create Command Buffers
-    for (uint32_t i = 0; i < imageCount; i++) {
-        {
-            vk::CommandBufferAllocateInfo commandBufferInfo;
-            commandBufferInfo.setCommandPool(Vulkan::commandPool);
-            commandBufferInfo.setLevel(vk::CommandBufferLevel::ePrimary);
-            commandBufferInfo.setCommandBufferCount(1);
-            frames[i].commandBuffer = Vulkan::device.allocateCommandBuffers(commandBufferInfo)[0];
-        }
-        {
-            vk::FenceCreateInfo info{};
-            info.flags = vk::FenceCreateFlagBits::eSignaled;
-            frames[i].fence = Vulkan::device.createFence(info);
-        }
-        {
-            vk::SemaphoreCreateInfo info{};
-            frameSemaphores[i].imageAcquiredSemaphore = Vulkan::device.createSemaphore({});
-            frameSemaphores[i].renderCompleteSemaphore = Vulkan::device.createSemaphore({});
-        }
-    }
-
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-
-    // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
-
-    // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForVulkan(Window::GetWindow(), true);
-    ImGui_ImplVulkan_InitInfo initInfo{};
-    initInfo.Instance = Vulkan::instance;
-    initInfo.PhysicalDevice = Vulkan::physicalDevice;
-    initInfo.Device = Vulkan::device;
-    initInfo.QueueFamily = Vulkan::queueFamily;
-    initInfo.Queue = Vulkan::queue;
-    initInfo.PipelineCache = nullptr;
-    initInfo.DescriptorPool = Vulkan::descriptorPool;
-    initInfo.Subpass = 0;
-    initInfo.MinImageCount = minImageCount;
-    initInfo.ImageCount = imageCount;
-    initInfo.MSAASamples = vk::SampleCountFlagBits::e1;
-    initInfo.Allocator = nullptr;
-    ImGui_ImplVulkan_Init(&initInfo, renderPass);
-
-    io.Fonts->AddFontFromFileTTF("../asset/Roboto-Medium.ttf", 24.0f);
-    {
-        Vulkan::OneTimeSubmit(
-            [&](vk::CommandBuffer commandBuffer)
-            {
-                ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
-            }
-        );
-        ImGui_ImplVulkan_DestroyFontUploadObjects();
-    }
+    return frameIndex;
 }
 
 vk::CommandBuffer Vulkan::GetCurrentCommandBuffer()
@@ -477,24 +381,6 @@ void Vulkan::Submit()
     commandBuffer.end();
     vk::Fence fence = frames[frameIndex].fence;
     Vulkan::queue.submit(info, fence);
-}
-
-void Vulkan::RenderUI()
-{
-    ImDrawData* drawData = ImGui::GetDrawData();
-
-    vk::RenderPassBeginInfo info{};
-    info.renderPass = renderPass;
-    info.framebuffer = frames[frameIndex].framebuffer;
-    info.renderArea.extent.width = Window::GetWidth();
-    info.renderArea.extent.height = Window::GetHeight();
-    info.clearValueCount = 1;
-    info.pClearValues = &clearValue;
-    frames[frameIndex].commandBuffer.beginRenderPass(info, vk::SubpassContents::eInline);
-
-    ImGui_ImplVulkan_RenderDrawData(drawData, frames[frameIndex].commandBuffer);
-
-    frames[frameIndex].commandBuffer.endRenderPass();
 }
 
 void Vulkan::Present()

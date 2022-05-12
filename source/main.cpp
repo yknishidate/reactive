@@ -8,7 +8,6 @@ int main()
 
         Window::Init(1920, 1080, "../asset/Vulkan.png");
         Vulkan::Init();
-        Vulkan::SetupUI();
 
         {
             Engine engine;

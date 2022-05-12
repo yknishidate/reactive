@@ -11,6 +11,7 @@
 #include "Window.hpp"
 #include "Mesh.hpp"
 #include "Scene.hpp"
+#include "UI.hpp"
 
 class Engine
 {
@@ -19,6 +20,7 @@ public:
     void Run();
 
 private:
+    UI ui;
     Image inputImage;
     Image outputImage;
     Image denoisedImage;
