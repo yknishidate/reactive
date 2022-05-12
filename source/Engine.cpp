@@ -147,8 +147,9 @@ void Engine::Run()
     while (!Window::ShouldClose()) {
         Window::PollEvents();
         Input::Update();
-        Vulkan::StartFrame();
 
+        // Setup UI
+        ui.StartFrame();
         ui.Checkbox("Accumulation", accumulation);
         bool refresh = false;
         refresh |= ui.Checkbox("Importance sampling", importance);
@@ -189,7 +190,7 @@ void Engine::Run()
                 CopyImages(commandBuffer, width, height, inputImage.GetImage(), outputImage.GetImage(), Vulkan::GetBackImage());
             }
 
-            ui.Render();
+            ui.Render(commandBuffer);
             Vulkan::Submit();
             Vulkan::Present();
         }

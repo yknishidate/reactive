@@ -332,17 +332,6 @@ vk::Image Vulkan::GetBackImage()
     return swapchainImages[frameIndex];
 }
 
-void Vulkan::StartFrame()
-{
-    //if (swapchainRebuild) {
-    //    RebuildSwapchain();
-    //}
-
-    ImGui_ImplVulkan_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-}
-
 void Vulkan::WaitNextFrame()
 {
     vk::Semaphore imageAcquiredSemaphore = frameSemaphores[semaphoreIndex].imageAcquiredSemaphore;

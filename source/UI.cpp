@@ -105,11 +105,24 @@ void UI::Init()
     }
 }
 
-void UI::Render()
+void UI::StartFrame()
+{
+    //if (swapchainRebuild) {
+    //    RebuildSwapchain();
+    //}
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+}
+
+void UI::Prepare()
+{
+    ImGui::Render();
+}
+
+void UI::Render(vk::CommandBuffer commandBuffer)
 {
     ImDrawData* drawData = ImGui::GetDrawData();
-
-    vk::CommandBuffer commandBuffer = Vulkan::GetCurrentCommandBuffer();
 
     vk::RenderPassBeginInfo info{};
     info.renderPass = *renderPass;
@@ -123,11 +136,6 @@ void UI::Render()
     ImGui_ImplVulkan_RenderDrawData(drawData, commandBuffer);
 
     commandBuffer.endRenderPass();
-}
-
-void UI::Prepare()
-{
-    ImGui::Render();
 }
 
 bool UI::Checkbox(const std::string& label, bool& value)

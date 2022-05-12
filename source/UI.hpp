@@ -5,8 +5,9 @@ class UI
 {
 public:
     void Init();
-    void Render();
+    void StartFrame();
     void Prepare();
+    void Render(vk::CommandBuffer commandBuffer);
 
     bool Checkbox(const std::string& label, bool& value);
     bool Combo(const std::string& label, int& value, const std::vector<std::string>& items);
@@ -15,7 +16,6 @@ public:
 
 private:
     vk::UniqueRenderPass renderPass{};
-    vk::UniquePipeline pipeline{};
     vk::ClearValue clearValue{};
     std::vector<vk::UniqueFramebuffer> framebuffers{};
 };

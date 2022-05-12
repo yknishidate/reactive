@@ -29,7 +29,6 @@ struct Vulkan
     static int GetCurrentImageIndex();
     static vk::CommandBuffer GetCurrentCommandBuffer();
     static vk::Image GetBackImage();
-    static void StartFrame();
     static void WaitNextFrame();
     static void BeginCommandBuffer();
     static void Submit();
