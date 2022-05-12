@@ -32,17 +32,6 @@ struct MeshAddress
 
 #include "../../share/structure.inc"
 
-struct ObjectData
-{
-    mat4 matrix;
-    mat4 normalMatrix;
-    vec4 diffuse;
-    vec4 emission;
-    vec4 specular;
-    int diffuseTexture;
-    int alphaTexture;
-};
-
 layout(buffer_reference, scalar) buffer Vertices { Vertex v[]; };
 layout(buffer_reference, scalar) buffer Indices { uvec3 i[]; };
 layout(buffer_reference, scalar) buffer Objects { ObjectData o[]; };

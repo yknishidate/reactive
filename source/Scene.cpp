@@ -29,13 +29,13 @@ void Scene::Setup()
     // Create object data
     for (auto&& object : objects) {
         ObjectData data;
-        data.Matrix = object.GetTransform().GetMatrix();
-        data.NormalMatrix = object.GetTransform().GetNormalMatrix();
-        data.Diffuse = glm::vec4{ object.GetMaterial().Diffuse, 1 };
-        data.Emission = glm::vec4{ object.GetMaterial().Emission, 1 };
-        data.Specular = glm::vec4{ 0.0f };
-        data.DiffuseTexture = object.GetMaterial().DiffuseTexture;
-        data.AlphaTexture = object.GetMaterial().AlphaTexture;
+        data.matrix = object.GetTransform().GetMatrix();
+        data.normalMatrix = object.GetTransform().GetNormalMatrix();
+        data.diffuse = glm::vec4{ object.GetMaterial().Diffuse, 1 };
+        data.emission = glm::vec4{ object.GetMaterial().Emission, 1 };
+        data.specular = glm::vec4{ 0.0f };
+        data.diffuseTexture = object.GetMaterial().DiffuseTexture;
+        data.alphaTexture = object.GetMaterial().AlphaTexture;
         objectData.push_back(data);
     }
     vk::BufferUsageFlags usage =
@@ -73,8 +73,8 @@ void Scene::Update(float dt)
     time += dt;
     for (int i = 0; i < objects.size(); i++) {
         objects[i].GetTransform().Rotation = glm::quat{ glm::vec3(0.0f, time * 0.1, 0.0f) };
-        objectData[i].Matrix = objects[i].GetTransform().GetMatrix();
-        objectData[i].NormalMatrix = objects[i].GetTransform().GetNormalMatrix();
+        objectData[i].matrix = objects[i].GetTransform().GetMatrix();
+        objectData[i].normalMatrix = objects[i].GetTransform().GetNormalMatrix();
     }
     objectBuffer.Copy(objectData.data());
     topAccel.Rebuild(objects);
