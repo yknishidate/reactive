@@ -124,3 +124,32 @@ void UI::Render()
 
     commandBuffer.endRenderPass();
 }
+
+void UI::Prepare()
+{
+    ImGui::Render();
+}
+
+bool UI::Checkbox(const std::string& label, bool& value)
+{
+    return ImGui::Checkbox(label.c_str(), &value);
+}
+
+bool UI::Combo(const std::string& label, int& value, const std::vector<std::string>& items)
+{
+    std::string concats;
+    for (auto&& item : items) {
+        concats += item + '\0';
+    }
+    return ImGui::Combo(label.c_str(), &value, concats.c_str());
+}
+
+bool UI::SliderInt(const std::string& label, int& value, int min, int max)
+{
+    return ImGui::SliderInt(label.c_str(), &value, min, max);
+}
+
+bool UI::ColorPicker4(const std::string& label, glm::vec4& value)
+{
+    return ImGui::ColorPicker4(label.c_str(), reinterpret_cast<float*>(&value));
+}

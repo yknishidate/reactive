@@ -93,7 +93,7 @@ struct PushConstants
     int importance = 1;
     int depth = 1;
     int samples = 16;
-    float skyColor[4] = { 0, 0, 0, 0 };
+    glm::vec4 skyColor{ 0, 0, 0, 0 };
     int nee = 0;
     int numLights = 0;
 };

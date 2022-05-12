@@ -149,17 +149,15 @@ void Engine::Run()
         Input::Update();
         Vulkan::StartFrame();
 
-        ImGui::Checkbox("Accumulation", &accumulation);
+        ui.Checkbox("Accumulation", accumulation);
         bool refresh = false;
-        refresh |= ImGui::Checkbox("Importance sampling", &importance);
-        bool neeChanged = ImGui::Combo("NEE", &pushConstants.nee, "Off\0Uniform\0RIS\0WRS\0");
-        if (neeChanged) spdlog::info("NEE: {}", pushConstants.nee);
-        refresh |= neeChanged;
-        ImGui::Combo("Denoise", &denoise, "Off\0Median\0");
-        refresh |= ImGui::SliderInt("Depth", &pushConstants.depth, 1, 8);
-        refresh |= ImGui::SliderInt("Samples", &pushConstants.samples, 1, 32);
-        refresh |= ImGui::ColorPicker4("Sky color", pushConstants.skyColor);
-        ImGui::Render();
+        refresh |= ui.Checkbox("Importance sampling", importance);
+        refresh |= ui.Combo("NEE", pushConstants.nee, { "Off", "Uniform", "RIS", "WRS" });
+        ui.Combo("Denoise", denoise, { "Off", "Median" });
+        refresh |= ui.SliderInt("Depth", pushConstants.depth, 1, 8);
+        refresh |= ui.SliderInt("Samples", pushConstants.samples, 1, 32);
+        refresh |= ui.ColorPicker4("Sky color", pushConstants.skyColor);
+        ui.Prepare();
 
         // Scene update
         //scene->Update(0.1);
@@ -177,7 +175,6 @@ void Engine::Run()
 
         // Render
         if (!Window::IsMinimized()) {
-            spdlog::info("Render");
             Vulkan::WaitNextFrame();
             Vulkan::BeginCommandBuffer();
 
