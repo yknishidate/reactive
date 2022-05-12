@@ -6,8 +6,6 @@
 void Window::Init(int width, int height, const std::string& icon)
 {
     spdlog::info("Window::Init()");
-    Window::width = width;
-    Window::height = height;
     glfwInit();
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -29,11 +27,15 @@ void Window::SetIcon(const std::string& filepath)
 
 int Window::GetWidth()
 {
+    int width, height;
+    glfwGetFramebufferSize(window, &width, &height);
     return width;
 }
 
 int Window::GetHeight()
 {
+    int width, height;
+    glfwGetFramebufferSize(window, &width, &height);
     return height;
 }
 
@@ -56,8 +58,7 @@ void Window::PollEvents()
 
 bool Window::IsMinimized()
 {
-    ImDrawData* drawData = ImGui::GetDrawData();
-    return drawData->DisplaySize.x <= 0.0f || drawData->DisplaySize.y <= 0.0f;
+    return GetWidth() <= 0 || GetHeight() <= 0;
 }
 
 GLFWwindow* Window::GetWindow()

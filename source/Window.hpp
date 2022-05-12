@@ -26,7 +26,4 @@ public:
 
 private:
     static inline GLFWwindow* window;
-
-    static inline int width{};
-    static inline int height{};
 };

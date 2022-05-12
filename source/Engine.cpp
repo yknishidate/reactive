@@ -176,6 +176,7 @@ void Engine::Run()
 
         // Render
         if (!Window::IsMinimized()) {
+            spdlog::info("Render");
             Vulkan::WaitNextFrame();
             Vulkan::BeginCommandBuffer();
 
