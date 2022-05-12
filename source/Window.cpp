@@ -6,8 +6,8 @@
 void Window::Init(int width, int height, const std::string& icon)
 {
     spdlog::info("Window::Init()");
-    Window::Width = width;
-    Window::Height = height;
+    Window::width = width;
+    Window::height = height;
     glfwInit();
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -67,17 +67,17 @@ void Window::SetupUI()
         info.pSubpasses = &subpass;
         info.dependencyCount = 1;
         info.pDependencies = &dependency;
-        RenderPass = Vulkan::Device.createRenderPass(info);
+        renderPass = Vulkan::device.createRenderPass(info);
     }
 
     // Create Framebuffer
-    size_t imageCount = Vulkan::SwapchainImages.size();
-    Frames.resize(imageCount);
-    FrameSemaphores.resize(imageCount);
+    size_t imageCount = Vulkan::swapchainImages.size();
+    frames.resize(imageCount);
+    frameSemaphores.resize(imageCount);
     {
         vk::ImageView attachment[1];
         vk::FramebufferCreateInfo info{};
-        info.renderPass = RenderPass;
+        info.renderPass = renderPass;
         info.attachmentCount = 1;
         info.pAttachments = attachment;
         info.width = Window::GetWidth();
@@ -85,8 +85,8 @@ void Window::SetupUI()
         info.layers = 1;
 
         for (uint32_t i = 0; i < imageCount; i++) {
-            attachment[0] = Vulkan::SwapchainImageViews[i];
-            Frames[i].Framebuffer = Vulkan::Device.createFramebuffer(info);
+            attachment[0] = Vulkan::swapchainImageViews[i];
+            frames[i].framebuffer = Vulkan::device.createFramebuffer(info);
         }
     }
 
@@ -94,21 +94,20 @@ void Window::SetupUI()
     for (uint32_t i = 0; i < imageCount; i++) {
         {
             vk::CommandBufferAllocateInfo commandBufferInfo;
-            commandBufferInfo.setCommandPool(Vulkan::CommandPool);
+            commandBufferInfo.setCommandPool(Vulkan::commandPool);
             commandBufferInfo.setLevel(vk::CommandBufferLevel::ePrimary);
             commandBufferInfo.setCommandBufferCount(1);
-            Frames[i].CommandBuffer = Vulkan::Device.allocateCommandBuffers(commandBufferInfo)[0];
-            //Frames[i].CommandBuffer = Vulkan::AllocateCommandBuffer();
+            frames[i].commandBuffer = Vulkan::device.allocateCommandBuffers(commandBufferInfo)[0];
         }
         {
             vk::FenceCreateInfo info{};
             info.flags = vk::FenceCreateFlagBits::eSignaled;
-            Frames[i].Fence = Vulkan::Device.createFence(info);
+            frames[i].fence = Vulkan::device.createFence(info);
         }
         {
             vk::SemaphoreCreateInfo info{};
-            FrameSemaphores[i].ImageAcquiredSemaphore = Vulkan::Device.createSemaphore({});
-            FrameSemaphores[i].RenderCompleteSemaphore = Vulkan::Device.createSemaphore({});
+            frameSemaphores[i].imageAcquiredSemaphore = Vulkan::device.createSemaphore({});
+            frameSemaphores[i].renderCompleteSemaphore = Vulkan::device.createSemaphore({});
         }
     }
 
@@ -124,19 +123,19 @@ void Window::SetupUI()
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForVulkan(window, true);
     ImGui_ImplVulkan_InitInfo initInfo{};
-    initInfo.Instance = Vulkan::Instance;
-    initInfo.PhysicalDevice = Vulkan::PhysicalDevice;
-    initInfo.Device = Vulkan::Device;
-    initInfo.QueueFamily = Vulkan::QueueFamily;
-    initInfo.Queue = Vulkan::Queue;
+    initInfo.Instance = Vulkan::instance;
+    initInfo.PhysicalDevice = Vulkan::physicalDevice;
+    initInfo.Device = Vulkan::device;
+    initInfo.QueueFamily = Vulkan::queueFamily;
+    initInfo.Queue = Vulkan::queue;
     initInfo.PipelineCache = nullptr;
-    initInfo.DescriptorPool = Vulkan::DescriptorPool;
+    initInfo.DescriptorPool = Vulkan::descriptorPool;
     initInfo.Subpass = 0;
     initInfo.MinImageCount = minImageCount;
     initInfo.ImageCount = imageCount;
     initInfo.MSAASamples = vk::SampleCountFlagBits::e1;
     initInfo.Allocator = nullptr;
-    ImGui_ImplVulkan_Init(&initInfo, RenderPass);
+    ImGui_ImplVulkan_Init(&initInfo, renderPass);
 
     io.Fonts->AddFontFromFileTTF("../asset/Roboto-Medium.ttf", 24.0f);
     {
@@ -152,38 +151,38 @@ void Window::SetupUI()
 
 int Window::GetWidth()
 {
-    return Width;
+    return width;
 }
 
 int Window::GetHeight()
 {
-    return Height;
+    return height;
 }
 
 vk::CommandBuffer Window::GetCurrentCommandBuffer()
 {
-    return Frames[FrameIndex].CommandBuffer;
+    return frames[frameIndex].commandBuffer;
 }
 
 vk::Image Window::GetBackImage()
 {
-    return Vulkan::SwapchainImages[FrameIndex];
+    return Vulkan::swapchainImages[frameIndex];
 }
 
 void Window::Shutdown()
 {
     spdlog::info("Window::Shutdown()");
-    for (auto&& semaphores : FrameSemaphores) {
-        Vulkan::Device.destroySemaphore(semaphores.ImageAcquiredSemaphore);
-        Vulkan::Device.destroySemaphore(semaphores.RenderCompleteSemaphore);
+    for (auto&& semaphores : frameSemaphores) {
+        Vulkan::device.destroySemaphore(semaphores.imageAcquiredSemaphore);
+        Vulkan::device.destroySemaphore(semaphores.renderCompleteSemaphore);
     }
-    for (auto&& frame : Frames) {
-        Vulkan::Device.freeCommandBuffers(Vulkan::CommandPool, frame.CommandBuffer);
-        Vulkan::Device.destroyFence(frame.Fence);
-        Vulkan::Device.destroyFramebuffer(frame.Framebuffer);
+    for (auto&& frame : frames) {
+        Vulkan::device.freeCommandBuffers(Vulkan::commandPool, frame.commandBuffer);
+        Vulkan::device.destroyFence(frame.fence);
+        Vulkan::device.destroyFramebuffer(frame.framebuffer);
     }
-    Vulkan::Device.destroyPipeline(Pipeline);
-    Vulkan::Device.destroyRenderPass(RenderPass);
+    Vulkan::device.destroyPipeline(pipeline);
+    Vulkan::device.destroyRenderPass(renderPass);
 
     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -208,7 +207,7 @@ void Window::RebuildSwapchain()
     //glfwGetFramebufferSize(window, &width, &height);
     //if (width > 0 && height > 0) {
     //    ImGui_ImplVulkan_SetMinImageCount(minImageCount);
-    //    ImGui_ImplVulkanH_CreateOrResizeWindow(Vulkan::Instance, Vulkan::PhysicalDevice, Vulkan::Device, &windowData, Vulkan::QueueFamily, nullptr, width, height, minImageCount);
+    //    ImGui_ImplVulkanH_CreateOrResizeWindow(Vulkan::instance, Vulkan::physicalDevice, Vulkan::device, &windowData, Vulkan::queueFamily, nullptr, width, height, minImageCount);
     //    windowData.FrameIndex = 0;
     //    swapchainRebuild = false;
     //}
@@ -233,18 +232,18 @@ bool Window::IsMinimized()
 
 void Window::WaitNextFrame()
 {
-    vk::Semaphore imageAcquiredSemaphore = FrameSemaphores[SemaphoreIndex].ImageAcquiredSemaphore;
-    vk::Semaphore renderCompleteSemaphore = FrameSemaphores[SemaphoreIndex].RenderCompleteSemaphore;
+    vk::Semaphore imageAcquiredSemaphore = frameSemaphores[semaphoreIndex].imageAcquiredSemaphore;
+    vk::Semaphore renderCompleteSemaphore = frameSemaphores[semaphoreIndex].renderCompleteSemaphore;
     try {
-        FrameIndex = Vulkan::Device.acquireNextImageKHR(Vulkan::Swapchain, UINT64_MAX, imageAcquiredSemaphore).value;
+        frameIndex = Vulkan::device.acquireNextImageKHR(Vulkan::swapchain, UINT64_MAX, imageAcquiredSemaphore).value;
     } catch (std::exception exception) {
         swapchainRebuild = true;
         return;
     }
 
-    vk::Fence fence = Frames[FrameIndex].Fence;
-    Vulkan::Device.waitForFences(fence, VK_TRUE, UINT64_MAX);
-    Vulkan::Device.resetFences(fence);
+    vk::Fence fence = frames[frameIndex].fence;
+    Vulkan::device.waitForFences(fence, VK_TRUE, UINT64_MAX);
+    Vulkan::device.resetFences(fence);
 }
 
 void Window::BeginCommandBuffer()
@@ -255,20 +254,20 @@ void Window::BeginCommandBuffer()
 
 void Window::Submit()
 {
-    vk::CommandBuffer commandBuffer = Frames[FrameIndex].CommandBuffer;
+    vk::CommandBuffer commandBuffer = frames[frameIndex].commandBuffer;
     vk::PipelineStageFlags waitStage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
     vk::SubmitInfo info{};
     info.waitSemaphoreCount = 1;
-    info.pWaitSemaphores = &FrameSemaphores[SemaphoreIndex].ImageAcquiredSemaphore;
+    info.pWaitSemaphores = &frameSemaphores[semaphoreIndex].imageAcquiredSemaphore;
     info.pWaitDstStageMask = &waitStage;
     info.commandBufferCount = 1;
     info.pCommandBuffers = &commandBuffer;
     info.signalSemaphoreCount = 1;
-    info.pSignalSemaphores = &FrameSemaphores[SemaphoreIndex].RenderCompleteSemaphore;
+    info.pSignalSemaphores = &frameSemaphores[semaphoreIndex].renderCompleteSemaphore;
 
     commandBuffer.end();
-    vk::Fence fence = Frames[FrameIndex].Fence;
-    Vulkan::Queue.submit(info, fence);
+    vk::Fence fence = frames[frameIndex].fence;
+    Vulkan::queue.submit(info, fence);
 }
 
 void Window::RenderUI()
@@ -276,17 +275,17 @@ void Window::RenderUI()
     ImDrawData* drawData = ImGui::GetDrawData();
 
     vk::RenderPassBeginInfo info{};
-    info.renderPass = RenderPass;
-    info.framebuffer = Frames[FrameIndex].Framebuffer;
-    info.renderArea.extent.width = Width;
-    info.renderArea.extent.height = Height;
+    info.renderPass = renderPass;
+    info.framebuffer = frames[frameIndex].framebuffer;
+    info.renderArea.extent.width = width;
+    info.renderArea.extent.height = height;
     info.clearValueCount = 1;
-    info.pClearValues = &ClearValue;
-    Frames[FrameIndex].CommandBuffer.beginRenderPass(info, vk::SubpassContents::eInline);
+    info.pClearValues = &clearValue;
+    frames[frameIndex].commandBuffer.beginRenderPass(info, vk::SubpassContents::eInline);
 
-    ImGui_ImplVulkan_RenderDrawData(drawData, Frames[FrameIndex].CommandBuffer);
+    ImGui_ImplVulkan_RenderDrawData(drawData, frames[frameIndex].commandBuffer);
 
-    Frames[FrameIndex].CommandBuffer.endRenderPass();
+    frames[frameIndex].commandBuffer.endRenderPass();
 }
 
 void Window::Present()
@@ -296,18 +295,18 @@ void Window::Present()
     }
     vk::PresentInfoKHR info{};
     info.waitSemaphoreCount = 1;
-    info.pWaitSemaphores = &FrameSemaphores[SemaphoreIndex].RenderCompleteSemaphore;
+    info.pWaitSemaphores = &frameSemaphores[semaphoreIndex].renderCompleteSemaphore;
     info.swapchainCount = 1;
-    info.pSwapchains = &Vulkan::Swapchain;
-    info.pImageIndices = &FrameIndex;
+    info.pSwapchains = &Vulkan::swapchain;
+    info.pImageIndices = &frameIndex;
     try {
-        Vulkan::Queue.presentKHR(info);
+        Vulkan::queue.presentKHR(info);
     } catch (std::exception exception) {
         std::cerr << "failed to present." << std::endl;
         swapchainRebuild = true;
         return;
     }
-    SemaphoreIndex = (SemaphoreIndex + 1) % Vulkan::SwapchainImages.size();
+    semaphoreIndex = (semaphoreIndex + 1) % Vulkan::swapchainImages.size();
 }
 
 GLFWwindow* Window::GetWindow()

@@ -108,7 +108,7 @@ void Engine::Init()
     {
         scene = std::make_unique<Scene>("../asset/CornellBox/CornellBox-Glossy.obj", glm::vec3{ 0.0f, 0.75f, 0.0f });
         scene->AddSphereLight(glm::vec3{ 10.0f }, glm::vec3{ 0.0f, -0.5f, 0.0f }, 0.2f);
-        pushConstants.NumLights = 1;
+        pushConstants.numLights = 1;
     }
 
     scene->Setup();
@@ -132,9 +132,9 @@ void Engine::Init()
     medianPipeline.Setup(sizeof(PushConstants));
 
     // Create push constants
-    pushConstants.InvProj = glm::inverse(scene->GetCamera().GetProj());
-    pushConstants.InvView = glm::inverse(scene->GetCamera().GetView());
-    pushConstants.Frame = 0;
+    pushConstants.invProj = glm::inverse(scene->GetCamera().GetProj());
+    pushConstants.invView = glm::inverse(scene->GetCamera().GetView());
+    pushConstants.frame = 0;
 }
 
 void Engine::Run()
@@ -151,13 +151,13 @@ void Engine::Run()
         ImGui::Checkbox("Accumulation", &accumulation);
         bool refresh = false;
         refresh |= ImGui::Checkbox("Importance sampling", &importance);
-        bool neeChanged = ImGui::Combo("NEE", &pushConstants.NEE, "Off\0Uniform\0RIS\0WRS\0");
-        if (neeChanged) spdlog::info("NEE: {}", pushConstants.NEE);
+        bool neeChanged = ImGui::Combo("NEE", &pushConstants.nee, "Off\0Uniform\0RIS\0WRS\0");
+        if (neeChanged) spdlog::info("NEE: {}", pushConstants.nee);
         refresh |= neeChanged;
         ImGui::Combo("Denoise", &denoise, "Off\0Median\0");
-        refresh |= ImGui::SliderInt("Depth", &pushConstants.Depth, 1, 8);
-        refresh |= ImGui::SliderInt("Samples", &pushConstants.Samples, 1, 32);
-        refresh |= ImGui::ColorPicker4("Sky color", pushConstants.SkyColor);
+        refresh |= ImGui::SliderInt("Depth", &pushConstants.depth, 1, 8);
+        refresh |= ImGui::SliderInt("Samples", &pushConstants.samples, 1, 32);
+        refresh |= ImGui::ColorPicker4("Sky color", pushConstants.skyColor);
         ImGui::Render();
 
         // Scene update
@@ -165,13 +165,13 @@ void Engine::Run()
 
         // Update push constants
         scene->ProcessInput();
-        pushConstants.InvProj = glm::inverse(scene->GetCamera().GetProj());
-        pushConstants.InvView = glm::inverse(scene->GetCamera().GetView());
-        pushConstants.Importance = static_cast<int>(importance);
+        pushConstants.invProj = glm::inverse(scene->GetCamera().GetProj());
+        pushConstants.invView = glm::inverse(scene->GetCamera().GetView());
+        pushConstants.importance = static_cast<int>(importance);
         if (refresh || !accumulation || scene->GetCamera().CheckDirtyAndClean()) {
-            pushConstants.Frame = 0;
+            pushConstants.frame = 0;
         } else {
-            pushConstants.Frame++;
+            pushConstants.frame++;
         }
 
         // Render
@@ -195,5 +195,5 @@ void Engine::Run()
             Window::Present();
         }
     }
-    Vulkan::Device.waitIdle();
+    Vulkan::device.waitIdle();
 }

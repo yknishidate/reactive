@@ -4,12 +4,12 @@
 
 glm::mat4 Transform::GetMatrix() const
 {
-    return glm::translate(Position) * glm::toMat4(Rotation) * glm::scale(Scale);
+    return glm::translate(position) * glm::toMat4(rotation) * glm::scale(scale);
 }
 
 glm::mat3 Transform::GetNormalMatrix() const
 {
-    return glm::toMat3(Rotation);
+    return glm::toMat3(rotation);
 }
 
 vk::TransformMatrixKHR Transform::GetVkMatrix() const

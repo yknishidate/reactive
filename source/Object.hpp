@@ -6,9 +6,9 @@
 
 struct Transform
 {
-    glm::vec3 Position{ 0 };
-    glm::vec3 Scale{ 1 };
-    glm::quat Rotation{ 1, 0, 0, 0 };
+    glm::vec3 position{ 0 };
+    glm::vec3 scale{ 1 };
+    glm::quat rotation{ 1, 0, 0, 0 };
 
     glm::mat4 GetMatrix() const;
     glm::mat3 GetNormalMatrix() const;
@@ -19,16 +19,16 @@ class Object
 {
 public:
     void Init(std::shared_ptr<Mesh> mesh);
-    const Mesh& GetMesh() const;
-    const Transform& GetTransform() const { return transform; }
-    Transform& GetTransform() { return transform; }
     virtual void Update(float dt) {}
+
+    const Mesh& GetMesh() const;
 
     Material GetMaterial();
     void SetMaterial(const Material& material);
 
+    Transform transform{};
+
 private:
     std::shared_ptr<Mesh> mesh;
-    Transform transform{};
     std::optional<Material> material;
 };

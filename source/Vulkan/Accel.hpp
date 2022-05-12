@@ -19,9 +19,6 @@ class BottomAccel : public Accel
 public:
     void Init(const Buffer& vertexBuffer, const Buffer& indexBuffer,
               size_t vertexCount, size_t primitiveCount, vk::GeometryFlagBitsKHR geomertyFlag);
-
-private:
-
 };
 
 class TopAccel : public Accel

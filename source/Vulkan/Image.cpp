@@ -14,17 +14,17 @@ namespace
         imageCreateInfo.setArrayLayers(1);
         imageCreateInfo.setUsage(vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled |
                                  vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst);
-        return Vulkan::Device.createImageUnique(imageCreateInfo);
+        return Vulkan::device.createImageUnique(imageCreateInfo);
     }
 
     vk::UniqueDeviceMemory AllocateMemory(vk::Image image)
     {
-        vk::MemoryRequirements requirements = Vulkan::Device.getImageMemoryRequirements(image);
+        vk::MemoryRequirements requirements = Vulkan::device.getImageMemoryRequirements(image);
         uint32_t memoryTypeIndex = Vulkan::FindMemoryTypeIndex(requirements, vk::MemoryPropertyFlagBits::eDeviceLocal);
         vk::MemoryAllocateInfo memoryAllocateInfo{};
         memoryAllocateInfo.setAllocationSize(requirements.size);
         memoryAllocateInfo.setMemoryTypeIndex(memoryTypeIndex);
-        return Vulkan::Device.allocateMemoryUnique(memoryAllocateInfo);
+        return Vulkan::device.allocateMemoryUnique(memoryAllocateInfo);
     }
 
     vk::UniqueImageView CreateImageView(vk::Image image, vk::Format format)
@@ -34,7 +34,7 @@ namespace
         imageViewCreateInfo.setViewType(vk::ImageViewType::e2D);
         imageViewCreateInfo.setFormat(format);
         imageViewCreateInfo.setSubresourceRange({ vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 });
-        return Vulkan::Device.createImageViewUnique(imageViewCreateInfo);
+        return Vulkan::device.createImageViewUnique(imageViewCreateInfo);
     }
 
     vk::UniqueSampler CreateSampler()
@@ -49,7 +49,7 @@ namespace
         createInfo.setAddressModeU(vk::SamplerAddressMode::eRepeat);
         createInfo.setAddressModeV(vk::SamplerAddressMode::eRepeat);
         createInfo.setAddressModeW(vk::SamplerAddressMode::eRepeat);
-        return Vulkan::Device.createSamplerUnique(createInfo);
+        return Vulkan::device.createSamplerUnique(createInfo);
     }
 }
 
@@ -57,7 +57,7 @@ void Image::Init(int width, int height, vk::Format format)
 {
     image = CreateImage(width, height, format);
     memory = AllocateMemory(*image);
-    Vulkan::Device.bindImageMemory(*image, *memory, 0);
+    Vulkan::device.bindImageMemory(*image, *memory, 0);
     view = CreateImageView(*image, format);
     sampler = CreateSampler();
     Vulkan::OneTimeSubmit(

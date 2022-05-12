@@ -11,11 +11,11 @@ Scene::Scene(const std::string& filepath,
     objects.resize(meshes.size());
     for (int i = 0; i < meshes.size(); i++) {
         objects[i].Init(meshes[i]);
-        objects[i].GetTransform().Position = position;
-        objects[i].GetTransform().Scale = scale;
-        objects[i].GetTransform().Rotation = glm::quat{ rotation };
+        objects[i].transform.position = position;
+        objects[i].transform.scale = scale;
+        objects[i].transform.rotation = glm::quat{ rotation };
         for (const auto& vertex : meshes[i]->GetVertices()) {
-            glm::vec3 pos = objects[i].GetTransform().GetMatrix() * glm::vec4{ vertex.pos, 1.0 };
+            glm::vec3 pos = objects[i].transform.GetMatrix() * glm::vec4{ vertex.pos, 1.0 };
             bbox.min = glm::min(bbox.min, pos);
             bbox.max = glm::max(bbox.max, pos);
         }
@@ -29,13 +29,13 @@ void Scene::Setup()
     // Create object data
     for (auto&& object : objects) {
         ObjectData data;
-        data.matrix = object.GetTransform().GetMatrix();
-        data.normalMatrix = object.GetTransform().GetNormalMatrix();
-        data.diffuse = glm::vec4{ object.GetMaterial().Diffuse, 1 };
-        data.emission = glm::vec4{ object.GetMaterial().Emission, 1 };
+        data.matrix = object.transform.GetMatrix();
+        data.normalMatrix = object.transform.GetNormalMatrix();
+        data.diffuse = glm::vec4{ object.GetMaterial().diffuse, 1 };
+        data.emission = glm::vec4{ object.GetMaterial().emission, 1 };
         data.specular = glm::vec4{ 0.0f };
-        data.diffuseTexture = object.GetMaterial().DiffuseTexture;
-        data.alphaTexture = object.GetMaterial().AlphaTexture;
+        data.diffuseTexture = object.GetMaterial().diffuseTexture;
+        data.alphaTexture = object.GetMaterial().alphaTexture;
         objectData.push_back(data);
     }
     vk::BufferUsageFlags usage =
@@ -72,9 +72,9 @@ void Scene::Update(float dt)
     static float time = 0.0f;
     time += dt;
     for (int i = 0; i < objects.size(); i++) {
-        objects[i].GetTransform().Rotation = glm::quat{ glm::vec3(0.0f, time * 0.1, 0.0f) };
-        objectData[i].matrix = objects[i].GetTransform().GetMatrix();
-        objectData[i].normalMatrix = objects[i].GetTransform().GetNormalMatrix();
+        objects[i].transform.rotation = glm::quat{ glm::vec3(0.0f, time * 0.1, 0.0f) };
+        objectData[i].matrix = objects[i].transform.GetMatrix();
+        objectData[i].normalMatrix = objects[i].transform.GetNormalMatrix();
     }
     objectBuffer.Copy(objectData.data());
     topAccel.Rebuild(objects);
@@ -111,8 +111,8 @@ SphereLight& Scene::AddSphereLight(glm::vec3 intensity, glm::vec3 position, floa
     static int sphereMeshIndex;
     if (!added) {
         Material lightMaterial;
-        lightMaterial.Diffuse = glm::vec3{ 0.0f };
-        lightMaterial.Emission = glm::vec3{ 1.0f };
+        lightMaterial.diffuse = glm::vec3{ 0.0f };
+        lightMaterial.emission = glm::vec3{ 1.0f };
 
         auto mesh = AddMesh("../asset/Sphere.obj");
         mesh->SetMaterial(lightMaterial);
@@ -121,12 +121,12 @@ SphereLight& Scene::AddSphereLight(glm::vec3 intensity, glm::vec3 position, floa
     added = true;
 
     Material lightMaterial;
-    lightMaterial.Emission = intensity;
+    lightMaterial.emission = intensity;
 
     objects.push_back({});
     objects.back().Init(meshes[sphereMeshIndex]);
-    objects.back().GetTransform().Position = position;
-    objects.back().GetTransform().Scale = glm::vec3{ radius };
+    objects.back().transform.position = position;
+    objects.back().transform.scale = glm::vec3{ radius };
     objects.back().SetMaterial(lightMaterial);
 
     sphereLights.emplace_back(intensity, position, radius);

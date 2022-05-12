@@ -11,12 +11,12 @@ namespace
         createInfo.setBuffer(buffer);
         createInfo.setSize(size);
         createInfo.setType(type);
-        return Vulkan::Device.createAccelerationStructureKHRUnique(createInfo);
+        return Vulkan::device.createAccelerationStructureKHRUnique(createInfo);
     }
 
     vk::DeviceSize GetAccelSize(vk::AccelerationStructureBuildGeometryInfoKHR geometryInfo, size_t primitiveCount)
     {
-        auto buildSizes = Vulkan::Device.getAccelerationStructureBuildSizesKHR(vk::AccelerationStructureBuildTypeKHR::eDevice, geometryInfo, primitiveCount);
+        auto buildSizes = Vulkan::device.getAccelerationStructureBuildSizesKHR(vk::AccelerationStructureBuildTypeKHR::eDevice, geometryInfo, primitiveCount);
         return buildSizes.accelerationStructureSize;
     }
 
@@ -87,7 +87,7 @@ void TopAccel::Init(const std::vector<Object>& objects, vk::GeometryFlagBitsKHR 
     std::vector<vk::AccelerationStructureInstanceKHR> instances;
     for (auto&& object : objects) {
         vk::AccelerationStructureInstanceKHR instance;
-        instance.setTransform(object.GetTransform().GetVkMatrix());
+        instance.setTransform(object.transform.GetVkMatrix());
         instance.setMask(0xFF);
         instance.setAccelerationStructureReference(object.GetMesh().GetAccel().GetBufferAddress());
         instance.setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);
@@ -133,7 +133,7 @@ void TopAccel::Rebuild(const std::vector<Object>& objects)
     std::vector<vk::AccelerationStructureInstanceKHR> instances;
     for (auto&& object : objects) {
         vk::AccelerationStructureInstanceKHR instance;
-        instance.setTransform(object.GetTransform().GetVkMatrix());
+        instance.setTransform(object.transform.GetVkMatrix());
         instance.setMask(0xFF);
         instance.setAccelerationStructureReference(object.GetMesh().GetAccel().GetBufferAddress());
         instance.setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);

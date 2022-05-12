@@ -17,16 +17,16 @@
 
 struct Material
 {
-    glm::vec3 Ambient{ 1.0 };
-    glm::vec3 Diffuse{ 1.0 };
-    glm::vec3 Specular{ 0.0 };
-    glm::vec3 Emission{ 0.0 };
-    float Shininess = 0.0;
-    float IOR = 1.0;
-    int AmbientTexture = -1;
-    int DiffuseTexture = -1;
-    int SpecularTexture = -1;
-    int AlphaTexture = -1;
+    glm::vec3 ambient{ 1.0 };
+    glm::vec3 diffuse{ 1.0 };
+    glm::vec3 specular{ 0.0 };
+    glm::vec3 emission{ 0.0 };
+    float shininess = 0.0;
+    float ior = 1.0;
+    int ambientTexture = -1;
+    int diffuseTexture = -1;
+    int specularTexture = -1;
+    int alphaTexture = -1;
 };
 
 class Mesh
@@ -34,13 +34,16 @@ class Mesh
 public:
     Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, Material material = {});
     Mesh(const std::string& filepath);
+
     const Accel& GetAccel() const { return bottomAccel; }
+
     uint64_t GetVertexBufferAddress() const { return vertexBuffer.GetAddress(); }
     uint64_t GetIndexBufferAddress() const { return indexBuffer.GetAddress(); }
-    Material GetMaterial() const { return material; }
-    void SetMaterial(const Material& material);
     const std::vector<Vertex>& GetVertices() const { return vertices; }
     const std::vector<uint32_t>& GetIndices() const { return indices; }
+
+    Material GetMaterial() const { return material; }
+    void SetMaterial(const Material& material);
 
 private:
     DeviceBuffer vertexBuffer{};

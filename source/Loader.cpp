@@ -81,10 +81,10 @@ void Loader::LoadFromFile(const std::string& filepath, std::vector<std::shared_p
 
     std::vector<Material> mats(materials.size());
     for (size_t i = 0; i < materials.size(); i++) {
-        mats[i].Ambient = { materials[i].ambient[0], materials[i].ambient[1], materials[i].ambient[2] };
-        mats[i].Diffuse = { materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2] };
-        mats[i].Specular = { materials[i].specular[0], materials[i].specular[1], materials[i].specular[2] };
-        mats[i].Emission = { materials[i].emission[0], materials[i].emission[1], materials[i].emission[2] };
+        mats[i].ambient = { materials[i].ambient[0], materials[i].ambient[1], materials[i].ambient[2] };
+        mats[i].diffuse = { materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2] };
+        mats[i].specular = { materials[i].specular[0], materials[i].specular[1], materials[i].specular[2] };
+        mats[i].emission = { materials[i].emission[0], materials[i].emission[1], materials[i].emission[2] };
     }
 
     for (const auto& shape : shapes) {
@@ -116,17 +116,17 @@ void Loader::LoadFromFile(const std::string& filepath,
 
     std::vector<Material> mats(materials.size());
     for (size_t i = 0; i < materials.size(); i++) {
-        mats[i].Ambient = { materials[i].ambient[0], materials[i].ambient[1], materials[i].ambient[2] };
-        mats[i].Diffuse = { materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2] };
-        mats[i].Specular = { materials[i].specular[0], materials[i].specular[1], materials[i].specular[2] };
-        mats[i].Emission = { materials[i].emission[0], materials[i].emission[1], materials[i].emission[2] };
+        mats[i].ambient = { materials[i].ambient[0], materials[i].ambient[1], materials[i].ambient[2] };
+        mats[i].diffuse = { materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2] };
+        mats[i].specular = { materials[i].specular[0], materials[i].specular[1], materials[i].specular[2] };
+        mats[i].emission = { materials[i].emission[0], materials[i].emission[1], materials[i].emission[2] };
 
         // diffuse
         if (!materials[i].diffuse_texname.empty()) {
             if (textureNames.contains(materials[i].diffuse_texname)) {
-                mats[i].DiffuseTexture = textureNames[materials[i].diffuse_texname];
+                mats[i].diffuseTexture = textureNames[materials[i].diffuse_texname];
             } else {
-                mats[i].DiffuseTexture = texCount;
+                mats[i].diffuseTexture = texCount;
                 textureNames[materials[i].diffuse_texname] = texCount;
                 texCount++;
             }
@@ -134,9 +134,9 @@ void Loader::LoadFromFile(const std::string& filepath,
         // specular
         if (!materials[i].specular_texname.empty()) {
             if (textureNames.contains(materials[i].specular_texname)) {
-                mats[i].SpecularTexture = textureNames[materials[i].specular_texname];
+                mats[i].specularTexture = textureNames[materials[i].specular_texname];
             } else {
-                mats[i].SpecularTexture = texCount;
+                mats[i].specularTexture = texCount;
                 textureNames[materials[i].specular_texname] = texCount;
                 texCount++;
             }
@@ -144,9 +144,9 @@ void Loader::LoadFromFile(const std::string& filepath,
         // alpha
         if (!materials[i].alpha_texname.empty()) {
             if (textureNames.contains(materials[i].alpha_texname)) {
-                mats[i].AlphaTexture = textureNames[materials[i].alpha_texname];
+                mats[i].alphaTexture = textureNames[materials[i].alpha_texname];
             } else {
-                mats[i].AlphaTexture = texCount;
+                mats[i].alphaTexture = texCount;
                 textureNames[materials[i].alpha_texname] = texCount;
                 texCount++;
             }

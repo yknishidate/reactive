@@ -5,12 +5,12 @@ namespace
 {
     vk::UniqueBuffer createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage)
     {
-        return Vulkan::Device.createBufferUnique({ {}, size, usage });
+        return Vulkan::device.createBufferUnique({ {}, size, usage });
     }
 
     vk::UniqueDeviceMemory AllocateMemory(vk::Buffer buffer, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memoryProp)
     {
-        vk::MemoryRequirements requirements = Vulkan::Device.getBufferMemoryRequirements(buffer);
+        vk::MemoryRequirements requirements = Vulkan::device.getBufferMemoryRequirements(buffer);
         uint32_t memoryTypeIndex = Vulkan::FindMemoryTypeIndex(requirements, memoryProp);
         vk::MemoryAllocateInfo memoryAllocateInfo;
         memoryAllocateInfo.setAllocationSize(requirements.size);
@@ -18,9 +18,9 @@ namespace
         if (usage & vk::BufferUsageFlagBits::eShaderDeviceAddress) {
             vk::MemoryAllocateFlagsInfo flagsInfo{ vk::MemoryAllocateFlagBits::eDeviceAddress };
             memoryAllocateInfo.pNext = &flagsInfo;
-            return Vulkan::Device.allocateMemoryUnique(memoryAllocateInfo);
+            return Vulkan::device.allocateMemoryUnique(memoryAllocateInfo);
         }
-        return Vulkan::Device.allocateMemoryUnique(memoryAllocateInfo);
+        return Vulkan::device.allocateMemoryUnique(memoryAllocateInfo);
     }
 }
 
@@ -29,10 +29,10 @@ void Buffer::Init(vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memoryProp
     this->size = size;
     buffer = createBuffer(size, usage);
     memory = AllocateMemory(*buffer, usage, memoryProp);
-    Vulkan::Device.bindBufferMemory(*buffer, *memory, 0);
+    Vulkan::device.bindBufferMemory(*buffer, *memory, 0);
     if (usage & vk::BufferUsageFlagBits::eShaderDeviceAddress) {
         vk::BufferDeviceAddressInfoKHR bufferDeviceAI{ *buffer };
-        deviceAddress = Vulkan::Device.getBufferAddressKHR(&bufferDeviceAI);
+        deviceAddress = Vulkan::device.getBufferAddressKHR(&bufferDeviceAI);
     }
 }
 
@@ -44,7 +44,7 @@ void HostBuffer::Init(vk::BufferUsageFlags usage, size_t size)
 void HostBuffer::Copy(const void* data)
 {
     if (!mapped) {
-        mapped = Vulkan::Device.mapMemory(*memory, 0, size);
+        mapped = Vulkan::device.mapMemory(*memory, 0, size);
     }
     std::memcpy(mapped, data, static_cast<size_t>(size));
 }

@@ -108,7 +108,7 @@ namespace
     vk::SwapchainKHR CreateSwapchain()
     {
         vk::SwapchainCreateInfoKHR swapchainCreateInfo{};
-        swapchainCreateInfo.setSurface(Vulkan::Surface);
+        swapchainCreateInfo.setSurface(Vulkan::surface);
         swapchainCreateInfo.setMinImageCount(3);
         swapchainCreateInfo.setImageFormat(vk::Format::eB8G8R8A8Unorm);
         swapchainCreateInfo.setImageColorSpace(vk::ColorSpaceKHR::eSrgbNonlinear);
@@ -118,7 +118,7 @@ namespace
         swapchainCreateInfo.setPreTransform(vk::SurfaceTransformFlagBitsKHR::eIdentity);
         swapchainCreateInfo.setPresentMode(vk::PresentModeKHR::eFifo);
         swapchainCreateInfo.setClipped(true);
-        return Vulkan::Device.createSwapchainKHR(swapchainCreateInfo);
+        return Vulkan::device.createSwapchainKHR(swapchainCreateInfo);
     }
 
     std::vector<vk::ImageView> CreateImageViews()
@@ -133,9 +133,9 @@ namespace
         info.subresourceRange = { vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 };
 
         std::vector<vk::ImageView> views;
-        for (uint32_t i = 0; i < Vulkan::SwapchainImages.size(); i++) {
-            info.image = Vulkan::SwapchainImages[i];
-            views.push_back(Vulkan::Device.createImageView(info));
+        for (uint32_t i = 0; i < Vulkan::swapchainImages.size(); i++) {
+            info.image = Vulkan::swapchainImages[i];
+            views.push_back(Vulkan::device.createImageView(info));
         }
         return views;
     }
@@ -193,7 +193,7 @@ namespace
     vk::SurfaceKHR CreateSurface()
     {
         VkSurfaceKHR _surface;
-        if (glfwCreateWindowSurface(VkInstance(Vulkan::Instance), Window::GetWindow(), nullptr, &_surface) != VK_SUCCESS) {
+        if (glfwCreateWindowSurface(VkInstance(Vulkan::instance), Window::GetWindow(), nullptr, &_surface) != VK_SUCCESS) {
             throw std::runtime_error("failed to create window surface!");
         }
         return { _surface };
@@ -204,43 +204,43 @@ void Vulkan::Init()
 {
     spdlog::info("Vulkan::Init()");
     std::vector layers{ "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_monitor" };
-    Instance = CreateInstance(GetExtensions(), layers);
-    VULKAN_HPP_DEFAULT_DISPATCHER.init(Instance);
-    DebugMessenger = CreateDebugMessenger(Instance);
-    PhysicalDevice = Instance.enumeratePhysicalDevices().front();
-    Surface = CreateSurface();
-    QueueFamily = FindQueueFamily(PhysicalDevice, Surface);
-    Device = CreateDevice(PhysicalDevice, QueueFamily);
-    Queue = Device.getQueue(QueueFamily, 0);
-    CommandPool = CreateCommandPool(Device, QueueFamily);
-    Swapchain = CreateSwapchain();
-    SwapchainImages = Device.getSwapchainImagesKHR(Swapchain);
-    SwapchainImageViews = CreateImageViews();
-    DescriptorPool = CraeteDescriptorPool(Device);
+    instance = CreateInstance(GetExtensions(), layers);
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(instance);
+    debugMessenger = CreateDebugMessenger(instance);
+    physicalDevice = instance.enumeratePhysicalDevices().front();
+    surface = CreateSurface();
+    queueFamily = FindQueueFamily(physicalDevice, surface);
+    device = CreateDevice(physicalDevice, queueFamily);
+    queue = device.getQueue(queueFamily, 0);
+    commandPool = CreateCommandPool(device, queueFamily);
+    swapchain = CreateSwapchain();
+    swapchainImages = device.getSwapchainImagesKHR(swapchain);
+    swapchainImageViews = CreateImageViews();
+    descriptorPool = CraeteDescriptorPool(device);
 }
 
 void Vulkan::Shutdown()
 {
     spdlog::info("Vulkan::Shutdown()");
-    Device.destroyDescriptorPool(DescriptorPool);
-    Device.destroyCommandPool(CommandPool);
-    for (auto&& view : SwapchainImageViews) {
-        Device.destroyImageView(view);
+    device.destroyDescriptorPool(descriptorPool);
+    device.destroyCommandPool(commandPool);
+    for (auto&& view : swapchainImageViews) {
+        device.destroyImageView(view);
     }
-    Device.destroySwapchainKHR(Swapchain);
-    Device.destroy();
-    Instance.destroySurfaceKHR(Surface);
-    Instance.destroyDebugUtilsMessengerEXT(DebugMessenger);
-    Instance.destroy();
+    device.destroySwapchainKHR(swapchain);
+    device.destroy();
+    instance.destroySurfaceKHR(surface);
+    instance.destroyDebugUtilsMessengerEXT(debugMessenger);
+    instance.destroy();
 }
 
 std::vector<vk::UniqueCommandBuffer> Vulkan::AllocateCommandBuffers(uint32_t count)
 {
     vk::CommandBufferAllocateInfo commandBufferInfo;
-    commandBufferInfo.setCommandPool(Vulkan::CommandPool);
+    commandBufferInfo.setCommandPool(Vulkan::commandPool);
     commandBufferInfo.setLevel(vk::CommandBufferLevel::ePrimary);
     commandBufferInfo.setCommandBufferCount(count);
-    return Vulkan::Device.allocateCommandBuffersUnique(commandBufferInfo);
+    return Vulkan::device.allocateCommandBuffersUnique(commandBufferInfo);
 }
 
 vk::UniqueCommandBuffer Vulkan::AllocateCommandBuffer()
@@ -252,8 +252,8 @@ void Vulkan::SubmitAndWait(vk::CommandBuffer commandBuffer)
 {
     vk::SubmitInfo submitInfo;
     submitInfo.setCommandBuffers(commandBuffer);
-    Queue.submit(submitInfo);
-    Queue.waitIdle();
+    queue.submit(submitInfo);
+    queue.waitIdle();
 }
 
 void Vulkan::OneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command)
@@ -269,7 +269,7 @@ void Vulkan::OneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command
 
 uint32_t Vulkan::FindMemoryTypeIndex(vk::MemoryRequirements requirements, vk::MemoryPropertyFlags memoryProp)
 {
-    vk::PhysicalDeviceMemoryProperties memoryProperties = Vulkan::PhysicalDevice.getMemoryProperties();
+    vk::PhysicalDeviceMemoryProperties memoryProperties = Vulkan::physicalDevice.getMemoryProperties();
     for (uint32_t index = 0; index < memoryProperties.memoryTypeCount; ++index) {
         auto propertyFlags = memoryProperties.memoryTypes[index].propertyFlags;
         bool match = (propertyFlags & memoryProp) == memoryProp;

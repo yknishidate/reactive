@@ -87,15 +87,15 @@ struct BufferAddress
 #ifdef __cplusplus
 struct PushConstants
 {
-    glm::mat4 InvView{ 1 };
-    glm::mat4 InvProj{ 1 };
-    int Frame = 0;
-    int Importance = 1;
-    int Depth = 1;
-    int Samples = 16;
-    float SkyColor[4] = { 0, 0, 0, 0 };
-    int NEE = 0;
-    int NumLights = 0;
+    glm::mat4 invView{ 1 };
+    glm::mat4 invProj{ 1 };
+    int frame = 0;
+    int importance = 1;
+    int depth = 1;
+    int samples = 16;
+    float skyColor[4] = { 0, 0, 0, 0 };
+    int nee = 0;
+    int numLights = 0;
 };
 #else
 layout(push_constant) uniform 
