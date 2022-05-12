@@ -55,7 +55,7 @@ float targetPDF(vec3 lightPos, vec3 intensity, vec3 pos, vec3 normal, vec3 brdf)
 void main()
 {
     // Get buffer addresses
-    MeshAddress address = addresses.address[gl_InstanceID];
+    BufferAddress address = addresses.address[gl_InstanceID];
     Vertices vertices = Vertices(address.vertices);
     Indices indices = Indices(address.indices);
     Objects objects = Objects(address.objects);

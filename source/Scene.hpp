@@ -7,15 +7,6 @@
 
 class Image;
 
-struct BufferAddress
-{
-    vk::DeviceAddress vertices;
-    vk::DeviceAddress indices;
-    vk::DeviceAddress objects;
-    vk::DeviceAddress pointLights;
-    vk::DeviceAddress sphereLights;
-};
-
 struct BoundingBox
 {
     glm::vec3 min{ FLT_MAX };

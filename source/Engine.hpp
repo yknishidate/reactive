@@ -12,19 +12,6 @@
 #include "Mesh.hpp"
 #include "Scene.hpp"
 
-struct PushConstants
-{
-    glm::mat4 InvView{ 1 };
-    glm::mat4 InvProj{ 1 };
-    int Frame = 0;
-    int Importance = 1;
-    int Depth = 1;
-    int Samples = 16;
-    float SkyColor[4] = { 0, 0, 0, 0 };
-    int NEE = 0;
-    int NumLights = 0;
-};
-
 class Engine
 {
 public:

@@ -71,3 +71,43 @@ struct ObjectData
     int alphaTexture;
 #endif
 };
+
+struct BufferAddress
+{
+#ifdef __cplusplus
+    using uint64_t = vk::DeviceAddress;
+#endif
+    uint64_t vertices;
+    uint64_t indices;
+    uint64_t objects;
+    uint64_t pointLights;
+    uint64_t sphereLights;
+};
+
+#ifdef __cplusplus
+struct PushConstants
+{
+    glm::mat4 InvView{ 1 };
+    glm::mat4 InvProj{ 1 };
+    int Frame = 0;
+    int Importance = 1;
+    int Depth = 1;
+    int Samples = 16;
+    float SkyColor[4] = { 0, 0, 0, 0 };
+    int NEE = 0;
+    int NumLights = 0;
+};
+#else
+layout(push_constant) uniform 
+PushConstants{
+    mat4 invView;
+    mat4 invProj;
+    int frame;
+    int importance;
+    int depth;
+    int samples;
+    vec4 skyColor;
+    int nee;
+    int numLights;
+} pushConstants;
+#endif

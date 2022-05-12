@@ -21,15 +21,6 @@ struct HitPayload
     bool skip;
 };
 
-struct MeshAddress
-{
-    uint64_t vertices;
-    uint64_t indices;
-    uint64_t objects;
-    uint64_t pointLights;
-    uint64_t sphereLights;
-};
-
 #include "../../share/structure.inc"
 
 layout(buffer_reference, scalar) buffer Vertices { Vertex v[]; };
@@ -40,20 +31,8 @@ layout(buffer_reference, scalar) buffer SphereLights { SphereLight s[]; };
 layout(binding = 0, set = 0) uniform accelerationStructureEXT topLevelAS;
 layout(binding = 1, set = 0, rgba8) uniform image2D inputImage;
 layout(binding = 2, set = 0, rgba8) uniform image2D outputImage;
-layout(binding = 3) buffer Addresses { MeshAddress address[]; } addresses;
+layout(binding = 3) buffer Addresses { BufferAddress address[]; } addresses;
 layout(binding = 4) uniform sampler2D samplers[];
-
-layout(push_constant) uniform PushConstants{
-    mat4 invView;
-    mat4 invProj;
-    int frame;
-    int importance;
-    int depth;
-    int samples;
-    vec4 skyColor;
-    int nee;
-    int numLights;
-} pushConstants;
 
 void createCoordinateSystem(in vec3 N, out vec3 T, out vec3 B)
 {
