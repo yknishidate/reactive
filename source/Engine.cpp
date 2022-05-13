@@ -77,7 +77,11 @@ namespace
 
 void Engine::Init()
 {
+    spdlog::set_pattern("[%^%l%$] %v");
     spdlog::info("Engine::Init()");
+
+    Window::Init(1920, 1080, "../asset/Vulkan.png");
+    Vulkan::Init();
     UI::Init();
 
     // Create resources
@@ -198,4 +202,5 @@ void Engine::Run()
     }
     Vulkan::GetDevice().waitIdle();
     UI::Shutdown();
+    Window::Shutdown();
 }
