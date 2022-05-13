@@ -22,10 +22,14 @@ private:
     Image inputImage;
     Image outputImage;
     Image denoisedImage;
+    Image reservoirSampleImage;
+    Image reservoirWeightImage;
     ComputePipeline meanPipeline;
     ComputePipeline medianPipeline;
     RayTracingPipeline ptPipeline;
     RayTracingPipeline neePipeline;
+    RayTracingPipeline srisPipeline;
+    RayTracingPipeline restirPipeline;
     PushConstants pushConstants;
     std::unique_ptr<Scene> scene;
 };

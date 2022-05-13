@@ -71,7 +71,7 @@ namespace
 
     glm::vec3 GetColorFromHue(float hue)
     {
-        return ToRGB(glm::vec3{ hue, 0.8, 1.0 });
+        return ToRGB(glm::vec3{ hue, 0.7, 1.0 });
     }
 }
 
@@ -87,31 +87,33 @@ void Engine::Init()
     // Create resources
     inputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
     outputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
+    reservoirSampleImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eR16Uint);
+    reservoirWeightImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eR16Sfloat);
     denoisedImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
 
     // Load scene
     {
-        //scene = std::make_unique<Scene>("../asset/crytek_sponza/sponza.obj",
-        //                                glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 0.01f },
-        //                                glm::vec3{ 0.0f, glm::radians(90.0f), 0.0f });
-        //BoundingBox bbox = scene->GetBoundingBox();
-        //std::mt19937 mt{ std::random_device{}() };
-        //std::uniform_real_distribution<float> distX{ bbox.min.x, bbox.max.x };
-        //std::uniform_real_distribution<float> distY{ bbox.min.y, bbox.max.y };
-        //std::uniform_real_distribution<float> distZ{ bbox.min.z, bbox.max.z };
-        //std::uniform_real_distribution<float> distHue{ 0.0f, 1.0f };
-        //std::uniform_real_distribution<float> distStrength{ 80.0f, 160.0f };
-        //pushConstants.numLights = 100;
-        //for (int index = 0; index < pushConstants.numLights; index++) {
-        //    const glm::vec3 position = glm::vec3{ distX(mt), distY(mt), distZ(mt) } / 2.5f;
-        //    const glm::vec3 color = GetColorFromHue(distHue(mt)) * distStrength(mt);
-        //    scene->AddSphereLight(color, position, 0.1f);
-        //}
+        scene = std::make_unique<Scene>("../asset/crytek_sponza/sponza.obj",
+                                        glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 0.01f },
+                                        glm::vec3{ 0.0f, glm::radians(90.0f), 0.0f });
+        BoundingBox bbox = scene->GetBoundingBox();
+        std::mt19937 mt{ std::random_device{}() };
+        std::uniform_real_distribution<float> distX{ bbox.min.x, bbox.max.x };
+        std::uniform_real_distribution<float> distY{ bbox.min.y, bbox.max.y };
+        std::uniform_real_distribution<float> distZ{ bbox.min.z, bbox.max.z };
+        std::uniform_real_distribution<float> distHue{ 0.0f, 1.0f };
+        std::uniform_real_distribution<float> distStrength{ 80.0f, 160.0f };
+        pushConstants.numLights = 100;
+        for (int index = 0; index < pushConstants.numLights; index++) {
+            const glm::vec3 position = glm::vec3{ distX(mt), distY(mt), distZ(mt) } / 2.5f;
+            const glm::vec3 color = GetColorFromHue(distHue(mt)) * distStrength(mt);
+            scene->AddSphereLight(color, position, 0.1f);
+        }
     }
     {
-        scene = std::make_unique<Scene>("../asset/CornellBox/CornellBox-Glossy.obj", glm::vec3{ 0.0f, 0.75f, 0.0f });
-        scene->AddSphereLight(glm::vec3{ 10.0f }, glm::vec3{ 0.0f, -0.5f, 0.0f }, 0.2f);
-        pushConstants.numLights = 1;
+        //scene = std::make_unique<Scene>("../asset/CornellBox/CornellBox-Glossy.obj", glm::vec3{ 0.0f, 0.75f, 0.0f });
+        //scene->AddSphereLight(glm::vec3{ 10.0f }, glm::vec3{ 0.0f, -0.5f, 0.0f }, 0.2f);
+        //pushConstants.numLights = 1;
     }
 
     scene->Setup();
@@ -138,6 +140,30 @@ void Engine::Init()
     neePipeline.Register("samplers", scene->GetTextures());
     neePipeline.Register("Addresses", scene->GetAddressBuffer());
     neePipeline.Setup(sizeof(PushConstants));
+
+    srisPipeline.LoadShaders("../shader/pathtracing/nee.rgen",
+                             "../shader/pathtracing/pathtracing.rmiss",
+                             "../shader/pathtracing/streaming_ris.rchit");
+    srisPipeline.Register("inputImage", inputImage);
+    srisPipeline.Register("outputImage", outputImage);
+    srisPipeline.Register("samplers", outputImage); // Dummy
+    srisPipeline.Register("topLevelAS", scene->GetAccel());
+    srisPipeline.Register("samplers", scene->GetTextures());
+    srisPipeline.Register("Addresses", scene->GetAddressBuffer());
+    srisPipeline.Setup(sizeof(PushConstants));
+
+    restirPipeline.LoadShaders("../shader/restir/restir.rgen",
+                               "../shader/restir/restir.rmiss",
+                               "../shader/restir/restir.rchit");
+    restirPipeline.Register("inputImage", inputImage);
+    restirPipeline.Register("outputImage", outputImage);
+    restirPipeline.Register("reservoirSampleImage", reservoirSampleImage);
+    restirPipeline.Register("reservoirWeightImage", reservoirWeightImage);
+    restirPipeline.Register("samplers", outputImage); // Dummy
+    restirPipeline.Register("topLevelAS", scene->GetAccel());
+    restirPipeline.Register("samplers", scene->GetTextures());
+    restirPipeline.Register("Addresses", scene->GetAddressBuffer());
+    restirPipeline.Setup(sizeof(PushConstants));
 
     medianPipeline.LoadShaders("../shader/denoise/median.comp");
     medianPipeline.Register("inputImage", outputImage);
@@ -166,7 +192,7 @@ void Engine::Run()
         UI::Checkbox("Accumulation", accumulation);
         bool refresh = false;
         refresh |= UI::Checkbox("Importance sampling", importance);
-        refresh |= UI::Combo("NEE", pushConstants.nee, { "Off", "Uniform", "RIS", "WRS" });
+        refresh |= UI::Combo("Method", pushConstants.nee, { "PT", "Uniform", "RIS", "WRS", "SRIS", "ReSTIR" });
         UI::Combo("Denoise", denoise, { "Off", "Median" });
         refresh |= UI::SliderInt("Depth", pushConstants.depth, 1, 8);
         refresh |= UI::SliderInt("Samples", pushConstants.samples, 1, 32);
@@ -194,10 +220,12 @@ void Engine::Run()
 
             int width = Window::GetWidth();
             int height = Window::GetHeight();
-            if (pushConstants.nee) {
-                neePipeline.Run(commandBuffer, width, height, &pushConstants);
-            } else {
+            if (pushConstants.nee == 0) {
                 ptPipeline.Run(commandBuffer, width, height, &pushConstants);
+            } else if (pushConstants.nee == 1 || pushConstants.nee == 2 || pushConstants.nee == 3) {
+                neePipeline.Run(commandBuffer, width, height, &pushConstants);
+            } else if (pushConstants.nee == 4) {
+                srisPipeline.Run(commandBuffer, width, height, &pushConstants);
             }
             if (denoise) {
                 medianPipeline.Run(commandBuffer, width, height, &pushConstants);

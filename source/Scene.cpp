@@ -111,7 +111,6 @@ SphereLight& Scene::AddSphereLight(glm::vec3 intensity, glm::vec3 position, floa
     static int sphereMeshIndex;
     if (!added) {
         Material lightMaterial;
-        lightMaterial.diffuse = glm::vec3{ 0.0f };
         lightMaterial.emission = glm::vec3{ 1.0f };
 
         auto mesh = AddMesh("../asset/Sphere.obj");
