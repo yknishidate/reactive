@@ -15,7 +15,6 @@ int main()
             engine.Run();
         }
 
-        Vulkan::Shutdown();
         Window::Shutdown();
     } catch (const std::exception& exception) {
         spdlog::error(exception.what());

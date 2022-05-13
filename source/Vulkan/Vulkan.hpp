@@ -19,8 +19,6 @@ struct FrameSemaphores
 struct Vulkan
 {
     static void Init();
-    static void Shutdown();
-
     static auto AllocateCommandBuffers(uint32_t count)->std::vector<vk::UniqueCommandBuffer>;
     static auto AllocateCommandBuffer()->vk::UniqueCommandBuffer;
     static void SubmitAndWait(vk::CommandBuffer commandBuffer);

@@ -197,4 +197,5 @@ void Engine::Run()
         }
     }
     Vulkan::GetDevice().waitIdle();
+    UI::Shutdown();
 }

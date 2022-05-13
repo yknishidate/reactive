@@ -5,6 +5,7 @@ class UI
 {
 public:
     static void Init();
+    static void Shutdown();
     static void StartFrame();
     static void Prepare();
     static void Render(vk::CommandBuffer commandBuffer);

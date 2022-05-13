@@ -296,14 +296,6 @@ void Vulkan::Init()
     }
 }
 
-void Vulkan::Shutdown()
-{
-    spdlog::info("Vulkan::Shutdown()");
-    ImGui_ImplVulkan_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-}
-
 std::vector<vk::UniqueCommandBuffer> Vulkan::AllocateCommandBuffers(uint32_t count)
 {
     vk::CommandBufferAllocateInfo commandBufferInfo;

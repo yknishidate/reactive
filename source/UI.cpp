@@ -46,6 +46,13 @@ void UI::Init()
     }
 }
 
+void UI::Shutdown()
+{
+    ImGui_ImplVulkan_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+}
+
 void UI::StartFrame()
 {
     //if (swapchainRebuild) {
