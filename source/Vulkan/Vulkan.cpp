@@ -344,6 +344,7 @@ uint32_t Vulkan::FindMemoryTypeIndex(vk::MemoryRequirements requirements, vk::Me
 
 void Vulkan::BeginRenderPass()
 {
+    vk::ClearValue clearValue{};
     vk::RenderPassBeginInfo info{};
     info.renderPass = *renderPass;
     info.framebuffer = *frames[frameIndex].framebuffer;

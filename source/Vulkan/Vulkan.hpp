@@ -64,7 +64,6 @@ private:
     static inline uint32_t imageCount = 0;
     static inline uint32_t semaphoreIndex = 0;
     static inline vk::UniqueRenderPass renderPass;
-    static inline vk::ClearValue clearValue{};
     static inline std::vector<Frame> frames{};
     static inline std::vector<FrameSemaphores> frameSemaphores{};
 };
