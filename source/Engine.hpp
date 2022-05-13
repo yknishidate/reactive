@@ -24,7 +24,8 @@ private:
     Image denoisedImage;
     ComputePipeline meanPipeline;
     ComputePipeline medianPipeline;
-    RayTracingPipeline rtPipeline;
+    RayTracingPipeline ptPipeline;
+    RayTracingPipeline neePipeline;
     PushConstants pushConstants;
     std::unique_ptr<Scene> scene;
 };

@@ -93,13 +93,8 @@ void main()
             }
 
             // Light
-            if(depth == 0 || pushConstants.nee == 0) {
-                payload.color += payload.weight * payload.emission;
-            }
-
-            // Sky
-            if(payload.done && pushConstants.nee != 0){
-                payload.color += payload.weight * payload.emission;
+            payload.color += payload.weight * payload.emission;
+            if(payload.done){
                 break;
             }
             
@@ -117,8 +112,6 @@ void main()
     }
     color /= maxSamples;
     
-    //imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(color, 0.0));
-
     float weight = 1.0 / (pushConstants.frame + 1);
     vec4 oldColor = imageLoad(inputImage, ivec2(gl_LaunchIDEXT.xy));
     vec4 newColor = min(vec4(1), vec4(color, 1));

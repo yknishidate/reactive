@@ -117,17 +117,27 @@ void Engine::Init()
     scene->Setup();
 
     // Create pipelines
-    rtPipeline.LoadShaders("../shader/pathtracing/pathtracing.rgen",
+    ptPipeline.LoadShaders("../shader/pathtracing/pathtracing.rgen",
                            "../shader/pathtracing/pathtracing.rmiss",
                            "../shader/pathtracing/pathtracing.rchit");
+    ptPipeline.Register("inputImage", inputImage);
+    ptPipeline.Register("outputImage", outputImage);
+    ptPipeline.Register("samplers", outputImage); // Dummy
+    ptPipeline.Register("topLevelAS", scene->GetAccel());
+    ptPipeline.Register("samplers", scene->GetTextures());
+    ptPipeline.Register("Addresses", scene->GetAddressBuffer());
+    ptPipeline.Setup(sizeof(PushConstants));
 
-    rtPipeline.Register("inputImage", inputImage);
-    rtPipeline.Register("outputImage", outputImage);
-    rtPipeline.Register("samplers", outputImage); // Dummy
-    rtPipeline.Register("topLevelAS", scene->GetAccel());
-    rtPipeline.Register("samplers", scene->GetTextures());
-    rtPipeline.Register("Addresses", scene->GetAddressBuffer());
-    rtPipeline.Setup(sizeof(PushConstants));
+    neePipeline.LoadShaders("../shader/pathtracing/nee.rgen",
+                            "../shader/pathtracing/pathtracing.rmiss",
+                            "../shader/pathtracing/nee.rchit");
+    neePipeline.Register("inputImage", inputImage);
+    neePipeline.Register("outputImage", outputImage);
+    neePipeline.Register("samplers", outputImage); // Dummy
+    neePipeline.Register("topLevelAS", scene->GetAccel());
+    neePipeline.Register("samplers", scene->GetTextures());
+    neePipeline.Register("Addresses", scene->GetAddressBuffer());
+    neePipeline.Setup(sizeof(PushConstants));
 
     medianPipeline.LoadShaders("../shader/denoise/median.comp");
     medianPipeline.Register("inputImage", outputImage);
@@ -184,7 +194,11 @@ void Engine::Run()
 
             int width = Window::GetWidth();
             int height = Window::GetHeight();
-            rtPipeline.Run(commandBuffer, width, height, &pushConstants);
+            if (pushConstants.nee) {
+                neePipeline.Run(commandBuffer, width, height, &pushConstants);
+            } else {
+                ptPipeline.Run(commandBuffer, width, height, &pushConstants);
+            }
             if (denoise) {
                 medianPipeline.Run(commandBuffer, width, height, &pushConstants);
                 CopyImages(commandBuffer, width, height, inputImage.GetImage(), outputImage.GetImage(), denoisedImage.GetImage(), Vulkan::GetBackImage());

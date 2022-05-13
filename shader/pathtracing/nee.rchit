@@ -98,14 +98,6 @@ void main()
     mat4 normalMatrix = objects.o[gl_InstanceID].normalMatrix;
     pos = vec3(matrix * vec4(pos, 1));
     normal = normalize(vec3(normalMatrix * vec4(normal, 0)));
-    
-    if(pushConstants.nee == 0){
-        payload.emission = emission;
-        payload.position = pos;
-        payload.normal = normal;
-        payload.brdf = brdf;
-        return;
-    }
 
     // Sample light
     float pdf = 1.0;
@@ -171,9 +163,6 @@ void main()
                 yWeight = weight;
             }
         }
-        //payload.emission = vec3(yWeight);
-        //payload.done = true;
-        //return;
         lightIndex = y;
         if (yWeight != 0.0) {
             pdf = yWeight / sumWeights * float(NUM_CANDIDATES);
