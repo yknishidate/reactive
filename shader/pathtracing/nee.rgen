@@ -99,7 +99,6 @@ void main()
 
             // Sky
             if(payload.done){
-                payload.color += payload.weight * payload.emission;
                 break;
             }
             
