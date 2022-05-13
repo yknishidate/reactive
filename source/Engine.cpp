@@ -91,27 +91,27 @@ void Engine::Init()
 
     // Load scene
     {
-        scene = std::make_unique<Scene>("../asset/crytek_sponza/sponza.obj",
-                                        glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 0.01f },
-                                        glm::vec3{ 0.0f, glm::radians(90.0f), 0.0f });
-        BoundingBox bbox = scene->GetBoundingBox();
-        std::mt19937 mt{ std::random_device{}() };
-        std::uniform_real_distribution<float> distX{ bbox.min.x, bbox.max.x };
-        std::uniform_real_distribution<float> distY{ bbox.min.y, bbox.max.y };
-        std::uniform_real_distribution<float> distZ{ bbox.min.z, bbox.max.z };
-        std::uniform_real_distribution<float> distHue{ 0.0f, 1.0f };
-        std::uniform_real_distribution<float> distStrength{ 80.0f, 160.0f };
-        pushConstants.numLights = 100;
-        for (int index = 0; index < pushConstants.numLights; index++) {
-            const glm::vec3 position = glm::vec3{ distX(mt), distY(mt), distZ(mt) } / 2.5f;
-            const glm::vec3 color = GetColorFromHue(distHue(mt)) * distStrength(mt);
-            scene->AddSphereLight(color, position, 0.1f);
-        }
+        //scene = std::make_unique<Scene>("../asset/crytek_sponza/sponza.obj",
+        //                                glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 0.01f },
+        //                                glm::vec3{ 0.0f, glm::radians(90.0f), 0.0f });
+        //BoundingBox bbox = scene->GetBoundingBox();
+        //std::mt19937 mt{ std::random_device{}() };
+        //std::uniform_real_distribution<float> distX{ bbox.min.x, bbox.max.x };
+        //std::uniform_real_distribution<float> distY{ bbox.min.y, bbox.max.y };
+        //std::uniform_real_distribution<float> distZ{ bbox.min.z, bbox.max.z };
+        //std::uniform_real_distribution<float> distHue{ 0.0f, 1.0f };
+        //std::uniform_real_distribution<float> distStrength{ 80.0f, 160.0f };
+        //pushConstants.numLights = 100;
+        //for (int index = 0; index < pushConstants.numLights; index++) {
+        //    const glm::vec3 position = glm::vec3{ distX(mt), distY(mt), distZ(mt) } / 2.5f;
+        //    const glm::vec3 color = GetColorFromHue(distHue(mt)) * distStrength(mt);
+        //    scene->AddSphereLight(color, position, 0.1f);
+        //}
     }
     {
-        //scene = std::make_unique<Scene>("../asset/CornellBox/CornellBox-Glossy.obj", glm::vec3{ 0.0f, 0.75f, 0.0f });
-        //scene->AddSphereLight(glm::vec3{ 10.0f }, glm::vec3{ 0.0f, -0.5f, 0.0f }, 0.2f);
-        //pushConstants.numLights = 1;
+        scene = std::make_unique<Scene>("../asset/CornellBox/CornellBox-Glossy.obj", glm::vec3{ 0.0f, 0.75f, 0.0f });
+        scene->AddSphereLight(glm::vec3{ 10.0f }, glm::vec3{ 0.0f, -0.5f, 0.0f }, 0.2f);
+        pushConstants.numLights = 1;
     }
 
     scene->Setup();

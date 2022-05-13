@@ -98,7 +98,7 @@ void main()
             }
 
             // Sky
-            if(payload.done && pushConstants.nee != 0){
+            if(payload.done){
                 payload.color += payload.weight * payload.emission;
                 break;
             }
