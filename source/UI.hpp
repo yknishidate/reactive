@@ -1,17 +1,16 @@
 #include "Vulkan/Vulkan.hpp"
 #include <glm/glm.hpp>
 
-class UI
+namespace UI
 {
-public:
-    static void Init();
-    static void Shutdown();
-    static void StartFrame();
-    static void Prepare();
-    static void Render(vk::CommandBuffer commandBuffer);
+    void Init();
+    void Shutdown();
+    void StartFrame();
+    void Prepare();
+    void Render(vk::CommandBuffer commandBuffer);
 
-    static bool Checkbox(const std::string& label, bool& value);
-    static bool Combo(const std::string& label, int& value, const std::vector<std::string>& items);
-    static bool SliderInt(const std::string& label, int& value, int min, int max);
-    static bool ColorPicker4(const std::string& label, glm::vec4& value);
+    bool Checkbox(const std::string& label, bool& value);
+    bool Combo(const std::string& label, int& value, const std::vector<std::string>& items);
+    bool SliderInt(const std::string& label, int& value, int min, int max);
+    bool ColorPicker4(const std::string& label, glm::vec4& value);
 };
