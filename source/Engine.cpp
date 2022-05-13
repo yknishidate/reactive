@@ -141,9 +141,10 @@ void Engine::Init()
 
 void Engine::Run()
 {
-    static bool accumulation = false;
-    static bool importance = false;
-    static int denoise = 0;
+    bool accumulation = false;
+    bool importance = false;
+    int denoise = 0;
+
     spdlog::info("Engine::Run()");
     while (!Window::ShouldClose()) {
         Window::PollEvents();
@@ -195,5 +196,5 @@ void Engine::Run()
             Vulkan::Present();
         }
     }
-    Vulkan::device.waitIdle();
+    Vulkan::GetDevice().waitIdle();
 }

@@ -11,12 +11,12 @@ namespace
         createInfo.setBuffer(buffer);
         createInfo.setSize(size);
         createInfo.setType(type);
-        return Vulkan::device.createAccelerationStructureKHRUnique(createInfo);
+        return Vulkan::GetDevice().createAccelerationStructureKHRUnique(createInfo);
     }
 
     vk::DeviceSize GetAccelSize(vk::AccelerationStructureBuildGeometryInfoKHR geometryInfo, size_t primitiveCount)
     {
-        auto buildSizes = Vulkan::device.getAccelerationStructureBuildSizesKHR(vk::AccelerationStructureBuildTypeKHR::eDevice, geometryInfo, primitiveCount);
+        auto buildSizes = Vulkan::GetDevice().getAccelerationStructureBuildSizesKHR(vk::AccelerationStructureBuildTypeKHR::eDevice, geometryInfo, primitiveCount);
         return buildSizes.accelerationStructureSize;
     }
 

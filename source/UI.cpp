@@ -19,19 +19,19 @@ void UI::Init()
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForVulkan(Window::GetWindow(), true);
     ImGui_ImplVulkan_InitInfo initInfo{};
-    initInfo.Instance = Vulkan::instance;
-    initInfo.PhysicalDevice = Vulkan::physicalDevice;
-    initInfo.Device = Vulkan::device;
-    initInfo.QueueFamily = Vulkan::queueFamily;
-    initInfo.Queue = Vulkan::queue;
+    initInfo.Instance = Vulkan::GetInstance();
+    initInfo.PhysicalDevice = Vulkan::GetPhysicalDevice();
+    initInfo.Device = Vulkan::GetDevice();
+    initInfo.QueueFamily = Vulkan::GetQueueFamily();
+    initInfo.Queue = Vulkan::GetQueue();
     initInfo.PipelineCache = nullptr;
-    initInfo.DescriptorPool = Vulkan::descriptorPool;
+    initInfo.DescriptorPool = Vulkan::GetDescriptorPool();
     initInfo.Subpass = 0;
-    initInfo.MinImageCount = Vulkan::minImageCount;
-    initInfo.ImageCount = Vulkan::swapchainImages.size();
+    initInfo.MinImageCount = Vulkan::GetMinImageCount();
+    initInfo.ImageCount = Vulkan::GetImageCount();
     initInfo.MSAASamples = vk::SampleCountFlagBits::e1;
     initInfo.Allocator = nullptr;
-    ImGui_ImplVulkan_Init(&initInfo, Vulkan::renderPass);
+    ImGui_ImplVulkan_Init(&initInfo, Vulkan::GetRenderPass());
 
     // Setup font
     io.Fonts->AddFontFromFileTTF("../asset/Roboto-Medium.ttf", 24.0f);
