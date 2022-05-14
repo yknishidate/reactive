@@ -71,12 +71,12 @@ void main()
         vec4 value = texture(samplers[diffuseTexture], texCoord);
         diffuse = value.rgb;
 
-        // Skip transparence
-        if(value.a < 1.0){
-            payload.position = getWorldPos();
-            payload.skip = true;
-            return;
-        }
+        //// Skip transparence
+        //if(value.a < 1.0){
+        //    payload.position = getWorldPos();
+        //    payload.skip = true;
+        //    return;
+        //}
     }
     vec3 brdf = diffuse / M_PI;
 
@@ -86,12 +86,15 @@ void main()
     pos = vec3(matrix * vec4(pos, 1));
     normal = normalize(vec3(normalMatrix * vec4(normal, 0)));
 
-    // Sample light
-    float pdf = 1.0;
-    int lightIndex = -1;
+    // Store to g-buffer
+    imageStore(posImage, ivec2(gl_LaunchIDEXT.xy), vec4(getWorldPos(), 1));
+    imageStore(normalImage, ivec2(gl_LaunchIDEXT.xy), vec4(normal, 1));
+    imageStore(diffuseImage, ivec2(gl_LaunchIDEXT.xy), vec4(diffuse, 1));
+    imageStore(emissionImage, ivec2(gl_LaunchIDEXT.xy), vec4(emission, 1));
+    imageStore(indexImage, ivec2(gl_LaunchIDEXT.xy), uvec4(gl_InstanceID, gl_PrimitiveID, 0, 0));
 
     // Streaming RIS
-    int y = 0;
+    int lightIndex = -1;
     float sumWeights = 0.0;
     float storedTargetProb = 0.0;
     int numCandidates = 0;
@@ -110,63 +113,46 @@ void main()
         sumWeights += weight;
         numCandidates += 1;
         if (rand(payload.seed) < (weight / sumWeights)) {
-            y = candidate;
+            lightIndex = candidate;
             storedTargetProb = targetProb;
         }
     }
 
     // if all zero, return
-    if(sumWeights == 0.0){
-        payload.emission = emission;
-        payload.position = pos;
-        payload.normal = normal;
-        payload.brdf = brdf;
+    if(storedTargetProb == 0.0){
+        imageStore(reservoirSampleImage, ivec2(gl_LaunchIDEXT.xy), uvec4(0));
+        imageStore(reservoirWeightImage, ivec2(gl_LaunchIDEXT.xy), vec4(0.0));
         return;
     }
 
-    lightIndex = y;
-
     SphereLight sphereLight = sphereLights.s[lightIndex];
 
-    // Sample point on light
     vec3 dir = sphereLight.position - pos;
-    vec3 lightNormal = sampleSphereLight(vec2(rand(payload.seed), rand(payload.seed)), dir);
-    vec3 point = sphereLight.position + sphereLight.radius * lightNormal;
-    dir = point - pos;
     float dist = length(dir);
+    // Sample point on light
+    //vec3 lightNormal = sampleSphereLight(vec2(rand(payload.seed), rand(payload.seed)), dir);
+    //vec3 point = sphereLight.position + sphereLight.radius * lightNormal;
+    //dir = point - pos;
+    //float dist = length(dir);
     
     // Trace rays
-    traceRayEXT(
-        topLevelAS,
-        gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
-        0xff, // cullMask
-        0,    // sbtRecordOffset
-        0,    // sbtRecordStride
-        0,    // missIndex
-        pos,            0.01,
-        normalize(dir), dist,
-        0     // payloadLocation
-    );
+    // payload.done = false;
+    // traceRayEXT(
+    //     topLevelAS,
+    //     gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
+    //     0xff, // cullMask
+    //     0,    // sbtRecordOffset
+    //     0,    // sbtRecordStride
+    //     0,    // missIndex
+    //     pos,            0.01,
+    //     normalize(dir), dist,
+    //     0     // payloadLocation
+    // );
+    // if(payload.done == true){
+    // }
 
     // If not shadowed, add contributes
-    vec3 contribute = vec3(0.0);
-    if(payload.done){
-        float invDistPow2 = 1.0 / (dist * dist);
-        float cosTheta = max(0.0, dot(normalize(dir), normal));
-        float cosThetaLight = max(0.0, dot(normalize(-dir), lightNormal));
-        pdf *= 1.0 / pushConstants.numLights;
-        pdf *= 1.0 / (2.0 * M_PI * sphereLight.radius * sphereLight.radius);
-        contribute = payload.weight * sphereLight.intensity * brdf * invDistPow2 * cosTheta * cosThetaLight / pdf;
-        payload.done = false;
-    }
-    float reservoirWeight = (1.0 / storedTargetProb) * (sumWeights / numCandidates);
-    payload.color += contribute * reservoirWeight;
-
-    imageStore(reservoirSampleImage, ivec2(gl_LaunchIDEXT.xy), uvec4(lightIndex));
+    float reservoirWeight = sumWeights / numCandidates / storedTargetProb;
     imageStore(reservoirWeightImage, ivec2(gl_LaunchIDEXT.xy), vec4(reservoirWeight));
-    
-    payload.emission = emission;
-    payload.position = pos;
-    payload.normal = normal;
-    payload.brdf = brdf;
+    imageStore(reservoirSampleImage, ivec2(gl_LaunchIDEXT.xy), uvec4(lightIndex));
 }

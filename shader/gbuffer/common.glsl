@@ -15,8 +15,6 @@ struct HitPayload
     vec3 emission;
     vec3 brdf;
     vec3 color;
-    vec3 weight;
-    uint seed;
     bool done;
     bool skip;
 };
@@ -33,23 +31,6 @@ layout(binding = 1, set = 0, rgba8) uniform image2D inputImage;
 layout(binding = 2, set = 0, rgba8) uniform image2D outputImage;
 layout(binding = 5, set = 0, r16) uniform image2D reservoirSampleImage;
 layout(binding = 6, set = 0, r16f) uniform image2D reservoirWeightImage;
+layout(binding = 6, set = 0, rgba8) uniform image2D objectImage;
 layout(binding = 3) buffer Addresses { BufferAddress address[]; } addresses;
 layout(binding = 4) uniform sampler2D samplers[];
-
-void createCoordinateSystem(in vec3 N, out vec3 T, out vec3 B)
-{
-    if (abs(N.x) > abs(N.y))
-        T = vec3(N.z, 0, -N.x) / sqrt(N.x * N.x + N.z * N.z);
-    else
-        T = vec3(0, -N.z, N.y) / sqrt(N.y * N.y + N.z * N.z);
-    B = cross(N, T);
-}
-
-vec3 sampleHemisphere(in float rand1, in float rand2)
-{
-    vec3 dir;
-    dir.x = cos(2 * M_PI * rand2) * sqrt(1 - rand1 * rand1);
-    dir.y = sin(2 * M_PI * rand2) * sqrt(1 - rand1 * rand1);
-    dir.z = rand1;
-    return dir;
-}

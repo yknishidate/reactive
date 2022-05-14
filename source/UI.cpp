@@ -21,12 +21,12 @@ void UI::Init()
     ImVec4 red60 = ImVec4(0.6f, 0.0f, 0.0f, 1.0f);
     ImVec4 red40 = ImVec4(0.4f, 0.0f, 0.0f, 1.0f);
     ImVec4 black100 = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
-    ImVec4 black95 = ImVec4(0.05f, 0.05f, 0.05f, 1.0f);
+    ImVec4 black90 = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
     ImVec4 black80 = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
     ImVec4 black60 = ImVec4(0.4f, 0.4f, 0.4f, 1.0f);
 
     ImGuiStyle& style = ImGui::GetStyle();
-    style.Colors[ImGuiCol_WindowBg] = black95;
+    style.Colors[ImGuiCol_WindowBg] = black90;
     style.Colors[ImGuiCol_TitleBg] = red80;
     style.Colors[ImGuiCol_TitleBgActive] = red80;
     style.Colors[ImGuiCol_MenuBarBg] = red40;

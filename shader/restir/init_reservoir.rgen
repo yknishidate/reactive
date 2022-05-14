@@ -7,19 +7,19 @@ layout(location = 0) rayPayloadEXT HitPayload payload;
 
 void main()
 {
+    // Calc seed
+    uvec2 s = pcg2d(uvec2(gl_LaunchIDEXT.xy * (pushConstants.frame + 1)));
+    payload.seed = s.x + s.y;
+    
     // Calc ray
-    const vec2 screenPos = vec2(gl_LaunchIDEXT.xy) + vec2(0.5, 0.5);
+    const vec2 screenPos = vec2(gl_LaunchIDEXT.xy) + vec2(rand(payload.seed), rand(payload.seed));
     const vec2 inUV = screenPos / vec2(gl_LaunchSizeEXT.xy);
     vec2 d = inUV * 2.0 - 1.0;
 
     vec4 origin    = pushConstants.invView * vec4(0, 0, 0, 1);
     vec4 target    = pushConstants.invProj * vec4(d.x, d.y, 1, 1) ;
     vec4 direction = pushConstants.invView * vec4(normalize(target.xyz), 0) ;
-    
-    payload.skip = false;
-    payload.color = vec3(0.0);
-    payload.emission = vec3(0.0);
-    payload.brdf = vec3(0.0);
+    payload.done = false;
     traceRayEXT(
         topLevelAS,
         gl_RayFlagsOpaqueEXT,
@@ -33,10 +33,10 @@ void main()
         10000.0,
         0     // payloadLocation
     );
-//    if(payload.skip){
-//        origin = vec4(payload.position, 1.0);
-//        payload.skip = false;
-//        continue;
-//    }
-    imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), newColor);
+    //if(payload.skip){
+    //    depth--;
+    //    origin = vec4(payload.position, 1.0);
+    //    payload.skip = false;
+    //    continue;
+    //}
 }

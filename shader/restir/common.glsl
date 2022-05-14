@@ -31,8 +31,13 @@ layout(buffer_reference, scalar) buffer SphereLights { SphereLight s[]; };
 layout(binding = 0, set = 0) uniform accelerationStructureEXT topLevelAS;
 layout(binding = 1, set = 0, rgba8) uniform image2D inputImage;
 layout(binding = 2, set = 0, rgba8) uniform image2D outputImage;
-layout(binding = 5, set = 0, r16) uniform image2D reservoirSampleImage;
-layout(binding = 6, set = 0, r16f) uniform image2D reservoirWeightImage;
+layout(binding = 5, set = 0, r16ui) uniform uimage2D reservoirSampleImage;
+layout(binding = 6, set = 0, r32f) uniform image2D reservoirWeightImage;
+layout(binding = 7, set = 0, rgba8) uniform image2D posImage;
+layout(binding = 8, set = 0, rgba8) uniform image2D normalImage;
+layout(binding = 9, set = 0, rg16ui) uniform uimage2D indexImage;
+layout(binding = 10, set = 0, rgba16f) uniform image2D diffuseImage;
+layout(binding = 11, set = 0, rgba16f) uniform image2D emissionImage;
 layout(binding = 3) buffer Addresses { BufferAddress address[]; } addresses;
 layout(binding = 4) uniform sampler2D samplers[];
 

@@ -17,6 +17,23 @@
 namespace
 {
     void CopyImages(vk::CommandBuffer commandBuffer, int width, int height,
+                    vk::Image srcImage, vk::Image backImage)
+    {
+        vk::ImageCopy copyRegion;
+        copyRegion.setSrcSubresource({ vk::ImageAspectFlagBits::eColor, 0, 0, 1 });
+        copyRegion.setDstSubresource({ vk::ImageAspectFlagBits::eColor, 0, 0, 1 });
+        copyRegion.setExtent({ uint32_t(width), uint32_t(height), 1 });
+
+        Image::SetImageLayout(commandBuffer, srcImage, vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal);
+        Image::SetImageLayout(commandBuffer, backImage, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+
+        Image::CopyImage(commandBuffer, srcImage, backImage, copyRegion);
+
+        Image::SetImageLayout(commandBuffer, srcImage, vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eGeneral);
+        Image::SetImageLayout(commandBuffer, backImage, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eColorAttachmentOptimal);
+    }
+
+    void CopyImages(vk::CommandBuffer commandBuffer, int width, int height,
                     vk::Image inputImage, vk::Image outputImage, vk::Image backImage)
     {
         // output -> input
@@ -88,8 +105,13 @@ void Engine::Init()
     inputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
     outputImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
     reservoirSampleImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eR16Uint);
-    reservoirWeightImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eR16Sfloat);
+    reservoirWeightImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eR32Sfloat);
     denoisedImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
+    posImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16B16A16Sfloat);
+    normalImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16B16A16Sfloat);
+    indexImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eR8G8Uint);
+    diffuseImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
+    emissionImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16B16A16Sfloat);
 
     // Load scene
     {
@@ -119,56 +141,79 @@ void Engine::Init()
     scene->Setup();
 
     // Create pipelines
-    ptPipeline.LoadShaders("../shader/pathtracing/pathtracing.rgen",
-                           "../shader/pathtracing/pathtracing.rmiss",
-                           "../shader/pathtracing/pathtracing.rchit");
-    ptPipeline.Register("inputImage", inputImage);
-    ptPipeline.Register("outputImage", outputImage);
-    ptPipeline.Register("samplers", outputImage); // Dummy
-    ptPipeline.Register("topLevelAS", scene->GetAccel());
-    ptPipeline.Register("samplers", scene->GetTextures());
-    ptPipeline.Register("Addresses", scene->GetAddressBuffer());
-    ptPipeline.Setup(sizeof(PushConstants));
+    //ptPipeline.LoadShaders("../shader/pathtracing/pathtracing.rgen",
+    //                       "../shader/pathtracing/pathtracing.rmiss",
+    //                       "../shader/pathtracing/pathtracing.rchit");
+    //ptPipeline.Register("inputImage", inputImage);
+    //ptPipeline.Register("outputImage", outputImage);
+    //ptPipeline.Register("samplers", outputImage); // Dummy
+    //ptPipeline.Register("topLevelAS", scene->GetAccel());
+    //ptPipeline.Register("samplers", scene->GetTextures());
+    //ptPipeline.Register("Addresses", scene->GetAddressBuffer());
+    //ptPipeline.Setup(sizeof(PushConstants));
 
-    neePipeline.LoadShaders("../shader/pathtracing/nee.rgen",
-                            "../shader/pathtracing/pathtracing.rmiss",
-                            "../shader/pathtracing/nee.rchit");
-    neePipeline.Register("inputImage", inputImage);
-    neePipeline.Register("outputImage", outputImage);
-    neePipeline.Register("samplers", outputImage); // Dummy
-    neePipeline.Register("topLevelAS", scene->GetAccel());
-    neePipeline.Register("samplers", scene->GetTextures());
-    neePipeline.Register("Addresses", scene->GetAddressBuffer());
-    neePipeline.Setup(sizeof(PushConstants));
+    //neePipeline.LoadShaders("../shader/pathtracing/nee.rgen",
+    //                        "../shader/pathtracing/pathtracing.rmiss",
+    //                        "../shader/pathtracing/nee.rchit");
+    //neePipeline.Register("inputImage", inputImage);
+    //neePipeline.Register("outputImage", outputImage);
+    //neePipeline.Register("samplers", outputImage); // Dummy
+    //neePipeline.Register("topLevelAS", scene->GetAccel());
+    //neePipeline.Register("samplers", scene->GetTextures());
+    //neePipeline.Register("Addresses", scene->GetAddressBuffer());
+    //neePipeline.Setup(sizeof(PushConstants));
 
-    srisPipeline.LoadShaders("../shader/pathtracing/nee.rgen",
-                             "../shader/pathtracing/pathtracing.rmiss",
-                             "../shader/pathtracing/streaming_ris.rchit");
-    srisPipeline.Register("inputImage", inputImage);
-    srisPipeline.Register("outputImage", outputImage);
-    srisPipeline.Register("samplers", outputImage); // Dummy
-    srisPipeline.Register("topLevelAS", scene->GetAccel());
-    srisPipeline.Register("samplers", scene->GetTextures());
-    srisPipeline.Register("Addresses", scene->GetAddressBuffer());
-    srisPipeline.Setup(sizeof(PushConstants));
+    //srisPipeline.LoadShaders("../shader/pathtracing/nee.rgen",
+    //                         "../shader/pathtracing/pathtracing.rmiss",
+    //                         "../shader/pathtracing/streaming_ris.rchit");
+    //srisPipeline.Register("inputImage", inputImage);
+    //srisPipeline.Register("outputImage", outputImage);
+    //srisPipeline.Register("samplers", outputImage); // Dummy
+    //srisPipeline.Register("topLevelAS", scene->GetAccel());
+    //srisPipeline.Register("samplers", scene->GetTextures());
+    //srisPipeline.Register("Addresses", scene->GetAddressBuffer());
+    //srisPipeline.Setup(sizeof(PushConstants));
 
-    restirPipeline.LoadShaders("../shader/restir/restir.rgen",
-                               "../shader/restir/restir.rmiss",
-                               "../shader/restir/restir.rchit");
-    restirPipeline.Register("inputImage", inputImage);
-    restirPipeline.Register("outputImage", outputImage);
-    restirPipeline.Register("reservoirSampleImage", reservoirSampleImage);
-    restirPipeline.Register("reservoirWeightImage", reservoirWeightImage);
-    restirPipeline.Register("samplers", outputImage); // Dummy
-    restirPipeline.Register("topLevelAS", scene->GetAccel());
-    restirPipeline.Register("samplers", scene->GetTextures());
-    restirPipeline.Register("Addresses", scene->GetAddressBuffer());
-    restirPipeline.Setup(sizeof(PushConstants));
+    initReservoirPipeline.LoadShaders("../shader/restir/init_reservoir.rgen",
+                                      "../shader/restir/init_reservoir.rmiss",
+                                      "../shader/restir/init_reservoir.rchit");
+    initReservoirPipeline.Register("inputImage", inputImage);
+    initReservoirPipeline.Register("outputImage", outputImage);
+    initReservoirPipeline.Register("reservoirSampleImage", reservoirSampleImage);
+    initReservoirPipeline.Register("reservoirWeightImage", reservoirWeightImage);
+    initReservoirPipeline.Register("indexImage", indexImage);
+    initReservoirPipeline.Register("diffuseImage", diffuseImage);
+    initReservoirPipeline.Register("emissionImage", emissionImage);
+    initReservoirPipeline.Register("posImage", posImage);
+    initReservoirPipeline.Register("normalImage", normalImage);
+    initReservoirPipeline.Register("samplers", outputImage); // Dummy
+    initReservoirPipeline.Register("topLevelAS", scene->GetAccel());
+    initReservoirPipeline.Register("samplers", scene->GetTextures());
+    initReservoirPipeline.Register("Addresses", scene->GetAddressBuffer());
+    initReservoirPipeline.Setup(sizeof(PushConstants));
 
-    medianPipeline.LoadShaders("../shader/denoise/median.comp");
-    medianPipeline.Register("inputImage", outputImage);
-    medianPipeline.Register("outputImage", denoisedImage);
-    medianPipeline.Setup(sizeof(PushConstants));
+    shadingPipeline.LoadShaders("../shader/restir/shading.rgen",
+                                "../shader/restir/shading.rmiss",
+                                "../shader/restir/shading.rchit");
+    shadingPipeline.Register("inputImage", inputImage);
+    shadingPipeline.Register("outputImage", outputImage);
+    shadingPipeline.Register("reservoirSampleImage", reservoirSampleImage);
+    shadingPipeline.Register("reservoirWeightImage", reservoirWeightImage);
+    shadingPipeline.Register("indexImage", indexImage);
+    shadingPipeline.Register("diffuseImage", diffuseImage);
+    shadingPipeline.Register("emissionImage", emissionImage);
+    shadingPipeline.Register("posImage", posImage);
+    shadingPipeline.Register("normalImage", normalImage);
+    shadingPipeline.Register("samplers", outputImage); // Dummy
+    shadingPipeline.Register("topLevelAS", scene->GetAccel());
+    shadingPipeline.Register("samplers", scene->GetTextures());
+    shadingPipeline.Register("Addresses", scene->GetAddressBuffer());
+    shadingPipeline.Setup(sizeof(PushConstants));
+
+    //medianPipeline.LoadShaders("../shader/denoise/median.comp");
+    //medianPipeline.Register("inputImage", outputImage);
+    //medianPipeline.Register("outputImage", denoisedImage);
+    //medianPipeline.Setup(sizeof(PushConstants));
 
     // Create push constants
     pushConstants.invProj = glm::inverse(scene->GetCamera().GetProj());
@@ -220,19 +265,17 @@ void Engine::Run()
 
             int width = Window::GetWidth();
             int height = Window::GetHeight();
-            if (pushConstants.nee == 0) {
-                ptPipeline.Run(commandBuffer, width, height, &pushConstants);
-            } else if (pushConstants.nee == 1 || pushConstants.nee == 2 || pushConstants.nee == 3) {
-                neePipeline.Run(commandBuffer, width, height, &pushConstants);
-            } else if (pushConstants.nee == 4) {
-                srisPipeline.Run(commandBuffer, width, height, &pushConstants);
-            }
-            if (denoise) {
-                medianPipeline.Run(commandBuffer, width, height, &pushConstants);
-                CopyImages(commandBuffer, width, height, inputImage.GetImage(), outputImage.GetImage(), denoisedImage.GetImage(), Vulkan::GetBackImage());
-            } else {
-                CopyImages(commandBuffer, width, height, inputImage.GetImage(), outputImage.GetImage(), Vulkan::GetBackImage());
-            }
+            //if (pushConstants.nee == 0) {
+            //    ptPipeline.Run(commandBuffer, width, height, &pushConstants);
+            //} else if (pushConstants.nee == 1 || pushConstants.nee == 2 || pushConstants.nee == 3) {
+            //    neePipeline.Run(commandBuffer, width, height, &pushConstants);
+            //} else if (pushConstants.nee == 4) {
+            //    srisPipeline.Run(commandBuffer, width, height, &pushConstants);
+            //}
+            initReservoirPipeline.Run(commandBuffer, width, height, &pushConstants);
+            shadingPipeline.Run(commandBuffer, width, height, &pushConstants);
+
+            CopyImages(commandBuffer, width, height, outputImage.GetImage(), Vulkan::GetBackImage());
 
             UI::Render(commandBuffer);
             Vulkan::Submit(commandBuffer);
