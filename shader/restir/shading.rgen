@@ -5,7 +5,6 @@
 
 layout(location = 0) rayPayloadEXT HitPayload payload;
 
-// TODO: rename
 vec3 sampleSphereLight(in vec2 randVal, in vec3 dir)
 {
     vec3 normal = -normalize(dir);
@@ -43,8 +42,6 @@ void main()
     SphereLight sphereLight = sphereLights.s[lightIndex];
 
     // Sample point on light
-    // vec3 dir = sphereLight.position - pos;
-    // float dist = length(dir);
     vec3 dir = sphereLight.position - pos;
     vec3 lightNormal = sampleSphereLight(vec2(rand(payload.seed), rand(payload.seed)), dir);
     vec3 point = sphereLight.position + sphereLight.radius * lightNormal;
@@ -55,9 +52,8 @@ void main()
     payload.done = false;
     traceRayEXT(
         topLevelAS,
-        gl_RayFlagsOpaqueEXT,
-        // gl_RayFlagsTerminateOnFirstHitEXT | 
-        // gl_RayFlagsSkipClosestHitShaderEXT,
+        gl_RayFlagsTerminateOnFirstHitEXT | 
+        gl_RayFlagsSkipClosestHitShaderEXT,
         0xff, // cullMask
         0,    // sbtRecordOffset
         0,    // sbtRecordStride
@@ -72,48 +68,15 @@ void main()
         float invDistPow2 = 1.0 / (dist * dist);
         float cosTheta = max(0.0, dot(normalize(dir), normal));
         float cosThetaLight = max(0.0, dot(normalize(-dir), lightNormal));
-        // float cosThetaLight = 1.0;
         float pdf = 1.0 / pushConstants.numLights / (2.0 * M_PI * sphereLight.radius * sphereLight.radius);
         vec3 brdf = diffuse / M_PI;
-        contribute = weight * sphereLight.intensity * brdf * invDistPow2 * cosTheta * cosThetaLight / pdf;
+        contribute = sphereLight.intensity * brdf * invDistPow2 * cosTheta * cosThetaLight / pdf;
     }
-    imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(contribute, 1));
-
-    // payload.color += contribute * reservoirWeight;
-    // payload.emission = emission;
-    // payload.position = pos;
-    // payload.normal = normal;
-    // payload.brdf = brdf;
-
-    // // Calc seed
-    // uvec2 s = pcg2d(uvec2(gl_LaunchIDEXT.xy * (pushConstants.frame + 1)));
-    // payload.seed = s.x + s.y;
+    vec3 color = emission + contribute * weight;
+    // imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(color, 1));
     
-    // // Calc ray
-    // const vec2 screenPos = vec2(gl_LaunchIDEXT.xy) + vec2(rand(payload.seed), rand(payload.seed));
-    // const vec2 inUV = screenPos / vec2(gl_LaunchSizeEXT.xy);
-    // vec2 d = inUV * 2.0 - 1.0;
-
-    // vec4 origin    = pushConstants.invView * vec4(0, 0, 0, 1);
-    // vec4 target    = pushConstants.invProj * vec4(d.x, d.y, 1, 1) ;
-    // vec4 direction = pushConstants.invView * vec4(normalize(target.xyz), 0) ;
-    // traceRayEXT(
-    //     topLevelAS,
-    //     gl_RayFlagsOpaqueEXT,
-    //     0xff, // cullMask
-    //     0,    // sbtRecordOffset
-    //     0,    // sbtRecordStride
-    //     0,    // missIndex
-    //     origin.xyz,
-    //     0.001,
-    //     direction.xyz,
-    //     10000.0,
-    //     0     // payloadLocation
-    // );
-    //if(payload.skip){
-    //    depth--;
-    //    origin = vec4(payload.position, 1.0);
-    //    payload.skip = false;
-    //    continue;
-    //}
+    int frame = pushConstants.frame;
+    vec3 prevColor = imageLoad(outputImage, ivec2(gl_LaunchIDEXT.xy)).rgb;
+    color = (prevColor * frame + color) / (frame + 1);
+    imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(color, 1));
 }
