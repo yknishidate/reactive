@@ -1,0 +1,29 @@
+#version 460
+#extension GL_GOOGLE_include_directive : enable
+#include "common.glsl"
+#include "random.glsl"
+
+layout(location = 0) rayPayloadEXT HitPayload payload;
+
+vec3 sampleSphereLight(in vec2 randVal, in vec3 dir)
+{
+    vec3 normal = -normalize(dir);
+    vec3 tangent;
+    vec3 bitangent;
+    createCoordinateSystem(normal, tangent, bitangent);
+
+    vec3 sampleDir = sampleHemisphere(randVal.x, randVal.y);
+    return sampleDir.x * tangent + sampleDir.y * bitangent + sampleDir.z * normal;
+}
+
+struct Reservoir
+{
+    int numCandidates;
+    float weight;
+};
+
+void main()
+{
+    
+    imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(color, 1));
+}

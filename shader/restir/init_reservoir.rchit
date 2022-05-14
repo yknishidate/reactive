@@ -86,12 +86,12 @@ void main()
     pos = vec3(matrix * vec4(pos, 1));
     normal = normalize(vec3(normalMatrix * vec4(normal, 0)));
 
-    // Store to g-buffer
-    imageStore(posImage, ivec2(gl_LaunchIDEXT.xy), vec4(getWorldPos(), 1));
-    imageStore(normalImage, ivec2(gl_LaunchIDEXT.xy), vec4(normal, 1));
-    imageStore(diffuseImage, ivec2(gl_LaunchIDEXT.xy), vec4(diffuse, 1));
-    imageStore(emissionImage, ivec2(gl_LaunchIDEXT.xy), vec4(emission, 1));
-    imageStore(indexImage, ivec2(gl_LaunchIDEXT.xy), uvec4(gl_InstanceID, gl_PrimitiveID, 0, 0));
+    // // Store to g-buffer
+    // imageStore(posImage, ivec2(gl_LaunchIDEXT.xy), vec4(getWorldPos(), 1));
+    // imageStore(normalImage, ivec2(gl_LaunchIDEXT.xy), vec4(normal, 1));
+    // imageStore(diffuseImage, ivec2(gl_LaunchIDEXT.xy), vec4(diffuse, 1));
+    // imageStore(emissionImage, ivec2(gl_LaunchIDEXT.xy), vec4(emission, 1));
+    // imageStore(indexImage, ivec2(gl_LaunchIDEXT.xy), uvec4(gl_InstanceID, gl_PrimitiveID, 0, 0));
 
     // Streaming RIS
     int lightIndex = -1;
@@ -128,7 +128,7 @@ void main()
     SphereLight sphereLight = sphereLights.s[lightIndex];
 
     vec3 dir = sphereLight.position - pos;
-    float dist = length(dir);
+    float dist = length(dir) - sphereLight.radius;
     // Sample point on light
     //vec3 lightNormal = sampleSphereLight(vec2(rand(payload.seed), rand(payload.seed)), dir);
     //vec3 point = sphereLight.position + sphereLight.radius * lightNormal;
@@ -136,23 +136,28 @@ void main()
     //float dist = length(dir);
     
     // Trace rays
-    // payload.done = false;
-    // traceRayEXT(
-    //     topLevelAS,
-    //     gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
-    //     0xff, // cullMask
-    //     0,    // sbtRecordOffset
-    //     0,    // sbtRecordStride
-    //     0,    // missIndex
-    //     pos,            0.01,
-    //     normalize(dir), dist,
-    //     0     // payloadLocation
-    // );
-    // if(payload.done == true){
-    // }
+    payload.done = false;
+    traceRayEXT(
+        topLevelAS,
+        gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
+        0xff, // cullMask
+        0,    // sbtRecordOffset
+        0,    // sbtRecordStride
+        0,    // missIndex
+        pos,            0.01,
+        normalize(dir), dist,
+        0     // payloadLocation
+    );
 
-    // If not shadowed, add contributes
-    float reservoirWeight = sumWeights / numCandidates / storedTargetProb;
+    float reservoirWeight = 0.0;
+    if(payload.done == true){
+        reservoirWeight = sumWeights / numCandidates / storedTargetProb;
+    }
+    imageStore(posImage, ivec2(gl_LaunchIDEXT.xy), vec4(getWorldPos(), 1));
+    imageStore(normalImage, ivec2(gl_LaunchIDEXT.xy), vec4(normal, 1));
+    imageStore(diffuseImage, ivec2(gl_LaunchIDEXT.xy), vec4(diffuse, 1));
+    imageStore(emissionImage, ivec2(gl_LaunchIDEXT.xy), vec4(emission, 1));
+    imageStore(indexImage, ivec2(gl_LaunchIDEXT.xy), uvec4(gl_InstanceID, gl_PrimitiveID, 0, 0));
     imageStore(reservoirWeightImage, ivec2(gl_LaunchIDEXT.xy), vec4(reservoirWeight));
     imageStore(reservoirSampleImage, ivec2(gl_LaunchIDEXT.xy), uvec4(lightIndex));
 }
