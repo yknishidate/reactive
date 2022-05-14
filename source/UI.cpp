@@ -16,6 +16,36 @@ void UI::Init()
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     ImGui::StyleColorsDark();
 
+    // Color scheme
+    ImVec4 red80 = ImVec4(0.8f, 0.0f, 0.0f, 1.0f);
+    ImVec4 red60 = ImVec4(0.6f, 0.0f, 0.0f, 1.0f);
+    ImVec4 red40 = ImVec4(0.4f, 0.0f, 0.0f, 1.0f);
+    ImVec4 black100 = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
+    ImVec4 black95 = ImVec4(0.05f, 0.05f, 0.05f, 1.0f);
+    ImVec4 black80 = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
+    ImVec4 black60 = ImVec4(0.4f, 0.4f, 0.4f, 1.0f);
+
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.Colors[ImGuiCol_WindowBg] = black95;
+    style.Colors[ImGuiCol_TitleBg] = red80;
+    style.Colors[ImGuiCol_TitleBgActive] = red80;
+    style.Colors[ImGuiCol_MenuBarBg] = red40;
+    style.Colors[ImGuiCol_Header] = red40;
+    style.Colors[ImGuiCol_HeaderActive] = red40;
+    style.Colors[ImGuiCol_HeaderHovered] = red40;
+    style.Colors[ImGuiCol_FrameBg] = black100;
+    style.Colors[ImGuiCol_FrameBgHovered] = black80;
+    style.Colors[ImGuiCol_FrameBgActive] = black60;
+    style.Colors[ImGuiCol_CheckMark] = red80;
+    style.Colors[ImGuiCol_SliderGrab] = red40;
+    style.Colors[ImGuiCol_SliderGrabActive] = red80;
+    style.Colors[ImGuiCol_Button] = red40;
+    style.Colors[ImGuiCol_ButtonHovered] = red60;
+    style.Colors[ImGuiCol_ButtonActive] = red80;
+    style.Colors[ImGuiCol_ResizeGrip] = red40;
+    style.Colors[ImGuiCol_ResizeGripHovered] = red60;
+    style.Colors[ImGuiCol_ResizeGripActive] = red80;
+
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForVulkan(Window::GetWindow(), true);
     ImGui_ImplVulkan_InitInfo initInfo{};
