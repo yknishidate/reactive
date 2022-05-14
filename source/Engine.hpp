@@ -8,6 +8,7 @@
 
 #include "Vulkan/Image.hpp"
 #include "Vulkan/Pipeline.hpp"
+#include "Vulkan/DescriptorSet.hpp"
 #include "Window.hpp"
 #include "Mesh.hpp"
 #include "Scene.hpp"
@@ -29,6 +30,7 @@ private:
     Image indexImage;
     Image diffuseImage;
     Image emissionImage;
+    DescriptorSet descSet;
     ComputePipeline meanPipeline;
     ComputePipeline medianPipeline;
     RayTracingPipeline ptPipeline;

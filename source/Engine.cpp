@@ -173,6 +173,7 @@ void Engine::Init()
     //srisPipeline.Register("samplers", scene->GetTextures());
     //srisPipeline.Register("Addresses", scene->GetAddressBuffer());
     //srisPipeline.Setup(sizeof(PushConstants));
+    descSet.Allocate("../shader/restir/init_reservoir.rgen");
 
     initReservoirPipeline.LoadShaders("../shader/restir/init_reservoir.rgen",
                                       "../shader/restir/init_reservoir.rmiss",

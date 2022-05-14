@@ -7,77 +7,10 @@
 #include <spirv_glsl.hpp>
 #include <spdlog/spdlog.h>
 #include "Image.hpp"
+#include "Compiler.hpp"
 
 namespace
 {
-    std::string ReadFile(const std::string& path)
-    {
-        std::ifstream input_file{ path };
-        if (!input_file.is_open()) {
-            throw std::runtime_error("Failed to open file: " + path);
-        }
-        return { (std::istreambuf_iterator<char>{input_file}), std::istreambuf_iterator<char>{} };
-    }
-
-    EShLanguage GetShaderStage(const std::string& filepath)
-    {
-        if (filepath.ends_with("vert")) return EShLangVertex;
-        else if (filepath.ends_with("frag")) return EShLangFragment;
-        else if (filepath.ends_with("comp")) return EShLangCompute;
-        else if (filepath.ends_with("rgen")) return EShLangRayGenNV;
-        else if (filepath.ends_with("rmiss")) return EShLangMissNV;
-        else if (filepath.ends_with("rchit")) return EShLangClosestHitNV;
-        else if (filepath.ends_with("rahit")) return EShLangAnyHitNV;
-        else assert(false && "Unknown shader stage");
-    }
-
-    std::string Include(const std::string& filepath, const std::string& sourceText)
-    {
-        using std::filesystem::path;
-        path dir = path{ filepath }.parent_path();
-
-        std::string included = sourceText;
-        std::regex regex{ "#include \"(.*)\"" };
-        std::smatch results;
-        while (std::regex_search(included, results, regex)) {
-            path includePath = dir / results[1].str();
-            std::string includeText = ReadFile(includePath.string());
-            included.replace(results.position(), results.length(), includeText);
-        }
-        return included;
-    }
-
-    std::vector<uint32_t> CompileToSPV(const std::string& filepath)
-    {
-        spdlog::info("  Compile shader: {}", filepath);
-        std::string glslShader = ReadFile(filepath);
-        EShLanguage stage = GetShaderStage(filepath);
-        std::string included = Include(filepath, glslShader);
-
-        glslang::InitializeProcess();
-
-        const char* shaderStrings = included.data();
-        glslang::TShader shader(stage);
-        shader.setEnvTarget(glslang::EShTargetLanguage::EShTargetSpv, glslang::EShTargetLanguageVersion::EShTargetSpv_1_4);
-        shader.setStrings(&shaderStrings, 1);
-
-        EShMessages messages = (EShMessages)(EShMsgSpvRules | EShMsgVulkanRules);
-        if (!shader.parse(&glslang::DefaultTBuiltInResource, 100, false, messages)) {
-            throw std::runtime_error("Failed to parse: " + glslShader + "\n" + shader.getInfoLog());
-        }
-
-        glslang::TProgram program;
-        program.addShader(&shader);
-        if (!program.link(messages)) {
-            throw std::runtime_error("Failed to link: " + glslShader + "\n" + shader.getInfoLog());
-        }
-
-        std::vector<uint32_t> spvShader;
-        glslang::GlslangToSpv(*program.getIntermediate(stage), spvShader);
-        glslang::FinalizeProcess();
-        return spvShader;
-    }
-
     void UpdateBindingMap(std::unordered_map<std::string, vk::DescriptorSetLayoutBinding>& map,
                           spirv_cross::Resource& resource, spirv_cross::CompilerGLSL& glsl,
                           vk::ShaderStageFlags stage, vk::DescriptorType type)
@@ -305,7 +238,7 @@ void ComputePipeline::LoadShaders(const std::string& path)
 {
     spdlog::info("ComputePipeline::LoadShaders()");
 
-    std::vector spirvCode = CompileToSPV(path);
+    std::vector spirvCode = Compiler::CompileToSPV(path);
     AddBindingMap(spirvCode, bindingMap, vk::ShaderStageFlagBits::eCompute);
 
     shaderModule = CreateShaderModule(spirvCode);
@@ -344,9 +277,9 @@ void RayTracingPipeline::LoadShaders(const std::string& rgenPath, const std::str
     const uint32_t chitIndex = 2;
 
     // Compile shaders
-    std::vector rgenShader = CompileToSPV(rgenPath);
-    std::vector missShader = CompileToSPV(missPath);
-    std::vector chitShader = CompileToSPV(chitPath);
+    std::vector rgenShader = Compiler::CompileToSPV(rgenPath);
+    std::vector missShader = Compiler::CompileToSPV(missPath);
+    std::vector chitShader = Compiler::CompileToSPV(chitPath);
 
     // Get bindings
     AddBindingMap(rgenShader, bindingMap, vk::ShaderStageFlagBits::eRaygenKHR);
@@ -384,10 +317,10 @@ void RayTracingPipeline::LoadShaders(const std::string& rgenPath, const std::str
     const uint32_t ahitIndex = 3;
 
     // Compile shaders
-    std::vector rgenShader = CompileToSPV(rgenPath);
-    std::vector missShader = CompileToSPV(missPath);
-    std::vector chitShader = CompileToSPV(chitPath);
-    std::vector ahitShader = CompileToSPV(ahitPath);
+    std::vector rgenShader = Compiler::CompileToSPV(rgenPath);
+    std::vector missShader = Compiler::CompileToSPV(missPath);
+    std::vector chitShader = Compiler::CompileToSPV(chitPath);
+    std::vector ahitShader = Compiler::CompileToSPV(ahitPath);
 
     // Get bindings
     AddBindingMap(rgenShader, bindingMap, vk::ShaderStageFlagBits::eRaygenKHR);
