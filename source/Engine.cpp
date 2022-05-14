@@ -107,8 +107,8 @@ void Engine::Init()
     reservoirSampleImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eR16Uint);
     reservoirWeightImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eR32Sfloat);
     denoisedImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
-    posImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16B16A16Sfloat);
-    normalImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16B16A16Sfloat);
+    posImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eR32G32B32A32Sfloat);
+    normalImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eR32G32B32A32Sfloat);
     indexImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eR8G8Uint);
     diffuseImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm);
     emissionImage.Init(Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16B16A16Sfloat);
