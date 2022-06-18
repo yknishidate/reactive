@@ -28,7 +28,7 @@ public:
     void Copy(const void* data) override;
 
     template <typename T>
-    void Init(vk::BufferUsageFlags usage, std::vector<T> data)
+    void Init(vk::BufferUsageFlags usage, const std::vector<T>& data)
     {
         Init(usage, sizeof(T) * data.size());
         Copy(data.data());
@@ -42,7 +42,7 @@ public:
     void Copy(const void* data) override;
 
     template <typename T>
-    void Init(vk::BufferUsageFlags usage, std::vector<T> data)
+    void Init(vk::BufferUsageFlags usage, const std::vector<T>& data)
     {
         size_t size = sizeof(T) * data.size();
         Init(usage | vk::BufferUsageFlagBits::eTransferDst, size);
