@@ -96,6 +96,7 @@ struct PushConstants
     glm::vec4 skyColor{ 0, 0, 0, 0 };
     int nee = 0;
     int numLights = 0;
+    int reuse = 0;
 };
 #else
 layout(push_constant) uniform 
@@ -109,5 +110,6 @@ PushConstants{
     vec4 skyColor;
     int nee;
     int numLights;
+    int reuse;
 } pushConstants;
 #endif

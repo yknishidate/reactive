@@ -150,7 +150,7 @@ void main()
     );
 
     float reservoirWeight = 0.0;
-    if(payload.done == true){
+    if(payload.done){
         reservoirWeight = sumWeights / numCandidates / storedTargetProb;
     }
     imageStore(posImage, ivec2(gl_LaunchIDEXT.xy), vec4(getWorldPos(), 1));

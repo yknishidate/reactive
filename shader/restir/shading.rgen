@@ -64,6 +64,7 @@ void main()
     );
 
     vec3 contribute = vec3(0.0);
+    // hit light
     if(payload.done){
         float invDistPow2 = 1.0 / (dist * dist);
         float cosTheta = max(0.0, dot(normalize(dir), normal));
@@ -73,7 +74,6 @@ void main()
         contribute = sphereLight.intensity * brdf * invDistPow2 * cosTheta * cosThetaLight / pdf;
     }
     vec3 color = emission + contribute * weight;
-    // imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(color, 1));
     
     int frame = pushConstants.frame;
     vec3 prevColor = imageLoad(outputImage, ivec2(gl_LaunchIDEXT.xy)).rgb;

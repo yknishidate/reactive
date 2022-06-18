@@ -240,6 +240,7 @@ void Engine::Run()
         refresh |= UI::Checkbox("Importance sampling", importance);
         refresh |= UI::Combo("Method", pushConstants.nee, { "PT", "Uniform", "RIS", "WRS", "SRIS", "ReSTIR" });
         UI::Combo("Denoise", denoise, { "Off", "Median" });
+        UI::Checkbox("Reuse", pushConstants.reuse);
         refresh |= UI::SliderInt("Depth", pushConstants.depth, 1, 8);
         refresh |= UI::SliderInt("Samples", pushConstants.samples, 1, 32);
         refresh |= UI::ColorPicker4("Sky color", pushConstants.skyColor);

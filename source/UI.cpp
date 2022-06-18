@@ -111,6 +111,14 @@ bool UI::Checkbox(const std::string& label, bool& value)
     return ImGui::Checkbox(label.c_str(), &value);
 }
 
+bool UI::Checkbox(const std::string& label, int& value)
+{
+    bool tmp;
+    bool res = ImGui::Checkbox(label.c_str(), &tmp);
+    value = static_cast<int>(tmp);
+    return res;
+}
+
 bool UI::Combo(const std::string& label, int& value, const std::vector<std::string>& items)
 {
     std::string concats;
