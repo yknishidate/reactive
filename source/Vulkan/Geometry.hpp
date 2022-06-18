@@ -4,29 +4,15 @@
 class Geometry
 {
 public:
-    vk::DeviceSize GetAccelSize()
-    {
-        const auto buildType = vk::AccelerationStructureBuildTypeKHR::eDevice;
-        const auto buildSizes = Vulkan::GetDevice().getAccelerationStructureBuildSizesKHR(buildType, geometryInfo, primitiveCount);
-        return buildSizes.accelerationStructureSize;
-    }
-
-    vk::AccelerationStructureBuildGeometryInfoKHR GetInfo()
-    {
-        return geometryInfo;
-    }
-
-    DeviceBuffer CreateAccelBuffer()
-    {
-        return { vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR |
-                 vk::BufferUsageFlagBits::eShaderDeviceAddress, GetAccelSize() };
-    }
+    vk::DeviceSize GetAccelSize() const;
+    vk::AccelerationStructureBuildGeometryInfoKHR GetInfo() const;
+    DeviceBuffer CreateAccelBuffer() const;
 
 protected:
     vk::AccelerationStructureGeometryKHR geometry;
     vk::AccelerationStructureBuildGeometryInfoKHR geometryInfo;
-    size_t primitiveCount;
     vk::GeometryFlagsKHR geomertyFlag;
+    size_t primitiveCount;
 };
 
 class TrianglesGeometry : public Geometry
@@ -37,6 +23,8 @@ public:
                       vk::GeometryFlagsKHR geomertyFlag,
                       size_t primitiveCount)
     {
+        this->primitiveCount = primitiveCount;
+        this->geomertyFlag = geomertyFlag;
         geometry = vk::AccelerationStructureGeometryKHR()
             .setGeometryType(vk::GeometryTypeKHR::eTriangles)
             .setGeometry({ triangles })
@@ -46,9 +34,6 @@ public:
             .setType(vk::AccelerationStructureTypeKHR::eBottomLevel)
             .setFlags(vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace)
             .setGeometries(geometry);
-
-        this->primitiveCount = primitiveCount;
-        this->geomertyFlag = geomertyFlag;
     }
 
     TrianglesGeometry& operator=(TrianglesGeometry&&) = default;

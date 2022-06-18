@@ -45,7 +45,7 @@ BottomAccel::BottomAccel(const Buffer& vertexBuffer, const Buffer& indexBuffer,
         .setIndexType(vk::IndexType::eUint32)
         .setIndexData(indexBuffer.GetAddress());
 
-    TrianglesGeometry geometry{ triangleData, geomertyFlag, primitiveCount };
+    const TrianglesGeometry geometry{ triangleData, geomertyFlag, primitiveCount };
     const auto size = geometry.GetAccelSize();
     const auto type = vk::AccelerationStructureTypeKHR::eBottomLevel;
 
@@ -80,10 +80,9 @@ TopAccel::TopAccel(const std::vector<Object>& objects, vk::GeometryFlagBitsKHR g
 
     geometry = InstancesGeometry{ instancesData, geomertyFlag, primitiveCount };
     const auto size = geometry.GetAccelSize();
-    const auto type = vk::AccelerationStructureTypeKHR::eTopLevel;
 
     buffer = geometry.CreateAccelBuffer();
-    accel = CreateAccel(buffer.GetBuffer(), size, type);
+    accel = CreateAccel(buffer.GetBuffer(), size, vk::AccelerationStructureTypeKHR::eTopLevel);
     BuildAccel(*accel, size, primitiveCount, geometry.GetInfo());
 }
 
