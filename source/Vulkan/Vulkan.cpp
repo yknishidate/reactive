@@ -28,36 +28,38 @@ namespace
     vk::UniqueInstance CreateInstance(const std::vector<const char*>& extensions,
                                       const std::vector<const char*>& layers)
     {
-        static vk::DynamicLoader dl;
-        auto vkGetInstanceProcAddr = dl.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
+        static const vk::DynamicLoader dl;
+        const auto vkGetInstanceProcAddr = dl.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
         VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
 
-        vk::ApplicationInfo appInfo;
-        appInfo.apiVersion = VK_API_VERSION_1_2;
+        const auto appInfo = vk::ApplicationInfo()
+            .setApiVersion(VK_API_VERSION_1_2);
 
-        vk::InstanceCreateInfo instanceCI{};
-        instanceCI.setPApplicationInfo(&appInfo);
-        instanceCI.setPEnabledExtensionNames(extensions);
-        instanceCI.setPEnabledLayerNames(layers);
-        return vk::createInstanceUnique(instanceCI);
+        const auto instanceInfo = vk::InstanceCreateInfo()
+            .setPApplicationInfo(&appInfo)
+            .setPEnabledExtensionNames(extensions)
+            .setPEnabledLayerNames(layers);
+
+        return vk::createInstanceUnique(instanceInfo);
     }
 
     vk::UniqueDebugUtilsMessengerEXT CreateDebugMessenger(vk::Instance instance)
     {
-        vk::DebugUtilsMessengerCreateInfoEXT debugMessangerCI{};
-        debugMessangerCI.setMessageSeverity(vk::DebugUtilsMessageSeverityFlagBitsEXT::eError | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning);
-        debugMessangerCI.setMessageType(vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance);
-        debugMessangerCI.setPfnUserCallback(&DebugMessage);
-        return instance.createDebugUtilsMessengerEXTUnique(debugMessangerCI);
+        const auto messengerInfo = vk::DebugUtilsMessengerCreateInfoEXT()
+            .setMessageSeverity(vk::DebugUtilsMessageSeverityFlagBitsEXT::eError | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning)
+            .setMessageType(vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance)
+            .setPfnUserCallback(&DebugMessage);
+
+        return instance.createDebugUtilsMessengerEXTUnique(messengerInfo);
     }
 
     uint32_t FindQueueFamily(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface)
     {
-        std::vector queueFamilyProperties = physicalDevice.getQueueFamilyProperties();
+        const std::vector queueFamilyProperties = physicalDevice.getQueueFamilyProperties();
         for (uint32_t index = 0; index < queueFamilyProperties.size(); index++) {
-            auto supportGraphics = queueFamilyProperties[index].queueFlags & vk::QueueFlagBits::eGraphics;
-            auto supportCompute = queueFamilyProperties[index].queueFlags & vk::QueueFlagBits::eCompute;
-            auto supportPresent = physicalDevice.getSurfaceSupportKHR(index, surface);
+            const auto supportGraphics = queueFamilyProperties[index].queueFlags & vk::QueueFlagBits::eGraphics;
+            const auto supportCompute = queueFamilyProperties[index].queueFlags & vk::QueueFlagBits::eCompute;
+            const auto supportPresent = physicalDevice.getSurfaceSupportKHR(index, surface);
             if (supportGraphics && supportCompute && supportPresent) {
                 return index;
             }
@@ -67,11 +69,11 @@ namespace
 
     vk::UniqueDevice CreateDevice(vk::PhysicalDevice physicalDevice, uint32_t queueFamily)
     {
-        float queuePriority = 0.0f;
-        vk::DeviceQueueCreateInfo queueCI;
-        queueCI.setQueueFamilyIndex(queueFamily);
-        queueCI.setQueueCount(1);
-        queueCI.setPQueuePriorities(&queuePriority);
+        const float queuePriority = 0.0f;
+        const auto queueInfo = vk::DeviceQueueCreateInfo()
+            .setQueueFamilyIndex(queueFamily)
+            .setQueueCount(1)
+            .setPQueuePriorities(&queuePriority);
 
         const std::vector deviceExtensions{
             VK_KHR_SWAPCHAIN_EXTENSION_NAME,
@@ -86,76 +88,80 @@ namespace
             VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME,
         };
 
-        vk::PhysicalDeviceFeatures deviceFeatures;
-        deviceFeatures.shaderInt64 = true;
-        deviceFeatures.fragmentStoresAndAtomics = true;
-        deviceFeatures.vertexPipelineStoresAndAtomics = true;
+        const auto deviceFeatures = vk::PhysicalDeviceFeatures()
+            .setShaderInt64(true)
+            .setFragmentStoresAndAtomics(true)
+            .setVertexPipelineStoresAndAtomics(true);
 
-        vk::PhysicalDeviceDescriptorIndexingFeatures descFeatures;
-        descFeatures.runtimeDescriptorArray = true;
+        const auto descFeatures = vk::PhysicalDeviceDescriptorIndexingFeatures()
+            .setRuntimeDescriptorArray(true);
 
-        vk::DeviceCreateInfo createInfo{ {}, queueCI, {}, deviceExtensions, &deviceFeatures };
+        const auto deviceInfo = vk::DeviceCreateInfo()
+            .setQueueCreateInfos(queueInfo)
+            .setPEnabledExtensionNames(deviceExtensions)
+            .setPEnabledFeatures(&deviceFeatures);
+
         vk::StructureChain<vk::DeviceCreateInfo,
             vk::PhysicalDeviceBufferDeviceAddressFeatures,
             vk::PhysicalDeviceRayTracingPipelineFeaturesKHR,
             vk::PhysicalDeviceAccelerationStructureFeaturesKHR,
             vk::PhysicalDeviceDescriptorIndexingFeatures>
-            createInfoChain{ createInfo, {true}, {true}, {true}, descFeatures };
+            createInfoChain{ deviceInfo, {true}, {true}, {true}, descFeatures };
 
         return physicalDevice.createDeviceUnique(createInfoChain.get<vk::DeviceCreateInfo>());
     }
 
     vk::UniqueSwapchainKHR CreateSwapchain(vk::Device device, vk::SurfaceKHR surface, uint32_t minImageCount, uint32_t queueFamily)
     {
-        vk::SwapchainCreateInfoKHR swapchainCreateInfo{};
-        swapchainCreateInfo.setSurface(surface);
-        swapchainCreateInfo.setMinImageCount(minImageCount);
-        swapchainCreateInfo.setImageFormat(vk::Format::eB8G8R8A8Unorm);
-        swapchainCreateInfo.setImageColorSpace(vk::ColorSpaceKHR::eSrgbNonlinear);
-        swapchainCreateInfo.setImageExtent({ static_cast<uint32_t>(Window::GetWidth()), static_cast<uint32_t>(Window::GetHeight()) });
-        swapchainCreateInfo.setImageArrayLayers(1);
-        swapchainCreateInfo.setImageUsage(vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst);
-        swapchainCreateInfo.setPreTransform(vk::SurfaceTransformFlagBitsKHR::eIdentity);
-        swapchainCreateInfo.setPresentMode(vk::PresentModeKHR::eFifo);
-        swapchainCreateInfo.setClipped(true);
-        swapchainCreateInfo.setQueueFamilyIndices(queueFamily);
-        return device.createSwapchainKHRUnique(swapchainCreateInfo);
+        const auto swapchainInfo = vk::SwapchainCreateInfoKHR()
+            .setSurface(surface)
+            .setMinImageCount(minImageCount)
+            .setImageFormat(vk::Format::eB8G8R8A8Unorm)
+            .setImageColorSpace(vk::ColorSpaceKHR::eSrgbNonlinear)
+            .setImageExtent({ static_cast<uint32_t>(Window::GetWidth()), static_cast<uint32_t>(Window::GetHeight()) })
+            .setImageArrayLayers(1)
+            .setImageUsage(vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst)
+            .setPreTransform(vk::SurfaceTransformFlagBitsKHR::eIdentity)
+            .setPresentMode(vk::PresentModeKHR::eFifo)
+            .setClipped(true)
+            .setQueueFamilyIndices(queueFamily);
+
+        return device.createSwapchainKHRUnique(swapchainInfo);
     }
 
     std::vector<vk::UniqueImageView> CreateImageViews(vk::Device device, const std::vector<vk::Image>& swapchainImages)
     {
-        vk::ImageViewCreateInfo info{};
-        info.viewType = vk::ImageViewType::e2D;
-        info.format = vk::Format::eB8G8R8A8Unorm;
-        info.components.r = vk::ComponentSwizzle::eR;
-        info.components.g = vk::ComponentSwizzle::eG;
-        info.components.b = vk::ComponentSwizzle::eB;
-        info.components.a = vk::ComponentSwizzle::eA;
-        info.subresourceRange = { vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 };
-
         std::vector<vk::UniqueImageView> views;
         for (uint32_t i = 0; i < swapchainImages.size(); i++) {
-            info.image = swapchainImages[i];
-            views.push_back(device.createImageViewUnique(info));
+            const auto viewInfo = vk::ImageViewCreateInfo()
+                .setImage(swapchainImages[i])
+                .setViewType(vk::ImageViewType::e2D)
+                .setFormat(vk::Format::eB8G8R8A8Unorm)
+                .setComponents({ vk::ComponentSwizzle::eR, vk::ComponentSwizzle::eG, vk::ComponentSwizzle::eB, vk::ComponentSwizzle::eA })
+                .setSubresourceRange({ vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 });
+
+            views.push_back(device.createImageViewUnique(viewInfo));
         }
         return views;
     }
 
     vk::UniqueCommandPool CreateCommandPool(vk::Device device, uint32_t queueFamily)
     {
-        vk::CommandPoolCreateInfo commandPoolCI;
-        commandPoolCI.setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer);
-        commandPoolCI.setQueueFamilyIndex(queueFamily);
-        return device.createCommandPoolUnique(commandPoolCI);
+        const auto poolInfo = vk::CommandPoolCreateInfo()
+            .setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer)
+            .setQueueFamilyIndex(queueFamily);
+
+        return device.createCommandPoolUnique(poolInfo);
     }
 
     std::vector<vk::UniqueCommandBuffer> CreateCommandBuffers(vk::Device device, vk::CommandPool commandPool, uint32_t count)
     {
-        vk::CommandBufferAllocateInfo commandBufferAI;
-        commandBufferAI.setCommandPool(commandPool);
-        commandBufferAI.setLevel(vk::CommandBufferLevel::ePrimary);
-        commandBufferAI.setCommandBufferCount(count);
-        return device.allocateCommandBuffersUnique(commandBufferAI);
+        const auto bufferInfo = vk::CommandBufferAllocateInfo()
+            .setCommandPool(commandPool)
+            .setLevel(vk::CommandBufferLevel::ePrimary)
+            .setCommandBufferCount(count);
+
+        return device.allocateCommandBuffersUnique(bufferInfo);
     }
 
     vk::UniqueCommandBuffer CreateCommandBuffer(vk::Device device, vk::CommandPool commandPool)
@@ -165,7 +171,7 @@ namespace
 
     vk::UniqueDescriptorPool CraeteDescriptorPool(vk::Device device)
     {
-        std::vector<vk::DescriptorPoolSize> poolSizes{
+        const std::vector<vk::DescriptorPoolSize> poolSizes{
             { vk::DescriptorType::eSampler, 100 },
             { vk::DescriptorType::eCombinedImageSampler, 100 },
             { vk::DescriptorType::eSampledImage, 100 },
@@ -175,11 +181,12 @@ namespace
             { vk::DescriptorType::eInputAttachment, 100 }
         };
 
-        vk::DescriptorPoolCreateInfo descPoolCI;
-        descPoolCI.setPoolSizes(poolSizes);
-        descPoolCI.setMaxSets(100);
-        descPoolCI.setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);
-        return device.createDescriptorPoolUnique(descPoolCI);
+        const auto poolInfo = vk::DescriptorPoolCreateInfo()
+            .setPoolSizes(poolSizes)
+            .setMaxSets(100)
+            .setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);
+
+        return device.createDescriptorPoolUnique(poolInfo);
     }
 
     std::vector<const char*> GetExtensions()
@@ -202,41 +209,36 @@ namespace
 
     vk::UniqueRenderPass CreateRenderPass(vk::Device device)
     {
-        vk::AttachmentDescription attachment{};
-        attachment.format = vk::Format::eB8G8R8A8Unorm;
-        attachment.samples = vk::SampleCountFlagBits::e1;
-        attachment.loadOp = vk::AttachmentLoadOp::eDontCare;
-        attachment.storeOp = vk::AttachmentStoreOp::eStore;
-        attachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
-        attachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
-        attachment.initialLayout = vk::ImageLayout::eUndefined;
-        attachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
+        const auto attachment = vk::AttachmentDescription()
+            .setFormat(vk::Format::eB8G8R8A8Unorm)
+            .setSamples(vk::SampleCountFlagBits::e1)
+            .setLoadOp(vk::AttachmentLoadOp::eDontCare)
+            .setStoreOp(vk::AttachmentStoreOp::eStore)
+            .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
+            .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
+            .setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
 
-        vk::AttachmentReference color_attachment{};
-        color_attachment.attachment = 0;
-        color_attachment.layout = vk::ImageLayout::eColorAttachmentOptimal;
+        const auto colorAttachment = vk::AttachmentReference()
+            .setAttachment(0)
+            .setLayout(vk::ImageLayout::eColorAttachmentOptimal);
 
-        vk::SubpassDescription subpass{};
-        subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
-        subpass.colorAttachmentCount = 1;
-        subpass.pColorAttachments = &color_attachment;
+        const auto subpass = vk::SubpassDescription()
+            .setPipelineBindPoint(vk::PipelineBindPoint::eGraphics)
+            .setColorAttachments(colorAttachment);
 
-        vk::SubpassDependency dependency{};
-        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-        dependency.dstSubpass = 0;
-        dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-        dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-        dependency.srcAccessMask = {};
-        dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+        const auto dependency = vk::SubpassDependency()
+            .setSrcSubpass(VK_SUBPASS_EXTERNAL)
+            .setDstSubpass(0)
+            .setSrcStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput)
+            .setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput)
+            .setDstAccessMask(vk::AccessFlagBits::eColorAttachmentWrite);
 
-        vk::RenderPassCreateInfo info{};
-        info.attachmentCount = 1;
-        info.pAttachments = &attachment;
-        info.subpassCount = 1;
-        info.pSubpasses = &subpass;
-        info.dependencyCount = 1;
-        info.pDependencies = &dependency;
-        return device.createRenderPassUnique(info);
+        const auto passInfo = vk::RenderPassCreateInfo()
+            .setAttachments(attachment)
+            .setSubpasses(subpass)
+            .setDependencies(dependency);
+
+        return device.createRenderPassUnique(passInfo);
     }
 }
 
@@ -265,31 +267,28 @@ void Vulkan::Init()
     frameSemaphores.resize(imageCount);
     for (uint32_t i = 0; i < imageCount; i++) {
         {
-            vk::ImageView attachment[1];
-            vk::FramebufferCreateInfo info{};
-            info.renderPass = *renderPass;
-            info.attachmentCount = 1;
-            info.pAttachments = attachment;
-            info.width = Window::GetWidth();
-            info.height = Window::GetHeight();
-            info.layers = 1;
-            attachment[0] = *swapchainImageViews[i];
-            frames[i].framebuffer = device->createFramebufferUnique(info);
+            const auto framebufferInfo = vk::FramebufferCreateInfo()
+                .setRenderPass(*renderPass)
+                .setAttachments(*swapchainImageViews[i])
+                .setWidth(Window::GetWidth())
+                .setHeight(Window::GetHeight())
+                .setLayers(1);
+
+            frames[i].framebuffer = device->createFramebufferUnique(framebufferInfo);
         }
         {
-            vk::CommandBufferAllocateInfo commandBufferInfo;
-            commandBufferInfo.setCommandPool(*commandPool);
-            commandBufferInfo.setLevel(vk::CommandBufferLevel::ePrimary);
-            commandBufferInfo.setCommandBufferCount(1);
+            const auto commandBufferInfo = vk::CommandBufferAllocateInfo()
+                .setCommandPool(*commandPool)
+                .setLevel(vk::CommandBufferLevel::ePrimary)
+                .setCommandBufferCount(1);
+
             frames[i].commandBuffer = AllocateCommandBuffer();
         }
         {
-            vk::FenceCreateInfo info{};
-            info.flags = vk::FenceCreateFlagBits::eSignaled;
-            frames[i].fence = device->createFenceUnique(info);
+            const vk::FenceCreateInfo fenceInfo{ vk::FenceCreateFlagBits::eSignaled };
+            frames[i].fence = device->createFenceUnique(fenceInfo);
         }
         {
-            vk::SemaphoreCreateInfo info{};
             frameSemaphores[i].imageAcquiredSemaphore = device->createSemaphoreUnique({});
             frameSemaphores[i].renderCompleteSemaphore = device->createSemaphoreUnique({});
         }
@@ -298,10 +297,11 @@ void Vulkan::Init()
 
 std::vector<vk::UniqueCommandBuffer> Vulkan::AllocateCommandBuffers(uint32_t count)
 {
-    vk::CommandBufferAllocateInfo commandBufferInfo;
-    commandBufferInfo.setCommandPool(*commandPool);
-    commandBufferInfo.setLevel(vk::CommandBufferLevel::ePrimary);
-    commandBufferInfo.setCommandBufferCount(count);
+    const auto commandBufferInfo = vk::CommandBufferAllocateInfo()
+        .setCommandPool(*commandPool)
+        .setLevel(vk::CommandBufferLevel::ePrimary)
+        .setCommandBufferCount(count);
+
     return device->allocateCommandBuffersUnique(commandBufferInfo);
 }
 
@@ -312,8 +312,9 @@ vk::UniqueCommandBuffer Vulkan::AllocateCommandBuffer()
 
 void Vulkan::SubmitAndWait(vk::CommandBuffer commandBuffer)
 {
-    vk::SubmitInfo submitInfo;
-    submitInfo.setCommandBuffers(commandBuffer);
+    const auto submitInfo = vk::SubmitInfo()
+        .setCommandBuffers(commandBuffer);
+
     queue.submit(submitInfo);
     queue.waitIdle();
 }
@@ -322,16 +323,17 @@ void Vulkan::OneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command
 {
     vk::UniqueCommandBuffer commandBuffer = AllocateCommandBuffer();
 
-    vk::CommandBufferBeginInfo beginInfo{ vk::CommandBufferUsageFlagBits::eOneTimeSubmit };
+    const vk::CommandBufferBeginInfo beginInfo{ vk::CommandBufferUsageFlagBits::eOneTimeSubmit };
     commandBuffer->begin(beginInfo);
     command(*commandBuffer);
     commandBuffer->end();
+
     SubmitAndWait(*commandBuffer);
 }
 
 uint32_t Vulkan::FindMemoryTypeIndex(vk::MemoryRequirements requirements, vk::MemoryPropertyFlags memoryProp)
 {
-    vk::PhysicalDeviceMemoryProperties memoryProperties = physicalDevice.getMemoryProperties();
+    const vk::PhysicalDeviceMemoryProperties memoryProperties = physicalDevice.getMemoryProperties();
     for (uint32_t index = 0; index < memoryProperties.memoryTypeCount; ++index) {
         auto propertyFlags = memoryProperties.memoryTypes[index].propertyFlags;
         bool match = (propertyFlags & memoryProp) == memoryProp;
@@ -344,15 +346,15 @@ uint32_t Vulkan::FindMemoryTypeIndex(vk::MemoryRequirements requirements, vk::Me
 
 void Vulkan::BeginRenderPass()
 {
-    vk::ClearValue clearValue{};
-    vk::RenderPassBeginInfo info{};
-    info.renderPass = *renderPass;
-    info.framebuffer = *frames[frameIndex].framebuffer;
-    info.renderArea.extent.width = Window::GetWidth();
-    info.renderArea.extent.height = Window::GetHeight();
-    info.clearValueCount = 1;
-    info.pClearValues = &clearValue;
-    frames[frameIndex].commandBuffer->beginRenderPass(info, vk::SubpassContents::eInline);
+    const auto renderArea = vk::Rect2D()
+        .setExtent({ static_cast<uint32_t>(Window::GetWidth()), static_cast<uint32_t>(Window::GetHeight()) });
+
+    const auto beginInfo = vk::RenderPassBeginInfo()
+        .setRenderPass(*renderPass)
+        .setFramebuffer(*frames[frameIndex].framebuffer)
+        .setRenderArea(renderArea);
+
+    frames[frameIndex].commandBuffer->beginRenderPass(beginInfo, vk::SubpassContents::eInline);
 }
 
 void Vulkan::EndRenderPass()
@@ -362,41 +364,40 @@ void Vulkan::EndRenderPass()
 
 void Vulkan::WaitNextFrame()
 {
-    vk::Semaphore imageAcquiredSemaphore = *frameSemaphores[semaphoreIndex].imageAcquiredSemaphore;
-    vk::Semaphore renderCompleteSemaphore = *frameSemaphores[semaphoreIndex].renderCompleteSemaphore;
+    const vk::Semaphore imageAcquiredSemaphore = *frameSemaphores[semaphoreIndex].imageAcquiredSemaphore;
+    const vk::Semaphore renderCompleteSemaphore = *frameSemaphores[semaphoreIndex].renderCompleteSemaphore;
     try {
         frameIndex = device->acquireNextImageKHR(*swapchain, UINT64_MAX, imageAcquiredSemaphore).value;
-    } catch (std::exception exception) {
+    } catch (const std::exception& exception) {
         swapchainRebuild = true;
         return;
     }
 
-    vk::Fence fence = *frames[frameIndex].fence;
+    const vk::Fence fence = *frames[frameIndex].fence;
     device->waitForFences(fence, VK_TRUE, UINT64_MAX);
     device->resetFences(fence);
 }
 
 vk::CommandBuffer Vulkan::BeginCommandBuffer()
 {
-    vk::CommandBufferBeginInfo info{ vk::CommandBufferUsageFlagBits::eOneTimeSubmit };
+    const vk::CommandBufferBeginInfo info{ vk::CommandBufferUsageFlagBits::eOneTimeSubmit };
     frames[frameIndex].commandBuffer->begin(info);
     return *frames[frameIndex].commandBuffer;
 }
 
 void Vulkan::Submit(vk::CommandBuffer commandBuffer)
 {
-    vk::PipelineStageFlags waitStage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-    vk::SubmitInfo info{};
-    info.waitSemaphoreCount = 1;
-    info.pWaitSemaphores = &*frameSemaphores[semaphoreIndex].imageAcquiredSemaphore;
-    info.pWaitDstStageMask = &waitStage;
-    info.commandBufferCount = 1;
-    info.pCommandBuffers = &commandBuffer;
-    info.signalSemaphoreCount = 1;
-    info.pSignalSemaphores = &*frameSemaphores[semaphoreIndex].renderCompleteSemaphore;
-
     commandBuffer.end();
-    queue.submit(info, *frames[frameIndex].fence);
+
+    vk::PipelineStageFlags waitStage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+
+    const auto submitInfo = vk::SubmitInfo()
+        .setWaitDstStageMask(waitStage)
+        .setCommandBuffers(commandBuffer)
+        .setWaitSemaphores(*frameSemaphores[semaphoreIndex].imageAcquiredSemaphore)
+        .setSignalSemaphores(*frameSemaphores[semaphoreIndex].renderCompleteSemaphore);
+
+    queue.submit(submitInfo, *frames[frameIndex].fence);
 }
 
 void Vulkan::Present()
@@ -404,15 +405,15 @@ void Vulkan::Present()
     if (swapchainRebuild) {
         return;
     }
-    vk::PresentInfoKHR info{};
-    info.waitSemaphoreCount = 1;
-    info.pWaitSemaphores = &*frameSemaphores[semaphoreIndex].renderCompleteSemaphore;
-    info.swapchainCount = 1;
-    info.pSwapchains = &*swapchain;
-    info.pImageIndices = &frameIndex;
+
+    const auto presentInfo = vk::PresentInfoKHR()
+        .setWaitSemaphores(*frameSemaphores[semaphoreIndex].renderCompleteSemaphore)
+        .setSwapchains(*swapchain)
+        .setImageIndices(frameIndex);
+
     try {
-        queue.presentKHR(info);
-    } catch (std::exception exception) {
+        queue.presentKHR(presentInfo);
+    } catch (const std::exception& exception) {
         std::cerr << "failed to present." << std::endl;
         swapchainRebuild = true;
         return;
