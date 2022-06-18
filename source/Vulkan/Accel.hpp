@@ -1,5 +1,5 @@
 #pragma once
-#include "Buffer.hpp"
+#include "Geometry.hpp"
 
 class Object;
 
@@ -40,5 +40,5 @@ public:
 
 private:
     DeviceBuffer instanceBuffer;
-    vk::GeometryFlagBitsKHR geomertyFlag;
+    InstancesGeometry geometry;
 };

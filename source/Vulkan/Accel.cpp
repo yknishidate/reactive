@@ -1,7 +1,6 @@
 #include "Vulkan.hpp"
 #include "Accel.hpp"
 #include "Object.hpp"
-#include "Geometry.hpp"
 
 namespace
 {
@@ -57,7 +56,6 @@ BottomAccel::BottomAccel(const Buffer& vertexBuffer, const Buffer& indexBuffer,
 
 TopAccel::TopAccel(const std::vector<Object>& objects, vk::GeometryFlagBitsKHR geomertyFlag)
 {
-    this->geomertyFlag = geomertyFlag;
     const uint32_t primitiveCount = objects.size();
 
     std::vector<vk::AccelerationStructureInstanceKHR> instances;
@@ -80,7 +78,7 @@ TopAccel::TopAccel(const std::vector<Object>& objects, vk::GeometryFlagBitsKHR g
         .setArrayOfPointers(false)
         .setData(instanceBuffer.GetAddress());
 
-    InstancesGeometry geometry{ instancesData, geomertyFlag, primitiveCount };
+    geometry = InstancesGeometry{ instancesData, geomertyFlag, primitiveCount };
     const auto size = geometry.GetAccelSize();
     const auto type = vk::AccelerationStructureTypeKHR::eTopLevel;
 
@@ -115,7 +113,7 @@ void TopAccel::Rebuild(const std::vector<Object>& objects)
         .setArrayOfPointers(false)
         .setData(instanceBuffer.GetAddress());
 
-    InstancesGeometry geometry{ instancesData, geomertyFlag, primitiveCount };
+    geometry.Update(instancesData, primitiveCount);
     const auto size = geometry.GetAccelSize();
     const auto type = vk::AccelerationStructureTypeKHR::eTopLevel;
 
