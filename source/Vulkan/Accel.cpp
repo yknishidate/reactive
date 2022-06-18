@@ -1,6 +1,7 @@
 #include "Vulkan.hpp"
 #include "Accel.hpp"
 #include "Object.hpp"
+#include "Geometry.hpp"
 
 namespace
 {
@@ -13,20 +14,6 @@ namespace
             .setType(type);
 
         return Vulkan::GetDevice().createAccelerationStructureKHRUnique(accelInfo);
-    }
-
-    vk::DeviceSize GetAccelSize(vk::AccelerationStructureBuildGeometryInfoKHR geometryInfo, size_t primitiveCount)
-    {
-        auto buildSizes = Vulkan::GetDevice().getAccelerationStructureBuildSizesKHR(vk::AccelerationStructureBuildTypeKHR::eDevice, geometryInfo, primitiveCount);
-        return buildSizes.accelerationStructureSize;
-    }
-
-    DeviceBuffer CreateAccelBuffer(vk::DeviceSize size,
-                                   vk::AccelerationStructureTypeKHR type,
-                                   vk::AccelerationStructureGeometryKHR geometry)
-    {
-        return DeviceBuffer{ vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR |
-                              vk::BufferUsageFlagBits::eShaderDeviceAddress, size };
     }
 
     void BuildAccel(vk::AccelerationStructureKHR accel, vk::DeviceSize size, uint32_t primitiveCount,
@@ -59,21 +46,13 @@ BottomAccel::BottomAccel(const Buffer& vertexBuffer, const Buffer& indexBuffer,
         .setIndexType(vk::IndexType::eUint32)
         .setIndexData(indexBuffer.GetAddress());
 
-    const auto geometry = vk::AccelerationStructureGeometryKHR()
-        .setGeometryType(vk::GeometryTypeKHR::eTriangles)
-        .setGeometry({ triangleData })
-        .setFlags(geomertyFlag);
-
+    TrianglesGeometry geometry{ triangleData, geomertyFlag, primitiveCount };
+    const auto size = geometry.GetAccelSize();
     const auto type = vk::AccelerationStructureTypeKHR::eBottomLevel;
-    const auto geometryInfo = vk::AccelerationStructureBuildGeometryInfoKHR()
-        .setType(type)
-        .setFlags(vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace)
-        .setGeometries(geometry);
 
-    const vk::DeviceSize size = GetAccelSize(geometryInfo, primitiveCount);
-    buffer = CreateAccelBuffer(size, type, geometry);
+    buffer = geometry.CreateAccelBuffer();
     accel = CreateAccel(buffer.GetBuffer(), size, type);
-    BuildAccel(*accel, size, primitiveCount, geometryInfo);
+    BuildAccel(*accel, size, primitiveCount, geometry.GetInfo());
 }
 
 TopAccel::TopAccel(const std::vector<Object>& objects, vk::GeometryFlagBitsKHR geomertyFlag)
@@ -101,21 +80,13 @@ TopAccel::TopAccel(const std::vector<Object>& objects, vk::GeometryFlagBitsKHR g
         .setArrayOfPointers(false)
         .setData(instanceBuffer.GetAddress());
 
-    const auto geometry = vk::AccelerationStructureGeometryKHR()
-        .setGeometryType(vk::GeometryTypeKHR::eInstances)
-        .setGeometry({ instancesData })
-        .setFlags(geomertyFlag);
-
+    InstancesGeometry geometry{ instancesData, geomertyFlag, primitiveCount };
+    const auto size = geometry.GetAccelSize();
     const auto type = vk::AccelerationStructureTypeKHR::eTopLevel;
-    const  auto geometryInfo = vk::AccelerationStructureBuildGeometryInfoKHR()
-        .setType(type)
-        .setFlags(vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace)
-        .setGeometries(geometry);
 
-    const vk::DeviceSize size = GetAccelSize(geometryInfo, primitiveCount);
-    buffer = CreateAccelBuffer(size, type, geometry);
+    buffer = geometry.CreateAccelBuffer();
     accel = CreateAccel(buffer.GetBuffer(), size, type);
-    BuildAccel(*accel, size, primitiveCount, geometryInfo);
+    BuildAccel(*accel, size, primitiveCount, geometry.GetInfo());
 }
 
 TopAccel::TopAccel(const Object& object, vk::GeometryFlagBitsKHR geomertyFlag)
@@ -144,17 +115,9 @@ void TopAccel::Rebuild(const std::vector<Object>& objects)
         .setArrayOfPointers(false)
         .setData(instanceBuffer.GetAddress());
 
-    const auto geometry = vk::AccelerationStructureGeometryKHR()
-        .setGeometryType(vk::GeometryTypeKHR::eInstances)
-        .setGeometry({ instancesData })
-        .setFlags(geomertyFlag);
-
+    InstancesGeometry geometry{ instancesData, geomertyFlag, primitiveCount };
+    const auto size = geometry.GetAccelSize();
     const auto type = vk::AccelerationStructureTypeKHR::eTopLevel;
-    const auto geometryInfo = vk::AccelerationStructureBuildGeometryInfoKHR()
-        .setType(type)
-        .setFlags(vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace)
-        .setGeometries(geometry);
 
-    const vk::DeviceSize size = GetAccelSize(geometryInfo, primitiveCount);
-    BuildAccel(*accel, size, primitiveCount, geometryInfo);
+    BuildAccel(*accel, size, primitiveCount, geometry.GetInfo());
 }
