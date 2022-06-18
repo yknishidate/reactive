@@ -113,19 +113,19 @@ bool UI::Checkbox(const std::string& label, bool& value)
 
 bool UI::Checkbox(const std::string& label, int& value)
 {
-    bool tmp;
-    bool res = ImGui::Checkbox(label.c_str(), &tmp);
-    value = static_cast<int>(tmp);
-    return res;
+    bool tmp_value;
+    bool changed = ImGui::Checkbox(label.c_str(), &tmp_value);
+    value = static_cast<int>(tmp_value);
+    return changed;
 }
 
 bool UI::Combo(const std::string& label, int& value, const std::vector<std::string>& items)
 {
-    std::string concats;
+    std::string concated;
     for (auto&& item : items) {
-        concats += item + '\0';
+        concated += item + '\0';
     }
-    return ImGui::Combo(label.c_str(), &value, concats.c_str());
+    return ImGui::Combo(label.c_str(), &value, concated.c_str());
 }
 
 bool UI::SliderInt(const std::string& label, int& value, int min, int max)

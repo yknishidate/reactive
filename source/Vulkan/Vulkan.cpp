@@ -13,8 +13,8 @@ namespace
                                                 VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData,
                                                 void* pUserData)
     {
-        std::string message{ pCallbackData->pMessage };
-        std::regex regex{ "The Vulkan spec states: " };
+        const std::string message{ pCallbackData->pMessage };
+        const std::regex regex{ "The Vulkan spec states: " };
         std::smatch result;
         if (std::regex_search(message, result, regex)) {
             spdlog::error("{}\n {}\n", message.substr(0, result.position()), message.substr(result.position()));
@@ -35,11 +35,11 @@ namespace
         vk::ApplicationInfo appInfo;
         appInfo.apiVersion = VK_API_VERSION_1_2;
 
-        vk::InstanceCreateInfo InstanceCI{};
-        InstanceCI.setPApplicationInfo(&appInfo);
-        InstanceCI.setPEnabledExtensionNames(extensions);
-        InstanceCI.setPEnabledLayerNames(layers);
-        return vk::createInstanceUnique(InstanceCI);
+        vk::InstanceCreateInfo instanceCI{};
+        instanceCI.setPApplicationInfo(&appInfo);
+        instanceCI.setPEnabledExtensionNames(extensions);
+        instanceCI.setPEnabledLayerNames(layers);
+        return vk::createInstanceUnique(instanceCI);
     }
 
     vk::UniqueDebugUtilsMessengerEXT CreateDebugMessenger(vk::Instance instance)
