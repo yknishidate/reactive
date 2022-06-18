@@ -7,10 +7,11 @@ class Accel
 {
 public:
     Accel() = default;
-    vk::AccelerationStructureKHR GetAccel() const { return *accel; }
-    uint64_t GetBufferAddress() const { return buffer.GetAddress(); }
 
     Accel& operator=(Accel&& other) noexcept = default;
+
+    vk::AccelerationStructureKHR GetAccel() const { return *accel; }
+    uint64_t GetBufferAddress() const { return buffer.GetAddress(); }
 
 protected:
     vk::UniqueAccelerationStructureKHR accel;

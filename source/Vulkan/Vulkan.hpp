@@ -53,7 +53,7 @@ private:
     static inline vk::UniqueSwapchainKHR swapchain;
     static inline std::vector<vk::Image> swapchainImages;
     static inline std::vector<vk::UniqueImageView> swapchainImageViews;
-    static inline uint32_t queueFamily = UINT32_MAX;
+    static inline uint32_t queueFamily = std::numeric_limits<uint32_t>::max();
     static inline vk::Queue queue;
     static inline vk::UniqueCommandPool commandPool;
     static inline vk::UniqueDescriptorPool descriptorPool;
