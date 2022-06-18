@@ -29,15 +29,7 @@ public:
     HostBuffer(HostBuffer&&) = default;
     HostBuffer(vk::BufferUsageFlags usage, size_t size);
 
-    HostBuffer& operator=(HostBuffer&& other) noexcept
-    {
-        buffer = std::move(other.buffer);
-        memory = std::move(other.memory);
-        size = std::move(other.size);
-        deviceAddress = std::move(other.deviceAddress);
-        mapped = std::move(other.mapped);
-        return *this;
-    }
+    HostBuffer& operator=(HostBuffer&& other) noexcept = default;
 
     template <typename T>
     HostBuffer(vk::BufferUsageFlags usage, const std::vector<T>& data)
@@ -57,16 +49,7 @@ public:
     DeviceBuffer(DeviceBuffer&&) = default;
     DeviceBuffer(vk::BufferUsageFlags usage, size_t size);
 
-    DeviceBuffer& operator=(DeviceBuffer&& other) noexcept
-    {
-        buffer = std::move(other.buffer);
-        memory = std::move(other.memory);
-        size = std::move(other.size);
-        deviceAddress = std::move(other.deviceAddress);
-        mapped = std::move(other.mapped);
-        usage = std::move(other.usage);
-        return *this;
-    }
+    DeviceBuffer& operator=(DeviceBuffer&& other) noexcept = default;
 
     template <typename T>
     DeviceBuffer(vk::BufferUsageFlags usage, const std::vector<T>& data)

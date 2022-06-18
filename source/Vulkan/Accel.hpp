@@ -10,12 +10,7 @@ public:
     vk::AccelerationStructureKHR GetAccel() const { return *accel; }
     uint64_t GetBufferAddress() const { return buffer.GetAddress(); }
 
-    Accel& operator=(Accel&& other) noexcept
-    {
-        accel = std::move(other.accel);
-        buffer = std::move(other.buffer);
-        return *this;
-    }
+    Accel& operator=(Accel&& other) noexcept = default;
 
 protected:
     vk::UniqueAccelerationStructureKHR accel;
@@ -29,12 +24,7 @@ public:
     BottomAccel(const Buffer& vertexBuffer, const Buffer& indexBuffer,
                 size_t vertexCount, size_t primitiveCount, vk::GeometryFlagBitsKHR geomertyFlag);
 
-    BottomAccel& operator=(BottomAccel&& other) noexcept
-    {
-        accel = std::move(other.accel);
-        buffer = std::move(other.buffer);
-        return *this;
-    }
+    BottomAccel& operator=(BottomAccel&& other) noexcept = default;
 };
 
 class TopAccel : public Accel
@@ -45,14 +35,7 @@ public:
     TopAccel(const Object& object, vk::GeometryFlagBitsKHR geomertyFlag);
     void Rebuild(const std::vector<Object>& objects);
 
-    TopAccel& operator=(TopAccel&& other) noexcept
-    {
-        accel = std::move(other.accel);
-        buffer = std::move(other.buffer);
-        instanceBuffer = std::move(other.instanceBuffer);
-        geomertyFlag = std::move(other.geomertyFlag);
-        return *this;
-    }
+    TopAccel& operator=(TopAccel&& other) noexcept = default;
 
 private:
     DeviceBuffer instanceBuffer;
