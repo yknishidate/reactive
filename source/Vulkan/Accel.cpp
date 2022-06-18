@@ -7,11 +7,12 @@ namespace
     vk::UniqueAccelerationStructureKHR CreateAccel(vk::Buffer buffer, vk::DeviceSize size,
                                                    vk::AccelerationStructureTypeKHR type)
     {
-        vk::AccelerationStructureCreateInfoKHR createInfo;
-        createInfo.setBuffer(buffer);
-        createInfo.setSize(size);
-        createInfo.setType(type);
-        return Vulkan::GetDevice().createAccelerationStructureKHRUnique(createInfo);
+        const auto accelInfo = vk::AccelerationStructureCreateInfoKHR()
+            .setBuffer(buffer)
+            .setSize(size)
+            .setType(type);
+
+        return Vulkan::GetDevice().createAccelerationStructureKHRUnique(accelInfo);
     }
 
     vk::DeviceSize GetAccelSize(vk::AccelerationStructureBuildGeometryInfoKHR geometryInfo, size_t primitiveCount)
@@ -24,18 +25,16 @@ namespace
                                    vk::AccelerationStructureTypeKHR type,
                                    vk::AccelerationStructureGeometryKHR geometry)
     {
-        DeviceBuffer buffer;
-        buffer.Init(vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR |
-                    vk::BufferUsageFlagBits::eShaderDeviceAddress, size);
+        DeviceBuffer buffer{ vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR |
+                             vk::BufferUsageFlagBits::eShaderDeviceAddress, size };
         return buffer;
     }
 
     void BuildAccel(vk::AccelerationStructureKHR accel, vk::DeviceSize size, uint32_t primitiveCount,
                     vk::AccelerationStructureBuildGeometryInfoKHR geometryInfo)
     {
-        DeviceBuffer scratchBuffer;
-        scratchBuffer.Init(vk::BufferUsageFlagBits::eStorageBuffer |
-                           vk::BufferUsageFlagBits::eShaderDeviceAddress, size);
+        DeviceBuffer scratchBuffer{ vk::BufferUsageFlagBits::eStorageBuffer |
+                                    vk::BufferUsageFlagBits::eShaderDeviceAddress, size };
 
         geometryInfo.setScratchData(scratchBuffer.GetAddress());
         geometryInfo.setDstAccelerationStructure(accel);
@@ -94,10 +93,10 @@ TopAccel::TopAccel(const std::vector<Object>& objects, vk::GeometryFlagBitsKHR g
         instances.push_back(instance);
     }
 
-    instanceBuffer.Init(vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
-                        vk::BufferUsageFlagBits::eShaderDeviceAddress |
-                        vk::BufferUsageFlagBits::eTransferDst,
-                        instances);
+    instanceBuffer = DeviceBuffer{ vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
+                                   vk::BufferUsageFlagBits::eShaderDeviceAddress |
+                                   vk::BufferUsageFlagBits::eTransferDst,
+                                   instances };
 
     vk::AccelerationStructureGeometryInstancesDataKHR instancesData;
     instancesData.setArrayOfPointers(false);

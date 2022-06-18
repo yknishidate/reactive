@@ -384,9 +384,9 @@ void RayTracingPipeline::Setup(size_t pushSize)
         vk::BufferUsageFlagBits::eTransferDst |
         vk::BufferUsageFlagBits::eShaderDeviceAddress;
 
-    raygenSBT.Init(usage, handleSize * rgenCount);
-    missSBT.Init(usage, handleSize * missCount);
-    hitSBT.Init(usage, handleSize * hitCount);
+    raygenSBT = DeviceBuffer{ usage, handleSize * rgenCount };
+    missSBT = DeviceBuffer{ usage, handleSize * missCount };
+    hitSBT = DeviceBuffer{ usage, handleSize * hitCount };
 
     raygenRegion = CreateAddressRegion(rtProperties, raygenSBT.GetAddress());
     missRegion = CreateAddressRegion(rtProperties, missSBT.GetAddress());

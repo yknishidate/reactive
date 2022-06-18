@@ -82,8 +82,7 @@ void Image::Init(const std::string& filepath)
 
     Init(width, height, vk::Format::eR8G8B8A8Unorm);
 
-    HostBuffer staging;
-    staging.Init(vk::BufferUsageFlagBits::eTransferSrc, width * height * 4);
+    HostBuffer staging{ vk::BufferUsageFlagBits::eTransferSrc, static_cast<size_t>(width * height * 4) };
     staging.Copy(data);
 
     Vulkan::OneTimeSubmit(

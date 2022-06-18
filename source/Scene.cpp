@@ -25,7 +25,7 @@ Scene::Scene(const std::string& filepath,
 
 void Scene::Setup()
 {
-    topAccel = std::make_unique<TopAccel>(objects, vk::GeometryFlagBitsKHR::eNoDuplicateAnyHitInvocation);
+    topAccel = TopAccel{ objects, vk::GeometryFlagBitsKHR::eNoDuplicateAnyHitInvocation };
 
     // Create object data
     for (auto&& object : objects) {
@@ -42,12 +42,12 @@ void Scene::Setup()
     vk::BufferUsageFlags usage =
         vk::BufferUsageFlagBits::eStorageBuffer |
         vk::BufferUsageFlagBits::eShaderDeviceAddress;
-    objectBuffer.Init(usage, objectData);
+    objectBuffer = DeviceBuffer{ usage, objectData };
     if (!pointLights.empty()) {
-        pointLightBuffer.Init(usage, pointLights);
+        pointLightBuffer = DeviceBuffer{ usage, pointLights };
     }
     if (!sphereLights.empty()) {
-        sphereLightBuffer.Init(usage, sphereLights);
+        sphereLightBuffer = DeviceBuffer{ usage, sphereLights };
     }
 
     // Buffer references
@@ -63,7 +63,7 @@ void Scene::Setup()
             addresses[i].sphereLights = sphereLightBuffer.GetAddress();
         }
     }
-    addressBuffer.Init(usage, addresses);
+    addressBuffer = DeviceBuffer{ usage, addresses };
 
     camera.Init(Window::GetWidth(), Window::GetHeight());
 }
@@ -78,7 +78,7 @@ void Scene::Update(float dt)
         objectData[i].normalMatrix = objects[i].transform.GetNormalMatrix();
     }
     objectBuffer.Copy(objectData.data());
-    topAccel->Rebuild(objects);
+    topAccel.Rebuild(objects);
 }
 
 void Scene::ProcessInput()

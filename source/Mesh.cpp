@@ -13,9 +13,9 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& ind
         vk::BufferUsageFlagBits::eStorageBuffer |
         vk::BufferUsageFlagBits::eShaderDeviceAddress };
 
-    vertexBuffer.Init(usage, vertices);
-    indexBuffer.Init(usage, indices);
-    bottomAccel = std::make_unique<BottomAccel>(vertexBuffer, indexBuffer, vertices.size(), indices.size() / 3, vk::GeometryFlagBitsKHR::eNoDuplicateAnyHitInvocation);
+    vertexBuffer = DeviceBuffer{ usage, vertices };
+    indexBuffer = DeviceBuffer{ usage, indices };
+    bottomAccel = BottomAccel{ vertexBuffer, indexBuffer, vertices.size(), indices.size() / 3, vk::GeometryFlagBitsKHR::eNoDuplicateAnyHitInvocation };
 }
 
 Mesh::Mesh(const std::string& filepath)
@@ -27,10 +27,10 @@ Mesh::Mesh(const std::string& filepath)
         vk::BufferUsageFlagBits::eStorageBuffer |
         vk::BufferUsageFlagBits::eShaderDeviceAddress };
 
-    vertexBuffer.Init(usage, vertices);
-    indexBuffer.Init(usage, indices);
-    bottomAccel = std::make_unique<BottomAccel>(vertexBuffer, indexBuffer, vertices.size(), indices.size() / 3,
-                                                vk::GeometryFlagBitsKHR::eNoDuplicateAnyHitInvocation);
+    vertexBuffer = DeviceBuffer{ usage, vertices };
+    indexBuffer = DeviceBuffer{ usage, indices };
+    bottomAccel = BottomAccel{ vertexBuffer, indexBuffer, vertices.size(), indices.size() / 3,
+                               vk::GeometryFlagBitsKHR::eNoDuplicateAnyHitInvocation };
 }
 
 void Mesh::SetMaterial(const Material& material)
