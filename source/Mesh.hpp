@@ -35,7 +35,7 @@ public:
     Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, Material material = {});
     Mesh(const std::string& filepath);
 
-    const Accel& GetAccel() const { return bottomAccel; }
+    const Accel& GetAccel() const { return *bottomAccel; }
 
     uint64_t GetVertexBufferAddress() const { return vertexBuffer.GetAddress(); }
     uint64_t GetIndexBufferAddress() const { return indexBuffer.GetAddress(); }
@@ -48,7 +48,7 @@ public:
 private:
     DeviceBuffer vertexBuffer{};
     DeviceBuffer indexBuffer{};
-    BottomAccel bottomAccel{};
+    std::unique_ptr<BottomAccel> bottomAccel;
     Material material{};
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;

@@ -20,9 +20,9 @@ vk::TransformMatrixKHR Transform::GetVkMatrix() const
     return vk::TransformMatrixKHR{ data };
 }
 
-void Object::Init(std::shared_ptr<Mesh> mesh)
+Object::Object(std::shared_ptr<Mesh> mesh)
+    : mesh{ mesh }
 {
-    this->mesh = mesh;
 }
 
 const Mesh& Object::GetMesh() const

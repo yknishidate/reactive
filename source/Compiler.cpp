@@ -33,14 +33,13 @@ namespace Compiler
 
     std::string Include(const std::string& filepath, const std::string& sourceText)
     {
-        using std::filesystem::path;
-        path dir = path{ filepath }.parent_path();
+        std::filesystem::path dir = std::filesystem::path{ filepath }.parent_path();
 
         std::string included = sourceText;
         std::regex regex{ "#include \"(.*)\"" };
         std::smatch results;
         while (std::regex_search(included, results, regex)) {
-            path includePath = dir / results[1].str();
+            std::filesystem::path includePath = dir / results[1].str();
             std::string includeText = ReadFile(includePath.string());
             included.replace(results.position(), results.length(), includeText);
         }

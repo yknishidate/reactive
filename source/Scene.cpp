@@ -8,23 +8,24 @@ Scene::Scene(const std::string& filepath,
 {
     Loader::LoadFromFile(filepath, meshes, textures);
 
-    objects.resize(meshes.size());
+    objects.reserve(meshes.size());
     for (int i = 0; i < meshes.size(); i++) {
-        objects[i].Init(meshes[i]);
-        objects[i].transform.position = position;
-        objects[i].transform.scale = scale;
-        objects[i].transform.rotation = glm::quat{ rotation };
+        Object object(meshes[i]);
+        object.transform.position = position;
+        object.transform.scale = scale;
+        object.transform.rotation = glm::quat{ rotation };
         for (const auto& vertex : meshes[i]->GetVertices()) {
-            glm::vec3 pos = objects[i].transform.GetMatrix() * glm::vec4{ vertex.pos, 1.0 };
+            glm::vec3 pos = object.transform.GetMatrix() * glm::vec4{ vertex.pos, 1.0 };
             bbox.min = glm::min(bbox.min, pos);
             bbox.max = glm::max(bbox.max, pos);
         }
+        objects.push_back(object);
     }
 }
 
 void Scene::Setup()
 {
-    topAccel.Init(objects, vk::GeometryFlagBitsKHR::eNoDuplicateAnyHitInvocation);
+    topAccel = std::make_unique<TopAccel>(objects, vk::GeometryFlagBitsKHR::eNoDuplicateAnyHitInvocation);
 
     // Create object data
     for (auto&& object : objects) {
@@ -77,7 +78,7 @@ void Scene::Update(float dt)
         objectData[i].normalMatrix = objects[i].transform.GetNormalMatrix();
     }
     objectBuffer.Copy(objectData.data());
-    topAccel.Rebuild(objects);
+    topAccel->Rebuild(objects);
 }
 
 void Scene::ProcessInput()
@@ -93,9 +94,7 @@ std::shared_ptr<Mesh>& Scene::AddMesh(const std::string& filepath)
 
 Object& Scene::AddObject(std::shared_ptr<Mesh> mesh)
 {
-    Object object;
-    object.Init(mesh);
-    objects.push_back(object);
+    objects.emplace_back(mesh);
     return objects.back();
 }
 
@@ -122,8 +121,7 @@ SphereLight& Scene::AddSphereLight(glm::vec3 intensity, glm::vec3 position, floa
     Material lightMaterial;
     lightMaterial.emission = intensity;
 
-    objects.push_back({});
-    objects.back().Init(meshes[sphereMeshIndex]);
+    objects.emplace_back(meshes[sphereMeshIndex]);
     objects.back().transform.position = position;
     objects.back().transform.scale = glm::vec3{ radius };
     objects.back().SetMaterial(lightMaterial);

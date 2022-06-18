@@ -18,7 +18,7 @@ struct Transform
 class Object
 {
 public:
-    void Init(std::shared_ptr<Mesh> mesh);
+    explicit Object(std::shared_ptr<Mesh> mesh);
     virtual void Update(float dt) {}
 
     const Mesh& GetMesh() const;

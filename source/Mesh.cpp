@@ -15,7 +15,7 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& ind
 
     vertexBuffer.Init(usage, vertices);
     indexBuffer.Init(usage, indices);
-    bottomAccel.Init(vertexBuffer, indexBuffer, vertices.size(), indices.size() / 3, vk::GeometryFlagBitsKHR::eNoDuplicateAnyHitInvocation);
+    bottomAccel = std::make_unique<BottomAccel>(vertexBuffer, indexBuffer, vertices.size(), indices.size() / 3, vk::GeometryFlagBitsKHR::eNoDuplicateAnyHitInvocation);
 }
 
 Mesh::Mesh(const std::string& filepath)
@@ -29,8 +29,8 @@ Mesh::Mesh(const std::string& filepath)
 
     vertexBuffer.Init(usage, vertices);
     indexBuffer.Init(usage, indices);
-    bottomAccel.Init(vertexBuffer, indexBuffer, vertices.size(), indices.size() / 3,
-                     vk::GeometryFlagBitsKHR::eNoDuplicateAnyHitInvocation);
+    bottomAccel = std::make_unique<BottomAccel>(vertexBuffer, indexBuffer, vertices.size(), indices.size() / 3,
+                                                vk::GeometryFlagBitsKHR::eNoDuplicateAnyHitInvocation);
 }
 
 void Mesh::SetMaterial(const Material& material)

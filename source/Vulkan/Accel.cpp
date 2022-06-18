@@ -49,9 +49,9 @@ namespace
     }
 }
 
-void BottomAccel::Init(const Buffer& vertexBuffer, const Buffer& indexBuffer,
-                       size_t vertexCount, size_t primitiveCount,
-                       vk::GeometryFlagBitsKHR geomertyFlag)
+BottomAccel::BottomAccel(const Buffer& vertexBuffer, const Buffer& indexBuffer,
+                         size_t vertexCount, size_t primitiveCount,
+                         vk::GeometryFlagBitsKHR geomertyFlag)
 {
     vk::AccelerationStructureGeometryTrianglesDataKHR triangleData;
     triangleData.setVertexFormat(vk::Format::eR32G32B32Sfloat);
@@ -79,7 +79,7 @@ void BottomAccel::Init(const Buffer& vertexBuffer, const Buffer& indexBuffer,
     BuildAccel(*accel, size, primitiveCount, geometryInfo);
 }
 
-void TopAccel::Init(const std::vector<Object>& objects, vk::GeometryFlagBitsKHR geomertyFlag)
+TopAccel::TopAccel(const std::vector<Object>& objects, vk::GeometryFlagBitsKHR geomertyFlag)
 {
     this->geomertyFlag = geomertyFlag;
     uint32_t primitiveCount = objects.size();
@@ -121,9 +121,9 @@ void TopAccel::Init(const std::vector<Object>& objects, vk::GeometryFlagBitsKHR 
     BuildAccel(*accel, size, primitiveCount, geometryInfo);
 }
 
-void TopAccel::Init(const Object& object, vk::GeometryFlagBitsKHR geomertyFlag)
+TopAccel::TopAccel(const Object& object, vk::GeometryFlagBitsKHR geomertyFlag)
+    : TopAccel(std::vector{ object }, geomertyFlag)
 {
-    Init({ object }, geomertyFlag);
 }
 
 void TopAccel::Rebuild(const std::vector<Object>& objects)

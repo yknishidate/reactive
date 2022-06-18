@@ -17,15 +17,15 @@ protected:
 class BottomAccel : public Accel
 {
 public:
-    void Init(const Buffer& vertexBuffer, const Buffer& indexBuffer,
-              size_t vertexCount, size_t primitiveCount, vk::GeometryFlagBitsKHR geomertyFlag);
+    BottomAccel(const Buffer& vertexBuffer, const Buffer& indexBuffer,
+                size_t vertexCount, size_t primitiveCount, vk::GeometryFlagBitsKHR geomertyFlag);
 };
 
 class TopAccel : public Accel
 {
 public:
-    void Init(const std::vector<Object>& objects, vk::GeometryFlagBitsKHR geomertyFlag);
-    void Init(const Object& object, vk::GeometryFlagBitsKHR geomertyFlag);
+    TopAccel(const std::vector<Object>& objects, vk::GeometryFlagBitsKHR geomertyFlag);
+    TopAccel(const Object& object, vk::GeometryFlagBitsKHR geomertyFlag);
     void Rebuild(const std::vector<Object>& objects);
 
 private:

@@ -9,8 +9,8 @@ class Image;
 
 struct BoundingBox
 {
-    glm::vec3 min{ FLT_MAX };
-    glm::vec3 max{ -FLT_MAX };
+    glm::vec3 min{ std::numeric_limits<float>::max() };
+    glm::vec3 max{ -std::numeric_limits<float>::max() };
 };
 
 class Scene
@@ -28,7 +28,7 @@ public:
     PointLight& AddPointLight(glm::vec3 intensity, glm::vec3 position);
     SphereLight& AddSphereLight(glm::vec3 intensity, glm::vec3 position, float radius);
 
-    vk::AccelerationStructureKHR GetAccel() const { return topAccel.GetAccel(); }
+    vk::AccelerationStructureKHR GetAccel() const { return topAccel->GetAccel(); }
     const std::vector<Image>& GetTextures() const { return textures; }
     const Buffer& GetAddressBuffer() const { return addressBuffer; }
     Camera& GetCamera() { return camera; }
@@ -47,7 +47,7 @@ private:
 
     BoundingBox bbox;
 
-    TopAccel topAccel;
+    std::unique_ptr<TopAccel> topAccel;
     Camera camera;
 
     DeviceBuffer objectBuffer;
