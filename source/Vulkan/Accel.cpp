@@ -33,18 +33,17 @@ namespace
     }
 }
 
-BottomAccel::BottomAccel(const Buffer& vertexBuffer, const Buffer& indexBuffer,
-                         size_t vertexCount, size_t primitiveCount,
-                         vk::GeometryFlagBitsKHR geomertyFlag)
+BottomAccel::BottomAccel(const Mesh& mesh, vk::GeometryFlagBitsKHR geomertyFlag)
 {
     const auto triangleData = vk::AccelerationStructureGeometryTrianglesDataKHR()
         .setVertexFormat(vk::Format::eR32G32B32Sfloat)
-        .setVertexData(vertexBuffer.GetAddress())
+        .setVertexData(mesh.GetVertexBufferAddress())
         .setVertexStride(sizeof(Vertex))
-        .setMaxVertex(vertexCount)
+        .setMaxVertex(mesh.GetVertices().size())
         .setIndexType(vk::IndexType::eUint32)
-        .setIndexData(indexBuffer.GetAddress());
+        .setIndexData(mesh.GetIndexBufferAddress());
 
+    const size_t primitiveCount = mesh.GetIndices().size() / 3;
     const TrianglesGeometry geometry{ triangleData, geomertyFlag, primitiveCount };
     const auto size = geometry.GetAccelSize();
     const auto type = vk::AccelerationStructureTypeKHR::eBottomLevel;

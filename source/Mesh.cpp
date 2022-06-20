@@ -15,7 +15,7 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& ind
 
     vertexBuffer = DeviceBuffer{ usage, vertices };
     indexBuffer = DeviceBuffer{ usage, indices };
-    bottomAccel = BottomAccel{ vertexBuffer, indexBuffer, vertices.size(), indices.size() / 3, vk::GeometryFlagBitsKHR::eNoDuplicateAnyHitInvocation };
+    bottomAccel = BottomAccel{ *this, vk::GeometryFlagBitsKHR::eNoDuplicateAnyHitInvocation };
 }
 
 Mesh::Mesh(const std::string& filepath)
@@ -29,8 +29,7 @@ Mesh::Mesh(const std::string& filepath)
 
     vertexBuffer = DeviceBuffer{ usage, vertices };
     indexBuffer = DeviceBuffer{ usage, indices };
-    bottomAccel = BottomAccel{ vertexBuffer, indexBuffer, vertices.size(), indices.size() / 3,
-                               vk::GeometryFlagBitsKHR::eNoDuplicateAnyHitInvocation };
+    bottomAccel = BottomAccel{ *this, vk::GeometryFlagBitsKHR::eNoDuplicateAnyHitInvocation };
 }
 
 void Mesh::SetMaterial(const Material& material)
