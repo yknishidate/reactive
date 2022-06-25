@@ -30,7 +30,6 @@ public:
     TopAccel& operator=(TopAccel&& other) noexcept = default;
 
     vk::AccelerationStructureKHR GetAccel() const { return *accel; }
-    uint64_t GetBufferAddress() const { return buffer.GetAddress(); }
 
 private:
     vk::UniqueAccelerationStructureKHR accel;
