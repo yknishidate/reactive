@@ -25,9 +25,10 @@ public:
     TopAccel() = default;
     TopAccel(const std::vector<Object>& objects, vk::GeometryFlagBitsKHR geomertyFlag);
     TopAccel(const Object& object, vk::GeometryFlagBitsKHR geomertyFlag);
-    void Rebuild(const std::vector<Object>& objects);
 
     TopAccel& operator=(TopAccel&& other) noexcept = default;
+
+    void Rebuild(const std::vector<Object>& objects);
 
     vk::AccelerationStructureKHR GetAccel() const { return *accel; }
 

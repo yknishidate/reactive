@@ -6,50 +6,54 @@ namespace
 {
     vk::UniqueImage CreateImage(uint32_t width, uint32_t height, vk::Format format)
     {
-        vk::ImageCreateInfo imageCreateInfo{};
-        imageCreateInfo.setImageType(vk::ImageType::e2D);
-        imageCreateInfo.setFormat(format);
-        imageCreateInfo.setExtent({ width, height, 1 });
-        imageCreateInfo.setMipLevels(1);
-        imageCreateInfo.setArrayLayers(1);
-        imageCreateInfo.setUsage(vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled |
-                                 vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst);
-        return Context::GetDevice().createImageUnique(imageCreateInfo);
+        using Usage = vk::ImageUsageFlagBits;
+        return Context::GetDevice().createImageUnique(
+            vk::ImageCreateInfo()
+            .setImageType(vk::ImageType::e2D)
+            .setFormat(format)
+            .setExtent({ width, height, 1 })
+            .setMipLevels(1)
+            .setArrayLayers(1)
+            .setUsage(Usage::eStorage | Usage::eSampled | Usage::eTransferSrc | Usage::eTransferDst)
+        );
     }
 
     vk::UniqueDeviceMemory AllocateMemory(vk::Image image)
     {
         vk::MemoryRequirements requirements = Context::GetDevice().getImageMemoryRequirements(image);
         uint32_t memoryTypeIndex = Context::FindMemoryTypeIndex(requirements, vk::MemoryPropertyFlagBits::eDeviceLocal);
-        vk::MemoryAllocateInfo memoryAllocateInfo{};
-        memoryAllocateInfo.setAllocationSize(requirements.size);
-        memoryAllocateInfo.setMemoryTypeIndex(memoryTypeIndex);
-        return Context::GetDevice().allocateMemoryUnique(memoryAllocateInfo);
+        return Context::GetDevice().allocateMemoryUnique(
+            vk::MemoryAllocateInfo()
+            .setAllocationSize(requirements.size)
+            .setMemoryTypeIndex(memoryTypeIndex)
+        );
     }
 
     vk::UniqueImageView CreateImageView(vk::Image image, vk::Format format)
     {
-        vk::ImageViewCreateInfo imageViewCreateInfo{};
-        imageViewCreateInfo.setImage(image);
-        imageViewCreateInfo.setViewType(vk::ImageViewType::e2D);
-        imageViewCreateInfo.setFormat(format);
-        imageViewCreateInfo.setSubresourceRange({ vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 });
-        return Context::GetDevice().createImageViewUnique(imageViewCreateInfo);
+        return Context::GetDevice().createImageViewUnique(
+            vk::ImageViewCreateInfo()
+            .setImage(image)
+            .setViewType(vk::ImageViewType::e2D)
+            .setFormat(format)
+            .setSubresourceRange({ vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 })
+        );
     }
 
     vk::UniqueSampler CreateSampler()
     {
-        vk::SamplerCreateInfo createInfo{};
-        createInfo.setMagFilter(vk::Filter::eLinear);
-        createInfo.setMinFilter(vk::Filter::eLinear);
-        createInfo.setAnisotropyEnable(VK_FALSE);
-        createInfo.setMaxLod(0.0f);
-        createInfo.setMinLod(0.0f);
-        createInfo.setMipmapMode(vk::SamplerMipmapMode::eLinear);
-        createInfo.setAddressModeU(vk::SamplerAddressMode::eRepeat);
-        createInfo.setAddressModeV(vk::SamplerAddressMode::eRepeat);
-        createInfo.setAddressModeW(vk::SamplerAddressMode::eRepeat);
-        return Context::GetDevice().createSamplerUnique(createInfo);
+        return Context::GetDevice().createSamplerUnique(
+            vk::SamplerCreateInfo()
+            .setMagFilter(vk::Filter::eLinear)
+            .setMinFilter(vk::Filter::eLinear)
+            .setAnisotropyEnable(VK_FALSE)
+            .setMaxLod(0.0f)
+            .setMinLod(0.0f)
+            .setMipmapMode(vk::SamplerMipmapMode::eLinear)
+            .setAddressModeU(vk::SamplerAddressMode::eRepeat)
+            .setAddressModeV(vk::SamplerAddressMode::eRepeat)
+            .setAddressModeW(vk::SamplerAddressMode::eRepeat)
+        );
     }
 }
 
