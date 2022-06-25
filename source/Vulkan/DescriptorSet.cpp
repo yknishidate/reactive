@@ -1,6 +1,6 @@
 #include <filesystem>
 #include <regex>
-#include "Vulkan.hpp"
+#include "Context.hpp"
 #include "Pipeline.hpp"
 #include <SPIRV/GlslangToSpv.h>
 #include <StandAlone/ResourceLimits.h>
@@ -60,7 +60,7 @@ namespace
     {
         vk::ShaderModuleCreateInfo createInfo;
         createInfo.setCode(code);
-        return Vulkan::GetDevice().createShaderModuleUnique(createInfo);
+        return Context::GetDevice().createShaderModuleUnique(createInfo);
     }
 
     std::vector<vk::DescriptorSetLayoutBinding> GetBindings(std::unordered_map<std::string, vk::DescriptorSetLayoutBinding>& map)
@@ -76,15 +76,15 @@ namespace
     {
         vk::DescriptorSetLayoutCreateInfo createInfo;
         createInfo.setBindings(bindings);
-        return Vulkan::GetDevice().createDescriptorSetLayoutUnique(createInfo);
+        return Context::GetDevice().createDescriptorSetLayoutUnique(createInfo);
     }
 
     vk::UniqueDescriptorSet AllocateDescSet(vk::DescriptorSetLayout descSetLayout)
     {
         vk::DescriptorSetAllocateInfo allocateInfo;
-        allocateInfo.setDescriptorPool(Vulkan::GetDescriptorPool());
+        allocateInfo.setDescriptorPool(Context::GetDescriptorPool());
         allocateInfo.setSetLayouts(descSetLayout);
-        std::vector descSets = Vulkan::GetDevice().allocateDescriptorSetsUnique(allocateInfo);
+        std::vector descSets = Context::GetDevice().allocateDescriptorSetsUnique(allocateInfo);
         return std::move(descSets.front());
     }
 
@@ -102,7 +102,7 @@ namespace
         for (auto&& write : writes) {
             write.setDstSet(descSet);
         }
-        Vulkan::GetDevice().updateDescriptorSets(writes, nullptr);
+        Context::GetDevice().updateDescriptorSets(writes, nullptr);
     }
 } // namespace
 

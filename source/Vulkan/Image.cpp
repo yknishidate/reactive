@@ -14,17 +14,17 @@ namespace
         imageCreateInfo.setArrayLayers(1);
         imageCreateInfo.setUsage(vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled |
                                  vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst);
-        return Vulkan::GetDevice().createImageUnique(imageCreateInfo);
+        return Context::GetDevice().createImageUnique(imageCreateInfo);
     }
 
     vk::UniqueDeviceMemory AllocateMemory(vk::Image image)
     {
-        vk::MemoryRequirements requirements = Vulkan::GetDevice().getImageMemoryRequirements(image);
-        uint32_t memoryTypeIndex = Vulkan::FindMemoryTypeIndex(requirements, vk::MemoryPropertyFlagBits::eDeviceLocal);
+        vk::MemoryRequirements requirements = Context::GetDevice().getImageMemoryRequirements(image);
+        uint32_t memoryTypeIndex = Context::FindMemoryTypeIndex(requirements, vk::MemoryPropertyFlagBits::eDeviceLocal);
         vk::MemoryAllocateInfo memoryAllocateInfo{};
         memoryAllocateInfo.setAllocationSize(requirements.size);
         memoryAllocateInfo.setMemoryTypeIndex(memoryTypeIndex);
-        return Vulkan::GetDevice().allocateMemoryUnique(memoryAllocateInfo);
+        return Context::GetDevice().allocateMemoryUnique(memoryAllocateInfo);
     }
 
     vk::UniqueImageView CreateImageView(vk::Image image, vk::Format format)
@@ -34,7 +34,7 @@ namespace
         imageViewCreateInfo.setViewType(vk::ImageViewType::e2D);
         imageViewCreateInfo.setFormat(format);
         imageViewCreateInfo.setSubresourceRange({ vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 });
-        return Vulkan::GetDevice().createImageViewUnique(imageViewCreateInfo);
+        return Context::GetDevice().createImageViewUnique(imageViewCreateInfo);
     }
 
     vk::UniqueSampler CreateSampler()
@@ -49,7 +49,7 @@ namespace
         createInfo.setAddressModeU(vk::SamplerAddressMode::eRepeat);
         createInfo.setAddressModeV(vk::SamplerAddressMode::eRepeat);
         createInfo.setAddressModeW(vk::SamplerAddressMode::eRepeat);
-        return Vulkan::GetDevice().createSamplerUnique(createInfo);
+        return Context::GetDevice().createSamplerUnique(createInfo);
     }
 }
 
@@ -57,10 +57,10 @@ void Image::Init(int width, int height, vk::Format format)
 {
     image = CreateImage(width, height, format);
     memory = AllocateMemory(*image);
-    Vulkan::GetDevice().bindImageMemory(*image, *memory, 0);
+    Context::GetDevice().bindImageMemory(*image, *memory, 0);
     view = CreateImageView(*image, format);
     sampler = CreateSampler();
-    Vulkan::OneTimeSubmit(
+    Context::OneTimeSubmit(
         [&](vk::CommandBuffer commandBuffer)
         {
             SetImageLayout(commandBuffer, *image, vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral);
@@ -85,7 +85,7 @@ void Image::Init(const std::string& filepath)
     HostBuffer staging{ vk::BufferUsageFlagBits::eTransferSrc, static_cast<size_t>(width * height * 4) };
     staging.Copy(data);
 
-    Vulkan::OneTimeSubmit(
+    Context::OneTimeSubmit(
         [&](vk::CommandBuffer commandBuffer)
         {
             vk::BufferImageCopy region{};

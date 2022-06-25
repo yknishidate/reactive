@@ -49,24 +49,24 @@ void UI::Init()
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForVulkan(Window::GetWindow(), true);
     ImGui_ImplVulkan_InitInfo initInfo{};
-    initInfo.Instance = Vulkan::GetInstance();
-    initInfo.PhysicalDevice = Vulkan::GetPhysicalDevice();
-    initInfo.Device = Vulkan::GetDevice();
-    initInfo.QueueFamily = Vulkan::GetQueueFamily();
-    initInfo.Queue = Vulkan::GetQueue();
+    initInfo.Instance = Context::GetInstance();
+    initInfo.PhysicalDevice = Context::GetPhysicalDevice();
+    initInfo.Device = Context::GetDevice();
+    initInfo.QueueFamily = Context::GetQueueFamily();
+    initInfo.Queue = Context::GetQueue();
     initInfo.PipelineCache = nullptr;
-    initInfo.DescriptorPool = Vulkan::GetDescriptorPool();
+    initInfo.DescriptorPool = Context::GetDescriptorPool();
     initInfo.Subpass = 0;
-    initInfo.MinImageCount = Vulkan::GetMinImageCount();
-    initInfo.ImageCount = Vulkan::GetImageCount();
+    initInfo.MinImageCount = Context::GetMinImageCount();
+    initInfo.ImageCount = Context::GetImageCount();
     initInfo.MSAASamples = vk::SampleCountFlagBits::e1;
     initInfo.Allocator = nullptr;
-    ImGui_ImplVulkan_Init(&initInfo, Vulkan::GetRenderPass());
+    ImGui_ImplVulkan_Init(&initInfo, Context::GetRenderPass());
 
     // Setup font
     io.Fonts->AddFontFromFileTTF("../asset/Roboto-Medium.ttf", 24.0f);
     {
-        Vulkan::OneTimeSubmit(
+        Context::OneTimeSubmit(
             [&](vk::CommandBuffer commandBuffer)
             {
                 ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
@@ -100,10 +100,10 @@ void UI::Prepare()
 
 void UI::Render(vk::CommandBuffer commandBuffer)
 {
-    Vulkan::BeginRenderPass();
+    Context::BeginRenderPass();
     ImDrawData* drawData = ImGui::GetDrawData();
     ImGui_ImplVulkan_RenderDrawData(drawData, commandBuffer);
-    Vulkan::EndRenderPass();
+    Context::EndRenderPass();
 }
 
 bool UI::Checkbox(const std::string& label, bool& value)

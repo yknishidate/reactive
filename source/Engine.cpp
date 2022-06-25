@@ -98,7 +98,7 @@ void Engine::Init()
     spdlog::info("Engine::Init()");
 
     Window::Init(1920, 1080, "../asset/Vulkan.png");
-    Vulkan::Init();
+    Context::Init();
     UI::Init();
 
     // Create resources
@@ -262,8 +262,8 @@ void Engine::Run()
 
         // Render
         if (!Window::IsMinimized()) {
-            Vulkan::WaitNextFrame();
-            vk::CommandBuffer commandBuffer = Vulkan::BeginCommandBuffer();
+            Context::WaitNextFrame();
+            vk::CommandBuffer commandBuffer = Context::BeginCommandBuffer();
 
             int width = Window::GetWidth();
             int height = Window::GetHeight();
@@ -277,14 +277,14 @@ void Engine::Run()
             initReservoirPipeline.Run(commandBuffer, width, height, &pushConstants);
             shadingPipeline.Run(commandBuffer, width, height, &pushConstants);
 
-            CopyImages(commandBuffer, width, height, outputImage.GetImage(), Vulkan::GetBackImage());
+            CopyImages(commandBuffer, width, height, outputImage.GetImage(), Context::GetBackImage());
 
             UI::Render(commandBuffer);
-            Vulkan::Submit(commandBuffer);
-            Vulkan::Present();
+            Context::Submit(commandBuffer);
+            Context::Present();
         }
     }
-    Vulkan::GetDevice().waitIdle();
+    Context::GetDevice().waitIdle();
     UI::Shutdown();
     Window::Shutdown();
 }

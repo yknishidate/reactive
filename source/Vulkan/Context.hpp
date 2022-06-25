@@ -16,7 +16,7 @@ struct FrameSemaphores
     vk::UniqueSemaphore renderCompleteSemaphore{};
 };
 
-struct Vulkan
+struct Context
 {
     static void Init();
     static auto AllocateCommandBuffers(uint32_t count)->std::vector<vk::UniqueCommandBuffer>;

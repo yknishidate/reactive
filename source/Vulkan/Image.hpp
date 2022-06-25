@@ -1,5 +1,5 @@
 #pragma once
-#include "Vulkan.hpp"
+#include "Context.hpp"
 
 class Image
 {

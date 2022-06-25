@@ -1,26 +1,26 @@
-#include "Vulkan.hpp"
+#include "Context.hpp"
 #include "Buffer.hpp"
 
 namespace
 {
     vk::UniqueBuffer createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage)
     {
-        return Vulkan::GetDevice().createBufferUnique({ {}, size, usage });
+        return Context::GetDevice().createBufferUnique({ {}, size, usage });
     }
 
     vk::UniqueDeviceMemory AllocateMemory(vk::Buffer buffer, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memoryProp)
     {
-        vk::MemoryRequirements requirements = Vulkan::GetDevice().getBufferMemoryRequirements(buffer);
-        uint32_t memoryTypeIndex = Vulkan::FindMemoryTypeIndex(requirements, memoryProp);
+        vk::MemoryRequirements requirements = Context::GetDevice().getBufferMemoryRequirements(buffer);
+        uint32_t memoryTypeIndex = Context::FindMemoryTypeIndex(requirements, memoryProp);
         vk::MemoryAllocateInfo memoryAllocateInfo;
         memoryAllocateInfo.setAllocationSize(requirements.size);
         memoryAllocateInfo.setMemoryTypeIndex(memoryTypeIndex);
         if (usage & vk::BufferUsageFlagBits::eShaderDeviceAddress) {
             vk::MemoryAllocateFlagsInfo flagsInfo{ vk::MemoryAllocateFlagBits::eDeviceAddress };
             memoryAllocateInfo.pNext = &flagsInfo;
-            return Vulkan::GetDevice().allocateMemoryUnique(memoryAllocateInfo);
+            return Context::GetDevice().allocateMemoryUnique(memoryAllocateInfo);
         }
-        return Vulkan::GetDevice().allocateMemoryUnique(memoryAllocateInfo);
+        return Context::GetDevice().allocateMemoryUnique(memoryAllocateInfo);
     }
 }
 
@@ -29,10 +29,10 @@ Buffer::Buffer(vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memoryProp, s
     this->size = size;
     buffer = createBuffer(size, usage);
     memory = AllocateMemory(*buffer, usage, memoryProp);
-    Vulkan::GetDevice().bindBufferMemory(*buffer, *memory, 0);
+    Context::GetDevice().bindBufferMemory(*buffer, *memory, 0);
     if (usage & vk::BufferUsageFlagBits::eShaderDeviceAddress) {
         vk::BufferDeviceAddressInfoKHR bufferDeviceAI{ *buffer };
-        deviceAddress = Vulkan::GetDevice().getBufferAddressKHR(&bufferDeviceAI);
+        deviceAddress = Context::GetDevice().getBufferAddressKHR(&bufferDeviceAI);
     }
 }
 
@@ -44,7 +44,7 @@ HostBuffer::HostBuffer(vk::BufferUsageFlags usage, size_t size)
 void HostBuffer::Copy(const void* data)
 {
     if (!mapped) {
-        mapped = Vulkan::GetDevice().mapMemory(*memory, 0, size);
+        mapped = Context::GetDevice().mapMemory(*memory, 0, size);
     }
     std::memcpy(mapped, data, static_cast<size_t>(size));
 }
@@ -60,7 +60,7 @@ void DeviceBuffer::Copy(const void* data)
     HostBuffer staginBuffer{ usage | vk::BufferUsageFlagBits::eTransferSrc, size };
     staginBuffer.Copy(data);
 
-    Vulkan::OneTimeSubmit(
+    Context::OneTimeSubmit(
         [&](vk::CommandBuffer commandBuffer)
         {
             vk::BufferCopy region{ 0, 0, size };

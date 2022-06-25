@@ -3,7 +3,7 @@
 vk::DeviceSize Geometry::GetAccelSize() const
 {
     const auto buildType = vk::AccelerationStructureBuildTypeKHR::eDevice;
-    const auto buildSizes = Vulkan::GetDevice().getAccelerationStructureBuildSizesKHR(buildType, geometryInfo, primitiveCount);
+    const auto buildSizes = Context::GetDevice().getAccelerationStructureBuildSizesKHR(buildType, geometryInfo, primitiveCount);
     return buildSizes.accelerationStructureSize;
 }
 

@@ -1,4 +1,4 @@
-#include "Vulkan.hpp"
+#include "Context.hpp"
 #include <iostream>
 #include <regex>
 #include <spdlog/spdlog.h>
@@ -242,9 +242,9 @@ namespace
     }
 }
 
-void Vulkan::Init()
+void Context::Init()
 {
-    spdlog::info("Vulkan::Init()");
+    spdlog::info("Context::Init()");
     std::vector layers{ "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_monitor" };
     instance = CreateInstance(GetExtensions(), layers);
     VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
@@ -262,7 +262,7 @@ void Vulkan::Init()
     renderPass = CreateRenderPass(*device);
 
     // Create Command Buffers
-    size_t imageCount = Vulkan::swapchainImages.size();
+    size_t imageCount = swapchainImages.size();
     frames.resize(imageCount);
     frameSemaphores.resize(imageCount);
     for (uint32_t i = 0; i < imageCount; i++) {
@@ -295,7 +295,7 @@ void Vulkan::Init()
     }
 }
 
-std::vector<vk::UniqueCommandBuffer> Vulkan::AllocateCommandBuffers(uint32_t count)
+std::vector<vk::UniqueCommandBuffer> Context::AllocateCommandBuffers(uint32_t count)
 {
     const auto commandBufferInfo = vk::CommandBufferAllocateInfo()
         .setCommandPool(*commandPool)
@@ -305,12 +305,12 @@ std::vector<vk::UniqueCommandBuffer> Vulkan::AllocateCommandBuffers(uint32_t cou
     return device->allocateCommandBuffersUnique(commandBufferInfo);
 }
 
-vk::UniqueCommandBuffer Vulkan::AllocateCommandBuffer()
+vk::UniqueCommandBuffer Context::AllocateCommandBuffer()
 {
     return std::move(AllocateCommandBuffers(1).front());
 }
 
-void Vulkan::SubmitAndWait(vk::CommandBuffer commandBuffer)
+void Context::SubmitAndWait(vk::CommandBuffer commandBuffer)
 {
     const auto submitInfo = vk::SubmitInfo()
         .setCommandBuffers(commandBuffer);
@@ -319,7 +319,7 @@ void Vulkan::SubmitAndWait(vk::CommandBuffer commandBuffer)
     queue.waitIdle();
 }
 
-void Vulkan::OneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command)
+void Context::OneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command)
 {
     vk::UniqueCommandBuffer commandBuffer = AllocateCommandBuffer();
 
@@ -331,7 +331,7 @@ void Vulkan::OneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command
     SubmitAndWait(*commandBuffer);
 }
 
-uint32_t Vulkan::FindMemoryTypeIndex(vk::MemoryRequirements requirements, vk::MemoryPropertyFlags memoryProp)
+uint32_t Context::FindMemoryTypeIndex(vk::MemoryRequirements requirements, vk::MemoryPropertyFlags memoryProp)
 {
     const vk::PhysicalDeviceMemoryProperties memoryProperties = physicalDevice.getMemoryProperties();
     for (uint32_t index = 0; index < memoryProperties.memoryTypeCount; ++index) {
@@ -344,7 +344,7 @@ uint32_t Vulkan::FindMemoryTypeIndex(vk::MemoryRequirements requirements, vk::Me
     throw std::runtime_error("Failed to find memory type index.");
 }
 
-void Vulkan::BeginRenderPass()
+void Context::BeginRenderPass()
 {
     const auto renderArea = vk::Rect2D()
         .setExtent({ static_cast<uint32_t>(Window::GetWidth()), static_cast<uint32_t>(Window::GetHeight()) });
@@ -357,12 +357,12 @@ void Vulkan::BeginRenderPass()
     frames[frameIndex].commandBuffer->beginRenderPass(beginInfo, vk::SubpassContents::eInline);
 }
 
-void Vulkan::EndRenderPass()
+void Context::EndRenderPass()
 {
     frames[frameIndex].commandBuffer->endRenderPass();
 }
 
-void Vulkan::WaitNextFrame()
+void Context::WaitNextFrame()
 {
     const vk::Semaphore imageAcquiredSemaphore = *frameSemaphores[semaphoreIndex].imageAcquiredSemaphore;
     const vk::Semaphore renderCompleteSemaphore = *frameSemaphores[semaphoreIndex].renderCompleteSemaphore;
@@ -378,14 +378,14 @@ void Vulkan::WaitNextFrame()
     device->resetFences(fence);
 }
 
-vk::CommandBuffer Vulkan::BeginCommandBuffer()
+vk::CommandBuffer Context::BeginCommandBuffer()
 {
     const vk::CommandBufferBeginInfo info{ vk::CommandBufferUsageFlagBits::eOneTimeSubmit };
     frames[frameIndex].commandBuffer->begin(info);
     return *frames[frameIndex].commandBuffer;
 }
 
-void Vulkan::Submit(vk::CommandBuffer commandBuffer)
+void Context::Submit(vk::CommandBuffer commandBuffer)
 {
     commandBuffer.end();
 
@@ -400,7 +400,7 @@ void Vulkan::Submit(vk::CommandBuffer commandBuffer)
     queue.submit(submitInfo, *frames[frameIndex].fence);
 }
 
-void Vulkan::Present()
+void Context::Present()
 {
     if (swapchainRebuild) {
         return;
@@ -421,13 +421,13 @@ void Vulkan::Present()
     semaphoreIndex = (semaphoreIndex + 1) % swapchainImages.size();
 }
 
-void Vulkan::RebuildSwapchain()
+void Context::RebuildSwapchain()
 {
     //int width, height;
     //glfwGetFramebufferSize(window, &width, &height);
     //if (width > 0 && height > 0) {
     //    ImGui_ImplVulkan_SetMinImageCount(minImageCount);
-    //    ImGui_ImplVulkanH_CreateOrResizeWindow(instance, physicalDevice, device, &windowData, Vulkan::queueFamily, nullptr, width, height, minImageCount);
+    //    ImGui_ImplVulkanH_CreateOrResizeWindow(instance, physicalDevice, device, &windowData, Context::queueFamily, nullptr, width, height, minImageCount);
     //    windowData.FrameIndex = 0;
     //    swapchainRebuild = false;
     //}

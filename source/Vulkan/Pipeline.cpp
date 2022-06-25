@@ -1,6 +1,6 @@
 #include <filesystem>
 #include <regex>
-#include "Vulkan.hpp"
+#include "Context.hpp"
 #include "Pipeline.hpp"
 #include <SPIRV/GlslangToSpv.h>
 #include <StandAlone/ResourceLimits.h>
@@ -59,7 +59,7 @@ namespace
     {
         vk::ShaderModuleCreateInfo createInfo;
         createInfo.setCode(code);
-        return Vulkan::GetDevice().createShaderModuleUnique(createInfo);
+        return Context::GetDevice().createShaderModuleUnique(createInfo);
     }
 
     std::vector<vk::DescriptorSetLayoutBinding> GetBindings(std::unordered_map<std::string, vk::DescriptorSetLayoutBinding>& map)
@@ -75,7 +75,7 @@ namespace
     {
         vk::DescriptorSetLayoutCreateInfo createInfo;
         createInfo.setBindings(bindings);
-        return Vulkan::GetDevice().createDescriptorSetLayoutUnique(createInfo);
+        return Context::GetDevice().createDescriptorSetLayoutUnique(createInfo);
     }
 
     vk::UniquePipelineLayout CreatePipelineLayout(vk::DescriptorSetLayout descSetLayout,
@@ -90,7 +90,7 @@ namespace
             pushRange.setStageFlags(shaderStage);
             createInfo.setPushConstantRanges(pushRange);
         }
-        return Vulkan::GetDevice().createPipelineLayoutUnique(createInfo);
+        return Context::GetDevice().createPipelineLayoutUnique(createInfo);
     }
 
     vk::UniquePipeline CreateComputePipeline(vk::ShaderModule shaderModule, vk::ShaderStageFlagBits shaderStage,
@@ -104,7 +104,7 @@ namespace
         vk::ComputePipelineCreateInfo createInfo;
         createInfo.setStage(stage);
         createInfo.setLayout(pipelineLayout);
-        auto res = Vulkan::GetDevice().createComputePipelinesUnique({}, createInfo);
+        auto res = Context::GetDevice().createComputePipelinesUnique({}, createInfo);
         if (res.result != vk::Result::eSuccess) {
             throw std::runtime_error("failed to create ray tracing pipeline.");
         }
@@ -120,7 +120,7 @@ namespace
         createInfo.setGroups(shaderGroups);
         createInfo.setMaxPipelineRayRecursionDepth(4);
         createInfo.setLayout(pipelineLayout);
-        auto res = Vulkan::GetDevice().createRayTracingPipelineKHRUnique(nullptr, nullptr, createInfo);
+        auto res = Context::GetDevice().createRayTracingPipelineKHRUnique(nullptr, nullptr, createInfo);
         if (res.result != vk::Result::eSuccess) {
             throw std::runtime_error("failed to create ray tracing pipeline.");
         }
@@ -131,9 +131,9 @@ namespace
     vk::UniqueDescriptorSet AllocateDescSet(vk::DescriptorSetLayout descSetLayout)
     {
         vk::DescriptorSetAllocateInfo allocateInfo;
-        allocateInfo.setDescriptorPool(Vulkan::GetDescriptorPool());
+        allocateInfo.setDescriptorPool(Context::GetDescriptorPool());
         allocateInfo.setSetLayouts(descSetLayout);
-        std::vector descSets = Vulkan::GetDevice().allocateDescriptorSetsUnique(allocateInfo);
+        std::vector descSets = Context::GetDevice().allocateDescriptorSetsUnique(allocateInfo);
         return std::move(descSets.front());
     }
 
@@ -162,7 +162,7 @@ namespace
         for (auto&& write : writes) {
             write.setDstSet(descSet);
         }
-        Vulkan::GetDevice().updateDescriptorSets(writes, nullptr);
+        Context::GetDevice().updateDescriptorSets(writes, nullptr);
     }
 } // namespace
 
@@ -362,7 +362,7 @@ void RayTracingPipeline::Setup(size_t pushSize)
 
     // Get Ray Tracing Properties
     using vkRTP = vk::PhysicalDeviceRayTracingPipelinePropertiesKHR;
-    auto rtProperties = Vulkan::GetPhysicalDevice().getProperties2<vk::PhysicalDeviceProperties2, vkRTP>().get<vkRTP>();
+    auto rtProperties = Context::GetPhysicalDevice().getProperties2<vk::PhysicalDeviceProperties2, vkRTP>().get<vkRTP>();
 
     // Calculate SBT size
     uint32_t handleSize = rtProperties.shaderGroupHandleSize;
@@ -372,8 +372,8 @@ void RayTracingPipeline::Setup(size_t pushSize)
 
     // Get shader group handles
     std::vector<uint8_t> shaderHandleStorage(sbtSize);
-    vk::Result groupRes = Vulkan::GetDevice().getRayTracingShaderGroupHandlesKHR(*pipeline, 0, groupCount, sbtSize,
-                                                                                 shaderHandleStorage.data());
+    vk::Result groupRes = Context::GetDevice().getRayTracingShaderGroupHandlesKHR(*pipeline, 0, groupCount, sbtSize,
+                                                                                  shaderHandleStorage.data());
     if (groupRes != vk::Result::eSuccess) {
         throw std::runtime_error("failed to get ray tracing shader group handles.");
     }

@@ -1,4 +1,4 @@
-#include "Vulkan.hpp"
+#include "Context.hpp"
 #include "Accel.hpp"
 #include "Object.hpp"
 
@@ -12,7 +12,7 @@ namespace
             .setSize(size)
             .setType(type);
 
-        return Vulkan::GetDevice().createAccelerationStructureKHRUnique(accelInfo);
+        return Context::GetDevice().createAccelerationStructureKHRUnique(accelInfo);
     }
 
     void BuildAccel(vk::AccelerationStructureKHR accel, vk::DeviceSize size, uint32_t primitiveCount,
@@ -24,7 +24,7 @@ namespace
         geometryInfo.setScratchData(scratchBuffer.GetAddress());
         geometryInfo.setDstAccelerationStructure(accel);
 
-        Vulkan::OneTimeSubmit(
+        Context::OneTimeSubmit(
             [&](vk::CommandBuffer commandBuffer)
             {
                 vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo{ primitiveCount, 0, 0, 0 };
