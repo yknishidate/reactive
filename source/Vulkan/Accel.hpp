@@ -12,7 +12,6 @@ public:
 
     BottomAccel& operator=(BottomAccel&& other) noexcept = default;
 
-    vk::AccelerationStructureKHR GetAccel() const { return *accel; }
     uint64_t GetBufferAddress() const { return buffer.GetAddress(); }
 
 private:
