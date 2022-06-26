@@ -30,7 +30,7 @@ private:
     Image indexImage;
     Image diffuseImage;
     Image emissionImage;
-    DescriptorSet descSet;
+    //DescriptorSet descSet;
     ComputePipeline meanPipeline;
     ComputePipeline medianPipeline;
     RayTracingPipeline ptPipeline;

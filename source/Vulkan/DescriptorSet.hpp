@@ -1,3 +1,5 @@
+#pragma once
+#include <unordered_map>
 #include "Buffer.hpp"
 #include "Image.hpp"
 
@@ -46,7 +48,7 @@ public:
         write.setDescriptorType(binding.descriptorType);
         write.setDescriptorCount(binding.descriptorCount);
         write.setDstBinding(binding.binding);
-        write.setPNext(&accelInfos);
+        write.setPNext(&accelInfos.front());
     }
 
     vk::WriteDescriptorSet Get() const { return write; }
@@ -61,7 +63,8 @@ private:
 class DescriptorSet
 {
 public:
-    void Allocate(const std::string& shaderPath);
+    void SetupLayout();
+    void Allocate();
     void Update();
 
     void Register(const std::string& name, vk::Buffer buffer, size_t size);
@@ -71,14 +74,16 @@ public:
     void Register(const std::string& name, const Image& image);
     void Register(const std::string& name, const vk::AccelerationStructureKHR& accel);
 
-private:
-    vk::UniqueDescriptorSetLayout descSetLayout;
-    vk::UniqueDescriptorSet descSet;
-    std::unordered_map<std::string, vk::DescriptorSetLayoutBinding> bindingMap;
+    void AddBindingMap(const std::vector<uint32_t>& spvShader, vk::ShaderStageFlags stage);
 
-    //std::vector<std::vector<vk::DescriptorImageInfo>> imageInfos;
-    //std::vector<std::vector<vk::DescriptorBufferInfo>> bufferInfos;
-    //std::vector<vk::WriteDescriptorSetAccelerationStructureKHR> accelInfos;
-    //std::vector<vk::WriteDescriptorSet> writes;
+    auto GetLayout() const { return *descSetLayout; }
+    auto Get() const { return *descSet; }
+
+    std::vector<vk::DescriptorSetLayoutBinding> GetBindings() const;
+
+private:
+    vk::UniqueDescriptorSet descSet;
+    vk::UniqueDescriptorSetLayout descSetLayout;
+    std::unordered_map<std::string, vk::DescriptorSetLayoutBinding> bindingMap;
     std::vector<WriteDescriptorSet> writes;
 };

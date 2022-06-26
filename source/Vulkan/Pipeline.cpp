@@ -11,71 +11,11 @@
 
 namespace
 {
-    void UpdateBindingMap(std::unordered_map<std::string, vk::DescriptorSetLayoutBinding>& map,
-                          spirv_cross::Resource& resource, spirv_cross::CompilerGLSL& glsl,
-                          vk::ShaderStageFlags stage, vk::DescriptorType type)
-    {
-        if (map.contains(resource.name)) {
-            auto& binding = map[resource.name];
-            if (binding.binding != glsl.get_decoration(resource.id, spv::DecorationBinding)) {
-                throw std::runtime_error("binding does not match.");
-            }
-            binding.stageFlags |= stage;
-        } else {
-            vk::DescriptorSetLayoutBinding binding;
-            binding.binding = glsl.get_decoration(resource.id, spv::DecorationBinding);
-            binding.descriptorType = type;
-            binding.descriptorCount = 1;
-            binding.stageFlags = stage;
-            map[resource.name] = binding;
-        }
-    }
-
-    void AddBindingMap(const std::vector<uint32_t>& spvShader,
-                       std::unordered_map<std::string, vk::DescriptorSetLayoutBinding>& map,
-                       vk::ShaderStageFlags stage)
-    {
-        spirv_cross::CompilerGLSL glsl{ spvShader };
-        spirv_cross::ShaderResources resources = glsl.get_shader_resources();
-
-        for (auto&& resource : resources.uniform_buffers) {
-            UpdateBindingMap(map, resource, glsl, stage, vk::DescriptorType::eUniformBuffer);
-        }
-        for (auto&& resource : resources.acceleration_structures) {
-            UpdateBindingMap(map, resource, glsl, stage, vk::DescriptorType::eAccelerationStructureKHR);
-        }
-        for (auto&& resource : resources.storage_buffers) {
-            UpdateBindingMap(map, resource, glsl, stage, vk::DescriptorType::eStorageBuffer);
-        }
-        for (auto&& resource : resources.storage_images) {
-            UpdateBindingMap(map, resource, glsl, stage, vk::DescriptorType::eStorageImage);
-        }
-        for (auto&& resource : resources.sampled_images) {
-            UpdateBindingMap(map, resource, glsl, stage, vk::DescriptorType::eCombinedImageSampler);
-        }
-    }
-
     vk::UniqueShaderModule CreateShaderModule(const std::vector<uint32_t>& code)
     {
         vk::ShaderModuleCreateInfo createInfo;
         createInfo.setCode(code);
         return Context::GetDevice().createShaderModuleUnique(createInfo);
-    }
-
-    std::vector<vk::DescriptorSetLayoutBinding> GetBindings(std::unordered_map<std::string, vk::DescriptorSetLayoutBinding>& map)
-    {
-        std::vector<vk::DescriptorSetLayoutBinding> bindings;
-        for (auto&& [name, binding] : map) {
-            bindings.push_back(binding);
-        }
-        return bindings;
-    }
-
-    vk::UniqueDescriptorSetLayout CreateDescSetLayout(const std::vector<vk::DescriptorSetLayoutBinding>& bindings)
-    {
-        vk::DescriptorSetLayoutCreateInfo createInfo;
-        createInfo.setBindings(bindings);
-        return Context::GetDevice().createDescriptorSetLayoutUnique(createInfo);
     }
 
     vk::UniquePipelineLayout CreatePipelineLayout(vk::DescriptorSetLayout descSetLayout,
@@ -128,15 +68,6 @@ namespace
         return {};
     }
 
-    vk::UniqueDescriptorSet AllocateDescSet(vk::DescriptorSetLayout descSetLayout)
-    {
-        vk::DescriptorSetAllocateInfo allocateInfo;
-        allocateInfo.setDescriptorPool(Context::GetDescriptorPool());
-        allocateInfo.setSetLayouts(descSetLayout);
-        std::vector descSets = Context::GetDevice().allocateDescriptorSetsUnique(allocateInfo);
-        return std::move(descSets.front());
-    }
-
     vk::StridedDeviceAddressRegionKHR CreateAddressRegion(
         vk::PhysicalDeviceRayTracingPipelinePropertiesKHR rtProperties,
         vk::DeviceAddress deviceAddress)
@@ -146,15 +77,6 @@ namespace
         region.setStride(rtProperties.shaderGroupHandleAlignment);
         region.setSize(rtProperties.shaderGroupHandleAlignment);
         return region;
-    }
-
-    vk::WriteDescriptorSet MakeWrite(vk::DescriptorSetLayoutBinding binding)
-    {
-        vk::WriteDescriptorSet write;
-        write.setDescriptorType(binding.descriptorType);
-        write.setDescriptorCount(binding.descriptorCount);
-        write.setDstBinding(binding.binding);
-        return write;
     }
 
     void UpdateDescSet(vk::DescriptorSet descSet, std::vector<vk::WriteDescriptorSet>& writes)
@@ -168,49 +90,17 @@ namespace
 
 void Pipeline::Register(const std::string& name, vk::Buffer buffer, size_t size)
 {
-    vk::DescriptorBufferInfo bufferInfo{ buffer, 0, size };
-    bufferInfos.push_back({ bufferInfo });
-    bindingMap[name].descriptorCount = 1;
-
-    vk::WriteDescriptorSet write = MakeWrite(bindingMap[name]);
-    write.setBufferInfo(bufferInfos.back());
-    writes.push_back(write);
+    descSet.Register(name, buffer, size);
 }
 
 void Pipeline::Register(const std::string& name, vk::ImageView view, vk::Sampler sampler)
 {
-    vk::DescriptorImageInfo imageInfo;
-    imageInfo.setImageView(view);
-    imageInfo.setSampler(sampler);
-    imageInfo.setImageLayout(vk::ImageLayout::eGeneral);
-    imageInfos.push_back({ imageInfo });
-    bindingMap[name].descriptorCount = 1;
-
-    vk::WriteDescriptorSet write = MakeWrite(bindingMap[name]);
-    write.setImageInfo(imageInfos.back());
-    writes.push_back(write);
+    descSet.Register(name, view, sampler);
 }
 
 void Pipeline::Register(const std::string& name, const std::vector<Image>& images)
 {
-    if (images.size() == 0) {
-        return;
-    }
-    std::vector<vk::DescriptorImageInfo> infos;
-    for (auto&& image : images) {
-        vk::DescriptorImageInfo info;
-        info.setImageView(image.GetView());
-        info.setSampler(image.GetSampler());
-        info.setImageLayout(vk::ImageLayout::eGeneral);
-        infos.push_back(info);
-    }
-    imageInfos.push_back(infos);
-
-    bindingMap[name].descriptorCount = images.size();
-
-    vk::WriteDescriptorSet write = MakeWrite(bindingMap[name]);
-    write.setImageInfo(imageInfos.back());
-    writes.push_back(write);
+    descSet.Register(name, images);
 }
 
 void Pipeline::Register(const std::string& name, const Buffer& buffer)
@@ -225,13 +115,7 @@ void Pipeline::Register(const std::string& name, const Image& image)
 
 void Pipeline::Register(const std::string& name, const vk::AccelerationStructureKHR& accel)
 {
-    vk::WriteDescriptorSetAccelerationStructureKHR accelInfo{ accel };
-    accelInfos.push_back(accelInfo);
-    bindingMap[name].descriptorCount = 1;
-
-    vk::WriteDescriptorSet write = MakeWrite(bindingMap[name]);
-    write.setPNext(&accelInfos.back());
-    writes.push_back(write);
+    descSet.Register(name, accel);
 }
 
 void ComputePipeline::LoadShaders(const std::string& path)
@@ -239,25 +123,23 @@ void ComputePipeline::LoadShaders(const std::string& path)
     spdlog::info("ComputePipeline::LoadShaders()");
 
     std::vector spirvCode = Compiler::CompileToSPV(path);
-    AddBindingMap(spirvCode, bindingMap, vk::ShaderStageFlagBits::eCompute);
-
+    descSet.AddBindingMap(spirvCode, vk::ShaderStageFlagBits::eCompute);
     shaderModule = CreateShaderModule(spirvCode);
 }
 
 void ComputePipeline::Setup(size_t pushSize)
 {
     this->pushSize = pushSize;
-    descSetLayout = CreateDescSetLayout(GetBindings(bindingMap));
-    pipelineLayout = CreatePipelineLayout(*descSetLayout, pushSize, vk::ShaderStageFlagBits::eCompute);
+    descSet.SetupLayout();
+    pipelineLayout = CreatePipelineLayout(descSet.GetLayout(), pushSize, vk::ShaderStageFlagBits::eCompute);
     pipeline = CreateComputePipeline(*shaderModule, vk::ShaderStageFlagBits::eCompute, *pipelineLayout);
-    descSet = AllocateDescSet(*descSetLayout);
-    UpdateDescSet(*descSet, writes);
+    descSet.Allocate();
 }
 
 void ComputePipeline::Run(vk::CommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY, void* pushData)
 {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *pipeline);
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *pipelineLayout, 0, *descSet, nullptr);
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *pipelineLayout, 0, descSet.Get(), nullptr);
     if (pushData) {
         commandBuffer.pushConstants(*pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0, pushSize, pushData);
     }
@@ -282,9 +164,9 @@ void RayTracingPipeline::LoadShaders(const std::string& rgenPath, const std::str
     std::vector chitShader = Compiler::CompileToSPV(chitPath);
 
     // Get bindings
-    AddBindingMap(rgenShader, bindingMap, vk::ShaderStageFlagBits::eRaygenKHR);
-    AddBindingMap(missShader, bindingMap, vk::ShaderStageFlagBits::eMissKHR);
-    AddBindingMap(chitShader, bindingMap, vk::ShaderStageFlagBits::eClosestHitKHR);
+    descSet.AddBindingMap(rgenShader, vk::ShaderStageFlagBits::eRaygenKHR);
+    descSet.AddBindingMap(missShader, vk::ShaderStageFlagBits::eMissKHR);
+    descSet.AddBindingMap(chitShader, vk::ShaderStageFlagBits::eClosestHitKHR);
 
     shaderModules.push_back(CreateShaderModule(rgenShader));
     shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eRaygenKHR, *shaderModules.back(), "main" });
@@ -323,10 +205,10 @@ void RayTracingPipeline::LoadShaders(const std::string& rgenPath, const std::str
     std::vector ahitShader = Compiler::CompileToSPV(ahitPath);
 
     // Get bindings
-    AddBindingMap(rgenShader, bindingMap, vk::ShaderStageFlagBits::eRaygenKHR);
-    AddBindingMap(missShader, bindingMap, vk::ShaderStageFlagBits::eMissKHR);
-    AddBindingMap(chitShader, bindingMap, vk::ShaderStageFlagBits::eClosestHitKHR);
-    AddBindingMap(ahitShader, bindingMap, vk::ShaderStageFlagBits::eAnyHitKHR);
+    descSet.AddBindingMap(rgenShader, vk::ShaderStageFlagBits::eRaygenKHR);
+    descSet.AddBindingMap(missShader, vk::ShaderStageFlagBits::eMissKHR);
+    descSet.AddBindingMap(chitShader, vk::ShaderStageFlagBits::eClosestHitKHR);
+    descSet.AddBindingMap(ahitShader, vk::ShaderStageFlagBits::eAnyHitKHR);
 
 
     shaderModules.push_back(CreateShaderModule(rgenShader));
@@ -350,10 +232,9 @@ void RayTracingPipeline::LoadShaders(const std::string& rgenPath, const std::str
 void RayTracingPipeline::Setup(size_t pushSize)
 {
     this->pushSize = pushSize;
-    std::vector bindings = GetBindings(bindingMap);
 
-    descSetLayout = CreateDescSetLayout(bindings);
-    pipelineLayout = CreatePipelineLayout(*descSetLayout, pushSize,
+    descSet.SetupLayout();
+    pipelineLayout = CreatePipelineLayout(descSet.GetLayout(), pushSize,
                                           vk::ShaderStageFlagBits::eRaygenKHR |
                                           vk::ShaderStageFlagBits::eMissKHR |
                                           vk::ShaderStageFlagBits::eClosestHitKHR |
@@ -396,14 +277,13 @@ void RayTracingPipeline::Setup(size_t pushSize)
     missSBT.Copy(shaderHandleStorage.data() + 1 * handleSizeAligned);
     hitSBT.Copy(shaderHandleStorage.data() + 2 * handleSizeAligned);
 
-    descSet = AllocateDescSet(*descSetLayout);
-    UpdateDescSet(*descSet, writes);
+    descSet.Allocate();
 }
 
 void RayTracingPipeline::Run(vk::CommandBuffer commandBuffer, uint32_t countX, uint32_t countY, void* pushData)
 {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, *pipeline);
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eRayTracingKHR, *pipelineLayout, 0, *descSet, nullptr);
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eRayTracingKHR, *pipelineLayout, 0, descSet.Get(), nullptr);
     if (pushData) {
         commandBuffer.pushConstants(*pipelineLayout,
                                     vk::ShaderStageFlagBits::eRaygenKHR |

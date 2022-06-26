@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vulkan/vulkan.hpp>
 #include "Buffer.hpp"
+#include "DescriptorSet.hpp"
 
 class Image;
 
@@ -18,17 +19,10 @@ public:
     void Register(const std::string& name, const vk::AccelerationStructureKHR& accel);
 
 protected:
-    vk::UniqueDescriptorSetLayout descSetLayout;
     vk::UniquePipelineLayout pipelineLayout;
     vk::UniquePipeline pipeline;
-    vk::UniqueDescriptorSet descSet;
     size_t pushSize;
-    std::unordered_map<std::string, vk::DescriptorSetLayoutBinding> bindingMap;
-
-    std::vector<std::vector<vk::DescriptorImageInfo>> imageInfos;
-    std::vector<std::vector<vk::DescriptorBufferInfo>> bufferInfos;
-    std::vector<vk::WriteDescriptorSetAccelerationStructureKHR> accelInfos;
-    std::vector<vk::WriteDescriptorSet> writes;
+    DescriptorSet descSet;
 };
 
 class ComputePipeline : public Pipeline

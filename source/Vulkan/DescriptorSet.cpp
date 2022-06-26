@@ -88,15 +88,6 @@ namespace
         return std::move(descSets.front());
     }
 
-    vk::WriteDescriptorSet MakeWrite(vk::DescriptorSetLayoutBinding binding)
-    {
-        vk::WriteDescriptorSet write;
-        write.setDescriptorType(binding.descriptorType);
-        write.setDescriptorCount(binding.descriptorCount);
-        write.setDstBinding(binding.binding);
-        return write;
-    }
-
     void UpdateDescSet(vk::DescriptorSet descSet, std::vector<vk::WriteDescriptorSet>& writes)
     {
         for (auto&& write : writes) {
@@ -106,26 +97,23 @@ namespace
     }
 } // namespace
 
-void DescriptorSet::Allocate(const std::string& shaderPath)
+void DescriptorSet::SetupLayout()
 {
-    std::vector spirvCode = Compiler::CompileToSPV(shaderPath);
-    AddBindingMap(spirvCode, bindingMap, vk::ShaderStageFlagBits::eCompute);
-    std::vector bindings = GetBindings(bindingMap);
-    descSetLayout = CreateDescSetLayout(bindings);
+    descSetLayout = CreateDescSetLayout(GetBindings());
+}
+
+void DescriptorSet::Allocate()
+{
     descSet = AllocateDescSet(*descSetLayout);
+    Update();
 }
 
 void DescriptorSet::Update()
 {
-    std::vector<vk::WriteDescriptorSet> _writes(writes.size());
-    for (int i = 0; i < writes.size(); i++) {
-        _writes[i] = writes[i].Get();
+    std::vector<vk::WriteDescriptorSet> _writes;
+    for (auto&& write : writes) {
+        _writes.push_back(write.Get());
     }
-    // TODO
-    //std::transform (writes.begin(), writes.end(), _writes.begin(), [](auto&& write) {
-    //    return MakeWrite(write.first);
-    //});
-
     UpdateDescSet(*descSet, _writes);
 }
 
@@ -182,4 +170,18 @@ void DescriptorSet::Register(const std::string& name, const vk::AccelerationStru
     bindingMap[name].descriptorCount = 1;
 
     writes.emplace_back(bindingMap[name], accelInfo);
+}
+
+void DescriptorSet::AddBindingMap(const std::vector<uint32_t>& spvShader, vk::ShaderStageFlags stage)
+{
+    ::AddBindingMap(spvShader, bindingMap, stage);
+}
+
+std::vector<vk::DescriptorSetLayoutBinding> DescriptorSet::GetBindings() const
+{
+    std::vector<vk::DescriptorSetLayoutBinding> bindings;
+    for (auto&& [name, binding] : bindingMap) {
+        bindings.push_back(binding);
+    }
+    return bindings;
 }
