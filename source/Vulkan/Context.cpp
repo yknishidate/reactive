@@ -35,22 +35,22 @@ namespace
         const auto appInfo = vk::ApplicationInfo()
             .setApiVersion(VK_API_VERSION_1_2);
 
-        const auto instanceInfo = vk::InstanceCreateInfo()
+        return vk::createInstanceUnique(
+            vk::InstanceCreateInfo()
             .setPApplicationInfo(&appInfo)
             .setPEnabledExtensionNames(extensions)
-            .setPEnabledLayerNames(layers);
-
-        return vk::createInstanceUnique(instanceInfo);
+            .setPEnabledLayerNames(layers)
+        );
     }
 
     vk::UniqueDebugUtilsMessengerEXT CreateDebugMessenger(vk::Instance instance)
     {
-        const auto messengerInfo = vk::DebugUtilsMessengerCreateInfoEXT()
+        return instance.createDebugUtilsMessengerEXTUnique(
+            vk::DebugUtilsMessengerCreateInfoEXT()
             .setMessageSeverity(vk::DebugUtilsMessageSeverityFlagBitsEXT::eError | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning)
             .setMessageType(vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance)
-            .setPfnUserCallback(&DebugMessage);
-
-        return instance.createDebugUtilsMessengerEXTUnique(messengerInfo);
+            .setPfnUserCallback(&DebugMessage)
+        );
     }
 
     uint32_t FindQueueFamily(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface)
@@ -113,7 +113,8 @@ namespace
 
     vk::UniqueSwapchainKHR CreateSwapchain(vk::Device device, vk::SurfaceKHR surface, uint32_t minImageCount, uint32_t queueFamily)
     {
-        const auto swapchainInfo = vk::SwapchainCreateInfoKHR()
+        return device.createSwapchainKHRUnique(
+            vk::SwapchainCreateInfoKHR()
             .setSurface(surface)
             .setMinImageCount(minImageCount)
             .setImageFormat(vk::Format::eB8G8R8A8Unorm)
@@ -124,9 +125,8 @@ namespace
             .setPreTransform(vk::SurfaceTransformFlagBitsKHR::eIdentity)
             .setPresentMode(vk::PresentModeKHR::eFifo)
             .setClipped(true)
-            .setQueueFamilyIndices(queueFamily);
-
-        return device.createSwapchainKHRUnique(swapchainInfo);
+            .setQueueFamilyIndices(queueFamily)
+        );
     }
 
     std::vector<vk::UniqueImageView> CreateImageViews(vk::Device device, const std::vector<vk::Image>& swapchainImages)
@@ -147,21 +147,21 @@ namespace
 
     vk::UniqueCommandPool CreateCommandPool(vk::Device device, uint32_t queueFamily)
     {
-        const auto poolInfo = vk::CommandPoolCreateInfo()
+        return device.createCommandPoolUnique(
+            vk::CommandPoolCreateInfo()
             .setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer)
-            .setQueueFamilyIndex(queueFamily);
-
-        return device.createCommandPoolUnique(poolInfo);
+            .setQueueFamilyIndex(queueFamily)
+        );
     }
 
     std::vector<vk::UniqueCommandBuffer> CreateCommandBuffers(vk::Device device, vk::CommandPool commandPool, uint32_t count)
     {
-        const auto bufferInfo = vk::CommandBufferAllocateInfo()
+        return device.allocateCommandBuffersUnique(
+            vk::CommandBufferAllocateInfo()
             .setCommandPool(commandPool)
             .setLevel(vk::CommandBufferLevel::ePrimary)
-            .setCommandBufferCount(count);
-
-        return device.allocateCommandBuffersUnique(bufferInfo);
+            .setCommandBufferCount(count)
+        );
     }
 
     vk::UniqueCommandBuffer CreateCommandBuffer(vk::Device device, vk::CommandPool commandPool)
@@ -181,12 +181,12 @@ namespace
             { vk::DescriptorType::eInputAttachment, 100 }
         };
 
-        const auto poolInfo = vk::DescriptorPoolCreateInfo()
+        return device.createDescriptorPoolUnique(
+            vk::DescriptorPoolCreateInfo()
             .setPoolSizes(poolSizes)
             .setMaxSets(100)
-            .setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);
-
-        return device.createDescriptorPoolUnique(poolInfo);
+            .setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet)
+        );
     }
 
     std::vector<const char*> GetExtensions()
@@ -233,12 +233,12 @@ namespace
             .setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput)
             .setDstAccessMask(vk::AccessFlagBits::eColorAttachmentWrite);
 
-        const auto passInfo = vk::RenderPassCreateInfo()
+        return device.createRenderPassUnique(
+            vk::RenderPassCreateInfo()
             .setAttachments(attachment)
             .setSubpasses(subpass)
-            .setDependencies(dependency);
-
-        return device.createRenderPassUnique(passInfo);
+            .setDependencies(dependency)
+        );
     }
 }
 
@@ -267,26 +267,23 @@ void Context::Init()
     frameSemaphores.resize(imageCount);
     for (uint32_t i = 0; i < imageCount; i++) {
         {
-            const auto framebufferInfo = vk::FramebufferCreateInfo()
+            frames[i].framebuffer = device->createFramebufferUnique(
+                vk::FramebufferCreateInfo()
                 .setRenderPass(*renderPass)
                 .setAttachments(*swapchainImageViews[i])
                 .setWidth(Window::GetWidth())
                 .setHeight(Window::GetHeight())
-                .setLayers(1);
-
-            frames[i].framebuffer = device->createFramebufferUnique(framebufferInfo);
+                .setLayers(1)
+            );
         }
         {
-            const auto commandBufferInfo = vk::CommandBufferAllocateInfo()
-                .setCommandPool(*commandPool)
-                .setLevel(vk::CommandBufferLevel::ePrimary)
-                .setCommandBufferCount(1);
-
             frames[i].commandBuffer = AllocateCommandBuffer();
         }
         {
-            const vk::FenceCreateInfo fenceInfo{ vk::FenceCreateFlagBits::eSignaled };
-            frames[i].fence = device->createFenceUnique(fenceInfo);
+            frames[i].fence = device->createFenceUnique(
+                vk::FenceCreateInfo()
+                .setFlags(vk::FenceCreateFlagBits::eSignaled)
+            );
         }
         {
             frameSemaphores[i].imageAcquiredSemaphore = device->createSemaphoreUnique({});
@@ -297,12 +294,12 @@ void Context::Init()
 
 std::vector<vk::UniqueCommandBuffer> Context::AllocateCommandBuffers(uint32_t count)
 {
-    const auto commandBufferInfo = vk::CommandBufferAllocateInfo()
+    return device->allocateCommandBuffersUnique(
+        vk::CommandBufferAllocateInfo()
         .setCommandPool(*commandPool)
         .setLevel(vk::CommandBufferLevel::ePrimary)
-        .setCommandBufferCount(count);
-
-    return device->allocateCommandBuffersUnique(commandBufferInfo);
+        .setCommandBufferCount(count)
+    );
 }
 
 vk::UniqueCommandBuffer Context::AllocateCommandBuffer()
@@ -312,10 +309,10 @@ vk::UniqueCommandBuffer Context::AllocateCommandBuffer()
 
 void Context::SubmitAndWait(vk::CommandBuffer commandBuffer)
 {
-    const auto submitInfo = vk::SubmitInfo()
-        .setCommandBuffers(commandBuffer);
-
-    queue.submit(submitInfo);
+    queue.submit(
+        vk::SubmitInfo()
+        .setCommandBuffers(commandBuffer)
+    );
     queue.waitIdle();
 }
 
@@ -323,8 +320,10 @@ void Context::OneTimeSubmit(const std::function<void(vk::CommandBuffer)>& comman
 {
     vk::UniqueCommandBuffer commandBuffer = AllocateCommandBuffer();
 
-    const vk::CommandBufferBeginInfo beginInfo{ vk::CommandBufferUsageFlagBits::eOneTimeSubmit };
-    commandBuffer->begin(beginInfo);
+    commandBuffer->begin(
+        vk::CommandBufferBeginInfo()
+        .setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit)
+    );
     command(*commandBuffer);
     commandBuffer->end();
 
@@ -406,13 +405,13 @@ void Context::Present()
         return;
     }
 
-    const auto presentInfo = vk::PresentInfoKHR()
-        .setWaitSemaphores(*frameSemaphores[semaphoreIndex].renderCompleteSemaphore)
-        .setSwapchains(*swapchain)
-        .setImageIndices(frameIndex);
-
     try {
-        queue.presentKHR(presentInfo);
+        queue.presentKHR(
+            vk::PresentInfoKHR()
+            .setWaitSemaphores(*frameSemaphores[semaphoreIndex].renderCompleteSemaphore)
+            .setSwapchains(*swapchain)
+            .setImageIndices(frameIndex)
+        );
     } catch (const std::exception& exception) {
         std::cerr << "failed to present." << std::endl;
         swapchainRebuild = true;
