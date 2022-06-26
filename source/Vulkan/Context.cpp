@@ -172,20 +172,8 @@ void Context::Init()
     device = CreateDevice(physicalDevice, queueFamily);
     queue = device->getQueue(queueFamily, 0);
     commandPool = CreateCommandPool(*device, queueFamily);
-    //swapchain = CreateSwapchain(*device, *surface, minImageCount, queueFamily);
-    //swapchainImages = device->getSwapchainImagesKHR(*swapchain);
-    //swapchainImageViews = CreateImageViews(*device, swapchainImages);
     swapchain = Swapchain{ *device, *surface, queueFamily };
     descriptorPool = CraeteDescriptorPool(*device);
-    //renderPass = CreateRenderPass(*device);
-
-    //// Create Command Buffers
-    //size_t imageCount = swapchainImages.size();
-    //frames = std::vector<Frame>(imageCount);
-    //frameSemaphores = std::vector<FrameSemaphores>(imageCount);
-    //for (uint32_t i = 0; i < imageCount; i++) {
-    //    frames[i] = Frame{ *renderPass, *swapchainImageViews[i] };
-    //}
 }
 
 std::vector<vk::UniqueCommandBuffer> Context::AllocateCommandBuffers(uint32_t count)
