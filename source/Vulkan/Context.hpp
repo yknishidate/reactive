@@ -5,6 +5,9 @@
 
 struct Frame
 {
+    Frame() = default;
+    Frame(vk::RenderPass renderPass, vk::ImageView attachment);
+
     vk::UniqueFramebuffer framebuffer{};
     vk::UniqueCommandBuffer commandBuffer{};
     vk::UniqueFence fence{};
@@ -12,6 +15,8 @@ struct Frame
 
 struct FrameSemaphores
 {
+    FrameSemaphores();
+
     vk::UniqueSemaphore imageAcquiredSemaphore{};
     vk::UniqueSemaphore renderCompleteSemaphore{};
 };

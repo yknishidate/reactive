@@ -3,7 +3,7 @@
 
 namespace
 {
-    vk::UniqueBuffer createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage)
+    vk::UniqueBuffer CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage)
     {
         return Context::GetDevice().createBufferUnique({ {}, size, usage });
     }
@@ -27,7 +27,7 @@ namespace
 Buffer::Buffer(vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memoryProp, size_t size)
 {
     this->size = size;
-    buffer = createBuffer(size, usage);
+    buffer = CreateBuffer(size, usage);
     memory = AllocateMemory(*buffer, usage, memoryProp);
     Context::GetDevice().bindBufferMemory(*buffer, *memory, 0);
     if (usage & vk::BufferUsageFlagBits::eShaderDeviceAddress) {

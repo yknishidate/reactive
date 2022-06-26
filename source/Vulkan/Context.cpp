@@ -129,18 +129,18 @@ namespace
         );
     }
 
-    std::vector<vk::UniqueImageView> CreateImageViews(vk::Device device, const std::vector<vk::Image>& swapchainImages)
+    std::vector<vk::UniqueImageView> CreateImageViews(vk::Device device, const std::vector<vk::Image>& images)
     {
         std::vector<vk::UniqueImageView> views;
-        for (uint32_t i = 0; i < swapchainImages.size(); i++) {
-            const auto viewInfo = vk::ImageViewCreateInfo()
-                .setImage(swapchainImages[i])
+        for (auto&& image : images) {
+            views.push_back(device.createImageViewUnique(
+                vk::ImageViewCreateInfo()
+                .setImage(image)
                 .setViewType(vk::ImageViewType::e2D)
                 .setFormat(vk::Format::eB8G8R8A8Unorm)
                 .setComponents({ vk::ComponentSwizzle::eR, vk::ComponentSwizzle::eG, vk::ComponentSwizzle::eB, vk::ComponentSwizzle::eA })
-                .setSubresourceRange({ vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 });
-
-            views.push_back(device.createImageViewUnique(viewInfo));
+                .setSubresourceRange({ vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 })
+            ));
         }
         return views;
     }
@@ -227,6 +227,29 @@ namespace
     }
 }
 
+Frame::Frame(vk::RenderPass renderPass, vk::ImageView attachment)
+{
+    framebuffer = Context::GetDevice().createFramebufferUnique(
+        vk::FramebufferCreateInfo()
+        .setRenderPass(renderPass)
+        .setAttachments(attachment)
+        .setWidth(Window::GetWidth())
+        .setHeight(Window::GetHeight())
+        .setLayers(1)
+    );
+    commandBuffer = Context::AllocateCommandBuffer();
+    fence = Context::GetDevice().createFenceUnique(
+        vk::FenceCreateInfo()
+        .setFlags(vk::FenceCreateFlagBits::eSignaled)
+    );
+}
+
+FrameSemaphores::FrameSemaphores()
+{
+    imageAcquiredSemaphore = Context::GetDevice().createSemaphoreUnique({});
+    renderCompleteSemaphore = Context::GetDevice().createSemaphoreUnique({});
+}
+
 void Context::Init()
 {
     spdlog::info("Context::Init()");
@@ -248,32 +271,10 @@ void Context::Init()
 
     // Create Command Buffers
     size_t imageCount = swapchainImages.size();
-    frames.resize(imageCount);
-    frameSemaphores.resize(imageCount);
+    frames = std::vector<Frame>(imageCount);
+    frameSemaphores = std::vector<FrameSemaphores>(imageCount);
     for (uint32_t i = 0; i < imageCount; i++) {
-        {
-            frames[i].framebuffer = device->createFramebufferUnique(
-                vk::FramebufferCreateInfo()
-                .setRenderPass(*renderPass)
-                .setAttachments(*swapchainImageViews[i])
-                .setWidth(Window::GetWidth())
-                .setHeight(Window::GetHeight())
-                .setLayers(1)
-            );
-        }
-        {
-            frames[i].commandBuffer = AllocateCommandBuffer();
-        }
-        {
-            frames[i].fence = device->createFenceUnique(
-                vk::FenceCreateInfo()
-                .setFlags(vk::FenceCreateFlagBits::eSignaled)
-            );
-        }
-        {
-            frameSemaphores[i].imageAcquiredSemaphore = device->createSemaphoreUnique({});
-            frameSemaphores[i].renderCompleteSemaphore = device->createSemaphoreUnique({});
-        }
+        frames[i] = Frame{ *renderPass, *swapchainImageViews[i] };
     }
 }
 
