@@ -1,90 +1,36 @@
 #include <filesystem>
 #include <regex>
+#include <spdlog/spdlog.h>
 #include "Context.hpp"
 #include "Pipeline.hpp"
-#include <SPIRV/GlslangToSpv.h>
-#include <StandAlone/ResourceLimits.h>
-#include <spirv_glsl.hpp>
-#include <spdlog/spdlog.h>
-#include "Image.hpp"
 #include "DescriptorSet.hpp"
 #include "Compiler.hpp"
 
 namespace
 {
-    void UpdateBindingMap(std::unordered_map<std::string, vk::DescriptorSetLayoutBinding>& map,
-                          spirv_cross::Resource& resource, spirv_cross::CompilerGLSL& glsl,
-                          vk::ShaderStageFlags stage, vk::DescriptorType type)
-    {
-        if (map.contains(resource.name)) {
-            auto& binding = map[resource.name];
-            if (binding.binding != glsl.get_decoration(resource.id, spv::DecorationBinding)) {
-                throw std::runtime_error("binding does not match.");
-            }
-            binding.stageFlags |= stage;
-        } else {
-            vk::DescriptorSetLayoutBinding binding;
-            binding.binding = glsl.get_decoration(resource.id, spv::DecorationBinding);
-            binding.descriptorType = type;
-            binding.descriptorCount = 1;
-            binding.stageFlags = stage;
-            map[resource.name] = binding;
-        }
-    }
-
-    void AddBindingMap(const std::vector<uint32_t>& spvShader,
-                       std::unordered_map<std::string, vk::DescriptorSetLayoutBinding>& map,
-                       vk::ShaderStageFlags stage)
-    {
-        spirv_cross::CompilerGLSL glsl{ spvShader };
-        spirv_cross::ShaderResources resources = glsl.get_shader_resources();
-
-        for (auto&& resource : resources.uniform_buffers) {
-            UpdateBindingMap(map, resource, glsl, stage, vk::DescriptorType::eUniformBuffer);
-        }
-        for (auto&& resource : resources.acceleration_structures) {
-            UpdateBindingMap(map, resource, glsl, stage, vk::DescriptorType::eAccelerationStructureKHR);
-        }
-        for (auto&& resource : resources.storage_buffers) {
-            UpdateBindingMap(map, resource, glsl, stage, vk::DescriptorType::eStorageBuffer);
-        }
-        for (auto&& resource : resources.storage_images) {
-            UpdateBindingMap(map, resource, glsl, stage, vk::DescriptorType::eStorageImage);
-        }
-        for (auto&& resource : resources.sampled_images) {
-            UpdateBindingMap(map, resource, glsl, stage, vk::DescriptorType::eCombinedImageSampler);
-        }
-    }
-
     vk::UniqueShaderModule CreateShaderModule(const std::vector<uint32_t>& code)
     {
-        vk::ShaderModuleCreateInfo createInfo;
-        createInfo.setCode(code);
-        return Context::GetDevice().createShaderModuleUnique(createInfo);
-    }
-
-    std::vector<vk::DescriptorSetLayoutBinding> GetBindings(std::unordered_map<std::string, vk::DescriptorSetLayoutBinding>& map)
-    {
-        std::vector<vk::DescriptorSetLayoutBinding> bindings;
-        for (auto&& [name, binding] : map) {
-            bindings.push_back(binding);
-        }
-        return bindings;
+        return Context::GetDevice().createShaderModuleUnique(
+            vk::ShaderModuleCreateInfo()
+            .setCode(code)
+        );
     }
 
     vk::UniqueDescriptorSetLayout CreateDescSetLayout(const std::vector<vk::DescriptorSetLayoutBinding>& bindings)
     {
-        vk::DescriptorSetLayoutCreateInfo createInfo;
-        createInfo.setBindings(bindings);
-        return Context::GetDevice().createDescriptorSetLayoutUnique(createInfo);
+        return Context::GetDevice().createDescriptorSetLayoutUnique(
+            vk::DescriptorSetLayoutCreateInfo()
+            .setBindings(bindings)
+        );
     }
 
     vk::UniqueDescriptorSet AllocateDescSet(vk::DescriptorSetLayout descSetLayout)
     {
-        vk::DescriptorSetAllocateInfo allocateInfo;
-        allocateInfo.setDescriptorPool(Context::GetDescriptorPool());
-        allocateInfo.setSetLayouts(descSetLayout);
-        std::vector descSets = Context::GetDevice().allocateDescriptorSetsUnique(allocateInfo);
+        std::vector descSets = Context::GetDevice().allocateDescriptorSetsUnique(
+            vk::DescriptorSetAllocateInfo()
+            .setDescriptorPool(Context::GetDescriptorPool())
+            .setSetLayouts(descSetLayout)
+        );
         return std::move(descSets.front());
     }
 
@@ -137,16 +83,14 @@ void DescriptorSet::Register(const std::string& name, vk::ImageView view, vk::Sa
 
 void DescriptorSet::Register(const std::string& name, const std::vector<Image>& images)
 {
-    if (images.size() == 0) {
-        return;
-    }
     std::vector<vk::DescriptorImageInfo> infos;
     for (auto&& image : images) {
-        vk::DescriptorImageInfo info;
-        info.setImageView(image.GetView());
-        info.setSampler(image.GetSampler());
-        info.setImageLayout(vk::ImageLayout::eGeneral);
-        infos.push_back(info);
+        infos.push_back(
+            vk::DescriptorImageInfo()
+            .setImageView(image.GetView())
+            .setSampler(image.GetSampler())
+            .setImageLayout(vk::ImageLayout::eGeneral)
+        );
     }
 
     bindingMap[name].descriptorCount = images.size();
@@ -174,7 +118,24 @@ void DescriptorSet::Register(const std::string& name, const vk::AccelerationStru
 
 void DescriptorSet::AddBindingMap(const std::vector<uint32_t>& spvShader, vk::ShaderStageFlags stage)
 {
-    ::AddBindingMap(spvShader, bindingMap, stage);
+    spirv_cross::CompilerGLSL glsl{ spvShader };
+    spirv_cross::ShaderResources resources = glsl.get_shader_resources();
+
+    for (auto&& resource : resources.uniform_buffers) {
+        UpdateBindingMap(resource, glsl, stage, vk::DescriptorType::eUniformBuffer);
+    }
+    for (auto&& resource : resources.acceleration_structures) {
+        UpdateBindingMap(resource, glsl, stage, vk::DescriptorType::eAccelerationStructureKHR);
+    }
+    for (auto&& resource : resources.storage_buffers) {
+        UpdateBindingMap(resource, glsl, stage, vk::DescriptorType::eStorageBuffer);
+    }
+    for (auto&& resource : resources.storage_images) {
+        UpdateBindingMap(resource, glsl, stage, vk::DescriptorType::eStorageImage);
+    }
+    for (auto&& resource : resources.sampled_images) {
+        UpdateBindingMap(resource, glsl, stage, vk::DescriptorType::eCombinedImageSampler);
+    }
 }
 
 std::vector<vk::DescriptorSetLayoutBinding> DescriptorSet::GetBindings() const
@@ -184,4 +145,22 @@ std::vector<vk::DescriptorSetLayoutBinding> DescriptorSet::GetBindings() const
         bindings.push_back(binding);
     }
     return bindings;
+}
+
+void DescriptorSet::UpdateBindingMap(spirv_cross::Resource& resource, spirv_cross::CompilerGLSL& glsl,
+                                     vk::ShaderStageFlags stage, vk::DescriptorType type)
+{
+    if (bindingMap.contains(resource.name)) {
+        auto& binding = bindingMap[resource.name];
+        if (binding.binding != glsl.get_decoration(resource.id, spv::DecorationBinding)) {
+            throw std::runtime_error("binding does not match.");
+        }
+        binding.stageFlags |= stage;
+    } else {
+        bindingMap[resource.name] = vk::DescriptorSetLayoutBinding()
+            .setBinding(glsl.get_decoration(resource.id, spv::DecorationBinding))
+            .setDescriptorType(type)
+            .setDescriptorCount(1)
+            .setStageFlags(stage);
+    }
 }

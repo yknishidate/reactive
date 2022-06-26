@@ -1,5 +1,10 @@
 #pragma once
 #include <unordered_map>
+
+#include <SPIRV/GlslangToSpv.h>
+#include <StandAlone/ResourceLimits.h>
+#include <spirv_glsl.hpp>
+
 #include "Buffer.hpp"
 #include "Image.hpp"
 
@@ -7,53 +12,50 @@ class WriteDescriptorSet
 {
 public:
     WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding, vk::DescriptorBufferInfo bufferInfo)
-        : bufferInfos{ bufferInfo }
+        : WriteDescriptorSet{ binding }
     {
-        write.setDescriptorType(binding.descriptorType);
-        write.setDescriptorCount(binding.descriptorCount);
-        write.setDstBinding(binding.binding);
+        bufferInfos = { bufferInfo };
         write.setBufferInfo(bufferInfos);
     }
 
     WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding, std::vector<vk::DescriptorBufferInfo> infos)
-        : bufferInfos{ infos }
+        : WriteDescriptorSet{ binding }
     {
-        write.setDescriptorType(binding.descriptorType);
-        write.setDescriptorCount(binding.descriptorCount);
-        write.setDstBinding(binding.binding);
+        bufferInfos = { infos };
         write.setBufferInfo(bufferInfos);
     }
 
     WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding, vk::DescriptorImageInfo imageInfo)
-        : imageInfos{ imageInfo }
+        : WriteDescriptorSet{ binding }
     {
-        write.setDescriptorType(binding.descriptorType);
-        write.setDescriptorCount(binding.descriptorCount);
-        write.setDstBinding(binding.binding);
+        imageInfos = { imageInfo };
         write.setImageInfo(imageInfos);
     }
 
     WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding, std::vector<vk::DescriptorImageInfo> infos)
-        : imageInfos{ infos }
+        : WriteDescriptorSet{ binding }
     {
-        write.setDescriptorType(binding.descriptorType);
-        write.setDescriptorCount(binding.descriptorCount);
-        write.setDstBinding(binding.binding);
+        imageInfos = { infos };
         write.setImageInfo(imageInfos);
     }
 
     WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding, vk::WriteDescriptorSetAccelerationStructureKHR accelInfo)
-        : accelInfos{ accelInfo }
+        : WriteDescriptorSet(binding)
     {
-        write.setDescriptorType(binding.descriptorType);
-        write.setDescriptorCount(binding.descriptorCount);
-        write.setDstBinding(binding.binding);
+        accelInfos = { accelInfo };
         write.setPNext(&accelInfos.front());
     }
 
     vk::WriteDescriptorSet Get() const { return write; }
 
 private:
+    WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding)
+    {
+        write.setDescriptorType(binding.descriptorType);
+        write.setDescriptorCount(binding.descriptorCount);
+        write.setDstBinding(binding.binding);
+    }
+
     vk::WriteDescriptorSet write{};
     std::vector<vk::DescriptorImageInfo> imageInfos;
     std::vector<vk::DescriptorBufferInfo> bufferInfos;
@@ -82,6 +84,9 @@ public:
     std::vector<vk::DescriptorSetLayoutBinding> GetBindings() const;
 
 private:
+    void UpdateBindingMap(spirv_cross::Resource& resource, spirv_cross::CompilerGLSL& glsl,
+                          vk::ShaderStageFlags stage, vk::DescriptorType type);
+
     vk::UniqueDescriptorSet descSet;
     vk::UniqueDescriptorSetLayout descSetLayout;
     std::unordered_map<std::string, vk::DescriptorSetLayoutBinding> bindingMap;

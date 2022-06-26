@@ -31,3 +31,7 @@
 #include <spdlog/spdlog.h>
 
 #include <GLFW/glfw3.h>
+
+#include <SPIRV/GlslangToSpv.h>
+#include <StandAlone/ResourceLimits.h>
+#include <spirv_glsl.hpp>
