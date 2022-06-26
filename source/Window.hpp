@@ -14,8 +14,8 @@ class Window
 public:
     static void Init(int width, int height, const std::string& icon = {});
     static void SetIcon(const std::string& filepath);
-    static int GetWidth();
-    static int GetHeight();
+    static uint32_t GetWidth();
+    static uint32_t GetHeight();
 
     static void Shutdown();
     static bool ShouldClose();

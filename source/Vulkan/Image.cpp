@@ -57,13 +57,15 @@ namespace
     }
 }
 
-void Image::Init(int width, int height, vk::Format format)
+Image::Image(uint32_t width, uint32_t height, vk::Format format)
 {
     image = CreateImage(width, height, format);
     memory = AllocateMemory(*image);
     Context::GetDevice().bindImageMemory(*image, *memory, 0);
+
     view = CreateImageView(*image, format);
     sampler = CreateSampler();
+
     Context::OneTimeSubmit(
         [&](vk::CommandBuffer commandBuffer)
         {
@@ -71,12 +73,7 @@ void Image::Init(int width, int height, vk::Format format)
         });
 }
 
-void Image::Init(uint32_t width, uint32_t height, vk::Format format)
-{
-    Init(static_cast<int>(width), static_cast<int>(height), format);
-}
-
-void Image::Init(const std::string& filepath)
+Image::Image(const std::string& filepath)
 {
     int width, height, channels;
     unsigned char* data = stbi_load(filepath.c_str(), &width, &height, &channels, sizeof(unsigned char) * 4);
@@ -84,7 +81,18 @@ void Image::Init(const std::string& filepath)
         throw std::runtime_error("Failed to load texture: " + filepath);
     }
 
-    Init(width, height, vk::Format::eR8G8B8A8Unorm);
+    image = CreateImage(width, height, vk::Format::eR8G8B8A8Unorm);
+    memory = AllocateMemory(*image);
+    Context::GetDevice().bindImageMemory(*image, *memory, 0);
+
+    view = CreateImageView(*image, vk::Format::eR8G8B8A8Unorm);
+    sampler = CreateSampler();
+
+    Context::OneTimeSubmit(
+        [&](vk::CommandBuffer commandBuffer)
+        {
+            SetImageLayout(commandBuffer, *image, vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral);
+        });
 
     HostBuffer staging{ vk::BufferUsageFlagBits::eTransferSrc, static_cast<size_t>(width * height * 4) };
     staging.Copy(data);

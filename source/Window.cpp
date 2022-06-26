@@ -25,14 +25,14 @@ void Window::SetIcon(const std::string& filepath)
     stbi_image_free(icon.pixels);
 }
 
-int Window::GetWidth()
+uint32_t Window::GetWidth()
 {
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
     return width;
 }
 
-int Window::GetHeight()
+uint32_t Window::GetHeight()
 {
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
