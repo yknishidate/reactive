@@ -154,21 +154,6 @@ namespace
         );
     }
 
-    std::vector<vk::UniqueCommandBuffer> CreateCommandBuffers(vk::Device device, vk::CommandPool commandPool, uint32_t count)
-    {
-        return device.allocateCommandBuffersUnique(
-            vk::CommandBufferAllocateInfo()
-            .setCommandPool(commandPool)
-            .setLevel(vk::CommandBufferLevel::ePrimary)
-            .setCommandBufferCount(count)
-        );
-    }
-
-    vk::UniqueCommandBuffer CreateCommandBuffer(vk::Device device, vk::CommandPool commandPool)
-    {
-        return std::move(CreateCommandBuffers(device, commandPool, 1).front());
-    }
-
     vk::UniqueDescriptorPool CraeteDescriptorPool(vk::Device device)
     {
         const std::vector<vk::DescriptorPoolSize> poolSizes{
