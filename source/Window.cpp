@@ -65,3 +65,21 @@ GLFWwindow* Window::GetWindow()
 {
     return window;
 }
+
+std::vector<const char*> Window::GetExtensions()
+{
+    uint32_t glfwExtensionCount = 0;
+    const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+    std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+    extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    return extensions;
+}
+
+vk::UniqueSurfaceKHR Window::CreateSurface(vk::Instance instance)
+{
+    VkSurfaceKHR _surface;
+    if (glfwCreateWindowSurface(VkInstance{ instance }, window, nullptr, &_surface) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create window surface!");
+    }
+    return vk::UniqueSurfaceKHR{ _surface,{ instance } };
+}

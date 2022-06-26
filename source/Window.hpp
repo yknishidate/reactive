@@ -16,13 +16,14 @@ public:
     static void SetIcon(const std::string& filepath);
     static uint32_t GetWidth();
     static uint32_t GetHeight();
+    static GLFWwindow* GetWindow();
+    static std::vector<const char*> GetExtensions();
+    static vk::UniqueSurfaceKHR CreateSurface(vk::Instance instance);
 
     static void Shutdown();
     static bool ShouldClose();
     static void PollEvents();
     static bool IsMinimized();
-
-    static GLFWwindow* GetWindow();
 
 private:
     static inline GLFWwindow* window;
