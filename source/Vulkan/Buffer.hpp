@@ -5,6 +5,7 @@ class Buffer
 {
 public:
     Buffer() = default;
+
     virtual void Copy(const void* data) = 0;
 
     vk::Buffer GetBuffer() const { return *buffer; }

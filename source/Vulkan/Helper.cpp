@@ -1,7 +1,7 @@
 #include "Helper.hpp"
 #include "Window.hpp"
 
-VKAPI_ATTR VkBool32 VKAPI_CALL Helper::DebugMessage(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageTypes, VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData, void* pUserData)
+VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessage(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageTypes, VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData, void* pUserData)
 {
     const std::string message{ pCallbackData->pMessage };
     const std::regex regex{ "The Vulkan spec states: " };

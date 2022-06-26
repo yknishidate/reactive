@@ -117,18 +117,23 @@ void DescriptorSet::Allocate(const std::string& shaderPath)
 
 void DescriptorSet::Update()
 {
-    UpdateDescSet(*descSet, writes);
+    std::vector<vk::WriteDescriptorSet> _writes(writes.size());
+    for (int i = 0; i < writes.size(); i++) {
+        _writes[i] = writes[i].Get();
+    }
+    // TODO
+    //std::transform (writes.begin(), writes.end(), _writes.begin(), [](auto&& write) {
+    //    return MakeWrite(write.first);
+    //});
+
+    UpdateDescSet(*descSet, _writes);
 }
 
 void DescriptorSet::Register(const std::string& name, vk::Buffer buffer, size_t size)
 {
     vk::DescriptorBufferInfo bufferInfo{ buffer, 0, size };
-    bufferInfos.push_back({ bufferInfo });
     bindingMap[name].descriptorCount = 1;
-
-    vk::WriteDescriptorSet write = MakeWrite(bindingMap[name]);
-    write.setBufferInfo(bufferInfos.back());
-    writes.push_back(write);
+    writes.emplace_back(bindingMap[name], bufferInfo);
 }
 
 void DescriptorSet::Register(const std::string& name, vk::ImageView view, vk::Sampler sampler)
@@ -137,12 +142,9 @@ void DescriptorSet::Register(const std::string& name, vk::ImageView view, vk::Sa
     imageInfo.setImageView(view);
     imageInfo.setSampler(sampler);
     imageInfo.setImageLayout(vk::ImageLayout::eGeneral);
-    imageInfos.push_back({ imageInfo });
     bindingMap[name].descriptorCount = 1;
 
-    vk::WriteDescriptorSet write = MakeWrite(bindingMap[name]);
-    write.setImageInfo(imageInfos.back());
-    writes.push_back(write);
+    writes.emplace_back(bindingMap[name], imageInfo);
 }
 
 void DescriptorSet::Register(const std::string& name, const std::vector<Image>& images)
@@ -158,13 +160,10 @@ void DescriptorSet::Register(const std::string& name, const std::vector<Image>& 
         info.setImageLayout(vk::ImageLayout::eGeneral);
         infos.push_back(info);
     }
-    imageInfos.push_back(infos);
 
     bindingMap[name].descriptorCount = images.size();
 
-    vk::WriteDescriptorSet write = MakeWrite(bindingMap[name]);
-    write.setImageInfo(imageInfos.back());
-    writes.push_back(write);
+    writes.emplace_back(bindingMap[name], infos);
 }
 
 void DescriptorSet::Register(const std::string& name, const Buffer& buffer)
@@ -180,10 +179,7 @@ void DescriptorSet::Register(const std::string& name, const Image& image)
 void DescriptorSet::Register(const std::string& name, const vk::AccelerationStructureKHR& accel)
 {
     vk::WriteDescriptorSetAccelerationStructureKHR accelInfo{ accel };
-    accelInfos.push_back(accelInfo);
     bindingMap[name].descriptorCount = 1;
 
-    vk::WriteDescriptorSet write = MakeWrite(bindingMap[name]);
-    write.setPNext(&accelInfos.back());
-    writes.push_back(write);
+    writes.emplace_back(bindingMap[name], accelInfo);
 }

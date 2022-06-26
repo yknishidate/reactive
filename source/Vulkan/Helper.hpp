@@ -6,11 +6,6 @@
 
 namespace Helper
 {
-    VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessage(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-                                                VkDebugUtilsMessageTypeFlagsEXT messageTypes,
-                                                VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData,
-                                                void* pUserData);
-
     vk::UniqueInstance CreateInstance(const std::vector<const char*>& extensions,
                                       const std::vector<const char*>& layers);
 
