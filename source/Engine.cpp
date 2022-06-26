@@ -280,7 +280,7 @@ void Engine::Run()
             CopyImages(commandBuffer, width, height, outputImage.GetImage(), Context::GetBackImage());
 
             UI::Render(commandBuffer);
-            Context::Submit(commandBuffer);
+            Context::Submit();
             Context::Present();
         }
     }

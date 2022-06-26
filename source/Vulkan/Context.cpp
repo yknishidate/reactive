@@ -250,6 +250,34 @@ FrameSemaphores::FrameSemaphores()
     renderCompleteSemaphore = Context::GetDevice().createSemaphoreUnique({});
 }
 
+Swapchain::Swapchain(vk::Device device, vk::SurfaceKHR surface, uint32_t queueFamily)
+{
+    swapchain = CreateSwapchain(device, surface, minImageCount, queueFamily);
+    swapchainImages = device.getSwapchainImagesKHR(*swapchain);
+    swapchainImageViews = CreateImageViews(device, swapchainImages);
+    renderPass = CreateRenderPass(device);
+
+    size_t imageCount = swapchainImages.size();
+    frames = std::vector<Frame>(imageCount);
+    frameSemaphores = std::vector<FrameSemaphores>(imageCount);
+    for (uint32_t i = 0; i < imageCount; i++) {
+        frames[i] = Frame{ *renderPass, *swapchainImageViews[i] };
+    }
+}
+
+void Swapchain::BeginRenderPass()
+{
+    const auto renderArea = vk::Rect2D()
+        .setExtent({ static_cast<uint32_t>(Window::GetWidth()), static_cast<uint32_t>(Window::GetHeight()) });
+
+    const auto beginInfo = vk::RenderPassBeginInfo()
+        .setRenderPass(*renderPass)
+        .setFramebuffer(*frames[frameIndex].framebuffer)
+        .setRenderArea(renderArea);
+
+    frames[frameIndex].commandBuffer->beginRenderPass(beginInfo, vk::SubpassContents::eInline);
+}
+
 void Context::Init()
 {
     spdlog::info("Context::Init()");
@@ -263,19 +291,20 @@ void Context::Init()
     device = CreateDevice(physicalDevice, queueFamily);
     queue = device->getQueue(queueFamily, 0);
     commandPool = CreateCommandPool(*device, queueFamily);
-    swapchain = CreateSwapchain(*device, *surface, minImageCount, queueFamily);
-    swapchainImages = device->getSwapchainImagesKHR(*swapchain);
-    swapchainImageViews = CreateImageViews(*device, swapchainImages);
+    //swapchain = CreateSwapchain(*device, *surface, minImageCount, queueFamily);
+    //swapchainImages = device->getSwapchainImagesKHR(*swapchain);
+    //swapchainImageViews = CreateImageViews(*device, swapchainImages);
+    swapchain = Swapchain{ *device, *surface, queueFamily };
     descriptorPool = CraeteDescriptorPool(*device);
-    renderPass = CreateRenderPass(*device);
+    //renderPass = CreateRenderPass(*device);
 
-    // Create Command Buffers
-    size_t imageCount = swapchainImages.size();
-    frames = std::vector<Frame>(imageCount);
-    frameSemaphores = std::vector<FrameSemaphores>(imageCount);
-    for (uint32_t i = 0; i < imageCount; i++) {
-        frames[i] = Frame{ *renderPass, *swapchainImageViews[i] };
-    }
+    //// Create Command Buffers
+    //size_t imageCount = swapchainImages.size();
+    //frames = std::vector<Frame>(imageCount);
+    //frameSemaphores = std::vector<FrameSemaphores>(imageCount);
+    //for (uint32_t i = 0; i < imageCount; i++) {
+    //    frames[i] = Frame{ *renderPass, *swapchainImageViews[i] };
+    //}
 }
 
 std::vector<vk::UniqueCommandBuffer> Context::AllocateCommandBuffers(uint32_t count)
@@ -331,91 +360,30 @@ uint32_t Context::FindMemoryTypeIndex(vk::MemoryRequirements requirements, vk::M
 
 void Context::BeginRenderPass()
 {
-    const auto renderArea = vk::Rect2D()
-        .setExtent({ static_cast<uint32_t>(Window::GetWidth()), static_cast<uint32_t>(Window::GetHeight()) });
-
-    const auto beginInfo = vk::RenderPassBeginInfo()
-        .setRenderPass(*renderPass)
-        .setFramebuffer(*frames[frameIndex].framebuffer)
-        .setRenderArea(renderArea);
-
-    frames[frameIndex].commandBuffer->beginRenderPass(beginInfo, vk::SubpassContents::eInline);
+    swapchain.BeginRenderPass();
 }
 
 void Context::EndRenderPass()
 {
-    frames[frameIndex].commandBuffer->endRenderPass();
+    swapchain.EndRenderPass();
 }
 
 void Context::WaitNextFrame()
 {
-    const vk::Semaphore imageAcquiredSemaphore = *frameSemaphores[semaphoreIndex].imageAcquiredSemaphore;
-    const vk::Semaphore renderCompleteSemaphore = *frameSemaphores[semaphoreIndex].renderCompleteSemaphore;
-    try {
-        frameIndex = device->acquireNextImageKHR(*swapchain, UINT64_MAX, imageAcquiredSemaphore).value;
-    } catch (const std::exception& exception) {
-        swapchainRebuild = true;
-        return;
-    }
-
-    const vk::Fence fence = *frames[frameIndex].fence;
-    device->waitForFences(fence, VK_TRUE, UINT64_MAX);
-    device->resetFences(fence);
+    swapchain.WaitNextFrame(*device);
 }
 
 vk::CommandBuffer Context::BeginCommandBuffer()
 {
-    frames[frameIndex].commandBuffer->begin(
-        vk::CommandBufferBeginInfo()
-        .setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit)
-    );
-    return *frames[frameIndex].commandBuffer;
+    return swapchain.BeginCommandBuffer();
 }
 
-void Context::Submit(vk::CommandBuffer commandBuffer)
+void Context::Submit()
 {
-    commandBuffer.end();
-
-    vk::PipelineStageFlags waitStage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-
-    const auto submitInfo = vk::SubmitInfo()
-        .setWaitDstStageMask(waitStage)
-        .setCommandBuffers(commandBuffer)
-        .setWaitSemaphores(*frameSemaphores[semaphoreIndex].imageAcquiredSemaphore)
-        .setSignalSemaphores(*frameSemaphores[semaphoreIndex].renderCompleteSemaphore);
-
-    queue.submit(submitInfo, *frames[frameIndex].fence);
+    swapchain.Submit(queue);
 }
 
 void Context::Present()
 {
-    if (swapchainRebuild) {
-        return;
-    }
-
-    try {
-        queue.presentKHR(
-            vk::PresentInfoKHR()
-            .setWaitSemaphores(*frameSemaphores[semaphoreIndex].renderCompleteSemaphore)
-            .setSwapchains(*swapchain)
-            .setImageIndices(frameIndex)
-        );
-    } catch (const std::exception& exception) {
-        std::cerr << "failed to present." << std::endl;
-        swapchainRebuild = true;
-        return;
-    }
-    semaphoreIndex = (semaphoreIndex + 1) % swapchainImages.size();
-}
-
-void Context::RebuildSwapchain()
-{
-    //int width, height;
-    //glfwGetFramebufferSize(window, &width, &height);
-    //if (width > 0 && height > 0) {
-    //    ImGui_ImplVulkan_SetMinImageCount(minImageCount);
-    //    ImGui_ImplVulkanH_CreateOrResizeWindow(instance, physicalDevice, device, &windowData, Context::queueFamily, nullptr, width, height, minImageCount);
-    //    windowData.FrameIndex = 0;
-    //    swapchainRebuild = false;
-    //}
+    swapchain.Present(queue);
 }
