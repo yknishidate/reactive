@@ -18,7 +18,6 @@ protected:
     vk::UniqueDeviceMemory memory;
     vk::DeviceSize size;
     uint64_t deviceAddress;
-    void* mapped = nullptr;
 };
 
 class HostBuffer : public Buffer
@@ -28,6 +27,9 @@ public:
     HostBuffer(vk::BufferUsageFlags usage, size_t size);
 
     void Copy(const void* data) override;
+
+private:
+    void* mapped = nullptr;
 };
 
 class DeviceBuffer : public Buffer
