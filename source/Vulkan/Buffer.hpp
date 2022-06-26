@@ -27,13 +27,6 @@ public:
     HostBuffer() = default;
     HostBuffer(vk::BufferUsageFlags usage, size_t size);
 
-    template <typename T>
-    HostBuffer(vk::BufferUsageFlags usage, const std::vector<T>& data)
-    {
-        Init(usage, sizeof(T) * data.size());
-        Copy(data.data());
-    }
-
     void Copy(const void* data) override;
 };
 

@@ -55,10 +55,10 @@ namespace
 
     uint32_t FindQueueFamily(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface)
     {
-        const std::vector queueFamilyProperties = physicalDevice.getQueueFamilyProperties();
-        for (uint32_t index = 0; index < queueFamilyProperties.size(); index++) {
-            const auto supportGraphics = queueFamilyProperties[index].queueFlags & vk::QueueFlagBits::eGraphics;
-            const auto supportCompute = queueFamilyProperties[index].queueFlags & vk::QueueFlagBits::eCompute;
+        const std::vector properties = physicalDevice.getQueueFamilyProperties();
+        for (uint32_t index = 0; index < properties.size(); index++) {
+            const auto supportGraphics = properties[index].queueFlags & vk::QueueFlagBits::eGraphics;
+            const auto supportCompute = properties[index].queueFlags & vk::QueueFlagBits::eCompute;
             const auto supportPresent = physicalDevice.getSurfaceSupportKHR(index, surface);
             if (supportGraphics && supportCompute && supportPresent) {
                 return index;
@@ -365,8 +365,10 @@ void Context::WaitNextFrame()
 
 vk::CommandBuffer Context::BeginCommandBuffer()
 {
-    const vk::CommandBufferBeginInfo info{ vk::CommandBufferUsageFlagBits::eOneTimeSubmit };
-    frames[frameIndex].commandBuffer->begin(info);
+    frames[frameIndex].commandBuffer->begin(
+        vk::CommandBufferBeginInfo()
+        .setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit)
+    );
     return *frames[frameIndex].commandBuffer;
 }
 
