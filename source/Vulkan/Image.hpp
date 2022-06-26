@@ -8,8 +8,6 @@ public:
     Image(uint32_t width, uint32_t height, vk::Format format);
     Image(const std::string& filepath);
 
-    Image& operator=(Image&& other) noexcept = default;
-
     vk::Image GetImage() const { return *image; }
     vk::ImageView GetView() const { return *view; }
     vk::Sampler GetSampler() const { return *sampler; }

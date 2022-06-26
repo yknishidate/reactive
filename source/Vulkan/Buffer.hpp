@@ -25,11 +25,7 @@ class HostBuffer : public Buffer
 {
 public:
     HostBuffer() = default;
-    HostBuffer(const HostBuffer&) = default;
-    HostBuffer(HostBuffer&&) = default;
     HostBuffer(vk::BufferUsageFlags usage, size_t size);
-
-    HostBuffer& operator=(HostBuffer&& other) noexcept = default;
 
     template <typename T>
     HostBuffer(vk::BufferUsageFlags usage, const std::vector<T>& data)
@@ -45,11 +41,7 @@ class DeviceBuffer : public Buffer
 {
 public:
     DeviceBuffer() = default;
-    DeviceBuffer(const DeviceBuffer&) = default;
-    DeviceBuffer(DeviceBuffer&&) = default;
     DeviceBuffer(vk::BufferUsageFlags usage, size_t size);
-
-    DeviceBuffer& operator=(DeviceBuffer&& other) noexcept = default;
 
     template <typename T>
     DeviceBuffer(vk::BufferUsageFlags usage, const std::vector<T>& data)
