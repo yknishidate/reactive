@@ -28,7 +28,8 @@ FrameSemaphores::FrameSemaphores()
 
 Swapchain::Swapchain(vk::Device device, vk::SurfaceKHR surface, uint32_t queueFamily)
 {
-    swapchain = Helper::CreateSwapchain(device, surface, minImageCount, queueFamily);
+    swapchain = Helper::CreateSwapchain(device, surface, Window::GetWidth(), Window::GetHeight(),
+                                        minImageCount, queueFamily);
     swapchainImages = device.getSwapchainImagesKHR(*swapchain);
     swapchainImageViews = Helper::CreateImageViews(device, swapchainImages);
     renderPass = Helper::CreateRenderPass(device);

@@ -49,5 +49,4 @@ public:
     void Copy(const void* data) override;
 
 private:
-    vk::BufferUsageFlags usage;
 };

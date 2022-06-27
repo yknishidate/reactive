@@ -1,34 +1,19 @@
 #include "Buffer.hpp"
-
-namespace
-{
-    vk::UniqueBuffer CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage)
-    {
-        return Context::GetDevice().createBufferUnique({ {}, size, usage });
-    }
-
-    vk::UniqueDeviceMemory AllocateMemory(vk::Buffer buffer, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memoryProp)
-    {
-        vk::MemoryRequirements requirements = Context::GetDevice().getBufferMemoryRequirements(buffer);
-        uint32_t memoryTypeIndex = Context::FindMemoryTypeIndex(requirements, memoryProp);
-        vk::MemoryAllocateInfo memoryAllocateInfo;
-        memoryAllocateInfo.setAllocationSize(requirements.size);
-        memoryAllocateInfo.setMemoryTypeIndex(memoryTypeIndex);
-        if (usage & vk::BufferUsageFlagBits::eShaderDeviceAddress) {
-            vk::MemoryAllocateFlagsInfo flagsInfo{ vk::MemoryAllocateFlagBits::eDeviceAddress };
-            memoryAllocateInfo.pNext = &flagsInfo;
-            return Context::GetDevice().allocateMemoryUnique(memoryAllocateInfo);
-        }
-        return Context::GetDevice().allocateMemoryUnique(memoryAllocateInfo);
-    }
-}
+#include "Helper.hpp"
 
 Buffer::Buffer(vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memoryProp, size_t size)
 {
     this->size = size;
-    buffer = CreateBuffer(size, usage);
-    memory = AllocateMemory(*buffer, usage, memoryProp);
+
+    buffer = Helper::CreateBuffer(Context::GetDevice(), size, usage);
+
+    vk::MemoryRequirements requirements = Context::GetDevice().getBufferMemoryRequirements(*buffer);
+    uint32_t memoryTypeIndex = Context::FindMemoryTypeIndex(requirements, memoryProp);
+    vk::MemoryAllocateFlagsInfo flagsInfo{ vk::MemoryAllocateFlagBits::eDeviceAddress };
+    memory = Helper::AllocateMemory(Context::GetDevice(), requirements.size, memoryTypeIndex, flagsInfo);
+
     Context::GetDevice().bindBufferMemory(*buffer, *memory, 0);
+
     if (usage & vk::BufferUsageFlagBits::eShaderDeviceAddress) {
         vk::BufferDeviceAddressInfoKHR bufferDeviceAI{ *buffer };
         deviceAddress = Context::GetDevice().getBufferAddressKHR(&bufferDeviceAI);
@@ -49,14 +34,13 @@ void HostBuffer::Copy(const void* data)
 }
 
 DeviceBuffer::DeviceBuffer(vk::BufferUsageFlags usage, size_t size)
-    : usage{ usage }
-    , Buffer(usage, vk::MemoryPropertyFlagBits::eDeviceLocal, size)
+    : Buffer(usage, vk::MemoryPropertyFlagBits::eDeviceLocal, size)
 {
 }
 
 void DeviceBuffer::Copy(const void* data)
 {
-    HostBuffer stagingBuffer{ usage | vk::BufferUsageFlagBits::eTransferSrc, size };
+    HostBuffer stagingBuffer{ vk::BufferUsageFlagBits::eTransferSrc, size };
     stagingBuffer.Copy(data);
 
     Context::OneTimeSubmit(

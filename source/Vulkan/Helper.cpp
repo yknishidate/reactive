@@ -1,7 +1,11 @@
+#include <regex>
+#include <spdlog/spdlog.h>
 #include "Helper.hpp"
-#include "Window.hpp"
 
-VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessage(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageTypes, VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData, void* pUserData)
+VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessage(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                                            VkDebugUtilsMessageTypeFlagsEXT messageTypes,
+                                            VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData,
+                                            void* pUserData)
 {
     const std::string message{ pCallbackData->pMessage };
     const std::regex regex{ "The Vulkan spec states: " };
@@ -15,7 +19,8 @@ VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessage(VkDebugUtilsMessageSeverityFlagBitsE
     return VK_FALSE;
 }
 
-vk::UniqueInstance Helper::CreateInstance(const std::vector<const char*>& extensions, const std::vector<const char*>& layers)
+vk::UniqueInstance Helper::CreateInstance(const std::vector<const char*>& extensions,
+                                          const std::vector<const char*>& layers)
 {
     static const vk::DynamicLoader dl;
     const auto vkGetInstanceProcAddr = dl.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
@@ -129,7 +134,9 @@ vk::UniqueDescriptorPool Helper::CraeteDescriptorPool(vk::Device device)
     );
 }
 
-vk::UniqueSwapchainKHR Helper::CreateSwapchain(vk::Device device, vk::SurfaceKHR surface, uint32_t minImageCount, uint32_t queueFamily)
+vk::UniqueSwapchainKHR Helper::CreateSwapchain(vk::Device device, vk::SurfaceKHR surface,
+                                               uint32_t width, uint32_t height,
+                                               uint32_t minImageCount, uint32_t queueFamily)
 {
     return device.createSwapchainKHRUnique(
         vk::SwapchainCreateInfoKHR()
@@ -137,7 +144,7 @@ vk::UniqueSwapchainKHR Helper::CreateSwapchain(vk::Device device, vk::SurfaceKHR
         .setMinImageCount(minImageCount)
         .setImageFormat(vk::Format::eB8G8R8A8Unorm)
         .setImageColorSpace(vk::ColorSpaceKHR::eSrgbNonlinear)
-        .setImageExtent({ static_cast<uint32_t>(Window::GetWidth()), static_cast<uint32_t>(Window::GetHeight()) })
+        .setImageExtent({ width, height })
         .setImageArrayLayers(1)
         .setImageUsage(vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst)
         .setPreTransform(vk::SurfaceTransformFlagBitsKHR::eIdentity)
@@ -194,5 +201,21 @@ vk::UniqueRenderPass Helper::CreateRenderPass(vk::Device device)
         .setAttachments(attachment)
         .setSubpasses(subpass)
         .setDependencies(dependency)
+    );
+}
+
+vk::UniqueBuffer Helper::CreateBuffer(vk::Device device, vk::DeviceSize size, vk::BufferUsageFlags usage)
+{
+    return device.createBufferUnique({ {}, size, usage });
+}
+
+vk::UniqueDeviceMemory Helper::AllocateMemory(vk::Device device, vk::DeviceSize size, uint32_t memoryTypeIndex,
+                                              vk::MemoryAllocateFlagsInfo flagsInfo)
+{
+    return device.allocateMemoryUnique(
+        vk::MemoryAllocateInfo()
+        .setAllocationSize(size)
+        .setMemoryTypeIndex(memoryTypeIndex)
+        .setPNext(&flagsInfo)
     );
 }

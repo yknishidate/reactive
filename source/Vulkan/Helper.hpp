@@ -1,8 +1,6 @@
 #pragma once
-#include <regex>
 #define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include <vulkan/vulkan.hpp>
-#include <spdlog/spdlog.h>
 
 namespace Helper
 {
@@ -19,9 +17,16 @@ namespace Helper
 
     vk::UniqueDescriptorPool CraeteDescriptorPool(vk::Device device);
 
-    vk::UniqueSwapchainKHR CreateSwapchain(vk::Device device, vk::SurfaceKHR surface, uint32_t minImageCount, uint32_t queueFamily);
+    vk::UniqueSwapchainKHR CreateSwapchain(vk::Device device, vk::SurfaceKHR surface,
+                                           uint32_t width, uint32_t height,
+                                           uint32_t minImageCount, uint32_t queueFamily);
 
     std::vector<vk::UniqueImageView> CreateImageViews(vk::Device device, const std::vector<vk::Image>& images);
 
     vk::UniqueRenderPass CreateRenderPass(vk::Device device);
+
+    vk::UniqueBuffer CreateBuffer(vk::Device device, vk::DeviceSize size, vk::BufferUsageFlags usage);
+
+    vk::UniqueDeviceMemory AllocateMemory(vk::Device device, vk::DeviceSize size, uint32_t memoryTypeIndex,
+                                          vk::MemoryAllocateFlagsInfo flagsInfo = {});
 }
