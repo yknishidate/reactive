@@ -266,8 +266,8 @@ void Engine::Run()
             Context::WaitNextFrame();
             vk::CommandBuffer commandBuffer = Context::BeginCommandBuffer();
 
-            int width = Window::GetWidth();
-            int height = Window::GetHeight();
+            uint32_t width = Window::GetWidth();
+            uint32_t height = Window::GetHeight();
             //if (pushConstants.nee == 0) {
             //    ptPipeline.Run(commandBuffer, width, height, &pushConstants);
             //} else if (pushConstants.nee == 1 || pushConstants.nee == 2 || pushConstants.nee == 3) {
