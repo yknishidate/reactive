@@ -36,9 +36,9 @@ private:
     static inline vk::PhysicalDevice physicalDevice;
     static inline vk::UniqueSurfaceKHR surface;
     static inline vk::UniqueDevice device;
-    static inline Swapchain swapchain;
     static inline uint32_t queueFamily = std::numeric_limits<uint32_t>::max();
     static inline vk::Queue queue;
     static inline vk::UniqueCommandPool commandPool;
     static inline vk::UniqueDescriptorPool descriptorPool;
+    static inline Swapchain swapchain;
 };

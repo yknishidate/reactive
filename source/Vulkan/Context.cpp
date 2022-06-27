@@ -10,18 +10,29 @@ VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 void Context::Init()
 {
     spdlog::info("Context::Init()");
+
     std::vector layers{ "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_monitor" };
+
     instance = Helper::CreateInstance(Window::GetExtensions(), layers);
     VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
+
     debugMessenger = Helper::CreateDebugMessenger(*instance);
+
     physicalDevice = instance->enumeratePhysicalDevices().front();
+
     surface = Window::CreateSurface(*instance);
+
     queueFamily = Helper::FindGenericQueueFamily(physicalDevice, *surface);
+
     device = Helper::CreateDevice(physicalDevice, queueFamily);
+
     queue = device->getQueue(queueFamily, 0);
+
     commandPool = Helper::CreateCommandPool(*device, queueFamily);
-    swapchain = Swapchain{ *device, *surface, queueFamily };
+
     descriptorPool = Helper::CraeteDescriptorPool(*device);
+
+    swapchain = Swapchain{ *device, *surface, queueFamily };
 }
 
 vk::UniqueCommandBuffer Context::AllocateCommandBuffer()
