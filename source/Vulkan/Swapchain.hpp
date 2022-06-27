@@ -117,10 +117,10 @@ struct Swapchain
         //}
     }
 
-    auto GetBackImage() { return swapchainImages[frameIndex]; }
-    auto GetImageCount() { return swapchainImages.size(); }
-    auto GetMinImageCount() { return minImageCount; }
-    auto GetRenderPass() { return *renderPass; }
+    auto GetBackImage() const { return swapchainImages[frameIndex]; }
+    auto GetImageCount() const { return swapchainImages.size(); }
+    auto GetMinImageCount() const { return minImageCount; }
+    auto GetRenderPass() const { return *renderPass; }
 
     vk::UniqueSwapchainKHR swapchain;
     std::vector<vk::Image> swapchainImages;
