@@ -24,19 +24,9 @@ void Context::Init()
     descriptorPool = Helper::CraeteDescriptorPool(*device);
 }
 
-std::vector<vk::UniqueCommandBuffer> Context::AllocateCommandBuffers(uint32_t count)
-{
-    return device->allocateCommandBuffersUnique(
-        vk::CommandBufferAllocateInfo()
-        .setCommandPool(*commandPool)
-        .setLevel(vk::CommandBufferLevel::ePrimary)
-        .setCommandBufferCount(count)
-    );
-}
-
 vk::UniqueCommandBuffer Context::AllocateCommandBuffer()
 {
-    return std::move(AllocateCommandBuffers(1).front());
+    return std::move(Helper::AllocateCommandBuffers(*device, *commandPool, 1).front());
 }
 
 void Context::SubmitAndWait(vk::CommandBuffer commandBuffer)

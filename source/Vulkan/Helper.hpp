@@ -29,4 +29,6 @@ namespace Helper
 
     vk::UniqueDeviceMemory AllocateMemory(vk::Device device, vk::DeviceSize size, uint32_t memoryTypeIndex,
                                           vk::MemoryAllocateFlagsInfo flagsInfo = {});
+
+    std::vector<vk::UniqueCommandBuffer> AllocateCommandBuffers(vk::Device device, vk::CommandPool commandPool, uint32_t count);
 }

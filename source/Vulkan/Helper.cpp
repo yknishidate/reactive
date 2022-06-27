@@ -219,3 +219,13 @@ vk::UniqueDeviceMemory Helper::AllocateMemory(vk::Device device, vk::DeviceSize 
         .setPNext(&flagsInfo)
     );
 }
+
+std::vector<vk::UniqueCommandBuffer> Helper::AllocateCommandBuffers(vk::Device device, vk::CommandPool commandPool, uint32_t count)
+{
+    return device.allocateCommandBuffersUnique(
+        vk::CommandBufferAllocateInfo()
+        .setCommandPool(commandPool)
+        .setLevel(vk::CommandBufferLevel::ePrimary)
+        .setCommandBufferCount(count)
+    );
+}
