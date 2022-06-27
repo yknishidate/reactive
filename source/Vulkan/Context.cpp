@@ -16,7 +16,7 @@ void Context::Init()
     debugMessenger = Helper::CreateDebugMessenger(*instance);
     physicalDevice = instance->enumeratePhysicalDevices().front();
     surface = Window::CreateSurface(*instance);
-    queueFamily = Helper::FindQueueFamily(physicalDevice, *surface);
+    queueFamily = Helper::FindGenericQueueFamily(physicalDevice, *surface);
     device = Helper::CreateDevice(physicalDevice, queueFamily);
     queue = device->getQueue(queueFamily, 0);
     commandPool = Helper::CreateCommandPool(*device, queueFamily);

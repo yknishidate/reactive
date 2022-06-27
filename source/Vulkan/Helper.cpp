@@ -47,7 +47,7 @@ vk::UniqueDebugUtilsMessengerEXT Helper::CreateDebugMessenger(vk::Instance insta
     );
 }
 
-uint32_t Helper::FindQueueFamily(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface)
+uint32_t Helper::FindGenericQueueFamily(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface)
 {
     const std::vector properties = physicalDevice.getQueueFamilyProperties();
     for (uint32_t index = 0; index < properties.size(); index++) {

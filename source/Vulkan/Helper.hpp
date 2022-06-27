@@ -9,7 +9,7 @@ namespace Helper
 
     vk::UniqueDebugUtilsMessengerEXT CreateDebugMessenger(vk::Instance instance);
 
-    uint32_t FindQueueFamily(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface);
+    uint32_t FindGenericQueueFamily(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface);
 
     vk::UniqueDevice CreateDevice(vk::PhysicalDevice physicalDevice, uint32_t queueFamily);
 
