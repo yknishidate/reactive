@@ -40,13 +40,17 @@ DeviceBuffer::DeviceBuffer(vk::BufferUsageFlags usage, size_t size)
 
 void DeviceBuffer::Copy(const void* data)
 {
-    HostBuffer stagingBuffer{ vk::BufferUsageFlagBits::eTransferSrc, size };
-    stagingBuffer.Copy(data);
-
+    StagingBuffer stagingBuffer{ size, data };
     Context::OneTimeSubmit(
         [&](vk::CommandBuffer commandBuffer)
         {
             vk::BufferCopy region{ 0, 0, size };
             commandBuffer.copyBuffer(stagingBuffer.GetBuffer(), *buffer, region);
         });
+}
+
+StagingBuffer::StagingBuffer(size_t size, const void* data)
+    : HostBuffer{ vk::BufferUsageFlagBits::eTransferSrc, size }
+{
+    Copy(data);
 }

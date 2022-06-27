@@ -6,8 +6,6 @@ class Buffer
 public:
     Buffer() = default;
 
-    virtual void Copy(const void* data) = 0;
-
     vk::Buffer GetBuffer() const { return *buffer; }
     vk::DeviceSize GetSize() const { return size; }
     uint64_t GetAddress() const { return deviceAddress; }
@@ -27,7 +25,7 @@ public:
     HostBuffer() = default;
     HostBuffer(vk::BufferUsageFlags usage, size_t size);
 
-    void Copy(const void* data) override;
+    void Copy(const void* data);
 
 private:
     void* mapped = nullptr;
@@ -46,7 +44,14 @@ public:
         Copy(data.data());
     }
 
-    void Copy(const void* data) override;
+    void Copy(const void* data);
 
 private:
+};
+
+class StagingBuffer : public HostBuffer
+{
+public:
+    StagingBuffer() = default;
+    StagingBuffer(size_t size, const void* data);
 };

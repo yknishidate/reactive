@@ -94,9 +94,7 @@ Image::Image(const std::string& filepath)
             SetImageLayout(commandBuffer, *image, vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral);
         });
 
-    HostBuffer staging{ vk::BufferUsageFlagBits::eTransferSrc, static_cast<size_t>(width * height * 4) };
-    staging.Copy(data);
-
+    StagingBuffer staging{ static_cast<size_t>(width * height * 4), data };
     Context::OneTimeSubmit(
         [&](vk::CommandBuffer commandBuffer)
         {
