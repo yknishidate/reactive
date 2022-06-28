@@ -246,16 +246,16 @@ void RayTracingPipeline::Setup(size_t pushSize)
     auto rtProperties = Context::GetPhysicalDevice().getProperties2<vk::PhysicalDeviceProperties2, vkRTP>().get<vkRTP>();
 
     // Calculate SBT size
-    uint32_t handleSize = rtProperties.shaderGroupHandleSize;
-    size_t handleSizeAligned = rtProperties.shaderGroupHandleAlignment;
-    size_t groupCount = shaderGroups.size();
-    size_t sbtSize = groupCount * handleSizeAligned;
+    const uint32_t handleSize = rtProperties.shaderGroupHandleSize;
+    const size_t handleSizeAligned = rtProperties.shaderGroupHandleAlignment;
+    const size_t groupCount = shaderGroups.size();
+    const size_t sbtSize = groupCount * handleSizeAligned;
 
     // Get shader group handles
     std::vector<uint8_t> shaderHandleStorage(sbtSize);
-    vk::Result groupRes = Context::GetDevice().getRayTracingShaderGroupHandlesKHR(*pipeline, 0, groupCount, sbtSize,
-                                                                                  shaderHandleStorage.data());
-    if (groupRes != vk::Result::eSuccess) {
+    const vk::Result result = Context::GetDevice().getRayTracingShaderGroupHandlesKHR(*pipeline, 0, groupCount, sbtSize,
+                                                                                      shaderHandleStorage.data());
+    if (result != vk::Result::eSuccess) {
         throw std::runtime_error("failed to get ray tracing shader group handles.");
     }
 

@@ -10,8 +10,6 @@ public:
     BottomAccel() = default;
     BottomAccel(const Mesh& mesh, vk::GeometryFlagBitsKHR geomertyFlag);
 
-    BottomAccel& operator=(BottomAccel&& other) noexcept = default;
-
     uint64_t GetBufferAddress() const { return buffer.GetAddress(); }
 
 private:
@@ -25,8 +23,6 @@ public:
     TopAccel() = default;
     TopAccel(const std::vector<Object>& objects, vk::GeometryFlagBitsKHR geomertyFlag);
     TopAccel(const Object& object, vk::GeometryFlagBitsKHR geomertyFlag);
-
-    TopAccel& operator=(TopAccel&& other) noexcept = default;
 
     void Rebuild(const std::vector<Object>& objects);
 

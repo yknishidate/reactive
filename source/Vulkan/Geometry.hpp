@@ -35,8 +35,6 @@ public:
             .setFlags(vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace)
             .setGeometries(geometry);
     }
-
-    TrianglesGeometry& operator=(TrianglesGeometry&&) = default;
 };
 
 class InstancesGeometry : public Geometry
@@ -51,8 +49,6 @@ public:
         this->geomertyFlag = geomertyFlag;
         Update(instances, primitiveCount);
     }
-
-    InstancesGeometry& operator=(InstancesGeometry&&) = default;
 
     void Update(vk::AccelerationStructureGeometryInstancesDataKHR instances, size_t primitiveCount)
     {
