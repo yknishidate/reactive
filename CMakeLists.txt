@@ -32,13 +32,11 @@ target_include_directories(
     "${PROJECT_SOURCE_DIR}/external/imgui-vulkan-hpp"
 )
 
-file(GLOB_RECURSE shaders shader/*)
 file(GLOB_RECURSE sources source/*.cpp)
 file(GLOB_RECURSE headers source/*.hpp)
 add_executable(${PROJECT_NAME} 
     ${sources}
     ${headers}
-    ${shaders}
 )
 
 target_precompile_headers(${PROJECT_NAME} PUBLIC source/pch.h)
