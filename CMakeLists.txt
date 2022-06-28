@@ -26,6 +26,7 @@ add_library(imgui STATIC
 target_include_directories(
     imgui PUBLIC
     "${PROJECT_SOURCE_DIR}/external/vulkan/include"
+    "${PROJECT_SOURCE_DIR}/external/glfw/include"
     "${PROJECT_SOURCE_DIR}/external/imgui"
     "${PROJECT_SOURCE_DIR}/external/imgui/backends"
     "${PROJECT_SOURCE_DIR}/external/imgui-vulkan-hpp"
