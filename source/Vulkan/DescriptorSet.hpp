@@ -15,6 +15,7 @@ public:
     void SetupLayout();
     void Allocate();
     void Update();
+    void Bind(vk::CommandBuffer commandBuffer, vk::PipelineBindPoint bindPoint, vk::PipelineLayout pipelineLayout);
 
     void Register(const std::string& name, vk::Buffer buffer, size_t size);
     void Register(const std::string& name, vk::ImageView view, vk::Sampler sampler);
@@ -25,10 +26,9 @@ public:
 
     void AddBindingMap(const std::vector<uint32_t>& spvShader, vk::ShaderStageFlags stage);
 
-    auto GetLayout() const { return *descSetLayout; }
-    auto Get() const { return *descSet; }
-
     std::vector<vk::DescriptorSetLayoutBinding> GetBindings() const;
+
+    vk::UniquePipelineLayout CreatePipelineLayout(size_t pushSize, vk::ShaderStageFlags shaderStage) const;
 
 private:
     void UpdateBindingMap(spirv_cross::Resource& resource, spirv_cross::CompilerGLSL& glsl,

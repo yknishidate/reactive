@@ -147,6 +147,28 @@ std::vector<vk::DescriptorSetLayoutBinding> DescriptorSet::GetBindings() const
     return bindings;
 }
 
+vk::UniquePipelineLayout DescriptorSet::CreatePipelineLayout(size_t pushSize, vk::ShaderStageFlags shaderStage) const
+{
+    const auto pushRange = vk::PushConstantRange()
+        .setOffset(0)
+        .setSize(pushSize)
+        .setStageFlags(shaderStage);
+
+    auto layoutInfo = vk::PipelineLayoutCreateInfo()
+        .setSetLayouts(*descSetLayout);
+
+    if (pushSize) {
+        layoutInfo.setPushConstantRanges(pushRange);
+    }
+
+    return Context::GetDevice().createPipelineLayoutUnique(layoutInfo);
+}
+
+void DescriptorSet::Bind(vk::CommandBuffer commandBuffer, vk::PipelineBindPoint bindPoint, vk::PipelineLayout pipelineLayout)
+{
+    commandBuffer.bindDescriptorSets(bindPoint, pipelineLayout, 0, *descSet, nullptr);
+}
+
 void DescriptorSet::UpdateBindingMap(spirv_cross::Resource& resource, spirv_cross::CompilerGLSL& glsl,
                                      vk::ShaderStageFlags stage, vk::DescriptorType type)
 {

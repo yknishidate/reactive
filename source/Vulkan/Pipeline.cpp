@@ -18,21 +18,6 @@ namespace
         return Context::GetDevice().createShaderModuleUnique(createInfo);
     }
 
-    vk::UniquePipelineLayout CreatePipelineLayout(vk::DescriptorSetLayout descSetLayout,
-                                                  size_t pushSize, vk::ShaderStageFlags shaderStage)
-    {
-        vk::PipelineLayoutCreateInfo createInfo;
-        createInfo.setSetLayouts(descSetLayout);
-        vk::PushConstantRange pushRange;
-        if (pushSize) {
-            pushRange.setOffset(0);
-            pushRange.setSize(pushSize);
-            pushRange.setStageFlags(shaderStage);
-            createInfo.setPushConstantRanges(pushRange);
-        }
-        return Context::GetDevice().createPipelineLayoutUnique(createInfo);
-    }
-
     vk::UniquePipeline CreateComputePipeline(vk::ShaderModule shaderModule, vk::ShaderStageFlagBits shaderStage,
                                              vk::PipelineLayout pipelineLayout)
     {
@@ -131,7 +116,7 @@ void ComputePipeline::Setup(size_t pushSize)
 {
     this->pushSize = pushSize;
     descSet.SetupLayout();
-    pipelineLayout = CreatePipelineLayout(descSet.GetLayout(), pushSize, vk::ShaderStageFlagBits::eCompute);
+    pipelineLayout = descSet.CreatePipelineLayout(pushSize, vk::ShaderStageFlagBits::eCompute);
     pipeline = CreateComputePipeline(*shaderModule, vk::ShaderStageFlagBits::eCompute, *pipelineLayout);
     descSet.Allocate();
 }
@@ -139,7 +124,7 @@ void ComputePipeline::Setup(size_t pushSize)
 void ComputePipeline::Run(vk::CommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY, void* pushData)
 {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *pipeline);
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *pipelineLayout, 0, descSet.Get(), nullptr);
+    descSet.Bind(commandBuffer, vk::PipelineBindPoint::eCompute, *pipelineLayout);
     if (pushData) {
         commandBuffer.pushConstants(*pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0, pushSize, pushData);
     }
@@ -234,11 +219,11 @@ void RayTracingPipeline::Setup(size_t pushSize)
     this->pushSize = pushSize;
 
     descSet.SetupLayout();
-    pipelineLayout = CreatePipelineLayout(descSet.GetLayout(), pushSize,
-                                          vk::ShaderStageFlagBits::eRaygenKHR |
-                                          vk::ShaderStageFlagBits::eMissKHR |
-                                          vk::ShaderStageFlagBits::eClosestHitKHR |
-                                          vk::ShaderStageFlagBits::eAnyHitKHR);
+    pipelineLayout = descSet.CreatePipelineLayout(pushSize,
+                                                  vk::ShaderStageFlagBits::eRaygenKHR |
+                                                  vk::ShaderStageFlagBits::eMissKHR |
+                                                  vk::ShaderStageFlagBits::eClosestHitKHR |
+                                                  vk::ShaderStageFlagBits::eAnyHitKHR);
     pipeline = CreateRayTracingPipeline(shaderStages, shaderGroups, *pipelineLayout);
 
     // Get Ray Tracing Properties
@@ -283,7 +268,7 @@ void RayTracingPipeline::Setup(size_t pushSize)
 void RayTracingPipeline::Run(vk::CommandBuffer commandBuffer, uint32_t countX, uint32_t countY, void* pushData)
 {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, *pipeline);
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eRayTracingKHR, *pipelineLayout, 0, descSet.Get(), nullptr);
+    descSet.Bind(commandBuffer, vk::PipelineBindPoint::eRayTracingKHR, *pipelineLayout);
     if (pushData) {
         commandBuffer.pushConstants(*pipelineLayout,
                                     vk::ShaderStageFlagBits::eRaygenKHR |
