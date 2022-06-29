@@ -8,7 +8,6 @@ set(CMAKE_CXX_STANDARD 20)
 option(ENABLE_HLSL OFF)
 
 add_subdirectory(external/glslang)
-add_subdirectory(external/SPIRV-Cross)
 
 file(GLOB_RECURSE sources source/*.cpp)
 file(GLOB_RECURSE headers source/*.hpp)
@@ -30,13 +29,25 @@ find_package(imgui CONFIG REQUIRED)
 target_link_libraries(
     ${PROJECT_NAME} PUBLIC 
     $ENV{VULKAN_SDK}/Lib/vulkan-1.lib
+    
+    optimized $ENV{VULKAN_SDK}/Lib/spirv-cross-c.lib
+    optimized $ENV{VULKAN_SDK}/Lib/spirv-cross-c-shared.lib
+    optimized $ENV{VULKAN_SDK}/Lib/spirv-cross-core.lib
+    optimized $ENV{VULKAN_SDK}/Lib/spirv-cross-cpp.lib
+    optimized $ENV{VULKAN_SDK}/Lib/spirv-cross-glsl.lib
+    
+    debug $ENV{VULKAN_SDK}/Lib/spirv-cross-cd.lib
+    debug $ENV{VULKAN_SDK}/Lib/spirv-cross-c-sharedd.lib
+    debug $ENV{VULKAN_SDK}/Lib/spirv-cross-cored.lib
+    debug $ENV{VULKAN_SDK}/Lib/spirv-cross-cppd.lib
+    debug $ENV{VULKAN_SDK}/Lib/spirv-cross-glsld.lib
+
     spdlog::spdlog spdlog::spdlog_header_only
     glm::glm
     glfw
     glslang
     glslang-default-resource-limits
     SPIRV
-    spirv-cross-glsl
     tinyobjloader::tinyobjloader
     imgui::imgui
     # HLSL SPIRV glslang OGLCompiler
@@ -44,22 +55,12 @@ target_link_libraries(
 set_property(TARGET glfw PROPERTY FOLDER "External")
 set_property(TARGET glslang PROPERTY FOLDER "External")
 set_property(TARGET glslang-default-resource-limits PROPERTY FOLDER "External")
-set_property(TARGET SPIRV PROPERTY FOLDER "External")
-set_property(TARGET spirv-cross PROPERTY FOLDER "External")
-set_property(TARGET spirv-cross-c PROPERTY FOLDER "External")
-set_property(TARGET spirv-cross-core PROPERTY FOLDER "External")
-set_property(TARGET spirv-cross-glsl PROPERTY FOLDER "External")
-set_property(TARGET spirv-cross-cpp PROPERTY FOLDER "External")
-set_property(TARGET spirv-cross-hlsl PROPERTY FOLDER "External")
-set_property(TARGET spirv-cross-msl PROPERTY FOLDER "External")
-set_property(TARGET spirv-cross-reflect PROPERTY FOLDER "External")
-set_property(TARGET spirv-cross-util PROPERTY FOLDER "External")
 
 target_include_directories(
     ${PROJECT_NAME} PUBLIC
+    $ENV{VULKAN_SDK}/Include/spirv_cross
     "${PROJECT_SOURCE_DIR}/external/vulkan/include"
     "${PROJECT_SOURCE_DIR}/external/glslang"
-    "${PROJECT_SOURCE_DIR}/external/SPIRV-Cross"
     "${PROJECT_SOURCE_DIR}/external/imgui-vulkan-hpp"
     "${PROJECT_SOURCE_DIR}/source"
     "${PROJECT_SOURCE_DIR}/"
