@@ -105,3 +105,8 @@ void Context::Present()
 {
     swapchain.Present(queue);
 }
+
+void Context::CopyToBackImage(vk::CommandBuffer commandBuffer, const Image& source)
+{
+    swapchain.CopyToBackImage(commandBuffer, source);
+}

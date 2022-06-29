@@ -2,6 +2,8 @@
 
 #include <vulkan/vulkan.hpp>
 
+class Image;
+
 struct FrameSemaphores
 {
     FrameSemaphores();
@@ -13,7 +15,8 @@ struct FrameSemaphores
 struct Frame
 {
     Frame() = default;
-    Frame(vk::RenderPass renderPass, vk::ImageView attachment);
+    Frame(vk::RenderPass renderPass, vk::ImageView attachment,
+          uint32_t width, uint32_t height);
 
     vk::CommandBuffer BeginCommandBuffer()
     {
@@ -57,53 +60,15 @@ struct Swapchain
 
     void BeginRenderPass();
 
-    void EndRenderPass()
-    {
-        frames[frameIndex].commandBuffer->endRenderPass();
-    }
+    void EndRenderPass();
 
-    void WaitNextFrame(vk::Device device)
-    {
-        const vk::Semaphore imageAcquiredSemaphore = *frameSemaphores[semaphoreIndex].imageAcquiredSemaphore;
-        try {
-            frameIndex = device.acquireNextImageKHR(*swapchain, UINT64_MAX, imageAcquiredSemaphore).value;
-        } catch (const std::exception& exception) {
-            swapchainRebuild = true;
-            return;
-        }
-        frames[frameIndex].WaitForFence(device);
-    }
+    void WaitNextFrame(vk::Device device);
 
-    vk::CommandBuffer BeginCommandBuffer()
-    {
-        return frames[frameIndex].BeginCommandBuffer();
-    }
+    vk::CommandBuffer BeginCommandBuffer();
 
-    void Submit(vk::Queue queue)
-    {
-        frames[frameIndex].SubmitCommandBuffer(queue, frameSemaphores[semaphoreIndex]);
-    }
+    void Submit(vk::Queue queue);
 
-    void Present(vk::Queue queue)
-    {
-        if (swapchainRebuild) {
-            return;
-        }
-
-        try {
-            queue.presentKHR(
-                vk::PresentInfoKHR()
-                .setWaitSemaphores(*frameSemaphores[semaphoreIndex].renderCompleteSemaphore)
-                .setSwapchains(*swapchain)
-                .setImageIndices(frameIndex)
-            );
-        } catch (const std::exception& exception) {
-            std::cerr << "failed to present." << std::endl;
-            swapchainRebuild = true;
-            return;
-        }
-        semaphoreIndex = (semaphoreIndex + 1) % swapchainImages.size();
-    }
+    void Present(vk::Queue queue);
 
     void RebuildSwapchain()
     {
@@ -117,6 +82,8 @@ struct Swapchain
         //}
     }
 
+    void CopyToBackImage(vk::CommandBuffer commandBuffer, const Image& source);
+
     auto GetBackImage() const { return swapchainImages[frameIndex]; }
     auto GetImageCount() const { return swapchainImages.size(); }
     auto GetMinImageCount() const { return minImageCount; }
@@ -125,6 +92,8 @@ struct Swapchain
     vk::UniqueSwapchainKHR swapchain;
     std::vector<vk::Image> swapchainImages;
     std::vector<vk::UniqueImageView> swapchainImageViews;
+    uint32_t width = 0;
+    uint32_t height = 0;
 
     bool swapchainRebuild = false;
     int minImageCount = 3;

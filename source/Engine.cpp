@@ -16,23 +16,6 @@
 namespace
 {
     void CopyImages(vk::CommandBuffer commandBuffer, int width, int height,
-                    vk::Image srcImage, vk::Image backImage)
-    {
-        vk::ImageCopy copyRegion;
-        copyRegion.setSrcSubresource({ vk::ImageAspectFlagBits::eColor, 0, 0, 1 });
-        copyRegion.setDstSubresource({ vk::ImageAspectFlagBits::eColor, 0, 0, 1 });
-        copyRegion.setExtent({ uint32_t(width), uint32_t(height), 1 });
-
-        Image::SetImageLayout(commandBuffer, srcImage, vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal);
-        Image::SetImageLayout(commandBuffer, backImage, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
-
-        Image::CopyImage(commandBuffer, srcImage, backImage, copyRegion);
-
-        Image::SetImageLayout(commandBuffer, srcImage, vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eGeneral);
-        Image::SetImageLayout(commandBuffer, backImage, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eColorAttachmentOptimal);
-    }
-
-    void CopyImages(vk::CommandBuffer commandBuffer, int width, int height,
                     vk::Image inputImage, vk::Image outputImage, vk::Image backImage)
     {
         // output -> input
@@ -277,7 +260,7 @@ void Engine::Run()
             initReservoirPipeline.Run(commandBuffer, width, height, &pushConstants);
             shadingPipeline.Run(commandBuffer, width, height, &pushConstants);
 
-            CopyImages(commandBuffer, width, height, outputImage.GetImage(), Context::GetBackImage());
+            Context::CopyToBackImage(commandBuffer, outputImage);
 
             UI::Render(commandBuffer);
             Context::Submit();

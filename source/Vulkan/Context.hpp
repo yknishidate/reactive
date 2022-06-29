@@ -29,6 +29,7 @@ struct Context
     static auto BeginCommandBuffer()->vk::CommandBuffer;
     static void Submit();
     static void Present();
+    static void CopyToBackImage(vk::CommandBuffer commandBuffer, const Image& source);
 
 private:
     static inline vk::UniqueInstance instance;
