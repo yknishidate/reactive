@@ -28,7 +28,7 @@ public:
     PointLight& AddPointLight(glm::vec3 intensity, glm::vec3 position);
     SphereLight& AddSphereLight(glm::vec3 intensity, glm::vec3 position, float radius);
 
-    vk::AccelerationStructureKHR GetAccel() const { return topAccel.GetAccel(); }
+    const TopAccel& GetAccel() const { return topAccel; }
     const std::vector<Image>& GetTextures() const { return textures; }
     const Buffer& GetAddressBuffer() const { return addressBuffer; }
     Camera& GetCamera() { return camera; }

@@ -11,6 +11,7 @@ public:
     vk::Buffer GetBuffer() const { return *buffer; }
     vk::DeviceSize GetSize() const { return size; }
     uint64_t GetAddress() const { return deviceAddress; }
+    vk::DescriptorBufferInfo GetInfo() const { return { *buffer, 0, size }; }
 
 protected:
     Buffer(vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memoryProp, size_t size);

@@ -5,6 +5,7 @@
 
 #include "Buffer.hpp"
 #include "Image.hpp"
+#include "Accel.hpp"
 #include "WriteDescriptorSet.hpp"
 
 class DescriptorSet
@@ -15,11 +16,10 @@ public:
     void Update();
     void Bind(vk::CommandBuffer commandBuffer, vk::PipelineBindPoint bindPoint, vk::PipelineLayout pipelineLayout);
 
-    void Register(const std::string& name, vk::Buffer buffer, size_t size);
     void Register(const std::string& name, const std::vector<Image>& images);
     void Register(const std::string& name, const Buffer& buffer);
     void Register(const std::string& name, const Image& image);
-    void Register(const std::string& name, const vk::AccelerationStructureKHR& accel);
+    void Register(const std::string& name, const TopAccel& accel);
 
     void AddBindingMap(const std::vector<uint32_t>& spvShader, vk::ShaderStageFlags stage);
 

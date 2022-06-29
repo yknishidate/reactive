@@ -63,13 +63,6 @@ void DescriptorSet::Update()
     UpdateDescSet(*descSet, _writes);
 }
 
-void DescriptorSet::Register(const std::string& name, vk::Buffer buffer, size_t size)
-{
-    vk::DescriptorBufferInfo bufferInfo{ buffer, 0, size };
-    bindingMap[name].descriptorCount = 1;
-    writes.emplace_back(bindingMap[name], bufferInfo);
-}
-
 void DescriptorSet::Register(const std::string& name, const std::vector<Image>& images)
 {
     std::vector<vk::DescriptorImageInfo> infos;
@@ -89,7 +82,8 @@ void DescriptorSet::Register(const std::string& name, const std::vector<Image>& 
 
 void DescriptorSet::Register(const std::string& name, const Buffer& buffer)
 {
-    Register(name, buffer.GetBuffer(), buffer.GetSize());
+    bindingMap[name].descriptorCount = 1;
+    writes.emplace_back(bindingMap[name], buffer.GetInfo());
 }
 
 void DescriptorSet::Register(const std::string& name, const Image& image)
@@ -98,12 +92,10 @@ void DescriptorSet::Register(const std::string& name, const Image& image)
     writes.emplace_back(bindingMap[name], image.GetInfo());
 }
 
-void DescriptorSet::Register(const std::string& name, const vk::AccelerationStructureKHR& accel)
+void DescriptorSet::Register(const std::string& name, const TopAccel& accel)
 {
-    vk::WriteDescriptorSetAccelerationStructureKHR accelInfo{ accel };
     bindingMap[name].descriptorCount = 1;
-
-    writes.emplace_back(bindingMap[name], accelInfo);
+    writes.emplace_back(bindingMap[name], accel.GetInfo());
 }
 
 void DescriptorSet::AddBindingMap(const std::vector<uint32_t>& spvShader, vk::ShaderStageFlags stage)

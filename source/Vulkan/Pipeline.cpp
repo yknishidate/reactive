@@ -71,11 +71,6 @@ namespace
     }
 } // namespace
 
-void Pipeline::Register(const std::string& name, vk::Buffer buffer, size_t size)
-{
-    descSet.Register(name, buffer, size);
-}
-
 void Pipeline::Register(const std::string& name, const std::vector<Image>& images)
 {
     descSet.Register(name, images);
@@ -83,7 +78,7 @@ void Pipeline::Register(const std::string& name, const std::vector<Image>& image
 
 void Pipeline::Register(const std::string& name, const Buffer& buffer)
 {
-    Register(name, buffer.GetBuffer(), buffer.GetSize());
+    descSet.Register(name, buffer);
 }
 
 void Pipeline::Register(const std::string& name, const Image& image)
@@ -91,7 +86,7 @@ void Pipeline::Register(const std::string& name, const Image& image)
     descSet.Register(name, image);
 }
 
-void Pipeline::Register(const std::string& name, const vk::AccelerationStructureKHR& accel)
+void Pipeline::Register(const std::string& name, const TopAccel& accel)
 {
     descSet.Register(name, accel);
 }

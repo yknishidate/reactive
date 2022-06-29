@@ -11,11 +11,10 @@ class Image;
 class Pipeline
 {
 public:
-    void Register(const std::string& name, vk::Buffer buffer, size_t size);
     void Register(const std::string& name, const std::vector<Image>& images);
     void Register(const std::string& name, const Buffer& buffer);
     void Register(const std::string& name, const Image& image);
-    void Register(const std::string& name, const vk::AccelerationStructureKHR& accel);
+    void Register(const std::string& name, const TopAccel& accel);
 
 protected:
     vk::UniquePipelineLayout pipelineLayout;

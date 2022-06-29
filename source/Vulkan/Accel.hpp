@@ -30,6 +30,7 @@ public:
     void Rebuild(const std::vector<Object>& objects);
 
     vk::AccelerationStructureKHR GetAccel() const { return *accel; }
+    vk::WriteDescriptorSetAccelerationStructureKHR GetInfo() const { return { *accel }; }
 
 private:
     vk::UniqueAccelerationStructureKHR accel;
