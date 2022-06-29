@@ -67,12 +67,7 @@ void DescriptorSet::Register(const std::string& name, const std::vector<Image>& 
 {
     std::vector<vk::DescriptorImageInfo> infos;
     for (auto&& image : images) {
-        infos.push_back(
-            vk::DescriptorImageInfo()
-            .setImageView(image.GetView())
-            .setSampler(image.GetSampler())
-            .setImageLayout(vk::ImageLayout::eGeneral)
-        );
+        infos.push_back(image.GetInfo());
     }
 
     bindingMap[name].descriptorCount = images.size();
