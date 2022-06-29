@@ -34,13 +34,7 @@ namespace
 
 BottomAccel::BottomAccel(const Mesh& mesh, vk::GeometryFlagBitsKHR geomertyFlag)
 {
-    const auto triangleData = vk::AccelerationStructureGeometryTrianglesDataKHR()
-        .setVertexFormat(vk::Format::eR32G32B32Sfloat)
-        .setVertexData(mesh.GetVertexBufferAddress())
-        .setVertexStride(sizeof(Vertex))
-        .setMaxVertex(mesh.GetVertices().size())
-        .setIndexType(vk::IndexType::eUint32)
-        .setIndexData(mesh.GetIndexBufferAddress());
+    const auto triangleData = mesh.GetTriangles();
 
     const size_t primitiveCount = mesh.GetIndices().size() / 3;
     const TrianglesGeometry geometry{ triangleData, geomertyFlag, primitiveCount };

@@ -41,6 +41,7 @@ public:
     uint64_t GetIndexBufferAddress() const { return indexBuffer.GetAddress(); }
     const std::vector<Vertex>& GetVertices() const { return vertices; }
     const std::vector<uint32_t>& GetIndices() const { return indices; }
+    vk::AccelerationStructureGeometryTrianglesDataKHR GetTriangles() const;
 
     Material GetMaterial() const { return material; }
     void SetMaterial(const Material& material);

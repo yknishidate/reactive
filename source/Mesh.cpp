@@ -31,6 +31,17 @@ Mesh::Mesh(const std::string& filepath)
     bottomAccel = BottomAccel{ *this, vk::GeometryFlagBitsKHR::eNoDuplicateAnyHitInvocation };
 }
 
+vk::AccelerationStructureGeometryTrianglesDataKHR Mesh::GetTriangles() const
+{
+    return vk::AccelerationStructureGeometryTrianglesDataKHR()
+        .setVertexFormat(vk::Format::eR32G32B32Sfloat)
+        .setVertexData(vertexBuffer.GetAddress())
+        .setVertexStride(sizeof(Vertex))
+        .setMaxVertex(vertices.size())
+        .setIndexType(vk::IndexType::eUint32)
+        .setIndexData(indexBuffer.GetAddress());
+}
+
 void Mesh::SetMaterial(const Material& material)
 {
     this->material = material;

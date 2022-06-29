@@ -47,6 +47,7 @@ void Scene::Setup()
     }
 
     // Buffer references
+    // TODO: support many light
     std::vector<BufferAddress> addresses(objects.size());
     for (int i = 0; i < objects.size(); i++) {
         addresses[i].vertices = objects[i].GetMesh().GetVertexBufferAddress();

@@ -50,7 +50,7 @@ void DeviceBuffer::Copy(const void* data)
 }
 
 StagingBuffer::StagingBuffer(size_t size, const void* data)
-    : HostBuffer{ vk::BufferUsageFlagBits::eTransferSrc, size }
+    : HostBuffer{ Usage::eTransferSrc, size }
 {
     Copy(data);
 }
