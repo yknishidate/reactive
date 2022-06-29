@@ -58,7 +58,6 @@ set_property(TARGET spirv-cross-util PROPERTY FOLDER "External")
 target_include_directories(
     ${PROJECT_NAME} PUBLIC
     "${PROJECT_SOURCE_DIR}/external/vulkan/include"
-    "${PROJECT_SOURCE_DIR}/external/VulkanMemoryAllocator/include"
     "${PROJECT_SOURCE_DIR}/external/glslang"
     "${PROJECT_SOURCE_DIR}/external/SPIRV-Cross"
     "${PROJECT_SOURCE_DIR}/external/imgui-vulkan-hpp"
