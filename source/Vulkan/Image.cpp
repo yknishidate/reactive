@@ -69,7 +69,7 @@ Image::Image(uint32_t width, uint32_t height, vk::Format format)
     Context::OneTimeSubmit(
         [&](vk::CommandBuffer commandBuffer)
         {
-            SetImageLayout(commandBuffer, *image, vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral);
+            SetImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
         });
 }
 
@@ -111,6 +111,12 @@ Image::Image(const std::string& filepath)
         });
 
     stbi_image_free(data);
+}
+
+void Image::SetImageLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout newLayout)
+{
+    SetImageLayout(commandBuffer, *image, layout, newLayout);
+    layout = newLayout;
 }
 
 void Image::SetImageLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout)

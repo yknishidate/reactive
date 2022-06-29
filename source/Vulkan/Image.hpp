@@ -12,6 +12,7 @@ public:
     vk::ImageView GetView() const { return *view; }
     vk::Sampler GetSampler() const { return *sampler; }
 
+    void SetImageLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout newLayout);
     static void SetImageLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout);
     static void CopyImage(vk::CommandBuffer commandBuffer, vk::Image src, vk::Image dst, vk::ImageCopy copyRegion);
 
@@ -20,4 +21,5 @@ private:
     vk::UniqueDeviceMemory memory{};
     vk::UniqueImageView view{};
     vk::UniqueSampler sampler{};
+    vk::ImageLayout layout = vk::ImageLayout::eUndefined;
 };
