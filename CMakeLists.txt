@@ -7,10 +7,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 file(GLOB_RECURSE sources source/*.cpp)
 file(GLOB_RECURSE headers source/*.hpp)
-add_executable(${PROJECT_NAME} 
-    ${sources}
-    ${headers}
-)
+add_executable(${PROJECT_NAME} ${sources} ${headers})
 
 target_precompile_headers(${PROJECT_NAME} PUBLIC source/pch.h)
 
@@ -20,58 +17,55 @@ find_package(glfw3 CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(tinyobjloader CONFIG REQUIRED)
 
-target_link_libraries(
-    ${PROJECT_NAME} PUBLIC 
-    $ENV{VULKAN_SDK}/Lib/vulkan-1.lib
-    
-    optimized $ENV{VULKAN_SDK}/Lib/spirv-cross-core.lib
-    optimized $ENV{VULKAN_SDK}/Lib/spirv-cross-cpp.lib
-    optimized $ENV{VULKAN_SDK}/Lib/spirv-cross-glsl.lib
+set(VULKAN_LIB $ENV{VULKAN_SDK}/Lib)
+set(VULKAN_INCLUDE $ENV{VULKAN_SDK}/Include)
 
-    optimized $ENV{VULKAN_SDK}/Lib/OGLCompiler.lib
-    optimized $ENV{VULKAN_SDK}/Lib/OSDependent.lib
-    optimized $ENV{VULKAN_SDK}/Lib/SPIRV-Tools.lib
-    optimized $ENV{VULKAN_SDK}/Lib/SPIRV-Tools-opt.lib
-
-    optimized $ENV{VULKAN_SDK}/Lib/glslang-default-resource-limits.lib
-    optimized $ENV{VULKAN_SDK}/Lib/glslang.lib
-    optimized $ENV{VULKAN_SDK}/Lib/GenericCodeGen.lib
-    optimized $ENV{VULKAN_SDK}/Lib/MachineIndependent.lib
-    optimized $ENV{VULKAN_SDK}/Lib/SPVRemapper.lib
-    optimized $ENV{VULKAN_SDK}/Lib/SPIRV.lib
-    
-    debug $ENV{VULKAN_SDK}/Lib/spirv-cross-cored.lib
-    debug $ENV{VULKAN_SDK}/Lib/spirv-cross-cppd.lib
-    debug $ENV{VULKAN_SDK}/Lib/spirv-cross-glsld.lib
-    
-    debug $ENV{VULKAN_SDK}/Lib/OGLCompilerd.lib
-    debug $ENV{VULKAN_SDK}/Lib/OSDependentd.lib
-    debug $ENV{VULKAN_SDK}/Lib/SPIRV-Toolsd.lib
-    debug $ENV{VULKAN_SDK}/Lib/SPIRV-Tools-optd.lib
-
-    debug $ENV{VULKAN_SDK}/Lib/glslang-default-resource-limitsd.lib
-    debug $ENV{VULKAN_SDK}/Lib/glslangd.lib
-    debug $ENV{VULKAN_SDK}/Lib/GenericCodeGend.lib
-    debug $ENV{VULKAN_SDK}/Lib/MachineIndependentd.lib
-    debug $ENV{VULKAN_SDK}/Lib/SPVRemapperd.lib
-    debug $ENV{VULKAN_SDK}/Lib/SPIRVd.lib
-
+target_link_libraries(${PROJECT_NAME} PUBLIC 
     glfw
     glm::glm
     imgui::imgui
     spdlog::spdlog
     spdlog::spdlog_header_only
     tinyobjloader::tinyobjloader
+
+    optimized ${VULKAN_LIB}/spirv-cross-core.lib
+    optimized ${VULKAN_LIB}/spirv-cross-cpp.lib
+    optimized ${VULKAN_LIB}/spirv-cross-glsl.lib
+
+    optimized ${VULKAN_LIB}/OGLCompiler.lib
+    optimized ${VULKAN_LIB}/OSDependent.lib
+    optimized ${VULKAN_LIB}/SPIRV-Tools.lib
+    optimized ${VULKAN_LIB}/SPIRV-Tools-opt.lib
+
+    optimized ${VULKAN_LIB}/glslang-default-resource-limits.lib
+    optimized ${VULKAN_LIB}/glslang.lib
+    optimized ${VULKAN_LIB}/GenericCodeGen.lib
+    optimized ${VULKAN_LIB}/MachineIndependent.lib
+    optimized ${VULKAN_LIB}/SPVRemapper.lib
+    optimized ${VULKAN_LIB}/SPIRV.lib
+    
+    debug ${VULKAN_LIB}/spirv-cross-cored.lib
+    debug ${VULKAN_LIB}/spirv-cross-cppd.lib
+    debug ${VULKAN_LIB}/spirv-cross-glsld.lib
+    
+    debug ${VULKAN_LIB}/OGLCompilerd.lib
+    debug ${VULKAN_LIB}/OSDependentd.lib
+    debug ${VULKAN_LIB}/SPIRV-Toolsd.lib
+    debug ${VULKAN_LIB}/SPIRV-Tools-optd.lib
+
+    debug ${VULKAN_LIB}/glslang-default-resource-limitsd.lib
+    debug ${VULKAN_LIB}/glslangd.lib
+    debug ${VULKAN_LIB}/GenericCodeGend.lib
+    debug ${VULKAN_LIB}/MachineIndependentd.lib
+    debug ${VULKAN_LIB}/SPVRemapperd.lib
+    debug ${VULKAN_LIB}/SPIRVd.lib
 )
 
-target_include_directories(
-    ${PROJECT_NAME} PUBLIC
-    $ENV{VULKAN_SDK}/Include/
-    $ENV{VULKAN_SDK}/Include/spirv_cross
-    $ENV{VULKAN_SDK}/Include/glslang
-    $ENV{VULKAN_SDK}/Include/glslang/SPIRV
-    $ENV{VULKAN_SDK}/Include/glslang/Include
-    $ENV{VULKAN_SDK}/Include/glslang/Public
-    "${PROJECT_SOURCE_DIR}/source"
-    "${PROJECT_SOURCE_DIR}/"
+target_include_directories(${PROJECT_NAME} PUBLIC
+    ${VULKAN_INCLUDE}/
+    ${VULKAN_INCLUDE}/spirv_cross
+    ${VULKAN_INCLUDE}/glslang/SPIRV
+    ${VULKAN_INCLUDE}/glslang/Include
+    ${PROJECT_SOURCE_DIR}/source
+    ${PROJECT_SOURCE_DIR}/
 )
