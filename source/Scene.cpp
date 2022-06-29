@@ -64,7 +64,7 @@ void Scene::Setup()
     }
     addressBuffer = DeviceBuffer{ usage, addresses };
 
-    camera.Init(Window::GetWidth(), Window::GetHeight());
+    camera = Camera{ Window::GetWidth(), Window::GetHeight() };
 }
 
 void Scene::Update(float dt)

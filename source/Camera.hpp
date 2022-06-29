@@ -12,7 +12,8 @@
 class Camera
 {
 public:
-    void Init(int width, int height);
+    Camera() = default;
+    Camera(uint32_t width, uint32_t height);
     void ProcessInput();
     bool CheckDirtyAndClean();
     glm::mat4 GetView() const;

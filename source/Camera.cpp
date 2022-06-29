@@ -1,7 +1,7 @@
 #include "Camera.hpp"
 #include "Input.hpp"
 
-void Camera::Init(int width, int height)
+Camera::Camera(uint32_t width, uint32_t height)
 {
     aspect = float(width) / height;
 }
