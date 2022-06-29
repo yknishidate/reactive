@@ -3,6 +3,8 @@
 
 class Buffer
 {
+    using Usage = vk::BufferUsageFlagBits;
+
 public:
     Buffer() = default;
 
@@ -39,14 +41,12 @@ public:
 
     template <typename T>
     DeviceBuffer(vk::BufferUsageFlags usage, const std::vector<T>& data)
-        : DeviceBuffer(usage | vk::BufferUsageFlagBits::eTransferDst, sizeof(T)* data.size())
+        : DeviceBuffer(usage | Usage::eTransferDst, sizeof(T)* data.size())
     {
         Copy(data.data());
     }
 
     void Copy(const void* data);
-
-private:
 };
 
 class StagingBuffer : public HostBuffer
@@ -54,4 +54,21 @@ class StagingBuffer : public HostBuffer
 public:
     StagingBuffer() = default;
     StagingBuffer(size_t size, const void* data);
+};
+
+class StorageBuffer : public DeviceBuffer
+{
+public:
+    StorageBuffer() = default;
+    StorageBuffer(size_t size)
+        : DeviceBuffer(Usage::eStorageBuffer | Usage::eShaderDeviceAddress, size)
+    {
+    }
+
+    template <typename T>
+    StorageBuffer(const std::vector<T>& data)
+        : DeviceBuffer(Usage::eStorageBuffer | Usage::eShaderDeviceAddress | Usage::eTransferDst, sizeof(T)* data.size())
+    {
+        Copy(data.data());
+    }
 };

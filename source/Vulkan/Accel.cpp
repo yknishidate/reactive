@@ -18,8 +18,7 @@ namespace
     void BuildAccel(vk::AccelerationStructureKHR accel, vk::DeviceSize size, uint32_t primitiveCount,
                     vk::AccelerationStructureBuildGeometryInfoKHR geometryInfo)
     {
-        DeviceBuffer scratchBuffer{ vk::BufferUsageFlagBits::eStorageBuffer |
-                                    vk::BufferUsageFlagBits::eShaderDeviceAddress, size };
+        StorageBuffer scratchBuffer{ size };
 
         geometryInfo.setScratchData(scratchBuffer.GetAddress());
         geometryInfo.setDstAccelerationStructure(accel);

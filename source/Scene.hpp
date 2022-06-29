@@ -50,11 +50,11 @@ private:
     TopAccel topAccel;
     Camera camera;
 
-    DeviceBuffer objectBuffer;
-    DeviceBuffer addressBuffer;
+    StorageBuffer objectBuffer;
+    StorageBuffer addressBuffer;
 
     std::vector<PointLight> pointLights;
     std::vector<SphereLight> sphereLights;
-    DeviceBuffer pointLightBuffer;
-    DeviceBuffer sphereLightBuffer;
+    StorageBuffer pointLightBuffer;
+    StorageBuffer sphereLightBuffer;
 };

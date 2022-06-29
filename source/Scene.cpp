@@ -38,15 +38,12 @@ void Scene::Setup()
         data.alphaTexture = object.GetMaterial().alphaTexture;
         objectData.push_back(data);
     }
-    vk::BufferUsageFlags usage =
-        vk::BufferUsageFlagBits::eStorageBuffer |
-        vk::BufferUsageFlagBits::eShaderDeviceAddress;
-    objectBuffer = DeviceBuffer{ usage, objectData };
+    objectBuffer = StorageBuffer{ objectData };
     if (!pointLights.empty()) {
-        pointLightBuffer = DeviceBuffer{ usage, pointLights };
+        pointLightBuffer = StorageBuffer{ pointLights };
     }
     if (!sphereLights.empty()) {
-        sphereLightBuffer = DeviceBuffer{ usage, sphereLights };
+        sphereLightBuffer = StorageBuffer{ sphereLights };
     }
 
     // Buffer references
@@ -62,7 +59,7 @@ void Scene::Setup()
             addresses[i].sphereLights = sphereLightBuffer.GetAddress();
         }
     }
-    addressBuffer = DeviceBuffer{ usage, addresses };
+    addressBuffer = StorageBuffer{ addresses };
 
     camera = Camera{ Window::GetWidth(), Window::GetHeight() };
 }
@@ -117,10 +114,10 @@ SphereLight& Scene::AddSphereLight(glm::vec3 intensity, glm::vec3 position, floa
     Material lightMaterial;
     lightMaterial.emission = intensity;
 
-    objects.emplace_back(meshes[sphereMeshIndex]);
-    objects.back().transform.position = position;
-    objects.back().transform.scale = glm::vec3{ radius };
-    objects.back().SetMaterial(lightMaterial);
+    auto& obj = objects.emplace_back(meshes[sphereMeshIndex]);
+    obj.transform.position = position;
+    obj.transform.scale = glm::vec3{ radius };
+    obj.SetMaterial(lightMaterial);
 
     return sphereLights.emplace_back(intensity, position, radius);
 }
