@@ -11,6 +11,7 @@ public:
     vk::Image GetImage() const { return *image; }
     vk::ImageView GetView() const { return *view; }
     vk::Sampler GetSampler() const { return *sampler; }
+    vk::DescriptorImageInfo GetInfo() const { return { *sampler, *view, layout }; }
 
     void SetImageLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout newLayout);
     void CopyToImage(vk::CommandBuffer commandBuffer, Image& dst);

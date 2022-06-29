@@ -16,7 +16,6 @@ public:
     void Bind(vk::CommandBuffer commandBuffer, vk::PipelineBindPoint bindPoint, vk::PipelineLayout pipelineLayout);
 
     void Register(const std::string& name, vk::Buffer buffer, size_t size);
-    void Register(const std::string& name, vk::ImageView view, vk::Sampler sampler);
     void Register(const std::string& name, const std::vector<Image>& images);
     void Register(const std::string& name, const Buffer& buffer);
     void Register(const std::string& name, const Image& image);

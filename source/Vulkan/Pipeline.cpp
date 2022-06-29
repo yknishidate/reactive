@@ -76,11 +76,6 @@ void Pipeline::Register(const std::string& name, vk::Buffer buffer, size_t size)
     descSet.Register(name, buffer, size);
 }
 
-void Pipeline::Register(const std::string& name, vk::ImageView view, vk::Sampler sampler)
-{
-    descSet.Register(name, view, sampler);
-}
-
 void Pipeline::Register(const std::string& name, const std::vector<Image>& images)
 {
     descSet.Register(name, images);
@@ -93,7 +88,7 @@ void Pipeline::Register(const std::string& name, const Buffer& buffer)
 
 void Pipeline::Register(const std::string& name, const Image& image)
 {
-    Register(name, image.GetView(), image.GetSampler());
+    descSet.Register(name, image);
 }
 
 void Pipeline::Register(const std::string& name, const vk::AccelerationStructureKHR& accel)
@@ -132,7 +127,6 @@ void ComputePipeline::Run(vk::CommandBuffer commandBuffer, uint32_t groupCountX,
 void RayTracingPipeline::LoadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath)
 {
     spdlog::info("RayTracingPipeline::LoadShaders()");
-    this->pushSize = pushSize;
     rgenCount = 1;
     missCount = 1;
     hitCount = 1;
@@ -171,7 +165,6 @@ void RayTracingPipeline::LoadShaders(const std::string& rgenPath, const std::str
 void RayTracingPipeline::LoadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath, const std::string& ahitPath)
 {
     spdlog::info("RayTracingPipeline::LoadShaders()");
-    this->pushSize = pushSize;
     rgenCount = 1;
     missCount = 1;
     hitCount = 2;
