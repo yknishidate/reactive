@@ -5,6 +5,7 @@
 #include <spirv_glsl.hpp>
 #include <spdlog/spdlog.h>
 #include "Image.hpp"
+#include "Window.hpp"
 #include "Compiler.hpp"
 
 namespace
@@ -264,4 +265,28 @@ void RayTracingPipeline::Run(vk::CommandBuffer commandBuffer, uint32_t countX, u
                                     0, pushSize, pushData);
     }
     commandBuffer.traceRaysKHR(raygenRegion, missRegion, hitRegion, {}, countX, countY, 1);
+}
+
+void GBufferPipeline::LoadShaders()
+{
+    RayTracingPipeline::LoadShaders("../shader/gbuffer/gbuffer.rgen",
+                                    "../shader/gbuffer/gbuffer.rchit",
+                                    "../shader/gbuffer/gbuffer.rmiss");
+}
+
+void GBufferPipeline::Setup(size_t pushSize)
+{
+    gbuffers.position = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR32G32B32A32Sfloat };
+    gbuffers.normal = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR32G32B32A32Sfloat };
+    gbuffers.diffuse = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm };
+    gbuffers.emission = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16B16A16Sfloat };
+    gbuffers.instanceIndex = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR8G8Uint };
+
+    Register("position", gbuffers.position);
+    Register("normal", gbuffers.normal);
+    Register("diffuse", gbuffers.diffuse);
+    Register("emission", gbuffers.emission);
+    Register("instanceIndex", gbuffers.instanceIndex);
+
+    RayTracingPipeline::Setup(pushSize);
 }

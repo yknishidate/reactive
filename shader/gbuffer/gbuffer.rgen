@@ -16,10 +16,11 @@ void main()
     vec4 target    = pushConstants.invProj * vec4(d.x, d.y, 1, 1) ;
     vec4 direction = pushConstants.invView * vec4(normalize(target.xyz), 0) ;
     
-    payload.skip = false;
-    payload.color = vec3(0.0);
+    payload.position = vec3(0.0);
+    payload.normal = vec3(0.0);
+    payload.diffuse = vec3(0.0);
     payload.emission = vec3(0.0);
-    payload.brdf = vec3(0.0);
+    payload.instanceIndex = -1;
     traceRayEXT(
         topLevelAS,
         gl_RayFlagsOpaqueEXT,
@@ -33,10 +34,9 @@ void main()
         10000.0,
         0     // payloadLocation
     );
-//    if(payload.skip){
-//        origin = vec4(payload.position, 1.0);
-//        payload.skip = false;
-//        continue;
-//    }
-    imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), newColor);
+    imageStore(position, ivec2(gl_LaunchIDEXT.xy), vec4(payload.position));
+    imageStore(normal, ivec2(gl_LaunchIDEXT.xy), vec4(payload.normal));
+    imageStore(diffuse, ivec2(gl_LaunchIDEXT.xy), vec4(payload.diffuse));
+    imageStore(emission, ivec2(gl_LaunchIDEXT.xy), vec4(payload.emission));
+    imageStore(instanceIndex, ivec2(gl_LaunchIDEXT.xy), vec4(payload.instanceIndex));
 }

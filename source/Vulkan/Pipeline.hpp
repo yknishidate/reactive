@@ -26,9 +26,9 @@ protected:
 class ComputePipeline : public Pipeline
 {
 public:
-    void LoadShaders(const std::string& path);
-    void Setup(size_t pushSize = 0);
-    void Run(vk::CommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY, void* pushData = nullptr);
+    virtual void LoadShaders(const std::string& path);
+    virtual void Setup(size_t pushSize = 0);
+    virtual void Run(vk::CommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY, void* pushData = nullptr);
 
 private:
     vk::UniqueShaderModule shaderModule;
@@ -37,10 +37,10 @@ private:
 class RayTracingPipeline : public Pipeline
 {
 public:
-    void LoadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath);
-    void LoadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath, const std::string& ahitPath);
-    void Setup(size_t pushSize = 0);
-    void Run(vk::CommandBuffer commandBuffer, uint32_t countX, uint32_t countY, void* pushData = nullptr);
+    virtual void LoadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath);
+    virtual void LoadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath, const std::string& ahitPath);
+    virtual void Setup(size_t pushSize = 0);
+    virtual void Run(vk::CommandBuffer commandBuffer, uint32_t countX, uint32_t countY, void* pushData = nullptr);
 
 private:
     std::vector<vk::UniqueShaderModule> shaderModules;
@@ -58,4 +58,24 @@ private:
     int rgenCount = 0;
     int missCount = 0;
     int hitCount = 0;
+};
+
+struct GBuffers
+{
+    Image position;
+    Image normal;
+    Image diffuse;
+    Image emission;
+    Image instanceIndex;
+};
+
+class GBufferPipeline : public RayTracingPipeline
+{
+public:
+    void LoadShaders();
+
+    void Setup(size_t pushSize = 0);
+
+private:
+    GBuffers gbuffers;
 };
