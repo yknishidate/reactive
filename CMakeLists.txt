@@ -1,15 +1,12 @@
 cmake_minimum_required(VERSION 3.16)
+
+include($ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
+
 project(Reactive LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 
-option(GLFW_BUILD_DOCS OFF)
-option(GLFW_BUILD_TESTS OFF)
-option(GLFW_BUILD_EXAMPLES OFF)
-option(GLFW_BUILD_TESTS OFF)
-option(GLFW_INSTALL OFF)
 option(ENABLE_HLSL OFF)
 
-add_subdirectory(external/glfw)
 add_subdirectory(external/glslang)
 add_subdirectory(external/SPIRV-Cross)
 
@@ -41,15 +38,25 @@ add_executable(${PROJECT_NAME}
 
 target_precompile_headers(${PROJECT_NAME} PUBLIC source/pch.h)
 
+find_package(glfw3 CONFIG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
+find_package(glm CONFIG REQUIRED)
+find_package(tinyobjloader CONFIG REQUIRED)
+# find_package(glslang CONFIG REQUIRED)
+
 target_link_libraries(
     ${PROJECT_NAME} PUBLIC 
     $ENV{VULKAN_SDK}/Lib/vulkan-1.lib
+    spdlog::spdlog spdlog::spdlog_header_only
+    glm::glm
     glfw
     glslang
     glslang-default-resource-limits
     SPIRV
     spirv-cross-glsl
     imgui
+    tinyobjloader::tinyobjloader
+    # HLSL SPIRV glslang OGLCompiler
 )
 set_property(TARGET glfw PROPERTY FOLDER "External")
 set_property(TARGET glslang PROPERTY FOLDER "External")
@@ -70,13 +77,8 @@ target_include_directories(
     ${PROJECT_NAME} PUBLIC
     "${PROJECT_SOURCE_DIR}/external/vulkan/include"
     "${PROJECT_SOURCE_DIR}/external/VulkanMemoryAllocator/include"
-    "${PROJECT_SOURCE_DIR}/external/glfw/include"
-    "${PROJECT_SOURCE_DIR}/external/glm"
-    "${PROJECT_SOURCE_DIR}/external/tinyobjloader"
-    "${PROJECT_SOURCE_DIR}/external/tinygltf"
     "${PROJECT_SOURCE_DIR}/external/glslang"
     "${PROJECT_SOURCE_DIR}/external/SPIRV-Cross"
-    "${PROJECT_SOURCE_DIR}/external/spdlog/include"
     "${PROJECT_SOURCE_DIR}/external/imgui"
     "${PROJECT_SOURCE_DIR}/external/imgui/backends"
     "${PROJECT_SOURCE_DIR}/external/imgui-vulkan-hpp-backend"
