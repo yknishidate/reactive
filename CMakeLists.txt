@@ -5,8 +5,6 @@ include($ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
 project(Reactive LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 
-option(ENABLE_HLSL OFF)
-
 add_subdirectory(external/glslang)
 
 file(GLOB_RECURSE sources source/*.cpp)
@@ -30,14 +28,10 @@ target_link_libraries(
     ${PROJECT_NAME} PUBLIC 
     $ENV{VULKAN_SDK}/Lib/vulkan-1.lib
     
-    optimized $ENV{VULKAN_SDK}/Lib/spirv-cross-c.lib
-    optimized $ENV{VULKAN_SDK}/Lib/spirv-cross-c-shared.lib
     optimized $ENV{VULKAN_SDK}/Lib/spirv-cross-core.lib
     optimized $ENV{VULKAN_SDK}/Lib/spirv-cross-cpp.lib
     optimized $ENV{VULKAN_SDK}/Lib/spirv-cross-glsl.lib
     
-    debug $ENV{VULKAN_SDK}/Lib/spirv-cross-cd.lib
-    debug $ENV{VULKAN_SDK}/Lib/spirv-cross-c-sharedd.lib
     debug $ENV{VULKAN_SDK}/Lib/spirv-cross-cored.lib
     debug $ENV{VULKAN_SDK}/Lib/spirv-cross-cppd.lib
     debug $ENV{VULKAN_SDK}/Lib/spirv-cross-glsld.lib
