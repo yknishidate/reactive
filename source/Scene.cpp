@@ -24,7 +24,7 @@ Scene::Scene(const std::string& filepath,
 
 void Scene::Setup()
 {
-    topAccel = TopAccel{ objects, vk::GeometryFlagBitsKHR::eNoDuplicateAnyHitInvocation };
+    topAccel = TopAccel{ objects };
 
     // Create object data
     for (auto&& object : objects) {
@@ -87,20 +87,17 @@ void Scene::ProcessInput()
 
 std::shared_ptr<Mesh>& Scene::AddMesh(const std::string& filepath)
 {
-    meshes.push_back(std::make_shared<Mesh>(filepath));
-    return meshes.back();
+    return meshes.emplace_back(std::make_shared<Mesh>(filepath));
 }
 
 Object& Scene::AddObject(std::shared_ptr<Mesh> mesh)
 {
-    objects.emplace_back(mesh);
-    return objects.back();
+    return objects.emplace_back(mesh);
 }
 
 PointLight& Scene::AddPointLight(glm::vec3 intensity, glm::vec3 position)
 {
-    pointLights.emplace_back(intensity, position);
-    return pointLights.back();
+    return pointLights.emplace_back(intensity, position);
 }
 
 SphereLight& Scene::AddSphereLight(glm::vec3 intensity, glm::vec3 position, float radius)
@@ -125,6 +122,5 @@ SphereLight& Scene::AddSphereLight(glm::vec3 intensity, glm::vec3 position, floa
     objects.back().transform.scale = glm::vec3{ radius };
     objects.back().SetMaterial(lightMaterial);
 
-    sphereLights.emplace_back(intensity, position, radius);
-    return sphereLights.back();
+    return sphereLights.emplace_back(intensity, position, radius);
 }
