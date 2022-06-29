@@ -1,4 +1,3 @@
-#include "Vulkan/Vulkan.hpp"
 #include <glm/glm.hpp>
 
 namespace UI

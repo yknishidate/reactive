@@ -1,7 +1,6 @@
 #include <random>
 #include <functional>
 #include "Engine.hpp"
-#include "Vulkan/Vulkan.hpp"
 #include "Input.hpp"
 #include "Loader.hpp"
 #include "Scene.hpp"

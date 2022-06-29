@@ -10,16 +10,15 @@ file(GLOB_RECURSE headers source/*.hpp)
 add_executable(${PROJECT_NAME} 
     ${sources}
     ${headers}
-    external/imgui-vulkan-hpp/imgui_impl_vulkan_hpp.cpp
 )
 
 target_precompile_headers(${PROJECT_NAME} PUBLIC source/pch.h)
 
+find_package(glm CONFIG REQUIRED)
+find_package(imgui CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
-find_package(glm CONFIG REQUIRED)
 find_package(tinyobjloader CONFIG REQUIRED)
-find_package(imgui CONFIG REQUIRED)
 
 target_link_libraries(
     ${PROJECT_NAME} PUBLIC 
@@ -57,11 +56,12 @@ target_link_libraries(
     debug $ENV{VULKAN_SDK}/Lib/SPVRemapperd.lib
     debug $ENV{VULKAN_SDK}/Lib/SPIRVd.lib
 
-    spdlog::spdlog spdlog::spdlog_header_only
-    glm::glm
     glfw
-    tinyobjloader::tinyobjloader
+    glm::glm
     imgui::imgui
+    spdlog::spdlog
+    spdlog::spdlog_header_only
+    tinyobjloader::tinyobjloader
 )
 
 target_include_directories(
@@ -72,7 +72,6 @@ target_include_directories(
     $ENV{VULKAN_SDK}/Include/glslang/SPIRV
     $ENV{VULKAN_SDK}/Include/glslang/Include
     $ENV{VULKAN_SDK}/Include/glslang/Public
-    "${PROJECT_SOURCE_DIR}/external/imgui-vulkan-hpp"
     "${PROJECT_SOURCE_DIR}/source"
     "${PROJECT_SOURCE_DIR}/"
 )

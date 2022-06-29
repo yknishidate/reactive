@@ -1,4 +1,3 @@
-#include "Vulkan/Vulkan.hpp"
 #include "Mesh.hpp"
 #include "Loader.hpp"
 #include <spdlog/spdlog.h>

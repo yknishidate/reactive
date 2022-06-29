@@ -1,4 +1,3 @@
-#include "Vulkan/Vulkan.hpp"
 #include "Window.hpp"
 #include <spdlog/spdlog.h>
 #include <stb_image.h>

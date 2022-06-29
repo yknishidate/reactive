@@ -1,4 +1,3 @@
-#include "Vulkan/Vulkan.hpp"
 #include "Scene.hpp"
 #include "Loader.hpp"
 #include "Window.hpp"

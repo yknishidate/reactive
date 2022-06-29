@@ -1,4 +1,3 @@
-#include "Vulkan/Vulkan.hpp"
 #include "Vulkan/Buffer.hpp"
 #include "Object.hpp"
 
