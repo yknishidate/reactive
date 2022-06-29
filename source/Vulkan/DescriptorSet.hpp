@@ -1,8 +1,6 @@
 #pragma once
 #include <unordered_map>
 
-#include <SPIRV/GlslangToSpv.h>
-#include <StandAlone/ResourceLimits.h>
 #include <spirv_glsl.hpp>
 
 #include "Buffer.hpp"

@@ -5,8 +5,6 @@ include($ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
 project(Reactive LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 
-add_subdirectory(external/glslang)
-
 file(GLOB_RECURSE sources source/*.cpp)
 file(GLOB_RECURSE headers source/*.hpp)
 add_executable(${PROJECT_NAME} 
@@ -22,7 +20,6 @@ find_package(spdlog CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(tinyobjloader CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
-# find_package(glslang CONFIG REQUIRED)
 
 target_link_libraries(
     ${PROJECT_NAME} PUBLIC 
@@ -31,30 +28,50 @@ target_link_libraries(
     optimized $ENV{VULKAN_SDK}/Lib/spirv-cross-core.lib
     optimized $ENV{VULKAN_SDK}/Lib/spirv-cross-cpp.lib
     optimized $ENV{VULKAN_SDK}/Lib/spirv-cross-glsl.lib
+
+    optimized $ENV{VULKAN_SDK}/Lib/OGLCompiler.lib
+    optimized $ENV{VULKAN_SDK}/Lib/OSDependent.lib
+    optimized $ENV{VULKAN_SDK}/Lib/SPIRV-Tools.lib
+    optimized $ENV{VULKAN_SDK}/Lib/SPIRV-Tools-opt.lib
+
+    optimized $ENV{VULKAN_SDK}/Lib/glslang-default-resource-limits.lib
+    optimized $ENV{VULKAN_SDK}/Lib/glslang.lib
+    optimized $ENV{VULKAN_SDK}/Lib/GenericCodeGen.lib
+    optimized $ENV{VULKAN_SDK}/Lib/MachineIndependent.lib
+    optimized $ENV{VULKAN_SDK}/Lib/SPVRemapper.lib
+    optimized $ENV{VULKAN_SDK}/Lib/SPIRV.lib
     
     debug $ENV{VULKAN_SDK}/Lib/spirv-cross-cored.lib
     debug $ENV{VULKAN_SDK}/Lib/spirv-cross-cppd.lib
     debug $ENV{VULKAN_SDK}/Lib/spirv-cross-glsld.lib
+    
+    debug $ENV{VULKAN_SDK}/Lib/OGLCompilerd.lib
+    debug $ENV{VULKAN_SDK}/Lib/OSDependentd.lib
+    debug $ENV{VULKAN_SDK}/Lib/SPIRV-Toolsd.lib
+    debug $ENV{VULKAN_SDK}/Lib/SPIRV-Tools-optd.lib
+
+    debug $ENV{VULKAN_SDK}/Lib/glslang-default-resource-limitsd.lib
+    debug $ENV{VULKAN_SDK}/Lib/glslangd.lib
+    debug $ENV{VULKAN_SDK}/Lib/GenericCodeGend.lib
+    debug $ENV{VULKAN_SDK}/Lib/MachineIndependentd.lib
+    debug $ENV{VULKAN_SDK}/Lib/SPVRemapperd.lib
+    debug $ENV{VULKAN_SDK}/Lib/SPIRVd.lib
 
     spdlog::spdlog spdlog::spdlog_header_only
     glm::glm
     glfw
-    glslang
-    glslang-default-resource-limits
-    SPIRV
     tinyobjloader::tinyobjloader
     imgui::imgui
-    # HLSL SPIRV glslang OGLCompiler
 )
-set_property(TARGET glfw PROPERTY FOLDER "External")
-set_property(TARGET glslang PROPERTY FOLDER "External")
-set_property(TARGET glslang-default-resource-limits PROPERTY FOLDER "External")
 
 target_include_directories(
     ${PROJECT_NAME} PUBLIC
     $ENV{VULKAN_SDK}/Include/spirv_cross
+    $ENV{VULKAN_SDK}/Include/glslang
+    $ENV{VULKAN_SDK}/Include/glslang/SPIRV
+    $ENV{VULKAN_SDK}/Include/glslang/Include
+    $ENV{VULKAN_SDK}/Include/glslang/Public
     "${PROJECT_SOURCE_DIR}/external/vulkan/include"
-    "${PROJECT_SOURCE_DIR}/external/glslang"
     "${PROJECT_SOURCE_DIR}/external/imgui-vulkan-hpp"
     "${PROJECT_SOURCE_DIR}/source"
     "${PROJECT_SOURCE_DIR}/"

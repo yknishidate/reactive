@@ -2,8 +2,6 @@
 #include <regex>
 #include "Context.hpp"
 #include "Pipeline.hpp"
-#include <SPIRV/GlslangToSpv.h>
-#include <StandAlone/ResourceLimits.h>
 #include <spirv_glsl.hpp>
 #include <spdlog/spdlog.h>
 #include "Image.hpp"
