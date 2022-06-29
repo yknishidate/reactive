@@ -66,12 +66,12 @@ target_link_libraries(
 
 target_include_directories(
     ${PROJECT_NAME} PUBLIC
+    $ENV{VULKAN_SDK}/Include/
     $ENV{VULKAN_SDK}/Include/spirv_cross
     $ENV{VULKAN_SDK}/Include/glslang
     $ENV{VULKAN_SDK}/Include/glslang/SPIRV
     $ENV{VULKAN_SDK}/Include/glslang/Include
     $ENV{VULKAN_SDK}/Include/glslang/Public
-    "${PROJECT_SOURCE_DIR}/external/vulkan/include"
     "${PROJECT_SOURCE_DIR}/external/imgui-vulkan-hpp"
     "${PROJECT_SOURCE_DIR}/source"
     "${PROJECT_SOURCE_DIR}/"
