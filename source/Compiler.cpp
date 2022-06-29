@@ -2,7 +2,6 @@
 #include <fstream>
 #include <filesystem>
 
-#include <ResourceLimits.h>
 #include <GlslangToSpv.h>
 #include <spirv_glsl.hpp>
 #include <spdlog/spdlog.h>

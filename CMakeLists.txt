@@ -65,7 +65,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${VULKAN_INCLUDE}/
     ${VULKAN_INCLUDE}/spirv_cross
     ${VULKAN_INCLUDE}/glslang/SPIRV
-    ${VULKAN_INCLUDE}/glslang/Include
     ${PROJECT_SOURCE_DIR}/source
     ${PROJECT_SOURCE_DIR}/
 )
