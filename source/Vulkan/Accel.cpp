@@ -36,7 +36,7 @@ BottomAccel::BottomAccel(const Mesh& mesh, vk::GeometryFlagBitsKHR geomertyFlag)
 {
     const auto triangleData = mesh.GetTriangles();
 
-    const size_t primitiveCount = mesh.GetIndices().size() / 3;
+    const size_t primitiveCount = mesh.GetTriangleCount();
     const TrianglesGeometry geometry{ triangleData, geomertyFlag, primitiveCount };
     const auto size = geometry.GetAccelSize();
     const auto type = vk::AccelerationStructureTypeKHR::eBottomLevel;
