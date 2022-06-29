@@ -15,52 +15,6 @@
 
 namespace
 {
-    void CopyImages(vk::CommandBuffer commandBuffer, int width, int height,
-                    vk::Image inputImage, vk::Image outputImage, vk::Image backImage)
-    {
-        // output -> input
-        // output -> back
-        vk::ImageCopy copyRegion;
-        copyRegion.setSrcSubresource({ vk::ImageAspectFlagBits::eColor, 0, 0, 1 });
-        copyRegion.setDstSubresource({ vk::ImageAspectFlagBits::eColor, 0, 0, 1 });
-        copyRegion.setExtent({ uint32_t(width), uint32_t(height), 1 });
-
-        Image::SetImageLayout(commandBuffer, outputImage, vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal);
-        Image::SetImageLayout(commandBuffer, inputImage, vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferDstOptimal);
-        Image::SetImageLayout(commandBuffer, backImage, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
-
-        Image::CopyImage(commandBuffer, outputImage, inputImage, copyRegion);
-        Image::CopyImage(commandBuffer, outputImage, backImage, copyRegion);
-
-        Image::SetImageLayout(commandBuffer, outputImage, vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eGeneral);
-        Image::SetImageLayout(commandBuffer, inputImage, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eGeneral);
-        Image::SetImageLayout(commandBuffer, backImage, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eColorAttachmentOptimal);
-    }
-
-    void CopyImages(vk::CommandBuffer commandBuffer, int width, int height,
-                    vk::Image inputImage, vk::Image outputImage, vk::Image denoisedImage, vk::Image backImage)
-    {
-        // denoised -> back
-        // output -> input
-        vk::ImageCopy copyRegion;
-        copyRegion.setSrcSubresource({ vk::ImageAspectFlagBits::eColor, 0, 0, 1 });
-        copyRegion.setDstSubresource({ vk::ImageAspectFlagBits::eColor, 0, 0, 1 });
-        copyRegion.setExtent({ uint32_t(width), uint32_t(height), 1 });
-
-        Image::SetImageLayout(commandBuffer, denoisedImage, vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal);
-        Image::SetImageLayout(commandBuffer, outputImage, vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal);
-        Image::SetImageLayout(commandBuffer, inputImage, vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferDstOptimal);
-        Image::SetImageLayout(commandBuffer, backImage, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
-
-        Image::CopyImage(commandBuffer, denoisedImage, backImage, copyRegion);
-        Image::CopyImage(commandBuffer, outputImage, inputImage, copyRegion);
-
-        Image::SetImageLayout(commandBuffer, denoisedImage, vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eGeneral);
-        Image::SetImageLayout(commandBuffer, outputImage, vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eGeneral);
-        Image::SetImageLayout(commandBuffer, inputImage, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eGeneral);
-        Image::SetImageLayout(commandBuffer, backImage, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eColorAttachmentOptimal);
-    }
-
     glm::vec3 ToRGB(glm::vec3 c)
     {
         glm::vec4 K = glm::vec4{ 1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0 };

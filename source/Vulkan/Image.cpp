@@ -58,6 +58,8 @@ namespace
 }
 
 Image::Image(uint32_t width, uint32_t height, vk::Format format)
+    : width{ width }
+    , height{ height }
 {
     image = CreateImage(width, height, format);
     memory = AllocateMemory(*image);
@@ -81,18 +83,14 @@ Image::Image(const std::string& filepath)
         throw std::runtime_error("Failed to load texture: " + filepath);
     }
 
+    this->width = width;
+    this->height = height;
     image = CreateImage(width, height, vk::Format::eR8G8B8A8Unorm);
     memory = AllocateMemory(*image);
     Context::GetDevice().bindImageMemory(*image, *memory, 0);
 
     view = CreateImageView(*image, vk::Format::eR8G8B8A8Unorm);
     sampler = CreateSampler();
-
-    Context::OneTimeSubmit(
-        [&](vk::CommandBuffer commandBuffer)
-        {
-            SetImageLayout(commandBuffer, *image, vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral);
-        });
 
     StagingBuffer staging{ static_cast<size_t>(width * height * 4), data };
     Context::OneTimeSubmit(
@@ -105,9 +103,9 @@ Image::Image(const std::string& filepath)
             region.imageSubresource.layerCount = 1;
             region.imageExtent = vk::Extent3D{ static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1 };
 
-            SetImageLayout(commandBuffer, *image, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+            SetImageLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);
             commandBuffer.copyBufferToImage(staging.GetBuffer(), *image, vk::ImageLayout::eTransferDstOptimal, region);
-            SetImageLayout(commandBuffer, *image, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eGeneral);
+            SetImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
         });
 
     stbi_image_free(data);
@@ -117,6 +115,20 @@ void Image::SetImageLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout newL
 {
     SetImageLayout(commandBuffer, *image, layout, newLayout);
     layout = newLayout;
+}
+
+void Image::CopyToImage(vk::CommandBuffer commandBuffer, Image& dst)
+{
+    vk::ImageCopy copyRegion;
+    copyRegion.setSrcSubresource({ vk::ImageAspectFlagBits::eColor, 0, 0, 1 });
+    copyRegion.setDstSubresource({ vk::ImageAspectFlagBits::eColor, 0, 0, 1 });
+    copyRegion.setExtent({ width, height, 1 });
+
+    vk::Image srcImage = *image;
+    vk::Image dstImage = dst.GetImage();
+
+    commandBuffer.copyImage(srcImage, vk::ImageLayout::eTransferSrcOptimal,
+                            dstImage, vk::ImageLayout::eTransferDstOptimal, copyRegion);
 }
 
 void Image::SetImageLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout)
@@ -159,10 +171,4 @@ void Image::SetImageLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk:
         break;
     }
     commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, {}, {}, {}, barrier);
-}
-
-void Image::CopyImage(vk::CommandBuffer commandBuffer, vk::Image src, vk::Image dst, vk::ImageCopy copyRegion)
-{
-    commandBuffer.copyImage(src, vk::ImageLayout::eTransferSrcOptimal,
-                            dst, vk::ImageLayout::eTransferDstOptimal, copyRegion);
 }

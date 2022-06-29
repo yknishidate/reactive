@@ -118,7 +118,8 @@ void Swapchain::CopyToBackImage(vk::CommandBuffer commandBuffer, const Image& so
     Image::SetImageLayout(commandBuffer, sourceImage, vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal);
     Image::SetImageLayout(commandBuffer, backImage, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
 
-    Image::CopyImage(commandBuffer, sourceImage, backImage, copyRegion);
+    commandBuffer.copyImage(sourceImage, vk::ImageLayout::eTransferSrcOptimal,
+                            backImage, vk::ImageLayout::eTransferDstOptimal, copyRegion);
 
     Image::SetImageLayout(commandBuffer, sourceImage, vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eGeneral);
     Image::SetImageLayout(commandBuffer, backImage, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eColorAttachmentOptimal);
