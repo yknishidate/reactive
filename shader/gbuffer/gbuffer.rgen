@@ -1,7 +1,6 @@
 #version 460
 #extension GL_GOOGLE_include_directive : enable
 #include "common.glsl"
-#include "random.glsl"
 
 layout(location = 0) rayPayloadEXT HitPayload payload;
 
@@ -34,9 +33,9 @@ void main()
         10000.0,
         0     // payloadLocation
     );
-    imageStore(position, ivec2(gl_LaunchIDEXT.xy), vec4(payload.position));
-    imageStore(normal, ivec2(gl_LaunchIDEXT.xy), vec4(payload.normal));
-    imageStore(diffuse, ivec2(gl_LaunchIDEXT.xy), vec4(payload.diffuse));
-    imageStore(emission, ivec2(gl_LaunchIDEXT.xy), vec4(payload.emission));
-    imageStore(instanceIndex, ivec2(gl_LaunchIDEXT.xy), vec4(payload.instanceIndex));
+    imageStore(position, ivec2(gl_LaunchIDEXT.xy), vec4(payload.position, 1.0));
+    imageStore(normal, ivec2(gl_LaunchIDEXT.xy), vec4(payload.normal, 1.0));
+    imageStore(diffuse, ivec2(gl_LaunchIDEXT.xy), vec4(payload.diffuse, 1.0));
+    imageStore(emission, ivec2(gl_LaunchIDEXT.xy), vec4(payload.emission, 1.0));
+    imageStore(instanceIndex, ivec2(gl_LaunchIDEXT.xy), ivec4(payload.instanceIndex));
 }

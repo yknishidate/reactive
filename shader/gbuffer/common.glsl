@@ -22,13 +22,13 @@ struct HitPayload
 layout(buffer_reference, scalar) buffer Vertices { Vertex v[]; };
 layout(buffer_reference, scalar) buffer Indices { uvec3 i[]; };
 layout(buffer_reference, scalar) buffer Objects { ObjectData o[]; };
-layout(binding = 0, set = 0) uniform accelerationStructureEXT topLevelAS;
+layout(binding = 0) uniform accelerationStructureEXT topLevelAS;
 
-layout(binding =  7, set = 0, rgba32f) uniform image2D position;
-layout(binding =  8, set = 0, rgba32f) uniform image2D normal;
-layout(binding = 10, set = 0, rgba16f) uniform image2D diffuse;
-layout(binding = 11, set = 0, rgba16f) uniform image2D emission;
-layout(binding =  9, set = 0, rg16ui) uniform uimage2D instanceIndex;
+layout(binding = 1, rgba16f) uniform image2D position;
+layout(binding = 2, rgba16f) uniform image2D normal;
+layout(binding = 3, rgba16f) uniform image2D diffuse;
+layout(binding = 4, rgba16f) uniform image2D emission;
+layout(binding = 5, rgba8ui) uniform uimage2D instanceIndex;
 
-layout(binding = 3) buffer Addresses { BufferAddress address[]; } addresses;
-layout(binding = 4) uniform sampler2D samplers[];
+layout(binding = 6) buffer Addresses { BufferAddress address[]; } addresses;
+layout(binding = 7) uniform sampler2D samplers[];

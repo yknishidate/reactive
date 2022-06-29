@@ -19,24 +19,20 @@ public:
     void Run();
 
 private:
-    Image inputImage;
-    Image outputImage;
-    Image denoisedImage;
-    Image reservoirSampleImage;
-    Image reservoirWeightImage;
-    Image posImage;
-    Image normalImage;
-    Image indexImage;
-    Image diffuseImage;
-    Image emissionImage;
+    //Image inputImage;
+    //Image outputImage;
+    //Image denoisedImage;
+    //Image reservoirSampleImage;
+    //Image reservoirWeightImage;
     //DescriptorSet descSet;
-    ComputePipeline meanPipeline;
-    ComputePipeline medianPipeline;
-    RayTracingPipeline ptPipeline;
-    RayTracingPipeline neePipeline;
-    RayTracingPipeline srisPipeline;
-    RayTracingPipeline initReservoirPipeline;
-    RayTracingPipeline shadingPipeline;
+    //ComputePipeline meanPipeline;
+    //ComputePipeline medianPipeline;
+    GBufferPipeline gbufferPipeline;
+    //RayTracingPipeline ptPipeline;
+    //RayTracingPipeline neePipeline;
+    //RayTracingPipeline srisPipeline;
+    //RayTracingPipeline initReservoirPipeline;
+    //RayTracingPipeline shadingPipeline;
     PushConstants pushConstants;
     std::unique_ptr<Scene> scene;
 };

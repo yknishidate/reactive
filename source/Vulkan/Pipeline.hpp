@@ -74,8 +74,26 @@ class GBufferPipeline : public RayTracingPipeline
 public:
     void LoadShaders();
 
+    void RegisterAccel(const TopAccel& accel)
+    {
+        Register("topLevelAS", accel);
+    }
+
+    void RegisterTextures(const std::vector<Image>& textures)
+    {
+        Register("samplers", textures);
+    }
+
+    void RegisterBufferAddresses(const Buffer& buffer)
+    {
+        Register("Addresses", buffer);
+    }
+
     void Setup(size_t pushSize = 0);
 
+    const GBuffers& GetGBuffers() const { return gbuffers; }
+
 private:
+    // TODO: add push constants
     GBuffers gbuffers;
 };

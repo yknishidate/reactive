@@ -270,17 +270,17 @@ void RayTracingPipeline::Run(vk::CommandBuffer commandBuffer, uint32_t countX, u
 void GBufferPipeline::LoadShaders()
 {
     RayTracingPipeline::LoadShaders("../shader/gbuffer/gbuffer.rgen",
-                                    "../shader/gbuffer/gbuffer.rchit",
-                                    "../shader/gbuffer/gbuffer.rmiss");
+                                    "../shader/gbuffer/gbuffer.rmiss",
+                                    "../shader/gbuffer/gbuffer.rchit");
 }
 
 void GBufferPipeline::Setup(size_t pushSize)
 {
-    gbuffers.position = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR32G32B32A32Sfloat };
-    gbuffers.normal = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR32G32B32A32Sfloat };
+    gbuffers.position = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16B16A16Sfloat };
+    gbuffers.normal = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16B16A16Sfloat };
     gbuffers.diffuse = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm };
     gbuffers.emission = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16B16A16Sfloat };
-    gbuffers.instanceIndex = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR8G8Uint };
+    gbuffers.instanceIndex = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR8G8B8A8Uint };
 
     Register("position", gbuffers.position);
     Register("normal", gbuffers.normal);

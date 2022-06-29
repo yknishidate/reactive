@@ -144,8 +144,8 @@ namespace Compiler
         std::regex regex{ "#include \"(.*)\"" };
         std::smatch results;
         while (std::regex_search(included, results, regex)) {
-            std::filesystem::path includePath = dir / results[1].str();
-            std::string includeText = ReadFile(includePath.string());
+            std::string includePath = dir.string() + "/" + results[1].str();
+            std::string includeText = ReadFile(includePath);
             included.replace(results.position(), results.length(), includeText);
         }
         return included;
