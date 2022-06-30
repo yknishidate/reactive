@@ -85,7 +85,7 @@ void main()
     reservoir.m = 0;
     for(int i = 0; i < NUM_CANDIDATES; i++){
         // Sample candidates
-        int x = sampleLightUniform();
+        int x = sampleLightUniform(seed);
 
         // Calc weights
         // TODO: move to targetPDF()
@@ -95,6 +95,7 @@ void main()
         vec3 hitToLight = lightPos - position;
         vec3 direction = normalize(hitToLight);
         float dist = length(hitToLight);
+        vec3 brdf = diffuse / M_PI;
         float p = targetPDF(direction, dist, intensity, normal, brdf);
         float w = p / (1.0 / NUM_CANDIDATES);
 
@@ -104,8 +105,7 @@ void main()
     
     // if all zero
     if(reservoir.w_sum == 0.0){
-        vec4 error_color = vec4(1.0, 0.0, 1.0, 1.0);
-        imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), error_color);
+        imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(0));
         return;
     }
 

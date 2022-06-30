@@ -166,13 +166,14 @@ void Loader::LoadFromFile(const std::string& filepath,
     for (const auto& shape : shapes) {
         spdlog::info("  shape {}", shape.name);
 
-        std::set<int> indexSet;
-        for (auto& i : shape.mesh.material_ids) {
-            indexSet.insert(i);
-        }
-        if (indexSet.size() != 1) {
-            continue;
-        }
+        // remove object which has multiple materials
+        //std::set<int> indexSet;
+        //for (auto& i : shape.mesh.material_ids) {
+        //    indexSet.insert(i);
+        //}
+        //if (indexSet.size() != 1) {
+        //    continue;
+        //}
 
         std::vector<Vertex> vertices{};
         std::vector<uint32_t> indices{};

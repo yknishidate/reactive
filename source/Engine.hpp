@@ -19,21 +19,9 @@ public:
     void Run();
 
 private:
-    //Image inputImage;
-    //Image outputImage;
-    //Image denoisedImage;
-    //Image reservoirSampleImage;
-    //Image reservoirWeightImage;
-    //DescriptorSet descSet;
-    //ComputePipeline meanPipeline;
-    //ComputePipeline medianPipeline;
     GBufferPipeline gbufferPipeline;
     UniformLightPipeline uniformLightPipeline;
-    //RayTracingPipeline ptPipeline;
-    //RayTracingPipeline neePipeline;
-    //RayTracingPipeline srisPipeline;
-    //RayTracingPipeline initReservoirPipeline;
-    //RayTracingPipeline shadingPipeline;
+    WRSPipeline wrsPipeline;
     PushConstants pushConstants;
     std::unique_ptr<Scene> scene;
 };

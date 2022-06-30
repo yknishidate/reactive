@@ -104,6 +104,13 @@ void Engine::Init()
     uniformLightPipeline.RegisterGBuffers(gbufferPipeline.GetGBuffers());
     uniformLightPipeline.Setup(sizeof(PushConstants));
 
+    wrsPipeline.LoadShaders();
+    wrsPipeline.RegisterAccel(scene->GetAccel());
+    wrsPipeline.RegisterTextures(scene->GetTextures());
+    wrsPipeline.RegisterBufferAddresses(scene->GetAddressBuffer());
+    wrsPipeline.RegisterGBuffers(gbufferPipeline.GetGBuffers());
+    wrsPipeline.Setup(sizeof(PushConstants));
+
     //initReservoirPipeline.LoadShaders("../shader/restir/init_reservoir.rgen",
     //                                  "../shader/restir/init_reservoir.rmiss",
     //                                  "../shader/restir/init_reservoir.rchit");
@@ -153,9 +160,9 @@ void Engine::Init()
 
 void Engine::Run()
 {
-    bool accumulation = false;
-    bool importance = false;
-    int denoise = 0;
+    int method = 0;
+    constexpr int Uniform = 0;
+    constexpr int WRS = 1;
 
     spdlog::info("Engine::Run()");
     while (!Window::ShouldClose()) {
@@ -164,15 +171,7 @@ void Engine::Run()
 
         // Setup UI
         UI::StartFrame();
-        UI::Checkbox("Accumulation", accumulation);
-        bool refresh = false;
-        refresh |= UI::Checkbox("Importance sampling", importance);
-        refresh |= UI::Combo("Method", pushConstants.nee, { "PT", "Uniform", "RIS", "WRS", "SRIS", "ReSTIR" });
-        UI::Combo("Denoise", denoise, { "Off", "Median" });
-        UI::Checkbox("Reuse", pushConstants.reuse);
-        refresh |= UI::SliderInt("Depth", pushConstants.depth, 1, 8);
-        refresh |= UI::SliderInt("Samples", pushConstants.samples, 1, 32);
-        refresh |= UI::ColorPicker4("Sky color", pushConstants.skyColor);
+        UI::Combo("Method", method, { "Uniform", "WRS" });
         UI::Prepare();
 
         // Scene update
@@ -182,12 +181,7 @@ void Engine::Run()
         scene->ProcessInput();
         pushConstants.invProj = glm::inverse(scene->GetCamera().GetProj());
         pushConstants.invView = glm::inverse(scene->GetCamera().GetView());
-        pushConstants.importance = static_cast<int>(importance);
-        if (refresh || !accumulation || scene->GetCamera().CheckDirtyAndClean()) {
-            pushConstants.frame = 0;
-        } else {
-            pushConstants.frame++;
-        }
+        pushConstants.frame++;
 
         // Render
         if (!Window::IsMinimized()) {
@@ -196,23 +190,15 @@ void Engine::Run()
 
             uint32_t width = Window::GetWidth();
             uint32_t height = Window::GetHeight();
-            //if (pushConstants.nee == 0) {
-            //    ptPipeline.Run(commandBuffer, width, height, &pushConstants);
-            //} else if (pushConstants.nee == 1 || pushConstants.nee == 2 || pushConstants.nee == 3) {
-            //    neePipeline.Run(commandBuffer, width, height, &pushConstants);
-            //} else if (pushConstants.nee == 4) {
-            //    srisPipeline.Run(commandBuffer, width, height, &pushConstants);
-            //}
-            //initReservoirPipeline.Run(commandBuffer, width, height, &pushConstants);
-            //shadingPipeline.Run(commandBuffer, width, height, &pushConstants);
             gbufferPipeline.Run(commandBuffer, width, height, &pushConstants);
-            uniformLightPipeline.Run(commandBuffer, width, height, &pushConstants);
 
-            //const GBuffers& gbuffers = gbufferPipeline.GetGBuffers();
-            //Context::CopyToBackImage(commandBuffer, gbuffers.diffuse);
-
-            const Image& outputImage = uniformLightPipeline.GetOutputImage();
-            Context::CopyToBackImage(commandBuffer, outputImage);
+            if (method == Uniform) {
+                uniformLightPipeline.Run(commandBuffer, width, height, &pushConstants);
+                Context::CopyToBackImage(commandBuffer, uniformLightPipeline.GetOutputImage());
+            } else if (method == WRS) {
+                wrsPipeline.Run(commandBuffer, width, height, &pushConstants);
+                Context::CopyToBackImage(commandBuffer, wrsPipeline.GetOutputImage());
+            }
 
             UI::Render(commandBuffer);
             Context::Submit();

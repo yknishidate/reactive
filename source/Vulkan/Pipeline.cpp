@@ -304,3 +304,17 @@ void UniformLightPipeline::Setup(size_t pushSize)
     Register("outputImage", outputImage);
     RayTracingPipeline::Setup(pushSize);
 }
+
+void WRSPipeline::LoadShaders()
+{
+    RayTracingPipeline::LoadShaders("../shader/wrs/wrs.rgen",
+                                    "../shader/wrs/wrs.rmiss",
+                                    "../shader/wrs/wrs.rchit");
+}
+
+void WRSPipeline::Setup(size_t pushSize)
+{
+    outputImage = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm };
+    Register("outputImage", outputImage);
+    RayTracingPipeline::Setup(pushSize);
+}
