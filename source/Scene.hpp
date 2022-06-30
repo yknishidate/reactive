@@ -16,10 +16,11 @@ struct BoundingBox
 class Scene
 {
 public:
-    explicit Scene(const std::string& filepath,
-                   glm::vec3 position = glm::vec3{ 0.0f },
-                   glm::vec3 scale = glm::vec3{ 1.0f },
-                   glm::vec3 rotation = glm::vec3{ 0.0f });
+    Scene() = default;
+    Scene(const std::string& filepath,
+          glm::vec3 position = glm::vec3{ 0.0f },
+          glm::vec3 scale = glm::vec3{ 1.0f },
+          glm::vec3 rotation = glm::vec3{ 0.0f });
     void Setup();
     void Update(float dt);
     void ProcessInput();

@@ -23,5 +23,5 @@ private:
     UniformLightPipeline uniformLightPipeline;
     WRSPipeline wrsPipeline;
     PushConstants pushConstants;
-    std::unique_ptr<Scene> scene;
+    Scene scene;
 };

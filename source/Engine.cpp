@@ -23,10 +23,10 @@ void Engine::Init()
     UI::Init();
 
     {
-        scene = std::make_unique<Scene>("../asset/crytek_sponza/sponza.obj",
-                                        glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 0.01f },
-                                        glm::vec3{ 0.0f, glm::radians(90.0f), 0.0f });
-        BoundingBox bbox = scene->GetBoundingBox();
+        scene = Scene{ "../asset/crytek_sponza/sponza.obj",
+                      glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 0.01f },
+                      glm::vec3{ 0.0f, glm::radians(90.0f), 0.0f } };
+        BoundingBox bbox = scene.GetBoundingBox();
         std::mt19937 mt{ std::random_device{}() };
         std::uniform_real_distribution<float> distX{ bbox.min.x, bbox.max.x };
         std::uniform_real_distribution<float> distY{ bbox.min.y, bbox.max.y };
@@ -36,7 +36,7 @@ void Engine::Init()
         for (int index = 0; index < pushConstants.numLights; index++) {
             const glm::vec3 position = glm::vec3{ distX(mt), distY(mt), distZ(mt) } / 2.5f;
             const glm::vec3 color{ 1.0f };
-            scene->AddSphereLight(color, position, 0.1f);
+            scene.AddSphereLight(color, position, 0.1f);
         }
     }
     {
@@ -45,25 +45,24 @@ void Engine::Init()
         //pushConstants.numLights = 1;
     }
 
-    scene->Setup();
+    scene.Setup();
 
     gbufferPipeline.LoadShaders();
-    gbufferPipeline.RegisterScene(*scene);
+    gbufferPipeline.RegisterScene(scene);
     gbufferPipeline.Setup(sizeof(PushConstants));
 
     uniformLightPipeline.LoadShaders();
-    uniformLightPipeline.RegisterScene(*scene);
+    uniformLightPipeline.RegisterScene(scene);
     uniformLightPipeline.RegisterGBuffers(gbufferPipeline.GetGBuffers());
     uniformLightPipeline.Setup(sizeof(PushConstants));
 
     wrsPipeline.LoadShaders();
-    wrsPipeline.RegisterScene(*scene);
+    wrsPipeline.RegisterScene(scene);
     wrsPipeline.RegisterGBuffers(gbufferPipeline.GetGBuffers());
     wrsPipeline.Setup(sizeof(PushConstants));
 
-    // Create push constants
-    pushConstants.invProj = glm::inverse(scene->GetCamera().GetProj());
-    pushConstants.invView = glm::inverse(scene->GetCamera().GetView());
+    pushConstants.invProj = glm::inverse(scene.GetCamera().GetProj());
+    pushConstants.invView = glm::inverse(scene.GetCamera().GetView());
     pushConstants.frame = 0;
 }
 
@@ -78,21 +77,17 @@ void Engine::Run()
         Window::PollEvents();
         Input::Update();
 
-        // Setup UI
         UI::StartFrame();
         UI::Combo("Method", method, { "Uniform", "WRS" });
         UI::Prepare();
 
-        // Scene update
-        //scene->Update(0.1);
+        scene.Update(0.1);
 
-        // Update push constants
-        scene->ProcessInput();
-        pushConstants.invProj = glm::inverse(scene->GetCamera().GetProj());
-        pushConstants.invView = glm::inverse(scene->GetCamera().GetView());
+        scene.ProcessInput();
+        pushConstants.invProj = glm::inverse(scene.GetCamera().GetProj());
+        pushConstants.invView = glm::inverse(scene.GetCamera().GetView());
         pushConstants.frame++;
 
-        // Render
         if (!Window::IsMinimized()) {
             Context::WaitNextFrame();
             vk::CommandBuffer commandBuffer = Context::BeginCommandBuffer();

@@ -54,7 +54,6 @@ void Scene::Setup()
     }
 
     // Buffer references
-    // TODO: support many light
     std::vector<BufferAddress> addresses(objects.size());
     for (int i = 0; i < objects.size(); i++) {
         addresses[i].vertices = objects[i].GetMesh().GetVertexBufferAddress();
@@ -74,15 +73,15 @@ void Scene::Setup()
 
 void Scene::Update(float dt)
 {
-    static float time = 0.0f;
-    time += dt;
-    for (int i = 0; i < objects.size(); i++) {
-        objects[i].transform.rotation = glm::quat{ glm::vec3(0.0f, time * 0.1, 0.0f) };
-        objectData[i].matrix = objects[i].transform.GetMatrix();
-        objectData[i].normalMatrix = objects[i].transform.GetNormalMatrix();
-    }
-    objectBuffer.Copy(objectData.data());
-    topAccel.Rebuild(objects);
+    //static float time = 0.0f;
+    //time += dt;
+    //for (int i = 0; i < objects.size(); i++) {
+    //    objects[i].transform.rotation = glm::quat{ glm::vec3(0.0f, time * 0.1, 0.0f) };
+    //    objectData[i].matrix = objects[i].transform.GetMatrix();
+    //    objectData[i].normalMatrix = objects[i].transform.GetNormalMatrix();
+    //}
+    //objectBuffer.Copy(objectData.data());
+    //topAccel.Rebuild(objects);
 }
 
 void Scene::ProcessInput()
