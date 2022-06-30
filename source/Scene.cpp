@@ -7,6 +7,13 @@ Scene::Scene(const std::string& filepath,
 {
     Loader::LoadFromFile(filepath, meshes, textures);
 
+    // If textures is empty, append dummy texture
+    if (textures.empty()) {
+        textures = std::vector<Image>(1);
+        textures[0] = Image{ 1, 1, vk::Format::eR8G8B8A8Unorm };
+    }
+
+    // Create objects
     objects.reserve(meshes.size());
     for (int i = 0; i < meshes.size(); i++) {
         Object object(meshes[i]);

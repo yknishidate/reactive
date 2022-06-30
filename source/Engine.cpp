@@ -32,9 +32,8 @@ void Engine::Init()
         std::uniform_real_distribution<float> distY{ bbox.min.y, bbox.max.y };
         std::uniform_real_distribution<float> distZ{ bbox.min.z, bbox.max.z };
 
-        const int numLights = 50;
-        pushConstants.numLights = numLights;
-        for (int index = 0; index < numLights; index++) {
+        pushConstants.numLights = 20;
+        for (int index = 0; index < pushConstants.numLights; index++) {
             const glm::vec3 position = glm::vec3{ distX(mt), distY(mt), distZ(mt) } / 2.5f;
             const glm::vec3 color{ 1.0f };
             scene->AddSphereLight(color, position, 0.1f);
