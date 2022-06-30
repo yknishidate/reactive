@@ -1,7 +1,7 @@
 #version 460
 #extension GL_GOOGLE_include_directive : enable
 #include "common.glsl"
-#include "random.glsl"
+#include "../random.glsl"
 
 layout(location = 0) rayPayloadEXT HitPayload payload;
 
