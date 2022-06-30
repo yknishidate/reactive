@@ -41,7 +41,7 @@ void Engine::Init()
     }
     {
         //scene = std::make_unique<Scene>("../asset/CornellBox/CornellBox-Glossy.obj", glm::vec3{ 0.0f, 0.75f, 0.0f });
-        //scene->AddSphereLight(glm::vec3{ 10.0f }, glm::vec3{ 0.0f, -0.5f, 0.0f }, 0.2f);
+        //scene->AddSphereLight(glm::vec3{ 1.0f }, glm::vec3{ 0.0f, -0.5f, 0.0f }, 0.1f);
         //pushConstants.numLights = 1;
     }
 

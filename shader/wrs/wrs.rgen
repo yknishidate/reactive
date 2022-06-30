@@ -74,7 +74,7 @@ void main()
     }
 
     // Get buffer addresses
-    BufferAddress address = addresses.address[instanceIndex];
+    BufferAddress address = addresses.address[0];
     SphereLights sphereLights = SphereLights(address.sphereLights);
 
     // Sample light
