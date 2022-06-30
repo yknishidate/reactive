@@ -12,7 +12,7 @@
 class Window
 {
 public:
-    static void Init(int width, int height, const std::string& icon = {});
+    static void Init(int width, int height);
     static void SetIcon(const std::string& filepath);
     static uint32_t GetWidth();
     static uint32_t GetHeight();

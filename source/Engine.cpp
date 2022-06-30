@@ -13,27 +13,12 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
 
-namespace
-{
-    glm::vec3 ToRGB(glm::vec3 c)
-    {
-        glm::vec4 K = glm::vec4{ 1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0 };
-        glm::vec3 p = glm::abs(fract(c.xxx + K.xyz) * 6.0f - K.www);
-        return c.z * glm::mix(glm::vec3{ K.xxx }, glm::clamp(p - K.xxx, 0.0f, 1.0f), c.y);
-    }
-
-    glm::vec3 GetColorFromHue(float hue)
-    {
-        return ToRGB(glm::vec3{ hue, 0.7, 1.0 });
-    }
-}
-
 void Engine::Init()
 {
     spdlog::set_pattern("[%^%l%$] %v");
     spdlog::info("Engine::Init()");
 
-    Window::Init(1920, 1080, "../asset/Vulkan.png");
+    Window::Init(1920, 1080);
     Context::Init();
     UI::Init();
 
@@ -55,24 +40,12 @@ void Engine::Init()
         std::uniform_real_distribution<float> distY{ bbox.min.y, bbox.max.y };
         std::uniform_real_distribution<float> distZ{ bbox.min.z, bbox.max.z };
 
-        //std::uniform_real_distribution<float> distHue{ 0.0f, 1.0f };
-        //std::uniform_real_distribution<float> distStrength{ 80.0f, 160.0f };
-        //pushConstants.numLights = 10;
-        //for (int index = 0; index < pushConstants.numLights; index++) {
-        //    const glm::vec3 position = glm::vec3{ distX(mt), distY(mt), distZ(mt) } / 2.5f;
-        //    const glm::vec3 color = GetColorFromHue(distHue(mt)) * distStrength(mt);
-        //    scene->AddSphereLight(color, position, 0.1f);
-        //}
-
-        pushConstants.numLights = 5;
+        pushConstants.numLights = 50;
         for (int index = 0; index < pushConstants.numLights; index++) {
             const glm::vec3 position = glm::vec3{ distX(mt), distY(mt), distZ(mt) } / 2.5f;
-            const glm::vec3 color{ 5.0f };
+            const glm::vec3 color{ 1.0f };
             scene->AddSphereLight(color, position, 0.1f);
         }
-
-        //pushConstants.numLights = 1;
-        //scene->AddSphereLight(glm::vec3{ 10.0f }, glm::vec3{ 0.0f }, 0.5f);
     }
     {
         //scene = std::make_unique<Scene>("../asset/CornellBox/CornellBox-Glossy.obj", glm::vec3{ 0.0f, 0.75f, 0.0f });

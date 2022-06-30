@@ -15,10 +15,6 @@ struct HitPayload
 
 #include "../../share/structure.inc"
 
-layout(buffer_reference, scalar) buffer Vertices { Vertex v[]; };
-layout(buffer_reference, scalar) buffer Indices { uvec3 i[]; };
-layout(buffer_reference, scalar) buffer Objects { ObjectData o[]; };
-layout(buffer_reference, scalar) buffer PointLights { PointLight p[]; };
 layout(buffer_reference, scalar) buffer SphereLights { SphereLight s[]; };
 layout(binding =  0) uniform accelerationStructureEXT topLevelAS;
 layout(binding =  1, rgba8) uniform image2D inputImage;

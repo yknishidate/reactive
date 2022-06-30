@@ -2,16 +2,14 @@
 #include <spdlog/spdlog.h>
 #include <stb_image.h>
 
-void Window::Init(int width, int height, const std::string& icon)
+void Window::Init(int width, int height)
 {
     spdlog::info("Window::Init()");
     glfwInit();
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     window = glfwCreateWindow(width, height, "Reactive", nullptr, nullptr);
-    if (!icon.empty()) {
-        SetIcon(icon);
-    }
+    SetIcon("../asset/Vulkan.png");
 }
 
 void Window::SetIcon(const std::string& filepath)
