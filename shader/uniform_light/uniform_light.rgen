@@ -11,6 +11,18 @@ int sampleLightUniform(inout uint seed)
     return int(rand(seed) * float(pushConstants.numLights - 1.0));
 }
 
+vec3 calcRadiance(vec3 position, vec3 normal, vec3 diffuse,
+                  vec3 intensity, float dist, vec3 direction)
+{
+    vec3 brdf = diffuse / M_PI;
+    float squareDist = dist * dist;
+    float cosine = max(0.0, dot(direction, normal));
+    float pdf = 1.0 / pushConstants.numLights;
+
+    // Radiance: brdf * Le * G / pdf
+    return brdf * intensity / squareDist * cosine / pdf;
+}
+
 void main()
 {
     // Calc seed
@@ -36,8 +48,8 @@ void main()
     int lightIndex = sampleLightUniform(seed);
     SphereLight sphereLight = sphereLights.s[lightIndex];
     vec3 hitToLight = sphereLight.position - position;
-    float dist = length(hitToLight) - sphereLight.radius;
     vec3 dir = normalize(hitToLight);
+    float dist = length(hitToLight) - sphereLight.radius;
 
     // trace shadow ray
     payload.shadowed = true;
@@ -57,11 +69,7 @@ void main()
     // hit light
     vec3 radiance = vec3(0.0);
     if(!payload.shadowed){
-        float invDistPow2 = 1.0 / (dist * dist);
-        float cosTheta = max(0.0, dot(normalize(dir), normal));
-        float pdf = 1.0 / pushConstants.numLights;
-        vec3 brdf = diffuse / M_PI;
-        radiance = sphereLight.intensity * brdf * invDistPow2 * cosTheta / pdf;
+        radiance = calcRadiance(position, normal, diffuse, sphereLight.intensity, dist, dir);
     }
     vec3 color = emission + radiance;
     

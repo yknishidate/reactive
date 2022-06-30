@@ -23,12 +23,18 @@ int sampleLightUniform(inout uint seed)
     return int(rand(seed) * float(pushConstants.numLights - 1.0));
 }
 
-// Target PDF: brdf * Le * G
-float targetPDF(vec3 direction, float dist, vec3 intensity, vec3 normal, vec3 brdf)
+float targetPDF(in SphereLight light, vec3 position, vec3 normal, vec3 diffuse)
 {
+    vec3 hitToLight = light.position - position;
+    vec3 direction = normalize(hitToLight);
+    float dist = length(hitToLight);
+
+    vec3 brdf = diffuse / M_PI;
     float squareDist = dist * dist;
     float cosine = max(0.0, dot(direction, normal));
-    return max(0.0, length(brdf * intensity) / squareDist * cosine);
+    
+    // Target PDF: brdf * Le * G
+    return max(0.0, length(brdf * light.intensity) / squareDist * cosine);
 }
 
 struct Reservoir
@@ -54,6 +60,18 @@ bool updateReservoir(inout Reservoir reservoir, int x, float w, float p, inout u
 float calcReservoirWeight(in Reservoir reservoir)
 {
     return reservoir.w_sum / reservoir.m / reservoir.p_z;
+}
+
+vec3 calcRadiance(vec3 position, vec3 normal, vec3 diffuse,
+                  vec3 intensity, float dist, vec3 direction)
+{
+    vec3 brdf = diffuse / M_PI;
+    float squareDist = dist * dist;
+    float cosine = max(0.0, dot(direction, normal));
+    float pdf = 1.0 / pushConstants.numLights;
+
+    // Radiance: brdf * Le * G / pdf
+    return brdf * intensity / squareDist * cosine / pdf;
 }
 
 void main()
@@ -88,15 +106,8 @@ void main()
         int x = sampleLightUniform(seed);
 
         // Calc weights
-        // TODO: move to targetPDF()
         SphereLight sphereLight = sphereLights.s[x];
-        vec3 lightPos = sphereLight.position;
-        vec3 intensity = sphereLight.intensity;
-        vec3 hitToLight = lightPos - position;
-        vec3 direction = normalize(hitToLight);
-        float dist = length(hitToLight);
-        vec3 brdf = diffuse / M_PI;
-        float p = targetPDF(direction, dist, intensity, normal, brdf);
+        float p = targetPDF(sphereLight, position, normal, diffuse);
         float w = p / (1.0 / NUM_CANDIDATES);
 
         // Update
@@ -133,11 +144,7 @@ void main()
     // hit light
     vec3 radiance = vec3(0.0);
     if(!payload.shadowed){
-        float invDistPow2 = 1.0 / (dist * dist);
-        float cosTheta = max(0.0, dot(normalize(dir), normal));
-        float pdf = 1.0 / pushConstants.numLights;
-        vec3 brdf = diffuse / M_PI;
-        radiance = sphereLight.intensity * brdf * invDistPow2 * cosTheta / pdf;
+        radiance = calcRadiance(position, normal, diffuse, sphereLight.intensity, dist, dir);
     }
     vec3 color = emission + radiance;
     
