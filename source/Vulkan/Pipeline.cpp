@@ -290,3 +290,17 @@ void GBufferPipeline::Setup(size_t pushSize)
 
     RayTracingPipeline::Setup(pushSize);
 }
+
+void UniformLightPipeline::LoadShaders()
+{
+    RayTracingPipeline::LoadShaders("../shader/uniform_light/uniform_light.rgen",
+                                    "../shader/uniform_light/uniform_light.rmiss",
+                                    "../shader/uniform_light/uniform_light.rchit");
+}
+
+void UniformLightPipeline::Setup(size_t pushSize)
+{
+    outputImage = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm };
+    Register("outputImage", outputImage);
+    RayTracingPipeline::Setup(pushSize);
+}

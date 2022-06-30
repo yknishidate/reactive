@@ -54,14 +54,25 @@ void Engine::Init()
         std::uniform_real_distribution<float> distX{ bbox.min.x, bbox.max.x };
         std::uniform_real_distribution<float> distY{ bbox.min.y, bbox.max.y };
         std::uniform_real_distribution<float> distZ{ bbox.min.z, bbox.max.z };
-        std::uniform_real_distribution<float> distHue{ 0.0f, 1.0f };
-        std::uniform_real_distribution<float> distStrength{ 80.0f, 160.0f };
-        pushConstants.numLights = 100;
+
+        //std::uniform_real_distribution<float> distHue{ 0.0f, 1.0f };
+        //std::uniform_real_distribution<float> distStrength{ 80.0f, 160.0f };
+        //pushConstants.numLights = 10;
+        //for (int index = 0; index < pushConstants.numLights; index++) {
+        //    const glm::vec3 position = glm::vec3{ distX(mt), distY(mt), distZ(mt) } / 2.5f;
+        //    const glm::vec3 color = GetColorFromHue(distHue(mt)) * distStrength(mt);
+        //    scene->AddSphereLight(color, position, 0.1f);
+        //}
+
+        pushConstants.numLights = 5;
         for (int index = 0; index < pushConstants.numLights; index++) {
             const glm::vec3 position = glm::vec3{ distX(mt), distY(mt), distZ(mt) } / 2.5f;
-            const glm::vec3 color = GetColorFromHue(distHue(mt)) * distStrength(mt);
+            const glm::vec3 color{ 5.0f };
             scene->AddSphereLight(color, position, 0.1f);
         }
+
+        //pushConstants.numLights = 1;
+        //scene->AddSphereLight(glm::vec3{ 10.0f }, glm::vec3{ 0.0f }, 0.5f);
     }
     {
         //scene = std::make_unique<Scene>("../asset/CornellBox/CornellBox-Glossy.obj", glm::vec3{ 0.0f, 0.75f, 0.0f });
@@ -112,6 +123,13 @@ void Engine::Init()
     gbufferPipeline.RegisterTextures(scene->GetTextures());
     gbufferPipeline.RegisterBufferAddresses(scene->GetAddressBuffer());
     gbufferPipeline.Setup(sizeof(PushConstants));
+
+    uniformLightPipeline.LoadShaders();
+    uniformLightPipeline.RegisterAccel(scene->GetAccel());
+    uniformLightPipeline.RegisterTextures(scene->GetTextures());
+    uniformLightPipeline.RegisterBufferAddresses(scene->GetAddressBuffer());
+    uniformLightPipeline.RegisterGBuffers(gbufferPipeline.GetGBuffers());
+    uniformLightPipeline.Setup(sizeof(PushConstants));
 
     //initReservoirPipeline.LoadShaders("../shader/restir/init_reservoir.rgen",
     //                                  "../shader/restir/init_reservoir.rmiss",
@@ -215,10 +233,13 @@ void Engine::Run()
             //initReservoirPipeline.Run(commandBuffer, width, height, &pushConstants);
             //shadingPipeline.Run(commandBuffer, width, height, &pushConstants);
             gbufferPipeline.Run(commandBuffer, width, height, &pushConstants);
+            uniformLightPipeline.Run(commandBuffer, width, height, &pushConstants);
 
-            //Context::CopyToBackImage(commandBuffer, outputImage);
-            const GBuffers& gbuffers = gbufferPipeline.GetGBuffers();
-            Context::CopyToBackImage(commandBuffer, gbuffers.instanceIndex);
+            //const GBuffers& gbuffers = gbufferPipeline.GetGBuffers();
+            //Context::CopyToBackImage(commandBuffer, gbuffers.diffuse);
+
+            const Image& outputImage = uniformLightPipeline.GetOutputImage();
+            Context::CopyToBackImage(commandBuffer, outputImage);
 
             UI::Render(commandBuffer);
             Context::Submit();

@@ -28,6 +28,7 @@ private:
     //ComputePipeline meanPipeline;
     //ComputePipeline medianPipeline;
     GBufferPipeline gbufferPipeline;
+    UniformLightPipeline uniformLightPipeline;
     //RayTracingPipeline ptPipeline;
     //RayTracingPipeline neePipeline;
     //RayTracingPipeline srisPipeline;

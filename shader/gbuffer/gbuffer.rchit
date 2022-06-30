@@ -5,7 +5,7 @@
 layout(location = 0) rayPayloadInEXT HitPayload payload;
 hitAttributeEXT vec3 attribs;
 
-vec3 GetWorldPos()
+vec3 getWorldPos()
 {
     return gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT;
 }
@@ -51,7 +51,7 @@ void main()
         // }
     }
 
-    payload.position = GetWorldPos();
+    payload.position = getWorldPos();
     payload.normal = normal;
     payload.diffuse = diffuse;
     payload.emission = emission;
