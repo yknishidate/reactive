@@ -7,6 +7,7 @@
 #include "Image.hpp"
 #include "Window.hpp"
 #include "Compiler.hpp"
+#include "Scene.hpp"
 
 namespace
 {
@@ -265,6 +266,13 @@ void RayTracingPipeline::Run(vk::CommandBuffer commandBuffer, uint32_t countX, u
                                     0, pushSize, pushData);
     }
     commandBuffer.traceRaysKHR(raygenRegion, missRegion, hitRegion, {}, countX, countY, 1);
+}
+
+void RayTracingPipeline::RegisterScene(const Scene& scene)
+{
+    Register("topLevelAS", scene.GetAccel());
+    Register("samplers", scene.GetTextures());
+    Register("Addresses", scene.GetAddressBuffer());
 }
 
 void GBufferPipeline::LoadShaders()

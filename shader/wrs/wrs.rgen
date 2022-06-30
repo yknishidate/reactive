@@ -125,8 +125,8 @@ void main()
         0,    // sbtRecordOffset
         0,    // sbtRecordStride
         0,    // missIndex
-        position, 0.001,
-        dir, dist,
+        position, 0.01,
+        dir, dist - 0.01,
         0     // payloadLocation
     );
 
