@@ -90,13 +90,10 @@ struct PushConstants
     glm::mat4 invView{ 1 };
     glm::mat4 invProj{ 1 };
     int frame = 0;
-    int importance = 1;
     int depth = 1;
     int samples = 16;
-    glm::vec4 skyColor{ 0, 0, 0, 0 };
-    int nee = 0;
     int numLights = 0;
-    int reuse = 0;
+    glm::vec4 skyColor{ 0, 0, 0, 0 };
 };
 #else
 layout(push_constant) uniform 
@@ -104,12 +101,9 @@ PushConstants{
     mat4 invView;
     mat4 invProj;
     int frame;
-    int importance;
     int depth;
     int samples;
-    vec4 skyColor;
-    int nee;
     int numLights;
-    int reuse;
+    vec4 skyColor;
 } pushConstants;
 #endif
