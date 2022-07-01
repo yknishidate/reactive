@@ -18,6 +18,8 @@ public:
     bool CheckDirtyAndClean();
     glm::mat4 GetView() const;
     glm::mat4 GetProj() const;
+    glm::mat4 GetInvView() const { return glm::inverse(GetView()); }
+    glm::mat4 GetInvProj() const { return glm::inverse(GetProj()); }
 
 private:
     glm::vec3 position = { 0.0f, 0.0f, 5.0f };

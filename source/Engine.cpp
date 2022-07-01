@@ -61,8 +61,8 @@ void Engine::Init()
     wrsPipeline.RegisterGBuffers(gbufferPipeline.GetGBuffers());
     wrsPipeline.Setup(sizeof(PushConstants));
 
-    pushConstants.invProj = glm::inverse(scene.GetCamera().GetProj());
-    pushConstants.invView = glm::inverse(scene.GetCamera().GetView());
+    pushConstants.invProj = scene.GetCamera().GetInvProj();
+    pushConstants.invView = scene.GetCamera().GetInvView();
     pushConstants.frame = 0;
 }
 
@@ -85,8 +85,8 @@ void Engine::Run()
         scene.Update(0.1);
 
         scene.ProcessInput();
-        pushConstants.invProj = glm::inverse(scene.GetCamera().GetProj());
-        pushConstants.invView = glm::inverse(scene.GetCamera().GetView());
+        pushConstants.invProj = scene.GetCamera().GetInvProj();
+        pushConstants.invView = scene.GetCamera().GetInvView();
         pushConstants.frame++;
 
         if (!Window::IsMinimized()) {
