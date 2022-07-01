@@ -23,12 +23,9 @@ struct Context
     static auto GetMinImageCount() { return swapchain.GetMinImageCount(); }
     static auto GetRenderPass() { return swapchain.GetRenderPass(); }
 
+    static void Render(std::function<void(vk::CommandBuffer)> func);
     static void BeginRenderPass();
     static void EndRenderPass();
-    static void WaitNextFrame();
-    static auto BeginCommandBuffer()->vk::CommandBuffer;
-    static void Submit();
-    static void Present();
     static void CopyToBackImage(vk::CommandBuffer commandBuffer, const Image& source);
 
 private:

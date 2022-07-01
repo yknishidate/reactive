@@ -76,6 +76,16 @@ uint32_t Context::FindMemoryTypeIndex(vk::MemoryRequirements requirements, vk::M
     throw std::runtime_error("Failed to find memory type index.");
 }
 
+void Context::Render(std::function<void(vk::CommandBuffer)> func)
+{
+    if (!Window::IsMinimized()) {
+        swapchain.WaitNextFrame(*device);
+        func(swapchain.BeginCommandBuffer());
+        swapchain.Submit(queue);
+        swapchain.Present(queue);
+    }
+}
+
 void Context::BeginRenderPass()
 {
     swapchain.BeginRenderPass();
@@ -84,26 +94,6 @@ void Context::BeginRenderPass()
 void Context::EndRenderPass()
 {
     swapchain.EndRenderPass();
-}
-
-void Context::WaitNextFrame()
-{
-    swapchain.WaitNextFrame(*device);
-}
-
-vk::CommandBuffer Context::BeginCommandBuffer()
-{
-    return swapchain.BeginCommandBuffer();
-}
-
-void Context::Submit()
-{
-    swapchain.Submit(queue);
-}
-
-void Context::Present()
-{
-    swapchain.Present(queue);
 }
 
 void Context::CopyToBackImage(vk::CommandBuffer commandBuffer, const Image& source)
