@@ -1,6 +1,7 @@
 #include "Window.hpp"
 #include <spdlog/spdlog.h>
 #include <stb_image.h>
+#include <imgui.h>
 
 void Window::Init(int width, int height)
 {
@@ -51,6 +52,11 @@ bool Window::ShouldClose()
 void Window::PollEvents()
 {
     glfwPollEvents();
+
+    lastMousePos = currMousePos;
+    double xpos, ypos;
+    glfwGetCursorPos(Window::GetWindow(), &xpos, &ypos);
+    currMousePos = { xpos, ypos };
 }
 
 bool Window::IsMinimized()
@@ -79,4 +85,15 @@ vk::UniqueSurfaceKHR Window::CreateSurface(vk::Instance instance)
         throw std::runtime_error("failed to create window surface!");
     }
     return vk::UniqueSurfaceKHR{ _surface,{ instance } };
+}
+
+bool Window::MousePressed()
+{
+    bool pressed = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+    return  pressed && !ImGui::IsWindowFocused(ImGuiFocusedFlags_AnyWindow);
+}
+
+bool Window::KeyPressed(int key)
+{
+    return glfwGetKey(window, key) == GLFW_PRESS;
 }

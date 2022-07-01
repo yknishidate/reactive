@@ -4,7 +4,6 @@
 #include <spdlog/spdlog.h>
 #include "Window.hpp"
 #include "Helper.hpp"
-#include "UI.hpp"
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
@@ -84,7 +83,6 @@ void Context::Render(std::function<void(vk::CommandBuffer)> func)
     swapchain.WaitNextFrame(*device);
     auto commandBuffer = swapchain.BeginCommandBuffer();
     func(commandBuffer);
-    UI::Render(commandBuffer);
     swapchain.Submit(queue);
     swapchain.Present(queue);
 }

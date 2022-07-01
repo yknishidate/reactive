@@ -1,7 +1,6 @@
 #include <random>
 #include <functional>
 #include "Engine.hpp"
-#include "Input.hpp"
 #include "Loader.hpp"
 #include "Scene.hpp"
 #include "Object.hpp"
@@ -75,7 +74,6 @@ void Engine::Run()
     spdlog::info("Engine::Run()");
     while (!Window::ShouldClose()) {
         Window::PollEvents();
-        Input::Update();
 
         UI::StartFrame();
         UI::Combo("Method", method, { "Uniform", "WRS" });
@@ -98,7 +96,8 @@ void Engine::Run()
             } else if (method == WRS) {
                 wrsPipeline.Run(commandBuffer, width, height, &pushConstants);
                 Context::CopyToBackImage(commandBuffer, wrsPipeline.GetOutputImage());
-            }});
+            }
+            UI::Render(commandBuffer); });
     }
     Context::GetDevice().waitIdle();
     UI::Shutdown();
