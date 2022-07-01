@@ -11,17 +11,12 @@
 #include "Window.hpp"
 #include "Mesh.hpp"
 #include "Scene.hpp"
+#include "UI.hpp"
 
-class Engine
+namespace Engine
 {
-public:
     void Init();
-    void Run();
-
-private:
-    GBufferPipeline gbufferPipeline;
-    UniformLightPipeline uniformLightPipeline;
-    WRSPipeline wrsPipeline;
-    PushConstants pushConstants;
-    Scene scene;
+    void Shutdown();
+    bool Update();
+    void Render(std::function<void(vk::CommandBuffer)> func);
 };

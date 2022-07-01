@@ -78,8 +78,6 @@ uint32_t Context::FindMemoryTypeIndex(vk::MemoryRequirements requirements, vk::M
 
 void Context::Render(std::function<void(vk::CommandBuffer)> func)
 {
-    if (Window::IsMinimized()) return;
-
     swapchain.WaitNextFrame(*device);
     auto commandBuffer = swapchain.BeginCommandBuffer();
     func(commandBuffer);

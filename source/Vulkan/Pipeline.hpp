@@ -75,9 +75,7 @@ struct GBuffers
 class GBufferPipeline : public RayTracingPipeline
 {
 public:
-    void LoadShaders();
-
-    void Setup(size_t pushSize = 0);
+    GBufferPipeline(const Scene& scene, size_t pushSize = 0);
 
     const GBuffers& GetGBuffers() const { return gbuffers; }
 
