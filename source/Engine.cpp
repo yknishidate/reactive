@@ -80,31 +80,25 @@ void Engine::Run()
         UI::StartFrame();
         UI::Combo("Method", method, { "Uniform", "WRS" });
         UI::SliderInt("Samples", pushConstants.samples, 1, 32);
-        UI::Prepare();
 
         scene.Update(0.1);
-
         scene.ProcessInput();
         pushConstants.invProj = scene.GetCamera().GetInvProj();
         pushConstants.invView = scene.GetCamera().GetInvView();
         pushConstants.frame++;
 
-        Context::Render(
-            [&](vk::CommandBuffer commandBuffer) {
-                uint32_t width = Window::GetWidth();
-                uint32_t height = Window::GetHeight();
-                gbufferPipeline.Run(commandBuffer, width, height, &pushConstants);
+        Context::Render([&](vk::CommandBuffer commandBuffer) {
+            uint32_t width = Window::GetWidth();
+            uint32_t height = Window::GetHeight();
+            gbufferPipeline.Run(commandBuffer, width, height, &pushConstants);
 
-                if (method == Uniform) {
-                    uniformLightPipeline.Run(commandBuffer, width, height, &pushConstants);
-                    Context::CopyToBackImage(commandBuffer, uniformLightPipeline.GetOutputImage());
-                } else if (method == WRS) {
-                    wrsPipeline.Run(commandBuffer, width, height, &pushConstants);
-                    Context::CopyToBackImage(commandBuffer, wrsPipeline.GetOutputImage());
-                }
-
-                UI::Render(commandBuffer);
-            });
+            if (method == Uniform) {
+                uniformLightPipeline.Run(commandBuffer, width, height, &pushConstants);
+                Context::CopyToBackImage(commandBuffer, uniformLightPipeline.GetOutputImage());
+            } else if (method == WRS) {
+                wrsPipeline.Run(commandBuffer, width, height, &pushConstants);
+                Context::CopyToBackImage(commandBuffer, wrsPipeline.GetOutputImage());
+            }});
     }
     Context::GetDevice().waitIdle();
     UI::Shutdown();

@@ -5,7 +5,6 @@ namespace UI
     void Init();
     void Shutdown();
     void StartFrame();
-    void Prepare();
     void Render(vk::CommandBuffer commandBuffer);
 
     bool Checkbox(const std::string& label, bool& value);

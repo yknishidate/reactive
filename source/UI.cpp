@@ -93,13 +93,9 @@ void UI::StartFrame()
     ImGui::NewFrame();
 }
 
-void UI::Prepare()
-{
-    ImGui::Render();
-}
-
 void UI::Render(vk::CommandBuffer commandBuffer)
 {
+    ImGui::Render();
     Context::BeginRenderPass();
     ImDrawData* drawData = ImGui::GetDrawData();
     ImGui_ImplVulkan_RenderDrawData(drawData, commandBuffer);

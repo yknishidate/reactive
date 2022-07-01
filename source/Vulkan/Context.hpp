@@ -18,7 +18,6 @@ struct Context
     static auto GetQueueFamily() { return queueFamily; }
     static auto GetQueue() { return queue; }
     static auto GetDescriptorPool() { return *descriptorPool; }
-    static auto GetBackImage() { return swapchain.GetBackImage(); }
     static auto GetImageCount() { return swapchain.GetImageCount(); }
     static auto GetMinImageCount() { return swapchain.GetMinImageCount(); }
     static auto GetRenderPass() { return swapchain.GetRenderPass(); }

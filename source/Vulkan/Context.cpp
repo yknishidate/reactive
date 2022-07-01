@@ -4,6 +4,7 @@
 #include <spdlog/spdlog.h>
 #include "Window.hpp"
 #include "Helper.hpp"
+#include "UI.hpp"
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
@@ -78,12 +79,14 @@ uint32_t Context::FindMemoryTypeIndex(vk::MemoryRequirements requirements, vk::M
 
 void Context::Render(std::function<void(vk::CommandBuffer)> func)
 {
-    if (!Window::IsMinimized()) {
-        swapchain.WaitNextFrame(*device);
-        func(swapchain.BeginCommandBuffer());
-        swapchain.Submit(queue);
-        swapchain.Present(queue);
-    }
+    if (Window::IsMinimized()) return;
+
+    swapchain.WaitNextFrame(*device);
+    auto commandBuffer = swapchain.BeginCommandBuffer();
+    func(commandBuffer);
+    UI::Render(commandBuffer);
+    swapchain.Submit(queue);
+    swapchain.Present(queue);
 }
 
 void Context::BeginRenderPass()
