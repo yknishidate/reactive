@@ -32,7 +32,7 @@ void Engine::Init()
         std::uniform_real_distribution<float> distY{ bbox.min.y, bbox.max.y };
         std::uniform_real_distribution<float> distZ{ bbox.min.z, bbox.max.z };
 
-        pushConstants.numLights = 20;
+        pushConstants.numLights = 100;
         for (int index = 0; index < pushConstants.numLights; index++) {
             const glm::vec3 position = glm::vec3{ distX(mt), distY(mt), distZ(mt) } / 2.5f;
             const glm::vec3 color{ 1.0f };

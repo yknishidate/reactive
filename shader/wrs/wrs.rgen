@@ -63,12 +63,11 @@ float calcReservoirWeight(in Reservoir reservoir)
 }
 
 vec3 calcRadiance(vec3 position, vec3 normal, vec3 diffuse,
-                  vec3 intensity, float dist, vec3 direction)
+                  vec3 intensity, float dist, vec3 direction, float pdf)
 {
     vec3 brdf = diffuse / M_PI;
     float squareDist = dist * dist;
     float cosine = max(0.0, dot(direction, normal));
-    float pdf = 1.0 / pushConstants.numLights;
 
     // Radiance: brdf * Le * G / pdf
     return brdf * intensity / squareDist * cosine / pdf;
@@ -96,7 +95,7 @@ void main()
     SphereLights sphereLights = SphereLights(address.sphereLights);
 
     // Sample light
-    vec3 color = vec3(0);
+    vec3 radiance = vec3(0);
     for(int i = 0; i < pushConstants.samples; i++){
         Reservoir reservoir;
         reservoir.w_sum = 0.0;
@@ -110,7 +109,7 @@ void main()
             // Calc weights
             SphereLight sphereLight = sphereLights.s[x];
             float p = targetPDF(sphereLight, position, normal, diffuse);
-            float w = p / (1.0 / NUM_CANDIDATES);
+            float w = p / (1.0 / pushConstants.numLights);
 
             // Update
             updateReservoir(reservoir, x, w, p, seed);
@@ -144,13 +143,13 @@ void main()
         );
 
         // hit light
-        vec3 radiance = vec3(0.0);
         if(!payload.shadowed){
-            radiance = calcRadiance(position, normal, diffuse, sphereLight.intensity, dist, dir);
+            float weight = calcReservoirWeight(reservoir);
+            float pdf = 1.0 / weight;
+            radiance += calcRadiance(position, normal, diffuse, sphereLight.intensity, dist, dir, pdf);
         }
-        color += emission + radiance;
     }
-    color /= float(pushConstants.samples);
+    vec3 color = emission + radiance / float(pushConstants.samples);
     
     imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(color, 1));
 }
