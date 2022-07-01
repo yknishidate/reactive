@@ -79,6 +79,7 @@ void Engine::Run()
 
         UI::StartFrame();
         UI::Combo("Method", method, { "Uniform", "WRS" });
+        UI::SliderInt("Samples", pushConstants.samples, 1, 32);
         UI::Prepare();
 
         scene.Update(0.1);

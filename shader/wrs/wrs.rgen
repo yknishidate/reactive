@@ -96,57 +96,61 @@ void main()
     SphereLights sphereLights = SphereLights(address.sphereLights);
 
     // Sample light
-    Reservoir reservoir;
-    reservoir.w_sum = 0.0;
-    reservoir.x_z = 0;
-    reservoir.p_z = 0.0;
-    reservoir.m = 0;
-    for(int i = 0; i < NUM_CANDIDATES; i++){
-        // Sample candidates
-        int x = sampleLightUniform(seed);
+    vec3 color = vec3(0);
+    for(int i = 0; i < pushConstants.samples; i++){
+        Reservoir reservoir;
+        reservoir.w_sum = 0.0;
+        reservoir.x_z = 0;
+        reservoir.p_z = 0.0;
+        reservoir.m = 0;
+        for(int i = 0; i < NUM_CANDIDATES; i++){
+            // Sample candidates
+            int x = sampleLightUniform(seed);
 
-        // Calc weights
-        SphereLight sphereLight = sphereLights.s[x];
-        float p = targetPDF(sphereLight, position, normal, diffuse);
-        float w = p / (1.0 / NUM_CANDIDATES);
+            // Calc weights
+            SphereLight sphereLight = sphereLights.s[x];
+            float p = targetPDF(sphereLight, position, normal, diffuse);
+            float w = p / (1.0 / NUM_CANDIDATES);
 
-        // Update
-        updateReservoir(reservoir, x, w, p, seed);
+            // Update
+            updateReservoir(reservoir, x, w, p, seed);
+        }
+        
+        // if all zero
+        if(reservoir.w_sum == 0.0){
+            imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(0));
+            return;
+        }
+
+        // get light
+        SphereLight sphereLight = sphereLights.s[reservoir.x_z];
+        vec3 hitToLight = sphereLight.position - position;
+        vec3 dir = normalize(hitToLight);
+        float dist = length(hitToLight) - sphereLight.radius;
+
+        // trace shadow ray
+        payload.shadowed = true;
+        traceRayEXT(
+            topLevelAS,
+            gl_RayFlagsTerminateOnFirstHitEXT | 
+            gl_RayFlagsSkipClosestHitShaderEXT,
+            0xff, // cullMask
+            0,    // sbtRecordOffset
+            0,    // sbtRecordStride
+            0,    // missIndex
+            position, 0.01,
+            dir, dist - 0.01,
+            0     // payloadLocation
+        );
+
+        // hit light
+        vec3 radiance = vec3(0.0);
+        if(!payload.shadowed){
+            radiance = calcRadiance(position, normal, diffuse, sphereLight.intensity, dist, dir);
+        }
+        color += emission + radiance;
     }
-    
-    // if all zero
-    if(reservoir.w_sum == 0.0){
-        imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(0));
-        return;
-    }
-
-    // get light
-    SphereLight sphereLight = sphereLights.s[reservoir.x_z];
-    vec3 hitToLight = sphereLight.position - position;
-    vec3 dir = normalize(hitToLight);
-    float dist = length(hitToLight) - sphereLight.radius;
-
-    // trace shadow ray
-    payload.shadowed = true;
-    traceRayEXT(
-        topLevelAS,
-        gl_RayFlagsTerminateOnFirstHitEXT | 
-        gl_RayFlagsSkipClosestHitShaderEXT,
-        0xff, // cullMask
-        0,    // sbtRecordOffset
-        0,    // sbtRecordStride
-        0,    // missIndex
-        position, 0.01,
-        dir, dist - 0.01,
-        0     // payloadLocation
-    );
-
-    // hit light
-    vec3 radiance = vec3(0.0);
-    if(!payload.shadowed){
-        radiance = calcRadiance(position, normal, diffuse, sphereLight.intensity, dist, dir);
-    }
-    vec3 color = emission + radiance;
+    color /= float(pushConstants.samples);
     
     imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(color, 1));
 }
