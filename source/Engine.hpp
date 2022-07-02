@@ -18,5 +18,5 @@ namespace Engine
     void Init();
     void Shutdown();
     bool Update();
-    void Render(std::function<void(vk::CommandBuffer)> func);
+    void Render(std::function<void(void)> func);
 };

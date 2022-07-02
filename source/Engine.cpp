@@ -44,13 +44,13 @@ bool Engine::Update()
     return !shouldClose;
 }
 
-void Engine::Render(std::function<void(vk::CommandBuffer)> func)
+void Engine::Render(std::function<void(void)> func)
 {
     if (Window::IsMinimized()) return;
     Context::WaitNextFrame();
-    auto commandBuffer = Context::BeginCommandBuffer();
-    func(commandBuffer);
-    UI::Render(commandBuffer);
+    Context::BeginCommandBuffer();
+    func();
+    UI::Render(Context::GetCurrentCommandBuffer());
     Context::Submit();
     Context::Present();
 }

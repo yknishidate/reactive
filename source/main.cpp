@@ -44,16 +44,18 @@ int main()
         pushConstants.invView = scene.GetCamera().GetInvView();
         pushConstants.frame++;
 
-        Engine::Render([&](auto commandBuffer) {
-            gbufferPipeline.Run(&pushConstants);
+        Engine::Render(
+            [&]() {
+                gbufferPipeline.Run(&pushConstants);
 
-            if (method == Uniform) {
-                uniformLightPipeline.Run(&pushConstants);
-                Context::CopyToBackImage(uniformLightPipeline.GetOutputImage());
-            } else if (method == WRS) {
-                wrsPipeline.Run(&pushConstants);
-                Context::CopyToBackImage(wrsPipeline.GetOutputImage());
-            }});
+                if (method == Uniform) {
+                    uniformLightPipeline.Run(&pushConstants);
+                    Context::CopyToBackImage(uniformLightPipeline.GetOutputImage());
+                } else if (method == WRS) {
+                    wrsPipeline.Run(&pushConstants);
+                    Context::CopyToBackImage(wrsPipeline.GetOutputImage());
+                }
+            });
     }
     Engine::Shutdown();
 }
