@@ -47,5 +47,10 @@ bool Engine::Update()
 void Engine::Render(std::function<void(vk::CommandBuffer)> func)
 {
     if (Window::IsMinimized()) return;
-    Context::Render(func);
+    Context::WaitNextFrame();
+    auto commandBuffer = Context::BeginCommandBuffer();
+    func(commandBuffer);
+    UI::Render(commandBuffer);
+    Context::Submit();
+    Context::Present();
 }

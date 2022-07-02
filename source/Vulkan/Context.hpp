@@ -22,10 +22,13 @@ struct Context
     static auto GetMinImageCount() { return swapchain.GetMinImageCount(); }
     static auto GetRenderPass() { return swapchain.GetRenderPass(); }
 
-    static void Render(std::function<void(vk::CommandBuffer)> func);
     static void BeginRenderPass();
     static void EndRenderPass();
     static void CopyToBackImage(vk::CommandBuffer commandBuffer, const Image& source);
+    static void WaitNextFrame() { swapchain.WaitNextFrame(*device); }
+    static auto BeginCommandBuffer() -> vk::CommandBuffer { return swapchain.BeginCommandBuffer(); }
+    static void Submit() { swapchain.Submit(queue); }
+    static void Present() { swapchain.Present(queue); }
 
 private:
     static inline vk::UniqueInstance instance;

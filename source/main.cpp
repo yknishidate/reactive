@@ -53,8 +53,7 @@ int main()
             } else if (method == WRS) {
                 wrsPipeline.Run(commandBuffer, width, height, &pushConstants);
                 Context::CopyToBackImage(commandBuffer, wrsPipeline.GetOutputImage());
-            }
-            UI::Render(commandBuffer); });
+            }});
     }
     Engine::Shutdown();
 }

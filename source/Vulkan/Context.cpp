@@ -76,15 +76,6 @@ uint32_t Context::FindMemoryTypeIndex(vk::MemoryRequirements requirements, vk::M
     throw std::runtime_error("Failed to find memory type index.");
 }
 
-void Context::Render(std::function<void(vk::CommandBuffer)> func)
-{
-    swapchain.WaitNextFrame(*device);
-    auto commandBuffer = swapchain.BeginCommandBuffer();
-    func(commandBuffer);
-    swapchain.Submit(queue);
-    swapchain.Present(queue);
-}
-
 void Context::BeginRenderPass()
 {
     swapchain.BeginRenderPass();
