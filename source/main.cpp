@@ -7,6 +7,8 @@ int main()
     Scene scene{ "../asset/crytek_sponza/sponza.obj",
                  glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 0.01f },
                  glm::vec3{ 0.0f, glm::radians(90.0f), 0.0f } };
+
+    // Add random lights
     BoundingBox bbox = scene.GetBoundingBox();
     std::mt19937 mt{ std::random_device{}() };
     std::uniform_real_distribution<float> distX{ bbox.min.x, bbox.max.x };
@@ -42,17 +44,15 @@ int main()
         pushConstants.invView = scene.GetCamera().GetInvView();
         pushConstants.frame++;
 
-        Engine::Render([&](vk::CommandBuffer commandBuffer) {
-            uint32_t width = Window::GetWidth();
-            uint32_t height = Window::GetHeight();
-            gbufferPipeline.Run(commandBuffer, width, height, &pushConstants);
+        Engine::Render([&](auto commandBuffer) {
+            gbufferPipeline.Run(&pushConstants);
 
             if (method == Uniform) {
-                uniformLightPipeline.Run(commandBuffer, width, height, &pushConstants);
-                Context::CopyToBackImage(commandBuffer, uniformLightPipeline.GetOutputImage());
+                uniformLightPipeline.Run(&pushConstants);
+                Context::CopyToBackImage(uniformLightPipeline.GetOutputImage());
             } else if (method == WRS) {
-                wrsPipeline.Run(commandBuffer, width, height, &pushConstants);
-                Context::CopyToBackImage(commandBuffer, wrsPipeline.GetOutputImage());
+                wrsPipeline.Run(&pushConstants);
+                Context::CopyToBackImage(wrsPipeline.GetOutputImage());
             }});
     }
     Engine::Shutdown();

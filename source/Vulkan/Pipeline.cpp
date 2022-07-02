@@ -268,6 +268,21 @@ void RayTracingPipeline::Run(vk::CommandBuffer commandBuffer, uint32_t countX, u
     commandBuffer.traceRaysKHR(raygenRegion, missRegion, hitRegion, {}, countX, countY, 1);
 }
 
+void RayTracingPipeline::Run(uint32_t countX, uint32_t countY, void* pushData)
+{
+    Run(Context::GetCurrentCommandBuffer(), countX, countY, pushData);
+}
+
+void RayTracingPipeline::Run(vk::CommandBuffer commandBuffer, void* pushData)
+{
+    Run(commandBuffer, Window::GetWidth(), Window::GetHeight(), pushData);
+}
+
+void RayTracingPipeline::Run(void* pushData)
+{
+    Run(Context::GetCurrentCommandBuffer(), Window::GetWidth(), Window::GetHeight(), pushData);
+}
+
 void RayTracingPipeline::RegisterScene(const Scene& scene)
 {
     Register("topLevelAS", scene.GetAccel());

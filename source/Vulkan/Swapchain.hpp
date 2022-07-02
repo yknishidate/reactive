@@ -88,6 +88,7 @@ struct Swapchain
     auto GetImageCount() const { return swapchainImages.size(); }
     auto GetMinImageCount() const { return minImageCount; }
     auto GetRenderPass() const { return *renderPass; }
+    auto GetCurrentCommandBuffer() const { return *frames[frameIndex].commandBuffer; }
 
     vk::UniqueSwapchainKHR swapchain;
     std::vector<vk::Image> swapchainImages;

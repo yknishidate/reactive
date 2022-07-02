@@ -21,10 +21,12 @@ struct Context
     static auto GetImageCount() { return swapchain.GetImageCount(); }
     static auto GetMinImageCount() { return swapchain.GetMinImageCount(); }
     static auto GetRenderPass() { return swapchain.GetRenderPass(); }
+    static auto GetCurrentCommandBuffer() { return swapchain.GetCurrentCommandBuffer(); }
 
     static void BeginRenderPass();
     static void EndRenderPass();
     static void CopyToBackImage(vk::CommandBuffer commandBuffer, const Image& source);
+    static void CopyToBackImage(const Image& source);
     static void WaitNextFrame() { swapchain.WaitNextFrame(*device); }
     static auto BeginCommandBuffer() -> vk::CommandBuffer { return swapchain.BeginCommandBuffer(); }
     static void Submit() { swapchain.Submit(queue); }

@@ -90,3 +90,8 @@ void Context::CopyToBackImage(vk::CommandBuffer commandBuffer, const Image& sour
 {
     swapchain.CopyToBackImage(commandBuffer, source);
 }
+
+void Context::CopyToBackImage(const Image& source)
+{
+    CopyToBackImage(Context::GetCurrentCommandBuffer(), source);
+}

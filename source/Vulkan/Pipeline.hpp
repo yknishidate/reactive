@@ -42,6 +42,9 @@ public:
     virtual void LoadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath, const std::string& ahitPath);
     virtual void Setup(size_t pushSize = 0);
     virtual void Run(vk::CommandBuffer commandBuffer, uint32_t countX, uint32_t countY, void* pushData = nullptr);
+    virtual void Run(uint32_t countX, uint32_t countY, void* pushData = nullptr);
+    virtual void Run(vk::CommandBuffer commandBuffer, void* pushData = nullptr);
+    virtual void Run(void* pushData = nullptr);
 
     void RegisterScene(const Scene& scene);
 
