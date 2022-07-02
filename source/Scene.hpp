@@ -23,7 +23,6 @@ public:
           glm::vec3 rotation = glm::vec3{ 0.0f });
     void Setup();
     void Update(float dt);
-    void ProcessInput();
     std::shared_ptr<Mesh>& AddMesh(const std::string& filepath);
     Object& AddObject(std::shared_ptr<Mesh> mesh);
     PointLight& AddPointLight(glm::vec3 intensity, glm::vec3 position);

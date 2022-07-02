@@ -275,34 +275,6 @@ void RayTracingPipeline::RegisterScene(const Scene& scene)
     Register("Addresses", scene.GetAddressBuffer());
 }
 
-void UniformLightPipeline::LoadShaders()
-{
-    RayTracingPipeline::LoadShaders("../shader/uniform_light/uniform_light.rgen",
-                                    "../shader/uniform_light/uniform_light.rmiss",
-                                    "../shader/uniform_light/uniform_light.rchit");
-}
-
-void UniformLightPipeline::Setup(size_t pushSize)
-{
-    outputImage = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm };
-    Register("outputImage", outputImage);
-    RayTracingPipeline::Setup(pushSize);
-}
-
-void WRSPipeline::LoadShaders()
-{
-    RayTracingPipeline::LoadShaders("../shader/wrs/wrs.rgen",
-                                    "../shader/wrs/wrs.rmiss",
-                                    "../shader/wrs/wrs.rchit");
-}
-
-void WRSPipeline::Setup(size_t pushSize)
-{
-    outputImage = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm };
-    Register("outputImage", outputImage);
-    RayTracingPipeline::Setup(pushSize);
-}
-
 GBufferPipeline::GBufferPipeline(const Scene& scene, size_t pushSize)
 {
     RayTracingPipeline::LoadShaders("../shader/gbuffer/gbuffer.rgen",
@@ -321,6 +293,44 @@ GBufferPipeline::GBufferPipeline(const Scene& scene, size_t pushSize)
     Register("diffuse", gbuffers.diffuse);
     Register("emission", gbuffers.emission);
     Register("instanceIndex", gbuffers.instanceIndex);
+
+    RayTracingPipeline::Setup(pushSize);
+}
+
+WRSPipeline::WRSPipeline(const Scene& scene, const GBuffers& gbuffers, size_t pushSize)
+{
+    RayTracingPipeline::LoadShaders("../shader/wrs/wrs.rgen",
+                                    "../shader/wrs/wrs.rmiss",
+                                    "../shader/wrs/wrs.rchit");
+
+    RegisterScene(scene);
+
+    Register("positionImage", gbuffers.position);
+    Register("normalImage", gbuffers.normal);
+    Register("diffuseImage", gbuffers.diffuse);
+    Register("emissionImage", gbuffers.emission);
+    Register("instanceIndexImage", gbuffers.instanceIndex);
+
+    outputImage = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm };
+    Register("outputImage", outputImage);
+    RayTracingPipeline::Setup(pushSize);
+}
+
+UniformLightPipeline::UniformLightPipeline(const Scene& scene, const GBuffers& gbuffers, size_t pushSize)
+{
+    RayTracingPipeline::LoadShaders("../shader/uniform_light/uniform_light.rgen",
+                                    "../shader/uniform_light/uniform_light.rmiss",
+                                    "../shader/uniform_light/uniform_light.rchit");
+    RegisterScene(scene);
+
+    Register("positionImage", gbuffers.position);
+    Register("normalImage", gbuffers.normal);
+    Register("diffuseImage", gbuffers.diffuse);
+    Register("emissionImage", gbuffers.emission);
+    Register("instanceIndexImage", gbuffers.instanceIndex);
+
+    outputImage = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm };
+    Register("outputImage", outputImage);
 
     RayTracingPipeline::Setup(pushSize);
 }

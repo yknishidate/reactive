@@ -73,6 +73,7 @@ void Scene::Setup()
 
 void Scene::Update(float dt)
 {
+    camera.ProcessInput();
     //static float time = 0.0f;
     //time += dt;
     //for (int i = 0; i < objects.size(); i++) {
@@ -82,11 +83,6 @@ void Scene::Update(float dt)
     //}
     //objectBuffer.Copy(objectData.data());
     //topAccel.Rebuild(objects);
-}
-
-void Scene::ProcessInput()
-{
-    camera.ProcessInput();
 }
 
 std::shared_ptr<Mesh>& Scene::AddMesh(const std::string& filepath)

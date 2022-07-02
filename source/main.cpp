@@ -23,18 +23,8 @@ int main()
     scene.Setup();
 
     GBufferPipeline gbufferPipeline{ scene, sizeof(PushConstants) };
-
-    UniformLightPipeline uniformLightPipeline;
-    uniformLightPipeline.LoadShaders();
-    uniformLightPipeline.RegisterScene(scene);
-    uniformLightPipeline.RegisterGBuffers(gbufferPipeline.GetGBuffers());
-    uniformLightPipeline.Setup(sizeof(PushConstants));
-
-    WRSPipeline wrsPipeline;
-    wrsPipeline.LoadShaders();
-    wrsPipeline.RegisterScene(scene);
-    wrsPipeline.RegisterGBuffers(gbufferPipeline.GetGBuffers());
-    wrsPipeline.Setup(sizeof(PushConstants));
+    UniformLightPipeline uniformLightPipeline{ scene, gbufferPipeline.GetGBuffers(), sizeof(PushConstants) };
+    WRSPipeline wrsPipeline{ scene, gbufferPipeline.GetGBuffers(), sizeof(PushConstants) };
 
     pushConstants.invProj = scene.GetCamera().GetInvProj();
     pushConstants.invView = scene.GetCamera().GetInvView();
@@ -48,7 +38,6 @@ int main()
         UI::SliderInt("Samples", pushConstants.samples, 1, 32);
 
         scene.Update(0.1);
-        scene.ProcessInput();
         pushConstants.invProj = scene.GetCamera().GetInvProj();
         pushConstants.invView = scene.GetCamera().GetInvView();
         pushConstants.frame++;

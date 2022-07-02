@@ -86,18 +86,7 @@ private:
 class UniformLightPipeline : public RayTracingPipeline
 {
 public:
-    void LoadShaders();
-
-    void RegisterGBuffers(const GBuffers& gbuffers)
-    {
-        Register("positionImage", gbuffers.position);
-        Register("normalImage", gbuffers.normal);
-        Register("diffuseImage", gbuffers.diffuse);
-        Register("emissionImage", gbuffers.emission);
-        Register("instanceIndexImage", gbuffers.instanceIndex);
-    }
-
-    void Setup(size_t pushSize = 0);
+    UniformLightPipeline(const Scene& scene, const GBuffers& gbuffers, size_t pushSize = 0);
 
     const Image& GetOutputImage() const { return outputImage; }
 
@@ -109,18 +98,7 @@ private:
 class WRSPipeline : public RayTracingPipeline
 {
 public:
-    void LoadShaders();
-
-    void RegisterGBuffers(const GBuffers& gbuffers)
-    {
-        Register("positionImage", gbuffers.position);
-        Register("normalImage", gbuffers.normal);
-        Register("diffuseImage", gbuffers.diffuse);
-        Register("emissionImage", gbuffers.emission);
-        Register("instanceIndexImage", gbuffers.instanceIndex);
-    }
-
-    void Setup(size_t pushSize = 0);
+    WRSPipeline(const Scene& scene, const GBuffers& gbuffers, size_t pushSize = 0);
 
     const Image& GetOutputImage() const { return outputImage; }
 
