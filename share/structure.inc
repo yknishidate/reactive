@@ -91,7 +91,7 @@ struct PushConstants
     glm::mat4 invProj{ 1 };
     int frame = 0;
     int depth = 1;
-    int samples = 16;
+    int samples = 1;
     int numLights = 0;
     glm::vec4 skyColor{ 0, 0, 0, 0 };
 };

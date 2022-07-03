@@ -10,7 +10,7 @@ int main()
 
     // Add random lights
     BoundingBox bbox = scene.GetBoundingBox();
-    std::mt19937 mt{ std::random_device{}() };
+    std::mt19937 mt{};
     std::uniform_real_distribution<float> distX{ bbox.min.x, bbox.max.x };
     std::uniform_real_distribution<float> distY{ bbox.min.y, bbox.max.y };
     std::uniform_real_distribution<float> distZ{ bbox.min.z, bbox.max.z };
@@ -36,14 +36,16 @@ int main()
     pushConstants.frame = 0;
 
     int method = 0;
-    bool enableReuse = false;
+    int iteration = 0;
+    //bool enableReuse = false;
     constexpr int Uniform = 0;
     constexpr int WRS = 1;
     constexpr int ReSTIR = 2;
     while (Engine::Update()) {
         UI::Combo("Method", method, { "Uniform", "WRS", "ReSTIR" });
         UI::SliderInt("Samples", pushConstants.samples, 1, 32);
-        UI::Checkbox("Enable reuse", enableReuse);
+        UI::SliderInt("Iteration", iteration, 0, 8);
+        //UI::Checkbox("Enable reuse", enableReuse);
 
         scene.Update(0.1);
         pushConstants.invProj = scene.GetCamera().GetInvProj();
@@ -67,7 +69,7 @@ int main()
                 //    Context::CopyToBackImage(shadingPipeline.GetOutputImage());
                 //}
                 initResevPipeline.Run(&pushConstants);
-                if (enableReuse) {
+                for (int i = 0; i < iteration; i++) {
                     reuseResevPipeline.Run(&pushConstants);
 
                     reuseResevPipeline.GetNewResevImages().sampleImage.SetImageLayout(vk::ImageLayout::eTransferSrcOptimal);
@@ -75,10 +77,8 @@ int main()
                     initResevPipeline.GetResevImages().sampleImage.SetImageLayout(vk::ImageLayout::eTransferDstOptimal);
                     initResevPipeline.GetResevImages().weightImage.SetImageLayout(vk::ImageLayout::eTransferDstOptimal);
 
-                    reuseResevPipeline.GetNewResevImages().sampleImage.CopyToImage(
-                        initResevPipeline.GetResevImages().sampleImage);
-                    reuseResevPipeline.GetNewResevImages().weightImage.CopyToImage(
-                        initResevPipeline.GetResevImages().weightImage);
+                    reuseResevPipeline.GetNewResevImages().sampleImage.CopyToImage(initResevPipeline.GetResevImages().sampleImage);
+                    reuseResevPipeline.GetNewResevImages().weightImage.CopyToImage(initResevPipeline.GetResevImages().weightImage);
 
                     reuseResevPipeline.GetNewResevImages().sampleImage.SetImageLayout(vk::ImageLayout::eGeneral);
                     reuseResevPipeline.GetNewResevImages().weightImage.SetImageLayout(vk::ImageLayout::eGeneral);
