@@ -2,7 +2,6 @@
 #extension GL_GOOGLE_include_directive : enable
 #define NUM_CANDIDATES 16
 #include "common.glsl"
-#include "../random.glsl"
 
 layout(location = 0) rayPayloadEXT HitPayload payload;
 
@@ -35,31 +34,6 @@ float targetPDF(in SphereLight light, vec3 position, vec3 normal, vec3 diffuse)
     
     // Target PDF: brdf * Le * G
     return max(0.0, length(brdf * light.intensity) / squareDist * cosine);
-}
-
-struct Reservoir
-{
-    float w_sum; // sum of all weights
-    int x_z;     // sample
-    float p_z;   // probability of target
-    int m;       // number of streaming
-};
-
-bool updateReservoir(inout Reservoir reservoir, int x, float w, float p, inout uint seed)
-{
-    reservoir.w_sum += w;
-    reservoir.m += 1;
-    if (rand(seed) < (w / reservoir.w_sum)) {
-        reservoir.x_z = x;
-        reservoir.p_z = p;
-        return true;
-    }
-    return false;
-}
-
-float calcReservoirWeight(in Reservoir reservoir)
-{
-    return reservoir.w_sum / reservoir.m / reservoir.p_z;
 }
 
 vec3 calcRadiance(vec3 position, vec3 normal, vec3 diffuse,
@@ -147,6 +121,6 @@ void main()
         reservoir.w_sum == 0.0;
     }
     
-    imageStore(resevSampleImage, ivec2(gl_LaunchIDEXT.xy), ivec4(reservoir.x_z, 0, 0, 0));
-    imageStore(resevWeightImage, ivec2(gl_LaunchIDEXT.xy), vec4(calcReservoirWeight(reservoir)));
+    imageStore(resevSampleImage, ivec2(gl_LaunchIDEXT.xy), ivec4(reservoir.x_z, reservoir.m, reservoir.x_z, reservoir.m));
+    imageStore(resevWeightImage, ivec2(gl_LaunchIDEXT.xy), vec4(reservoir.w_sum, reservoir.p_z, reservoir.w_sum, reservoir.p_z));
 }
