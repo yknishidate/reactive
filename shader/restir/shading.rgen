@@ -23,8 +23,11 @@ void main()
     vec3 diffuse = imageLoad(diffuseImage, ivec2(gl_LaunchIDEXT.xy)).rgb;
     vec3 emission = imageLoad(emissionImage, ivec2(gl_LaunchIDEXT.xy)).rgb;
     uint instanceIndex = imageLoad(instanceIndexImage, ivec2(gl_LaunchIDEXT.xy)).x;
-    uvec2 resevSample = imageLoad(resevSampleImage, ivec2(gl_LaunchIDEXT.xy)).xy;
-    vec2 resevWeight = imageLoad(resevWeightImage, ivec2(gl_LaunchIDEXT.xy)).xy;
+
+    // .xy: old data
+    // .zw: new data
+    uvec2 resevSample = imageLoad(resevSampleImage, ivec2(gl_LaunchIDEXT.xy)).zw;
+    vec2 resevWeight = imageLoad(resevWeightImage, ivec2(gl_LaunchIDEXT.xy)).zw;
 
     Reservoir reservoir;
     reservoir.x_z = int(resevSample.x);
