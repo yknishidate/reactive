@@ -1,55 +1,49 @@
 #version 460
 #extension GL_GOOGLE_include_directive : enable
+#define NUM_CANDIDATES 16
 #include "common.glsl"
 #include "../random.glsl"
 
 layout(location = 0) rayPayloadEXT HitPayload payload;
 
-vec3 sampleSphereLight(in vec2 randVal, in vec3 dir)
+vec3 calcRadiance(vec3 position, vec3 normal, vec3 diffuse,
+                  vec3 intensity, float dist, vec3 direction, float pdf)
 {
-    vec3 normal = -normalize(dir);
-    vec3 tangent;
-    vec3 bitangent;
-    createCoordinateSystem(normal, tangent, bitangent);
+    vec3 brdf = diffuse / M_PI;
+    float squareDist = dist * dist;
+    float cosine = max(0.0, dot(direction, normal));
 
-    vec3 sampleDir = sampleHemisphere(randVal.x, randVal.y);
-    return sampleDir.x * tangent + sampleDir.y * bitangent + sampleDir.z * normal;
+    // Radiance: brdf * Le * G / pdf
+    return brdf * intensity / squareDist * cosine / pdf;
 }
 
 void main()
 {
-    // Calc seed
-    uvec2 s = pcg2d(uvec2(gl_LaunchIDEXT.xy * (pushConstants.frame + 1)));
-    payload.seed = s.x + s.y;
-
-    vec3 pos = imageLoad(posImage, ivec2(gl_LaunchIDEXT.xy)).rgb;
+    vec3 position = imageLoad(positionImage, ivec2(gl_LaunchIDEXT.xy)).rgb;
     vec3 normal = imageLoad(normalImage, ivec2(gl_LaunchIDEXT.xy)).rgb;
     vec3 diffuse = imageLoad(diffuseImage, ivec2(gl_LaunchIDEXT.xy)).rgb;
     vec3 emission = imageLoad(emissionImage, ivec2(gl_LaunchIDEXT.xy)).rgb;
-    uint lightIndex = imageLoad(reservoirSampleImage, ivec2(gl_LaunchIDEXT.xy)).x;
-    float weight = imageLoad(reservoirWeightImage, ivec2(gl_LaunchIDEXT.xy)).x;
-    uvec4 geometryIndex = imageLoad(indexImage, ivec2(gl_LaunchIDEXT.xy));
-    uint instanceIndex = geometryIndex.x;
-    uint primitiveIndex = geometryIndex.y;
+    uint instanceIndex = imageLoad(instanceIndexImage, ivec2(gl_LaunchIDEXT.xy)).x;
+    uint resevSample = imageLoad(resevSampleImage, ivec2(gl_LaunchIDEXT.xy)).x;
+    float resevWeight = imageLoad(resevWeightImage, ivec2(gl_LaunchIDEXT.xy)).x;
+
+    if(length(emission) > 0.1 || resevWeight == 0.0) {
+        imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(emission, 1));
+        return;
+    }
 
     // Get buffer addresses
-    BufferAddress address = addresses.address[instanceIndex];
-    Vertices vertices = Vertices(address.vertices);
-    Indices indices = Indices(address.indices);
-    Objects objects = Objects(address.objects);
+    BufferAddress address = addresses.address[0];
     SphereLights sphereLights = SphereLights(address.sphereLights);
 
-    SphereLight sphereLight = sphereLights.s[lightIndex];
-
-    // Sample point on light
-    vec3 dir = sphereLight.position - pos;
-    vec3 lightNormal = sampleSphereLight(vec2(rand(payload.seed), rand(payload.seed)), dir);
-    vec3 point = sphereLight.position + sphereLight.radius * lightNormal;
-    dir = point - pos;
-    float dist = length(dir);
+    // get light
+    SphereLight sphereLight = sphereLights.s[resevSample];
+    vec3 hitToLight = sphereLight.position - position;
+    vec3 dir = normalize(hitToLight);
+    float dist = length(hitToLight) - sphereLight.radius;
 
     // trace shadow ray
-    payload.done = false;
+    payload.shadowed = true;
     traceRayEXT(
         topLevelAS,
         gl_RayFlagsTerminateOnFirstHitEXT | 
@@ -58,25 +52,18 @@ void main()
         0,    // sbtRecordOffset
         0,    // sbtRecordStride
         0,    // missIndex
-        pos, 0.001,
-        normalize(dir), dist - 0.001,
+        position, 0.01,
+        dir, dist - 0.01,
         0     // payloadLocation
     );
 
-    vec3 contribute = vec3(0.0);
     // hit light
-    if(payload.done){
-        float invDistPow2 = 1.0 / (dist * dist);
-        float cosTheta = max(0.0, dot(normalize(dir), normal));
-        float cosThetaLight = max(0.0, dot(normalize(-dir), lightNormal));
-        float pdf = 1.0 / pushConstants.numLights / (2.0 * M_PI * sphereLight.radius * sphereLight.radius);
-        vec3 brdf = diffuse / M_PI;
-        contribute = sphereLight.intensity * brdf * invDistPow2 * cosTheta * cosThetaLight / pdf;
+    vec3 radiance = vec3(0);
+    if(!payload.shadowed){
+        float pdf = 1.0 / resevWeight;
+        radiance += calcRadiance(position, normal, diffuse, sphereLight.intensity, dist, dir, pdf);
     }
-    vec3 color = emission + contribute * weight;
+    vec3 color = emission + radiance;
     
-    int frame = pushConstants.frame;
-    vec3 prevColor = imageLoad(outputImage, ivec2(gl_LaunchIDEXT.xy)).rgb;
-    color = (prevColor * frame + color) / (frame + 1);
     imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(color, 1));
 }

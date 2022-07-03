@@ -27,6 +27,8 @@ int main()
     GBufferPipeline gbufferPipeline{ scene, sizeof(PushConstants) };
     UniformLightPipeline uniformLightPipeline{ scene, gbufferPipeline.GetGBuffers(), sizeof(PushConstants) };
     WRSPipeline wrsPipeline{ scene, gbufferPipeline.GetGBuffers(), sizeof(PushConstants) };
+    InitResevPipeline initResevPipeline{ scene, gbufferPipeline.GetGBuffers(), sizeof(PushConstants) };
+    ShadingPipeline shadingPipeline{ scene, gbufferPipeline.GetGBuffers(), initResevPipeline.GetResevImages(), sizeof(PushConstants) };
 
     pushConstants.invProj = scene.GetCamera().GetInvProj();
     pushConstants.invView = scene.GetCamera().GetInvView();
@@ -35,8 +37,9 @@ int main()
     int method = 0;
     constexpr int Uniform = 0;
     constexpr int WRS = 1;
+    constexpr int ReSTIR = 2;
     while (Engine::Update()) {
-        UI::Combo("Method", method, { "Uniform", "WRS" });
+        UI::Combo("Method", method, { "Uniform", "WRS", "ReSTIR" });
         UI::SliderInt("Samples", pushConstants.samples, 1, 32);
 
         scene.Update(0.1);
@@ -54,6 +57,10 @@ int main()
                 } else if (method == WRS) {
                     wrsPipeline.Run(&pushConstants);
                     Context::CopyToBackImage(wrsPipeline.GetOutputImage());
+                } else if (method == ReSTIR) {
+                    initResevPipeline.Run(&pushConstants);
+                    shadingPipeline.Run(&pushConstants);
+                    Context::CopyToBackImage(shadingPipeline.GetOutputImage());
                 }
             });
     }

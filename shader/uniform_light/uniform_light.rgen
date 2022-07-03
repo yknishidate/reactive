@@ -34,7 +34,7 @@ void main()
     vec3 emission = imageLoad(emissionImage, ivec2(gl_LaunchIDEXT.xy)).rgb;
     uint instanceIndex = imageLoad(instanceIndexImage, ivec2(gl_LaunchIDEXT.xy)).x;
 
-    if(length(emission) > 0.1) {
+    if(length(emission) > 0.1 || normal == vec3(0.0)) {
         imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(emission, 1));
         return;
     }

@@ -349,3 +349,47 @@ UniformLightPipeline::UniformLightPipeline(const Scene& scene, const GBuffers& g
 
     RayTracingPipeline::Setup(pushSize);
 }
+
+InitResevPipeline::InitResevPipeline(const Scene& scene, const GBuffers& gbuffers, size_t pushSize)
+{
+    RayTracingPipeline::LoadShaders("../shader/restir/init_resev.rgen",
+                                    "../shader/restir/init_resev.rmiss",
+                                    "../shader/restir/init_resev.rchit");
+
+    RegisterScene(scene);
+
+    Register("positionImage", gbuffers.position);
+    Register("normalImage", gbuffers.normal);
+    Register("diffuseImage", gbuffers.diffuse);
+    Register("emissionImage", gbuffers.emission);
+    Register("instanceIndexImage", gbuffers.instanceIndex);
+
+    resevImages.sampleImage = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR8G8B8A8Uint };
+    resevImages.weightImage = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16B16A16Sfloat };
+    Register("resevSampleImage", resevImages.sampleImage);
+    Register("resevWeightImage", resevImages.weightImage);
+
+    RayTracingPipeline::Setup(pushSize);
+}
+
+ShadingPipeline::ShadingPipeline(const Scene& scene, const GBuffers& gbuffers, const ResevImages& resevImages, size_t pushSize)
+{
+    RayTracingPipeline::LoadShaders("../shader/restir/shading.rgen",
+                                    "../shader/restir/shading.rmiss",
+                                    "../shader/restir/shading.rchit");
+
+    RegisterScene(scene);
+
+    Register("positionImage", gbuffers.position);
+    Register("normalImage", gbuffers.normal);
+    Register("diffuseImage", gbuffers.diffuse);
+    Register("emissionImage", gbuffers.emission);
+    Register("instanceIndexImage", gbuffers.instanceIndex);
+    Register("resevSampleImage", resevImages.sampleImage);
+    Register("resevWeightImage", resevImages.weightImage);
+
+    outputImage = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm };
+    Register("outputImage", outputImage);
+
+    RayTracingPipeline::Setup(pushSize);
+}

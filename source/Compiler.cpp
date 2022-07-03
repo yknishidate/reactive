@@ -168,13 +168,13 @@ namespace Compiler
 
         EShMessages messages = (EShMessages)(EShMsgSpvRules | EShMsgVulkanRules);
         if (!shader.parse(&DefaultTBuiltInResource, 100, false, messages)) {
-            throw std::runtime_error("Failed to parse:\n" + glslShader + "\n" + shader.getInfoLog());
+            spdlog::error("Failed to parse:\n" + included + "\n" + shader.getInfoLog());
         }
 
         glslang::TProgram program;
         program.addShader(&shader);
         if (!program.link(messages)) {
-            throw std::runtime_error("Failed to link:\n" + glslShader + "\n" + shader.getInfoLog());
+            spdlog::error("Failed to link:\n" + included + "\n" + shader.getInfoLog());
         }
 
         std::vector<uint32_t> spvShader;

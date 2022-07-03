@@ -97,11 +97,38 @@ private:
     Image outputImage;
 };
 
-
 class WRSPipeline : public RayTracingPipeline
 {
 public:
     WRSPipeline(const Scene& scene, const GBuffers& gbuffers, size_t pushSize = 0);
+
+    const Image& GetOutputImage() const { return outputImage; }
+
+private:
+    Image outputImage;
+};
+
+struct ResevImages
+{
+    Image sampleImage;
+    Image weightImage;
+};
+
+class InitResevPipeline : public RayTracingPipeline
+{
+public:
+    InitResevPipeline(const Scene& scene, const GBuffers& gbuffers, size_t pushSize = 0);
+
+    const ResevImages& GetResevImages() const { return resevImages; }
+
+private:
+    ResevImages resevImages;
+};
+
+class ShadingPipeline : public RayTracingPipeline
+{
+public:
+    ShadingPipeline(const Scene& scene, const GBuffers& gbuffers, const ResevImages& resevImages, size_t pushSize = 0);
 
     const Image& GetOutputImage() const { return outputImage; }
 
