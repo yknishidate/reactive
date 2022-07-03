@@ -25,9 +25,10 @@ int main()
     scene.Setup();
 
     GBufferPipeline gbufferPipeline{ scene, sizeof(PushConstants) };
-    UniformLightPipeline uniformLightPipeline{ scene, gbufferPipeline.GetGBuffers(), sizeof(PushConstants) };
-    WRSPipeline wrsPipeline{ scene, gbufferPipeline.GetGBuffers(), sizeof(PushConstants) };
+    //UniformLightPipeline uniformLightPipeline{ scene, gbufferPipeline.GetGBuffers(), sizeof(PushConstants) };
+    //WRSPipeline wrsPipeline{ scene, gbufferPipeline.GetGBuffers(), sizeof(PushConstants) };
     InitResevPipeline initResevPipeline{ scene, gbufferPipeline.GetGBuffers(), sizeof(PushConstants) };
+    ReuseResevPipeline reuseResevPipeline{ scene, gbufferPipeline.GetGBuffers(), initResevPipeline.GetResevImages(), sizeof(PushConstants) };
     ShadingPipeline shadingPipeline{ scene, gbufferPipeline.GetGBuffers(), initResevPipeline.GetResevImages(), sizeof(PushConstants) };
 
     pushConstants.invProj = scene.GetCamera().GetInvProj();
@@ -35,12 +36,14 @@ int main()
     pushConstants.frame = 0;
 
     int method = 0;
+    bool enableReuse = false;
     constexpr int Uniform = 0;
     constexpr int WRS = 1;
     constexpr int ReSTIR = 2;
     while (Engine::Update()) {
         UI::Combo("Method", method, { "Uniform", "WRS", "ReSTIR" });
         UI::SliderInt("Samples", pushConstants.samples, 1, 32);
+        UI::Checkbox("Enable reuse", enableReuse);
 
         scene.Update(0.1);
         pushConstants.invProj = scene.GetCamera().GetInvProj();
@@ -51,17 +54,39 @@ int main()
             [&]() {
                 gbufferPipeline.Run(&pushConstants);
 
-                if (method == Uniform) {
-                    uniformLightPipeline.Run(&pushConstants);
-                    Context::CopyToBackImage(uniformLightPipeline.GetOutputImage());
-                } else if (method == WRS) {
-                    wrsPipeline.Run(&pushConstants);
-                    Context::CopyToBackImage(wrsPipeline.GetOutputImage());
-                } else if (method == ReSTIR) {
-                    initResevPipeline.Run(&pushConstants);
-                    shadingPipeline.Run(&pushConstants);
-                    Context::CopyToBackImage(shadingPipeline.GetOutputImage());
+                //if (method == Uniform) {
+                //    uniformLightPipeline.Run(&pushConstants);
+                //    Context::CopyToBackImage(uniformLightPipeline.GetOutputImage());
+                //} else if (method == WRS) {
+                //    wrsPipeline.Run(&pushConstants);
+                //    Context::CopyToBackImage(wrsPipeline.GetOutputImage());
+                //} else if (method == ReSTIR) {
+                //    initResevPipeline.Run(&pushConstants);
+                //    reuseResevPipeline.Run(&pushConstants);
+                //    shadingPipeline.Run(&pushConstants);
+                //    Context::CopyToBackImage(shadingPipeline.GetOutputImage());
+                //}
+                initResevPipeline.Run(&pushConstants);
+                if (enableReuse) {
+                    reuseResevPipeline.Run(&pushConstants);
+
+                    reuseResevPipeline.GetNewResevImages().sampleImage.SetImageLayout(vk::ImageLayout::eTransferSrcOptimal);
+                    reuseResevPipeline.GetNewResevImages().weightImage.SetImageLayout(vk::ImageLayout::eTransferSrcOptimal);
+                    initResevPipeline.GetResevImages().sampleImage.SetImageLayout(vk::ImageLayout::eTransferDstOptimal);
+                    initResevPipeline.GetResevImages().weightImage.SetImageLayout(vk::ImageLayout::eTransferDstOptimal);
+
+                    reuseResevPipeline.GetNewResevImages().sampleImage.CopyToImage(
+                        initResevPipeline.GetResevImages().sampleImage);
+                    reuseResevPipeline.GetNewResevImages().weightImage.CopyToImage(
+                        initResevPipeline.GetResevImages().weightImage);
+
+                    reuseResevPipeline.GetNewResevImages().sampleImage.SetImageLayout(vk::ImageLayout::eGeneral);
+                    reuseResevPipeline.GetNewResevImages().weightImage.SetImageLayout(vk::ImageLayout::eGeneral);
+                    initResevPipeline.GetResevImages().sampleImage.SetImageLayout(vk::ImageLayout::eGeneral);
+                    initResevPipeline.GetResevImages().weightImage.SetImageLayout(vk::ImageLayout::eGeneral);
                 }
+                shadingPipeline.Run(&pushConstants);
+                Context::CopyToBackImage(shadingPipeline.GetOutputImage());
             });
     }
     Engine::Shutdown();

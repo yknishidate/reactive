@@ -14,7 +14,15 @@ public:
     vk::DescriptorImageInfo GetInfo() const { return { *sampler, *view, layout }; }
 
     void SetImageLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout newLayout);
-    void CopyToImage(vk::CommandBuffer commandBuffer, Image& dst);
+    void SetImageLayout(vk::ImageLayout newLayout)
+    {
+        SetImageLayout(Context::GetCurrentCommandBuffer(), newLayout);
+    }
+    void CopyToImage(vk::CommandBuffer commandBuffer, const Image& dst) const;
+    void CopyToImage(const Image& dst) const
+    {
+        CopyToImage(Context::GetCurrentCommandBuffer(), dst);
+    }
 
     static void SetImageLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout);
 

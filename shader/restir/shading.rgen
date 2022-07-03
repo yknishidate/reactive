@@ -35,6 +35,19 @@ void main()
     reservoir.w_sum = resevWeight.x;
     reservoir.p_z = resevWeight.y;
 
+    /// DEBUG
+    // uvec2 s = pcg2d(uvec2(gl_LaunchIDEXT.xy * (pushConstants.frame + 1)));
+    // uint seed = s.x + s.y;
+    // imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(reservoir.x_z / 100.0));
+    // imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(reservoir.m / 100.0));
+    // imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(reservoir.w_sum)); // buggy
+    // imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(reservoir.p_z));
+    // imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), 
+    //            vec4(reservoir.x_z / 100.0, reservoir.m / 100.0,
+    //                 reservoir.w_sum, reservoir.p_z));
+    // return;
+    /// DEBUG
+
     if(length(emission) > 0.1 || reservoir.w_sum == 0.0) {
         imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(emission, 1));
         return;

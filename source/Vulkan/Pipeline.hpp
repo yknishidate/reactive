@@ -119,10 +119,21 @@ class InitResevPipeline : public RayTracingPipeline
 public:
     InitResevPipeline(const Scene& scene, const GBuffers& gbuffers, size_t pushSize = 0);
 
-    const ResevImages& GetResevImages() const { return resevImages; }
+    ResevImages& GetResevImages() { return resevImages; }
 
 private:
     ResevImages resevImages;
+};
+
+class ReuseResevPipeline : public RayTracingPipeline
+{
+public:
+    ReuseResevPipeline(const Scene& scene, const GBuffers& gbuffers, const ResevImages& resevImages, size_t pushSize = 0);
+
+    ResevImages& GetNewResevImages() { return newResevImages; }
+
+private:
+    ResevImages newResevImages;
 };
 
 class ShadingPipeline : public RayTracingPipeline

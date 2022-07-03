@@ -393,3 +393,27 @@ ShadingPipeline::ShadingPipeline(const Scene& scene, const GBuffers& gbuffers, c
 
     RayTracingPipeline::Setup(pushSize);
 }
+
+ReuseResevPipeline::ReuseResevPipeline(const Scene& scene, const GBuffers& gbuffers, const ResevImages& resevImages, size_t pushSize)
+{
+    RayTracingPipeline::LoadShaders("../shader/restir/reuse_resev.rgen",
+                                    "../shader/restir/reuse_resev.rmiss",
+                                    "../shader/restir/reuse_resev.rchit");
+
+    RegisterScene(scene);
+
+    Register("positionImage", gbuffers.position);
+    Register("normalImage", gbuffers.normal);
+    Register("diffuseImage", gbuffers.diffuse);
+    Register("emissionImage", gbuffers.emission);
+    Register("instanceIndexImage", gbuffers.instanceIndex);
+    Register("resevSampleImage", resevImages.sampleImage);
+    Register("resevWeightImage", resevImages.weightImage);
+
+    newResevImages.sampleImage = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR8G8B8A8Uint };
+    newResevImages.weightImage = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16B16A16Sfloat };
+    Register("newResevSampleImage", newResevImages.sampleImage);
+    Register("newResevWeightImage", newResevImages.weightImage);
+
+    RayTracingPipeline::Setup(pushSize);
+}

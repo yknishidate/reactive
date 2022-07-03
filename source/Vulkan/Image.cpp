@@ -117,7 +117,7 @@ void Image::SetImageLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout newL
     layout = newLayout;
 }
 
-void Image::CopyToImage(vk::CommandBuffer commandBuffer, Image& dst)
+void Image::CopyToImage(vk::CommandBuffer commandBuffer, const Image& dst) const
 {
     vk::ImageCopy copyRegion;
     copyRegion.setSrcSubresource({ vk::ImageAspectFlagBits::eColor, 0, 0, 1 });
