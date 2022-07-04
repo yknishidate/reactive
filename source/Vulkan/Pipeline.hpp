@@ -132,6 +132,8 @@ public:
 
     ResevImages& GetNewResevImages() { return newResevImages; }
 
+    void CopyToResevImages(ResevImages& dst);
+
 private:
     ResevImages newResevImages;
 };

@@ -71,19 +71,7 @@ int main()
                 initResevPipeline.Run(&pushConstants);
                 for (int i = 0; i < iteration; i++) {
                     reuseResevPipeline.Run(&pushConstants);
-
-                    reuseResevPipeline.GetNewResevImages().sampleImage.SetImageLayout(vk::ImageLayout::eTransferSrcOptimal);
-                    reuseResevPipeline.GetNewResevImages().weightImage.SetImageLayout(vk::ImageLayout::eTransferSrcOptimal);
-                    initResevPipeline.GetResevImages().sampleImage.SetImageLayout(vk::ImageLayout::eTransferDstOptimal);
-                    initResevPipeline.GetResevImages().weightImage.SetImageLayout(vk::ImageLayout::eTransferDstOptimal);
-
-                    reuseResevPipeline.GetNewResevImages().sampleImage.CopyToImage(initResevPipeline.GetResevImages().sampleImage);
-                    reuseResevPipeline.GetNewResevImages().weightImage.CopyToImage(initResevPipeline.GetResevImages().weightImage);
-
-                    reuseResevPipeline.GetNewResevImages().sampleImage.SetImageLayout(vk::ImageLayout::eGeneral);
-                    reuseResevPipeline.GetNewResevImages().weightImage.SetImageLayout(vk::ImageLayout::eGeneral);
-                    initResevPipeline.GetResevImages().sampleImage.SetImageLayout(vk::ImageLayout::eGeneral);
-                    initResevPipeline.GetResevImages().weightImage.SetImageLayout(vk::ImageLayout::eGeneral);
+                    reuseResevPipeline.CopyToResevImages(initResevPipeline.GetResevImages());
                 }
                 shadingPipeline.Run(&pushConstants);
                 Context::CopyToBackImage(shadingPipeline.GetOutputImage());

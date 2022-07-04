@@ -417,3 +417,19 @@ ReuseResevPipeline::ReuseResevPipeline(const Scene& scene, const GBuffers& gbuff
 
     RayTracingPipeline::Setup(pushSize);
 }
+
+void ReuseResevPipeline::CopyToResevImages(ResevImages& dst)
+{
+    newResevImages.sampleImage.SetImageLayout(vk::ImageLayout::eTransferSrcOptimal);
+    newResevImages.weightImage.SetImageLayout(vk::ImageLayout::eTransferSrcOptimal);
+    dst.sampleImage.SetImageLayout(vk::ImageLayout::eTransferDstOptimal);
+    dst.weightImage.SetImageLayout(vk::ImageLayout::eTransferDstOptimal);
+
+    newResevImages.sampleImage.CopyToImage(dst.sampleImage);
+    newResevImages.weightImage.CopyToImage(dst.weightImage);
+
+    newResevImages.sampleImage.SetImageLayout(vk::ImageLayout::eGeneral);
+    newResevImages.weightImage.SetImageLayout(vk::ImageLayout::eGeneral);
+    dst.sampleImage.SetImageLayout(vk::ImageLayout::eGeneral);
+    dst.weightImage.SetImageLayout(vk::ImageLayout::eGeneral);
+}

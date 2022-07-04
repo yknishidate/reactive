@@ -16,15 +16,27 @@ void combineReservoir(inout Reservoir reservoir, inout int m_c, int dx, int dy, 
 {
     ivec2 id = ivec2(gl_LaunchIDEXT.xy) + ivec2(dx, dy);
 
-    vec3 emission_ = imageLoad(emissionImage, id).rgb;
-    if(length(emission_) > 0.1){
-        return;
-    }
+    // vec3 emission_ = imageLoad(emissionImage, id).rgb;
+    // if(length(emission_) > 0.1){
+    //     return;
+    // }
     uvec2 resevSample_ = imageLoad(resevSampleImage, id).xy;
     vec2 resevWeight_ = imageLoad(resevWeightImage, id).xy;
+    int x_z = int(resevSample_.x);
+    int m = int(resevSample_.y);
+    float w_sum = resevWeight_.x;
+    float p_z = resevWeight_.y;
 
-    updateReservoir(reservoir, int(resevSample_.x), resevWeight_.x, resevWeight_.y, seed);
+    updateReservoir(reservoir, x_z, w_sum, p_z, seed);
+    // updateReservoir(reservoir, x_z, w_sum * m * p_z, p_z, seed);
     m_c += int(resevSample_.y);
+}
+
+bool canCombine(vec3 normal, int dx, int dy)
+{
+    ivec2 id = ivec2(gl_LaunchIDEXT.xy) + ivec2(dx, dy);
+    vec3 normal_ = imageLoad(normalImage, id).xyz;
+    return distance(normal, normal_) < 0.1;
 }
 
 void main()
@@ -59,14 +71,16 @@ void main()
 
     int m_c = 0;
     combineReservoir(reservoir, m_c,  0,  0, seed);
+    // if(canCombine(normal,  0,  1)) combineReservoir(reservoir, m_c,  0,  1, seed);
+    // if(canCombine(normal,  0, -1)) combineReservoir(reservoir, m_c,  0, -1, seed);
+    // if(canCombine(normal,  1,  0)) combineReservoir(reservoir, m_c,  1,  0, seed);
+    // if(canCombine(normal, -1,  0)) combineReservoir(reservoir, m_c, -1,  0, seed);
     combineReservoir(reservoir, m_c,  0,  1, seed);
     combineReservoir(reservoir, m_c,  0, -1, seed);
     combineReservoir(reservoir, m_c,  1,  0, seed);
     combineReservoir(reservoir, m_c, -1,  0, seed);
     reservoir.m = m_c;
     
-    imageStore(resevSampleImage, ivec2(gl_LaunchIDEXT.xy), ivec4(reservoir.x_z, reservoir.m, reservoir.x_z, reservoir.m));
-    imageStore(resevWeightImage, ivec2(gl_LaunchIDEXT.xy), vec4(reservoir.w_sum, reservoir.p_z, reservoir.w_sum, reservoir.p_z));
     imageStore(newResevSampleImage, ivec2(gl_LaunchIDEXT.xy), ivec4(reservoir.x_z, reservoir.m, reservoir.x_z, reservoir.m));
     imageStore(newResevWeightImage, ivec2(gl_LaunchIDEXT.xy), vec4(reservoir.w_sum, reservoir.p_z, reservoir.w_sum, reservoir.p_z));
 }
