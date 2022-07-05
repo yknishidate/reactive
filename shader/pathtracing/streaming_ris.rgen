@@ -1,0 +1,124 @@
+#version 460
+#extension GL_GOOGLE_include_directive : enable
+#include "common.glsl"
+#include "random.glsl"
+
+layout(location = 0) rayPayloadEXT HitPayload payload;
+
+vec3 cosineSampleHemisphere(float u1, float u2)
+{
+    vec3 dir;
+    float r = sqrt(u1);
+    float phi = 2.0 * M_PI * u2;
+    dir.x = r * cos(phi);
+    dir.y = r * sin(phi);
+    dir.z = sqrt(max(0.0, 1.0 - dir.x * dir.x - dir.y * dir.y));
+    return dir;
+}
+
+float calcPDF(in vec3 dir)
+{
+    if(pushConstants.importance == 1) {
+        // 2/2pi * cos(theta)
+        float cosTheta = dir.z;
+        return (1.0 / M_PI) * cosTheta;
+    } else {
+        // 1/2pi
+        return 1.0 / (2.0 * M_PI);
+    }
+}
+
+vec3 sampleDirection(in vec2 randVal, in vec3 normal, out float pdf)
+{
+    vec3 tangent;
+    vec3 bitangent;
+    createCoordinateSystem(normal, tangent, bitangent);
+    vec3 dir;
+    if(pushConstants.importance == 1) {
+        dir = cosineSampleHemisphere(randVal.x, randVal.y);
+        pdf = calcPDF(dir);
+    } else {
+        dir = sampleHemisphere(randVal.x, randVal.y);
+        pdf = calcPDF(dir);
+    }
+    return dir.x * tangent + dir.y * bitangent + dir.z * normal;
+}
+
+void main()
+{
+    uint maxDepth = pushConstants.depth;
+    uint maxSamples = pushConstants.samples;
+
+    vec3 color = vec3(0.0);
+    for(uint sampleCount = 0; sampleCount < maxSamples; sampleCount++){
+        // Calc seed
+        uvec2 s = pcg2d(ivec2(gl_LaunchIDEXT.xy) * (sampleCount + pushConstants.frame * maxSamples + 1));
+        payload.seed = s.x + s.y;
+
+        // Calc ray
+        const vec2 screenPos = vec2(gl_LaunchIDEXT.xy) + vec2(rand(payload.seed), rand(payload.seed));
+        const vec2 inUV = screenPos / vec2(gl_LaunchSizeEXT.xy);
+        vec2 d = inUV * 2.0 - 1.0;
+
+        vec4 origin    = pushConstants.invView * vec4(0, 0, 0, 1);
+        vec4 target    = pushConstants.invProj * vec4(d.x, d.y, 1, 1) ;
+        vec4 direction = pushConstants.invView * vec4(normalize(target.xyz), 0) ;
+        
+        payload.done = false;
+        payload.skip = false;
+        payload.weight = vec3(1.0);
+        payload.color = vec3(0.0);
+
+        for(uint depth = 0; depth < maxDepth; depth++){
+            payload.emission = vec3(0.0);
+            payload.brdf = vec3(0.0);
+            traceRayEXT(
+                topLevelAS,
+                gl_RayFlagsOpaqueEXT,
+                0xff, // cullMask
+                0,    // sbtRecordOffset
+                0,    // sbtRecordStride
+                0,    // missIndex
+                origin.xyz,
+                0.001,
+                direction.xyz,
+                10000.0,
+                0     // payloadLocation
+            );
+            if(payload.skip){
+                depth--;
+                origin = vec4(payload.position, 1.0);
+                payload.skip = false;
+                continue;
+            }
+
+            // Light
+            if(depth == 0 || payload.done) {
+                payload.color += payload.weight * payload.emission;
+            }
+
+            // Sky
+            if(payload.done){
+                break;
+            }
+            
+            // Next
+            vec2 randVal = vec2(rand(payload.seed), rand(payload.seed));
+            float pdf;
+            origin = vec4(payload.position, 1.0);
+            direction = vec4(sampleDirection(randVal, payload.normal, pdf), 1.0);
+            
+            // Update weight
+            payload.weight *= payload.brdf * abs(dot(direction.xyz, payload.normal)) / pdf;
+
+        }
+        color += payload.color;
+    }
+    color /= maxSamples;
+    
+    float weight = 1.0 / (pushConstants.frame + 1);
+    vec4 oldColor = imageLoad(inputImage, ivec2(gl_LaunchIDEXT.xy));
+    vec4 newColor = min(vec4(1), vec4(color, 1));
+    newColor = oldColor * (1.0 - weight) + newColor * weight;
+    imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), newColor);
+}

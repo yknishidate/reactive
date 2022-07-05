@@ -1,29 +1,22 @@
 #pragma once
-#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
+#include <memory>
 #include <spdlog/spdlog.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
-#include <imgui_impl_vulkan_hpp.h>
-#include <vulkan/vulkan.hpp>
-#include "Image.hpp"
-#include "Buffer.hpp"
-#include "Accel.hpp"
-#include "Pipeline.hpp"
+
+#include "ImGui/imgui_impl_vulkan_hpp.h"
+#include "Vulkan/Image.hpp"
+#include "Vulkan/Pipeline.hpp"
+#include "Vulkan/DescriptorSet.hpp"
 #include "Window.hpp"
+#include "Mesh.hpp"
+#include "Scene.hpp"
+#include "UI.hpp"
 
-class Engine
+namespace Engine
 {
-public:
-    static void Init();
-    static void Shutdown();
-    static void Run();
-
-private:
-    static inline Image renderImage;
-    static inline ComputePipeline pipeline;
-    static inline RayTracingPipeline rtPipeline;
-    static inline Buffer vertexBuffer;
-    static inline Buffer indexBuffer;
-    static inline Accel bottomAccel;
-    static inline Accel topAccel;
+    void Init();
+    void Shutdown();
+    bool Update();
+    void Render(std::function<void()> func);
 };

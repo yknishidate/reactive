@@ -1,0 +1,90 @@
+#version 460
+#extension GL_GOOGLE_include_directive : enable
+#define NUM_CANDIDATES 16
+#include "common.glsl"
+
+layout(location = 0) rayPayloadEXT HitPayload payload;
+
+vec3 calcRadiance(vec3 position, vec3 normal, vec3 diffuse,
+                  vec3 intensity, float dist, vec3 direction, float pdf)
+{
+    vec3 brdf = diffuse / M_PI;
+    float squareDist = dist * dist;
+    float cosine = max(0.0, dot(direction, normal));
+
+    // Radiance: brdf * Le * G / pdf
+    return brdf * intensity / squareDist * cosine / pdf;
+}
+
+void main()
+{
+    vec3 position = imageLoad(positionImage, ivec2(gl_LaunchIDEXT.xy)).rgb;
+    vec3 normal = imageLoad(normalImage, ivec2(gl_LaunchIDEXT.xy)).rgb;
+    vec3 diffuse = imageLoad(diffuseImage, ivec2(gl_LaunchIDEXT.xy)).rgb;
+    vec3 emission = imageLoad(emissionImage, ivec2(gl_LaunchIDEXT.xy)).rgb;
+    uint instanceIndex = imageLoad(instanceIndexImage, ivec2(gl_LaunchIDEXT.xy)).x;
+
+    // .xy: old data
+    // .zw: new data
+    uvec2 resevSample = imageLoad(resevSampleImage, ivec2(gl_LaunchIDEXT.xy)).zw;
+    vec2 resevWeight = imageLoad(resevWeightImage, ivec2(gl_LaunchIDEXT.xy)).zw;
+
+    Reservoir reservoir;
+    reservoir.x_z = int(resevSample.x);
+    reservoir.m = int(resevSample.y);
+    reservoir.w_sum = resevWeight.x;
+    reservoir.p_z = resevWeight.y;
+
+    /// DEBUG
+    // uvec2 s = pcg2d(uvec2(gl_LaunchIDEXT.xy * (pushConstants.frame + 1)));
+    // uint seed = s.x + s.y;
+    // imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(reservoir.x_z / 100.0));
+    // imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(reservoir.m / 100.0));
+    // imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(reservoir.p_z));
+    // imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), 
+    //            vec4(reservoir.x_z / 100.0, reservoir.m / 100.0,
+    //                 reservoir.w_sum, reservoir.p_z));
+    // imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(instanceIndex / 300.0)); // buggy
+    // return;
+    /// DEBUG
+
+    if(length(emission) > 0.1 || reservoir.w_sum == 0.0) {
+        imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(emission, 1));
+        return;
+    }
+
+    // Get buffer addresses
+    BufferAddress address = addresses.address[0];
+    SphereLights sphereLights = SphereLights(address.sphereLights);
+
+    // get light
+    SphereLight sphereLight = sphereLights.s[reservoir.x_z];
+    vec3 hitToLight = sphereLight.position - position;
+    vec3 dir = normalize(hitToLight);
+    float dist = length(hitToLight) - sphereLight.radius;
+
+    // trace shadow ray
+    payload.shadowed = true;
+    traceRayEXT(
+        topLevelAS,
+        gl_RayFlagsTerminateOnFirstHitEXT | 
+        gl_RayFlagsSkipClosestHitShaderEXT,
+        0xff, // cullMask
+        0,    // sbtRecordOffset
+        0,    // sbtRecordStride
+        0,    // missIndex
+        position, 0.01,
+        dir, dist - 0.01,
+        0     // payloadLocation
+    );
+
+    // hit light
+    vec3 radiance = vec3(0);
+    if(!payload.shadowed){
+        float pdf = 1.0 / calcReservoirWeight(reservoir);
+        radiance += calcRadiance(position, normal, diffuse, sphereLight.intensity, dist, dir, pdf);
+    }
+    vec3 color = emission + radiance;
+    
+    imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(color, 1));
+}

@@ -1,84 +1,41 @@
 #pragma once
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_vulkan_hpp.h"
-#include <iostream>
 #include <vector>
 #include <vulkan/vulkan.hpp>
 #include <GLFW/glfw3.h>
-#include "Image.hpp"
-#include "Pipeline.hpp"
 
-struct Frame
+namespace Key
 {
-    vk::UniqueCommandBuffer CommandBuffer;
-    vk::UniqueFence Fence;
-    vk::UniqueFramebuffer Framebuffer;
-};
-
-struct FrameSemaphores
-{
-    vk::UniqueSemaphore ImageAcquiredSemaphore;
-    vk::UniqueSemaphore RenderCompleteSemaphore;
-};
+    constexpr inline int W = GLFW_KEY_W;
+    constexpr inline int A = GLFW_KEY_A;
+    constexpr inline int S = GLFW_KEY_S;
+    constexpr inline int D = GLFW_KEY_D;
+    constexpr inline int Space = GLFW_KEY_SPACE;
+}
 
 class Window
 {
 public:
     static void Init(int width, int height);
-
     static void SetIcon(const std::string& filepath);
-
-    static void SetupUI();
-
+    static uint32_t GetWidth();
+    static uint32_t GetHeight();
+    static GLFWwindow* GetWindow();
     static std::vector<const char*> GetExtensions();
-
-    static vk::SurfaceKHR CreateSurface();
-
-    static int GetWidth();
-
-    static int GetHeight();
-
-    static vk::CommandBuffer GetCurrentCommandBuffer();
-
-    static vk::Image GetBackImage();
+    static vk::UniqueSurfaceKHR CreateSurface(vk::Instance instance);
 
     static void Shutdown();
-
     static bool ShouldClose();
-
     static void PollEvents();
-
-    static void RebuildSwapchain();
-
-    static void StartFrame();
-
     static bool IsMinimized();
 
-    static void WaitNextFrame();
-
-    static void BeginCommandBuffer();
-
-    static void Submit();
-
-    static void RenderUI();
-
-    static void Present();
+    static void Update();
+    static bool MousePressed();
+    static bool KeyPressed(int key);
+    static glm::vec2 GetMousePos() { return currMousePos; }
+    static glm::vec2 GetMouseMotion() { return currMousePos - lastMousePos; }
 
 private:
     static inline GLFWwindow* window;
-    static inline int minImageCount = 3;
-    static inline bool swapchainRebuild = false;
-
-    static inline int Width;
-    static inline int Height;
-    static inline vk::UniqueRenderPass RenderPass;
-    static inline vk::UniquePipeline Pipeline;
-    static inline bool ClearEnable;
-    static inline vk::ClearValue ClearValue;
-    static inline uint32_t FrameIndex = 0;
-    static inline uint32_t ImageCount = 0;
-    static inline uint32_t SemaphoreIndex = 0;
-    static inline std::vector<Frame> Frames;
-    static inline std::vector<FrameSemaphores> FrameSemaphores;
+    static inline glm::vec2 currMousePos = { 0.0f, 0.0f };
+    static inline glm::vec2 lastMousePos = { 0.0f, 0.0f };
 };
