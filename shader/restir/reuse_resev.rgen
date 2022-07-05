@@ -45,22 +45,19 @@ void combineReservoir(inout Reservoir reservoir, int dx, int dy, inout uint seed
     updateReservoir(reservoir, r.x_z, r.m, r.w_sum, r.p_z, seed);
 }
 
-// void combineReservoir(inout Reservoir reservoir, int dx, int dy, inout uint seed,
-//                       vec3 position, vec3 normal, vec3 diffuse)
-// {
-//     ivec2 id = ivec2(gl_LaunchIDEXT.xy) + ivec2(dx, dy);
-//     Reservoir Ri = loadReservoir(id);
-
-//     // Get buffer addresses
-//     BufferAddress address = addresses.address[0];
-//     SphereLights sphereLights = SphereLights(address.sphereLights);
-//     SphereLight sphereLight = sphereLights.s[Ri.x_z];
-//     float Wi = calcReservoirWeight(Ri);
-//     float Pi = targetPDF(sphereLight, position, normal, diffuse);
-//     float wi = Pi * Wi * Ri.m;
-
-//     updateReservoir(reservoir, Ri.x_z, wi, Pi, seed);
-// }
+void combineReservoir(inout Reservoir reservoir, int dx, int dy, inout uint seed,
+                      vec3 position, vec3 normal, vec3 diffuse)
+{
+    ivec2 id = ivec2(gl_LaunchIDEXT.xy) + ivec2(dx, dy);
+    Reservoir r = loadReservoir(id);
+    BufferAddress address = addresses.address[0];
+    SphereLights sphereLights = SphereLights(address.sphereLights);
+    SphereLight sphereLight = sphereLights.s[r.x_z];
+    float Wi = calcReservoirWeight(r);
+    float Pi = targetPDF(sphereLight, position, normal, diffuse);
+    float wi = Pi * Wi * r.m;
+    updateReservoir(reservoir, r.x_z, r.m, wi, Pi, seed);
+}
 
 bool canCombine(vec3 position, vec3 normal, vec3 emission, uint instanceIndex, int dx, int dy)
 {
@@ -104,10 +101,10 @@ void main()
     }
 
     // TODO: randomize neighbors
-    if(canCombine(position, normal, emission, instanceIndex,  0,  1)) combineReservoir(reservoir,  0,  1, seed);
-    if(canCombine(position, normal, emission, instanceIndex,  0, -1)) combineReservoir(reservoir,  0, -1, seed);
-    if(canCombine(position, normal, emission, instanceIndex,  1,  0)) combineReservoir(reservoir,  1,  0, seed);
-    if(canCombine(position, normal, emission, instanceIndex, -1,  0)) combineReservoir(reservoir, -1,  0, seed);
+    if(canCombine(position, normal, emission, instanceIndex,  0,  1)) combineReservoir(reservoir,  0,  1, seed, position, normal, diffuse);
+    if(canCombine(position, normal, emission, instanceIndex,  0, -1)) combineReservoir(reservoir,  0, -1, seed, position, normal, diffuse);
+    if(canCombine(position, normal, emission, instanceIndex,  1,  0)) combineReservoir(reservoir,  1,  0, seed, position, normal, diffuse);
+    if(canCombine(position, normal, emission, instanceIndex, -1,  0)) combineReservoir(reservoir, -1,  0, seed, position, normal, diffuse);
     
     imageStore(newResevSampleImage, id, ivec4(reservoir.x_z, reservoir.m, 0, 0));
     imageStore(newResevWeightImage, id, vec4(reservoir.w_sum, reservoir.p_z, 0, 0));
