@@ -18,7 +18,7 @@ protected:
     vk::UniqueBuffer buffer;
     vk::UniqueDeviceMemory memory;
     vk::DeviceSize size;
-    uint64_t deviceAddress;
+    uint64_t deviceAddress{};
 };
 
 class HostBuffer : public Buffer

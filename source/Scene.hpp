@@ -17,10 +17,10 @@ class Scene
 {
 public:
     Scene() = default;
-    Scene(const std::string& filepath,
-          glm::vec3 position = glm::vec3{ 0.0f },
-          glm::vec3 scale = glm::vec3{ 1.0f },
-          glm::vec3 rotation = glm::vec3{ 0.0f });
+    explicit Scene(const std::string& filepath,
+                   glm::vec3 position = glm::vec3{ 0.0f },
+                   glm::vec3 scale = glm::vec3{ 1.0f },
+                   glm::vec3 rotation = glm::vec3{ 0.0f });
     void Setup();
     void Update(float dt);
     std::shared_ptr<Mesh>& AddMesh(const std::string& filepath);
@@ -28,15 +28,13 @@ public:
     PointLight& AddPointLight(glm::vec3 intensity, glm::vec3 position);
     SphereLight& AddSphereLight(glm::vec3 intensity, glm::vec3 position, float radius);
 
-    const TopAccel& GetAccel() const { return topAccel; }
-    const std::vector<Image>& GetTextures() const { return textures; }
-    const Buffer& GetAddressBuffer() const { return addressBuffer; }
-    Camera& GetCamera() { return camera; }
-    std::vector<Object>& GetObjects() { return objects; }
-    int GetNumPointLights() const { return pointLights.size(); }
-    int GetNumSphereLights() const { return sphereLights.size(); }
-    BoundingBox GetBoundingBox() const { return bbox; }
-    glm::vec3 GetCenter() const { return (bbox.min + bbox.max) / 2.0f; }
+    const auto& GetAccel() const { return topAccel; }
+    const auto& GetTextures() const { return textures; }
+    const auto& GetAddressBuffer() const { return addressBuffer; }
+    auto& GetCamera() { return camera; }
+    auto& GetObjects() { return objects; }
+    auto GetBoundingBox() const { return bbox; }
+    auto GetCenter() const { return (bbox.min + bbox.max) / 2.0f; }
 
 private:
     std::vector<std::shared_ptr<Mesh>> meshes;

@@ -8,8 +8,8 @@ class BottomAccel
 {
 public:
     BottomAccel() = default;
-    BottomAccel(const Mesh& mesh,
-                vk::GeometryFlagBitsKHR geometryFlag = vk::GeometryFlagBitsKHR::eOpaque);
+    explicit BottomAccel(const Mesh& mesh,
+                         vk::GeometryFlagBitsKHR geometryFlag = vk::GeometryFlagBitsKHR::eOpaque);
 
     uint64_t GetBufferAddress() const { return buffer.GetAddress(); }
 
@@ -22,10 +22,10 @@ class TopAccel
 {
 public:
     TopAccel() = default;
-    TopAccel(const std::vector<Object>& objects,
-             vk::GeometryFlagBitsKHR geometryFlag = vk::GeometryFlagBitsKHR::eOpaque);
-    TopAccel(const Object& object,
-             vk::GeometryFlagBitsKHR geometryFlag = vk::GeometryFlagBitsKHR::eOpaque);
+    explicit TopAccel(const std::vector<Object>& objects,
+                      vk::GeometryFlagBitsKHR geometryFlag = vk::GeometryFlagBitsKHR::eOpaque);
+    explicit TopAccel(const Object& object,
+                      vk::GeometryFlagBitsKHR geometryFlag = vk::GeometryFlagBitsKHR::eOpaque);
 
     void Rebuild(const std::vector<Object>& objects);
 

@@ -1,8 +1,6 @@
 #pragma once
 #include <unordered_map>
-
 #include <spirv_glsl.hpp>
-
 #include "Buffer.hpp"
 #include "Image.hpp"
 #include "Accel.hpp"
