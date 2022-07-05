@@ -18,34 +18,30 @@ vec3 calcRadiance(vec3 position, vec3 normal, vec3 diffuse,
 
 void main()
 {
-    vec3 position = imageLoad(positionImage, ivec2(gl_LaunchIDEXT.xy)).rgb;
-    vec3 normal = imageLoad(normalImage, ivec2(gl_LaunchIDEXT.xy)).rgb;
-    vec3 diffuse = imageLoad(diffuseImage, ivec2(gl_LaunchIDEXT.xy)).rgb;
-    vec3 emission = imageLoad(emissionImage, ivec2(gl_LaunchIDEXT.xy)).rgb;
-    uint instanceIndex = imageLoad(instanceIndexImage, ivec2(gl_LaunchIDEXT.xy)).x;
+    ivec2 id = ivec2(gl_LaunchIDEXT.xy);
+    vec3 position = imageLoad(positionImage, id).rgb;
+    vec3 normal = imageLoad(normalImage, id).rgb;
+    vec3 diffuse = imageLoad(diffuseImage, id).rgb;
+    vec3 emission = imageLoad(emissionImage, id).rgb;
+    uint instanceIndex = imageLoad(instanceIndexImage, id).x;
 
-    // .xy: old data
-    // .zw: new data
-    uvec2 resevSample = imageLoad(resevSampleImage, ivec2(gl_LaunchIDEXT.xy)).zw;
-    vec2 resevWeight = imageLoad(resevWeightImage, ivec2(gl_LaunchIDEXT.xy)).zw;
-
-    Reservoir reservoir = loadReservoir(ivec2(gl_LaunchIDEXT.xy));
+    Reservoir reservoir = loadReservoir(id);
 
     /// DEBUG
     // uvec2 s = pcg2d(uvec2(gl_LaunchIDEXT.xy * (pushConstants.frame + 1)));
     // uint seed = s.x + s.y;
-    // imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(reservoir.x_z / 100.0));
-    // imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(reservoir.m / 100.0));
-    // imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(reservoir.p_z));
-    // imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), 
+    // imageStore(outputImage, id, vec4(reservoir.x_z / 100.0));
+    // imageStore(outputImage, id, vec4(reservoir.m / 100.0));
+    // imageStore(outputImage, id, vec4(reservoir.p_z));
+    // imageStore(outputImage, id, 
     //            vec4(reservoir.x_z / 100.0, reservoir.m / 100.0,
     //                 reservoir.w_sum, reservoir.p_z));
-    // imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(instanceIndex / 300.0)); // buggy
+    // imageStore(outputImage, id, vec4(instanceIndex / 300.0)); // buggy
     // return;
     /// DEBUG
 
     if(length(emission) > 0.1 || reservoir.w_sum == 0.0) {
-        imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(emission, 1));
+        imageStore(outputImage, id, vec4(emission, 1));
         return;
     }
 
@@ -82,5 +78,5 @@ void main()
     }
     vec3 color = emission + radiance;
     
-    imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(color, 1));
+    imageStore(outputImage, id, vec4(color, 1));
 }
