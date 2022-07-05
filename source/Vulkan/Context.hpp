@@ -1,6 +1,5 @@
 #pragma once
 #define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
-#include <vector>
 #include <vulkan/vulkan.hpp>
 #include "Swapchain.hpp"
 

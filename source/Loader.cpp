@@ -7,6 +7,9 @@
 #include "Loader.hpp"
 #include "Vulkan/Image.hpp"
 
+#define TINYOBJLOADER_IMPLEMENTATION
+#include <tiny_obj_loader.h>
+
 namespace
 {
     void LoadShape(const tinyobj::attrib_t& attrib, const tinyobj::shape_t& shape,

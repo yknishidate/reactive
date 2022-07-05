@@ -1,5 +1,7 @@
 #include "Image.hpp"
 #include "Buffer.hpp"
+
+#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
 namespace

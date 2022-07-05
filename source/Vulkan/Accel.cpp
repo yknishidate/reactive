@@ -32,12 +32,12 @@ namespace
     }
 }
 
-BottomAccel::BottomAccel(const Mesh& mesh, vk::GeometryFlagBitsKHR geomertyFlag)
+BottomAccel::BottomAccel(const Mesh& mesh, vk::GeometryFlagBitsKHR geometryFlag)
 {
     const auto triangleData = mesh.GetTriangles();
 
     const size_t primitiveCount = mesh.GetTriangleCount();
-    const TrianglesGeometry geometry{ triangleData, geomertyFlag, primitiveCount };
+    const TrianglesGeometry geometry{ triangleData, geometryFlag, primitiveCount };
     const auto size = geometry.GetAccelSize();
     const auto type = vk::AccelerationStructureTypeKHR::eBottomLevel;
 
@@ -46,7 +46,7 @@ BottomAccel::BottomAccel(const Mesh& mesh, vk::GeometryFlagBitsKHR geomertyFlag)
     BuildAccel(*accel, size, primitiveCount, geometry.GetInfo());
 }
 
-TopAccel::TopAccel(const std::vector<Object>& objects, vk::GeometryFlagBitsKHR geomertyFlag)
+TopAccel::TopAccel(const std::vector<Object>& objects, vk::GeometryFlagBitsKHR geometryFlag)
 {
     const uint32_t primitiveCount = objects.size();
 
@@ -70,7 +70,7 @@ TopAccel::TopAccel(const std::vector<Object>& objects, vk::GeometryFlagBitsKHR g
         .setArrayOfPointers(false)
         .setData(instanceBuffer.GetAddress());
 
-    geometry = InstancesGeometry{ instancesData, geomertyFlag, primitiveCount };
+    geometry = InstancesGeometry{ instancesData, geometryFlag, primitiveCount };
     const auto size = geometry.GetAccelSize();
 
     buffer = geometry.CreateAccelBuffer();
@@ -78,8 +78,8 @@ TopAccel::TopAccel(const std::vector<Object>& objects, vk::GeometryFlagBitsKHR g
     BuildAccel(*accel, size, primitiveCount, geometry.GetInfo());
 }
 
-TopAccel::TopAccel(const Object& object, vk::GeometryFlagBitsKHR geomertyFlag)
-    : TopAccel(std::vector{ object }, geomertyFlag)
+TopAccel::TopAccel(const Object& object, vk::GeometryFlagBitsKHR geometryFlag)
+    : TopAccel(std::vector{ object }, geometryFlag)
 {
 }
 
