@@ -355,7 +355,7 @@ InitResevPipeline::InitResevPipeline(const Scene& scene, const GBuffers& gbuffer
     Register("instanceIndexImage", gbuffers.instanceIndex);
 
     resevImages.sampleImage = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR32G32Uint };
-    resevImages.weightImage = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16B16A16Sfloat };
+    resevImages.weightImage = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16Sfloat };
     Register("resevSampleImage", resevImages.sampleImage);
     Register("resevWeightImage", resevImages.weightImage);
 
@@ -401,7 +401,7 @@ ReuseResevPipeline::ReuseResevPipeline(const Scene& scene, const GBuffers& gbuff
     Register("resevWeightImage", resevImages.weightImage);
 
     newResevImages.sampleImage = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR32G32Uint };
-    newResevImages.weightImage = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16B16A16Sfloat };
+    newResevImages.weightImage = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16Sfloat };
     Register("newResevSampleImage", newResevImages.sampleImage);
     Register("newResevWeightImage", newResevImages.weightImage);
 

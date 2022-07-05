@@ -4,7 +4,7 @@
 #include "common.glsl"
 
 layout(binding =  14, rg32ui) uniform uimage2D newResevSampleImage; // (x_z, m)
-layout(binding =  15, rgba16f) uniform image2D newResevWeightImage;  // (w_sum, p_z)
+layout(binding =  15, rg16f) uniform image2D newResevWeightImage;  // (w_sum, p_z)
 
 layout(location = 0) rayPayloadEXT HitPayload payload;
 
@@ -69,11 +69,10 @@ bool canCombine(vec3 position, vec3 normal, vec3 emission, uint instanceIndex, i
     vec3 normal_ = imageLoad(normalImage, id).xyz;
     vec3 emission_ = imageLoad(emissionImage, id).xyz;
     uint instanceIndex_ = imageLoad(instanceIndexImage, id).x;
-    return instanceIndex == instanceIndex_;
-    // return distance(position, position_) < 0.1
-    //     && distance(normal, normal_) < 0.01
-    //     && distance(emission, emission_) < 0.01
-    //     && instanceIndex == instanceIndex_;
+    return distance(position, position_) < 0.1
+        && distance(normal, normal_) < 0.01
+        && distance(emission, emission_) < 0.01
+        && instanceIndex == instanceIndex_;
 }
 
 void main()
@@ -99,8 +98,8 @@ void main()
     int kernelSize = 1;
     if(gl_LaunchIDEXT.x - kernelSize < 0 || gl_LaunchIDEXT.x + kernelSize >= gl_LaunchSizeEXT.x || 
        gl_LaunchIDEXT.y - kernelSize < 0 || gl_LaunchIDEXT.y + kernelSize >= gl_LaunchSizeEXT.y ) {
-        imageStore(newResevSampleImage, id, ivec4(reservoir.x_z, reservoir.m, reservoir.x_z, reservoir.m));
-        imageStore(newResevWeightImage, id, vec4(reservoir.w_sum, reservoir.p_z, reservoir.w_sum, reservoir.p_z));
+        imageStore(newResevSampleImage, id, ivec4(reservoir.x_z, reservoir.m, 0, 0));
+        imageStore(newResevWeightImage, id, vec4(reservoir.w_sum, reservoir.p_z, 0, 0));
         return;
     }
 
@@ -110,6 +109,6 @@ void main()
     if(canCombine(position, normal, emission, instanceIndex,  1,  0)) combineReservoir(reservoir,  1,  0, seed);
     if(canCombine(position, normal, emission, instanceIndex, -1,  0)) combineReservoir(reservoir, -1,  0, seed);
     
-    imageStore(newResevSampleImage, id, ivec4(reservoir.x_z, reservoir.m, reservoir.x_z, reservoir.m));
-    imageStore(newResevWeightImage, id, vec4(reservoir.w_sum, reservoir.p_z, reservoir.w_sum, reservoir.p_z));
+    imageStore(newResevSampleImage, id, ivec4(reservoir.x_z, reservoir.m, 0, 0));
+    imageStore(newResevWeightImage, id, vec4(reservoir.w_sum, reservoir.p_z, 0, 0));
 }

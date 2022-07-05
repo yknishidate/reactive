@@ -130,6 +130,6 @@ void main()
         reservoir.p_z == 0.0;
     }
     
-    imageStore(resevSampleImage, id, ivec4(reservoir.x_z, reservoir.m, reservoir.x_z, reservoir.m));
-    imageStore(resevWeightImage, id, vec4(reservoir.w_sum, reservoir.p_z, reservoir.w_sum, reservoir.p_z));
+    imageStore(resevSampleImage, id, ivec4(reservoir.x_z, reservoir.m, 0, 0));
+    imageStore(resevWeightImage, id, vec4(reservoir.w_sum, reservoir.p_z, 0, 0));
 }

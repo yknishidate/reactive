@@ -71,10 +71,6 @@ void main()
     // hit light
     vec3 radiance = vec3(0);
     if(!payload.shadowed){
-        // float pdf = 1.0;
-        // float pdf = 1.0 / reservoir.p_z;
-        // float pdf = 1.0 / calcReservoirWeight(reservoir);
-        // radiance += calcRadiance(position, normal, diffuse, sphereLight.intensity, dist, dir, pdf);
         float weight = calcReservoirWeight(reservoir);
         radiance += calcRadiance(position, normal, diffuse, sphereLight.intensity, dist, dir) * weight;
     }

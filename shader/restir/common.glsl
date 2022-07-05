@@ -39,7 +39,7 @@ layout(binding = 10, rgba16f) uniform image2D diffuseImage;
 layout(binding = 11, rgba16f) uniform image2D emissionImage;
 layout(binding =  9, rgba8ui) uniform uimage2D instanceIndexImage;
 layout(binding =  12, rg32ui) uniform uimage2D resevSampleImage; // (x_z, m)
-layout(binding =  13, rgba16f) uniform image2D resevWeightImage;  // (w_sum, p_z)
+layout(binding =  13, rg16f) uniform image2D resevWeightImage;  // (w_sum, p_z)
 layout(binding =  3) buffer Addresses { BufferAddress address[]; } addresses;
 layout(binding =  4) uniform sampler2D samplers[];
 
