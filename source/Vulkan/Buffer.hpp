@@ -3,9 +3,8 @@
 
 class Buffer
 {
-    using Usage = vk::BufferUsageFlagBits;
-
 public:
+    using Usage = vk::BufferUsageFlagBits;
     Buffer() = default;
 
     vk::Buffer GetBuffer() const { return *buffer; }

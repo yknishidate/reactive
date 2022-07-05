@@ -106,7 +106,5 @@ void TopAccel::Rebuild(const std::vector<Object>& objects)
 
     geometry.Update(instancesData, primitiveCount);
     const auto size = geometry.GetAccelSize();
-    const auto type = vk::AccelerationStructureTypeKHR::eTopLevel;
-
     BuildAccel(*accel, size, primitiveCount, geometry.GetInfo());
 }

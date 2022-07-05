@@ -12,31 +12,57 @@ layout(location = 0) rayPayloadEXT HitPayload payload;
 //   xy: current   store   load   -
 //   zw: next      store   store  load
 
-void combineReservoir(inout Reservoir reservoir, inout int m_c, int dx, int dy, inout uint seed)
+float targetPDF(in SphereLight light, vec3 position, vec3 normal, vec3 diffuse)
 {
-    ivec2 id = ivec2(gl_LaunchIDEXT.xy) + ivec2(dx, dy);
+    vec3 hitToLight = light.position - position;
+    vec3 direction = normalize(hitToLight);
+    float dist = length(hitToLight);
 
-    // vec3 emission_ = imageLoad(emissionImage, id).rgb;
-    // if(length(emission_) > 0.1){
-    //     return;
-    // }
-    uvec2 resevSample_ = imageLoad(resevSampleImage, id).xy;
-    vec2 resevWeight_ = imageLoad(resevWeightImage, id).xy;
-    int x_z = int(resevSample_.x);
-    int m = int(resevSample_.y);
-    float w_sum = resevWeight_.x;
-    float p_z = resevWeight_.y;
-
-    updateReservoir(reservoir, x_z, w_sum, p_z, seed);
-    // updateReservoir(reservoir, x_z, w_sum * m * p_z, p_z, seed);
-    m_c += int(resevSample_.y);
+    vec3 brdf = diffuse / M_PI;
+    float squareDist = dist * dist;
+    float cosine = max(0.0, dot(direction, normal));
+    
+    // Target PDF: brdf * Le * G
+    return max(0.0, length(brdf * light.intensity) / squareDist * cosine);
 }
 
-bool canCombine(vec3 normal, int dx, int dy)
+void combineReservoir(inout Reservoir reservoir, inout int m_c, int dx, int dy, inout uint seed,
+                      vec3 position, vec3 normal, vec3 diffuse)
 {
     ivec2 id = ivec2(gl_LaunchIDEXT.xy) + ivec2(dx, dy);
+    uvec2 resevSample_ = imageLoad(resevSampleImage, id).xy;
+    vec2 resevWeight_ = imageLoad(resevWeightImage, id).xy;
+    Reservoir Ri;
+    Ri.x_z = int(resevSample_.x);
+    Ri.m = int(resevSample_.y);
+    Ri.w_sum = resevWeight_.x;
+    Ri.p_z = resevWeight_.y;
+
+    // Get buffer addresses
+    BufferAddress address = addresses.address[0];
+    SphereLights sphereLights = SphereLights(address.sphereLights);
+    SphereLight sphereLight = sphereLights.s[Ri.x_z];
+    float Wi = calcReservoirWeight(Ri);
+    float Pi = targetPDF(sphereLight, position, normal, diffuse);
+    float wi = Pi * Wi * Ri.m;
+
+    // updateReservoir(reservoir, Ri.x_z, Ri.w_sum, Ri.p_z, seed);
+    updateReservoir(reservoir, Ri.x_z, wi, Pi, seed);
+    m_c += Ri.m;
+}
+
+bool canCombine(vec3 position, vec3 normal, vec3 emission, uint instanceIndex, int dx, int dy)
+{
+    ivec2 id = ivec2(gl_LaunchIDEXT.xy) + ivec2(dx, dy);
+    vec3 position_ = imageLoad(positionImage, id).xyz;
     vec3 normal_ = imageLoad(normalImage, id).xyz;
-    return distance(normal, normal_) < 0.1;
+    vec3 emission_ = imageLoad(emissionImage, id).xyz;
+    uint instanceIndex_ = imageLoad(instanceIndexImage, id).x;
+    return distance(position, position_) < 0.1
+        && distance(normal, normal_) < 0.02
+        && distance(emission, emission_) < 0.01
+        && instanceIndex == instanceIndex_
+        ;
 }
 
 void main()
@@ -49,6 +75,12 @@ void main()
     vec3 diffuse = imageLoad(diffuseImage, ivec2(gl_LaunchIDEXT.xy)).rgb;
     vec3 emission = imageLoad(emissionImage, ivec2(gl_LaunchIDEXT.xy)).rgb;
     uint instanceIndex = imageLoad(instanceIndexImage, ivec2(gl_LaunchIDEXT.xy)).x;
+
+    if(length(emission) > 0.1){
+        imageStore(newResevSampleImage, ivec2(gl_LaunchIDEXT.xy), ivec4(0));
+        imageStore(newResevWeightImage, ivec2(gl_LaunchIDEXT.xy), vec4(0));
+        return;
+    }
 
     // TODO: create createResev()
     Reservoir reservoir;
@@ -70,15 +102,15 @@ void main()
     }
 
     int m_c = 0;
-    combineReservoir(reservoir, m_c,  0,  0, seed);
-    // if(canCombine(normal,  0,  1)) combineReservoir(reservoir, m_c,  0,  1, seed);
-    // if(canCombine(normal,  0, -1)) combineReservoir(reservoir, m_c,  0, -1, seed);
-    // if(canCombine(normal,  1,  0)) combineReservoir(reservoir, m_c,  1,  0, seed);
-    // if(canCombine(normal, -1,  0)) combineReservoir(reservoir, m_c, -1,  0, seed);
-    combineReservoir(reservoir, m_c,  0,  1, seed);
-    combineReservoir(reservoir, m_c,  0, -1, seed);
-    combineReservoir(reservoir, m_c,  1,  0, seed);
-    combineReservoir(reservoir, m_c, -1,  0, seed);
+    combineReservoir(reservoir, m_c,  0,  0, seed, position, normal, diffuse);
+    if(canCombine(position, normal, emission, instanceIndex,  0,  1)) combineReservoir(reservoir, m_c,  0,  1, seed, position, normal, diffuse);
+    if(canCombine(position, normal, emission, instanceIndex,  0, -1)) combineReservoir(reservoir, m_c,  0, -1, seed, position, normal, diffuse);
+    if(canCombine(position, normal, emission, instanceIndex,  1,  0)) combineReservoir(reservoir, m_c,  1,  0, seed, position, normal, diffuse);
+    if(canCombine(position, normal, emission, instanceIndex, -1,  0)) combineReservoir(reservoir, m_c, -1,  0, seed, position, normal, diffuse);
+    // combineReservoir(reservoir, m_c,  0,  1, seed, position, normal, diffuse);
+    // combineReservoir(reservoir, m_c,  0, -1, seed, position, normal, diffuse);
+    // combineReservoir(reservoir, m_c,  1,  0, seed, position, normal, diffuse);
+    // combineReservoir(reservoir, m_c, -1,  0, seed, position, normal, diffuse);
     reservoir.m = m_c;
     
     imageStore(newResevSampleImage, ivec2(gl_LaunchIDEXT.xy), ivec4(reservoir.x_z, reservoir.m, reservoir.x_z, reservoir.m));

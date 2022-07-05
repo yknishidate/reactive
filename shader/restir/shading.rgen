@@ -40,11 +40,11 @@ void main()
     // uint seed = s.x + s.y;
     // imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(reservoir.x_z / 100.0));
     // imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(reservoir.m / 100.0));
-    // imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(reservoir.w_sum)); // buggy
     // imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(reservoir.p_z));
     // imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), 
     //            vec4(reservoir.x_z / 100.0, reservoir.m / 100.0,
     //                 reservoir.w_sum, reservoir.p_z));
+    // imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(instanceIndex / 300.0)); // buggy
     // return;
     /// DEBUG
 

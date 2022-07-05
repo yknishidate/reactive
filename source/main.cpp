@@ -25,8 +25,8 @@ int main()
     scene.Setup();
 
     GBufferPipeline gbufferPipeline{ scene, sizeof(PushConstants) };
-    //UniformLightPipeline uniformLightPipeline{ scene, gbufferPipeline.GetGBuffers(), sizeof(PushConstants) };
-    //WRSPipeline wrsPipeline{ scene, gbufferPipeline.GetGBuffers(), sizeof(PushConstants) };
+    UniformLightPipeline uniformLightPipeline{ scene, gbufferPipeline.GetGBuffers(), sizeof(PushConstants) };
+    WRSPipeline wrsPipeline{ scene, gbufferPipeline.GetGBuffers(), sizeof(PushConstants) };
     InitResevPipeline initResevPipeline{ scene, gbufferPipeline.GetGBuffers(), sizeof(PushConstants) };
     ReuseResevPipeline reuseResevPipeline{ scene, gbufferPipeline.GetGBuffers(), initResevPipeline.GetResevImages(), sizeof(PushConstants) };
     ShadingPipeline shadingPipeline{ scene, gbufferPipeline.GetGBuffers(), initResevPipeline.GetResevImages(), sizeof(PushConstants) };
@@ -35,17 +35,15 @@ int main()
     pushConstants.invView = scene.GetCamera().GetInvView();
     pushConstants.frame = 0;
 
-    int method = 0;
+    int method = 2;
     int iteration = 0;
-    //bool enableReuse = false;
     constexpr int Uniform = 0;
     constexpr int WRS = 1;
     constexpr int ReSTIR = 2;
     while (Engine::Update()) {
         UI::Combo("Method", method, { "Uniform", "WRS", "ReSTIR" });
         UI::SliderInt("Samples", pushConstants.samples, 1, 32);
-        UI::SliderInt("Iteration", iteration, 0, 8);
-        //UI::Checkbox("Enable reuse", enableReuse);
+        UI::SliderInt("Iteration", iteration, 0, 4);
 
         scene.Update(0.1);
         pushConstants.invProj = scene.GetCamera().GetInvProj();
@@ -56,25 +54,21 @@ int main()
             [&]() {
                 gbufferPipeline.Run(&pushConstants);
 
-                //if (method == Uniform) {
-                //    uniformLightPipeline.Run(&pushConstants);
-                //    Context::CopyToBackImage(uniformLightPipeline.GetOutputImage());
-                //} else if (method == WRS) {
-                //    wrsPipeline.Run(&pushConstants);
-                //    Context::CopyToBackImage(wrsPipeline.GetOutputImage());
-                //} else if (method == ReSTIR) {
-                //    initResevPipeline.Run(&pushConstants);
-                //    reuseResevPipeline.Run(&pushConstants);
-                //    shadingPipeline.Run(&pushConstants);
-                //    Context::CopyToBackImage(shadingPipeline.GetOutputImage());
-                //}
-                initResevPipeline.Run(&pushConstants);
-                for (int i = 0; i < iteration; i++) {
-                    reuseResevPipeline.Run(&pushConstants);
-                    reuseResevPipeline.CopyToResevImages(initResevPipeline.GetResevImages());
+                if (method == Uniform) {
+                    uniformLightPipeline.Run(&pushConstants);
+                    Context::CopyToBackImage(uniformLightPipeline.GetOutputImage());
+                } else if (method == WRS) {
+                    wrsPipeline.Run(&pushConstants);
+                    Context::CopyToBackImage(wrsPipeline.GetOutputImage());
+                } else if (method == ReSTIR) {
+                    initResevPipeline.Run(&pushConstants);
+                    for (int i = 0; i < iteration; i++) {
+                        reuseResevPipeline.Run(&pushConstants);
+                        reuseResevPipeline.CopyToResevImages(initResevPipeline.GetResevImages());
+                    }
+                    shadingPipeline.Run(&pushConstants);
+                    Context::CopyToBackImage(shadingPipeline.GetOutputImage());
                 }
-                shadingPipeline.Run(&pushConstants);
-                Context::CopyToBackImage(shadingPipeline.GetOutputImage());
             });
     }
     Engine::Shutdown();
