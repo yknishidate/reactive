@@ -54,8 +54,9 @@ void Window::PollEvents()
     glfwPollEvents();
 
     lastMousePos = currMousePos;
-    double xpos, ypos;
-    glfwGetCursorPos(Window::GetWindow(), &xpos, &ypos);
+    double xpos{};
+    double ypos{};
+    glfwGetCursorPos(GetWindow(), &xpos, &ypos);
     currMousePos = { xpos, ypos };
 }
 
@@ -73,7 +74,7 @@ std::vector<const char*> Window::GetExtensions()
 {
     uint32_t glfwExtensionCount = 0;
     const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-    std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+    std::vector extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
     extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     return extensions;
 }

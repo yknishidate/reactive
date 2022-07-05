@@ -1,13 +1,7 @@
 #pragma once
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "ImGui/imgui_impl_vulkan_hpp.h"
-#include <iostream>
 #include <vector>
 #include <vulkan/vulkan.hpp>
 #include <GLFW/glfw3.h>
-#include "Vulkan/Image.hpp"
-#include "Vulkan/Pipeline.hpp"
 
 namespace Key
 {

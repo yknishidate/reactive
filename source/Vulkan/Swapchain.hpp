@@ -44,7 +44,10 @@ struct Frame
 
     void WaitForFence(vk::Device device)
     {
-        device.waitForFences(*fence, VK_TRUE, UINT64_MAX);
+        vk::Result result = device.waitForFences(*fence, VK_TRUE, UINT64_MAX);
+        if (result != vk::Result::eSuccess) {
+            throw std::runtime_error("Failed to wait for fence");
+        }
         device.resetFences(*fence);
     }
 

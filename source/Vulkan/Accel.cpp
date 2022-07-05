@@ -18,7 +18,7 @@ namespace
     void BuildAccel(vk::AccelerationStructureKHR accel, vk::DeviceSize size, uint32_t primitiveCount,
                     vk::AccelerationStructureBuildGeometryInfoKHR geometryInfo)
     {
-        StorageBuffer scratchBuffer{ size };
+        const StorageBuffer scratchBuffer{ size };
 
         geometryInfo.setScratchData(scratchBuffer.GetAddress());
         geometryInfo.setDstAccelerationStructure(accel);
@@ -104,7 +104,7 @@ void TopAccel::Rebuild(const std::vector<Object>& objects)
         .setArrayOfPointers(false)
         .setData(instanceBuffer.GetAddress());
 
-    geometry.Update(instancesData, primitiveCount);
+    geometry.Update(instancesData);
     const auto size = geometry.GetAccelSize();
     BuildAccel(*accel, size, primitiveCount, geometry.GetInfo());
 }

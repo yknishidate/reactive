@@ -8,7 +8,7 @@
 
 namespace Compiler
 {
-    const TBuiltInResource DefaultTBuiltInResource = {
+    constexpr TBuiltInResource DefaultTBuiltInResource = {
         /* .MaxLights = */ 32,
         /* .MaxClipPlanes = */ 6,
         /* .MaxTextureUnits = */ 32,
@@ -166,7 +166,7 @@ namespace Compiler
         shader.setEnvTarget(glslang::EShTargetLanguage::EShTargetSpv, glslang::EShTargetLanguageVersion::EShTargetSpv_1_4);
         shader.setStrings(&shaderStrings, 1);
 
-        EShMessages messages = (EShMessages)(EShMsgSpvRules | EShMsgVulkanRules);
+        constexpr auto messages = static_cast<EShMessages>(EShMsgSpvRules | EShMsgVulkanRules);
         if (!shader.parse(&DefaultTBuiltInResource, 100, false, messages)) {
             spdlog::error("Failed to parse:\n" + included + "\n" + shader.getInfoLog());
         }

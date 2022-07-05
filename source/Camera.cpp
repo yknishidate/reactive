@@ -1,9 +1,11 @@
 #include "Camera.hpp"
 #include "Window.hpp"
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
 
 Camera::Camera(uint32_t width, uint32_t height)
 {
-    aspect = float(width) / height;
+    aspect = static_cast<float>(width) / height;
 }
 
 void Camera::ProcessInput()

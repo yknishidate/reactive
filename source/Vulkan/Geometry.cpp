@@ -1,14 +1,14 @@
 #include "Geometry.hpp"
 
-Geometry::Geometry(vk::GeometryFlagsKHR geomertyFlag, size_t primitiveCount)
-    : primitiveCount{ primitiveCount }
-    , geomertyFlag{ geomertyFlag }
+Geometry::Geometry(vk::GeometryFlagsKHR geometryFlag, size_t primitiveCount)
+    : geometryFlag{ geometryFlag }
+    , primitiveCount{ primitiveCount }
 {
 }
 
 vk::DeviceSize Geometry::GetAccelSize() const
 {
-    const auto buildType = vk::AccelerationStructureBuildTypeKHR::eDevice;
+    constexpr auto buildType = vk::AccelerationStructureBuildTypeKHR::eDevice;
     const auto buildSizes = Context::GetDevice().getAccelerationStructureBuildSizesKHR(buildType, geometryInfo, primitiveCount);
     return buildSizes.accelerationStructureSize;
 }
@@ -25,13 +25,13 @@ DeviceBuffer Geometry::CreateAccelBuffer() const
 }
 
 TrianglesGeometry::TrianglesGeometry(vk::AccelerationStructureGeometryTrianglesDataKHR triangles,
-                                     vk::GeometryFlagsKHR geomertyFlag, size_t primitiveCount)
-    : Geometry{ geomertyFlag, primitiveCount }
+                                     vk::GeometryFlagsKHR geometryFlag, size_t primitiveCount)
+    : Geometry{ geometryFlag, primitiveCount }
 {
     geometry = vk::AccelerationStructureGeometryKHR()
         .setGeometryType(vk::GeometryTypeKHR::eTriangles)
         .setGeometry({ triangles })
-        .setFlags(geomertyFlag);
+        .setFlags(geometryFlag);
 
     geometryInfo = vk::AccelerationStructureBuildGeometryInfoKHR()
         .setType(vk::AccelerationStructureTypeKHR::eBottomLevel)
@@ -40,18 +40,18 @@ TrianglesGeometry::TrianglesGeometry(vk::AccelerationStructureGeometryTrianglesD
 }
 
 InstancesGeometry::InstancesGeometry(vk::AccelerationStructureGeometryInstancesDataKHR instances,
-                                     vk::GeometryFlagsKHR geomertyFlag, size_t primitiveCount)
-    : Geometry{ geomertyFlag, primitiveCount }
+                                     vk::GeometryFlagsKHR geometryFlag, size_t primitiveCount)
+    : Geometry{ geometryFlag, primitiveCount }
 {
-    Update(instances, primitiveCount);
+    Update(instances);
 }
 
-void InstancesGeometry::Update(vk::AccelerationStructureGeometryInstancesDataKHR instances, size_t primitiveCount)
+void InstancesGeometry::Update(vk::AccelerationStructureGeometryInstancesDataKHR instances)
 {
     geometry = vk::AccelerationStructureGeometryKHR()
         .setGeometryType(vk::GeometryTypeKHR::eInstances)
         .setGeometry({ instances })
-        .setFlags(geomertyFlag);
+        .setFlags(geometryFlag);
 
     geometryInfo = vk::AccelerationStructureBuildGeometryInfoKHR()
         .setType(vk::AccelerationStructureTypeKHR::eTopLevel)

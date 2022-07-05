@@ -79,7 +79,9 @@ Image::Image(uint32_t width, uint32_t height, vk::Format format)
 
 Image::Image(const std::string& filepath)
 {
-    int width, height, channels;
+    int width;
+    int height;
+    int channels;
     unsigned char* data = stbi_load(filepath.c_str(), &width, &height, &channels, sizeof(unsigned char) * 4);
     if (!data) {
         throw std::runtime_error("Failed to load texture: " + filepath);

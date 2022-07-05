@@ -34,7 +34,7 @@ bool Engine::Update()
     return !shouldClose;
 }
 
-void Engine::Render(std::function<void(void)> func)
+void Engine::Render(std::function<void()> func)
 {
     if (Window::IsMinimized()) return;
     Context::WaitNextFrame();

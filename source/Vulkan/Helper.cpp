@@ -62,7 +62,7 @@ uint32_t Helper::FindGenericQueueFamily(vk::PhysicalDevice physicalDevice, vk::S
 
 vk::UniqueDevice Helper::CreateDevice(vk::PhysicalDevice physicalDevice, uint32_t queueFamily)
 {
-    const float queuePriority = 0.0f;
+    constexpr float queuePriority = 0.0f;
     const auto queueInfo = vk::DeviceQueueCreateInfo()
         .setQueueFamilyIndex(queueFamily)
         .setQueueCount(1)
@@ -81,12 +81,12 @@ vk::UniqueDevice Helper::CreateDevice(vk::PhysicalDevice physicalDevice, uint32_
         VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME,
     };
 
-    const auto deviceFeatures = vk::PhysicalDeviceFeatures()
+    constexpr auto deviceFeatures = vk::PhysicalDeviceFeatures()
         .setShaderInt64(true)
         .setFragmentStoresAndAtomics(true)
         .setVertexPipelineStoresAndAtomics(true);
 
-    const auto descFeatures = vk::PhysicalDeviceDescriptorIndexingFeatures()
+    constexpr auto descFeatures = vk::PhysicalDeviceDescriptorIndexingFeatures()
         .setRuntimeDescriptorArray(true);
 
     const auto deviceInfo = vk::DeviceCreateInfo()
@@ -113,7 +113,7 @@ vk::UniqueCommandPool Helper::CreateCommandPool(vk::Device device, uint32_t queu
     );
 }
 
-vk::UniqueDescriptorPool Helper::CraeteDescriptorPool(vk::Device device)
+vk::UniqueDescriptorPool Helper::CreateDescriptorPool(vk::Device device)
 {
     const std::vector<vk::DescriptorPoolSize> poolSizes{
         { vk::DescriptorType::eSampler, 100 },

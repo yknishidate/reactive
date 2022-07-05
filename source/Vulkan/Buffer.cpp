@@ -30,7 +30,7 @@ void HostBuffer::Copy(const void* data)
     if (!mapped) {
         mapped = Context::GetDevice().mapMemory(*memory, 0, size);
     }
-    std::memcpy(mapped, data, static_cast<size_t>(size));
+    std::memcpy(mapped, data, size);
 }
 
 DeviceBuffer::DeviceBuffer(vk::BufferUsageFlags usage, size_t size)

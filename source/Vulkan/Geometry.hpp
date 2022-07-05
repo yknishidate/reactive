@@ -5,7 +5,7 @@ class Geometry
 {
 public:
     Geometry() = default;
-    Geometry(vk::GeometryFlagsKHR geomertyFlag, size_t primitiveCount);
+    Geometry(vk::GeometryFlagsKHR geometryFlag, size_t primitiveCount);
 
     vk::DeviceSize GetAccelSize() const;
     vk::AccelerationStructureBuildGeometryInfoKHR GetInfo() const;
@@ -14,8 +14,8 @@ public:
 protected:
     vk::AccelerationStructureGeometryKHR geometry;
     vk::AccelerationStructureBuildGeometryInfoKHR geometryInfo;
-    vk::GeometryFlagsKHR geomertyFlag;
-    size_t primitiveCount;
+    vk::GeometryFlagsKHR geometryFlag;
+    size_t primitiveCount{};
 };
 
 class TrianglesGeometry : public Geometry
@@ -23,7 +23,7 @@ class TrianglesGeometry : public Geometry
 public:
     TrianglesGeometry() = default;
     TrianglesGeometry(vk::AccelerationStructureGeometryTrianglesDataKHR triangles,
-                      vk::GeometryFlagsKHR geomertyFlag, size_t primitiveCount);
+                      vk::GeometryFlagsKHR geometryFlag, size_t primitiveCount);
 };
 
 class InstancesGeometry : public Geometry
@@ -31,7 +31,7 @@ class InstancesGeometry : public Geometry
 public:
     InstancesGeometry() = default;
     InstancesGeometry(vk::AccelerationStructureGeometryInstancesDataKHR instances,
-                      vk::GeometryFlagsKHR geomertyFlag, size_t primitiveCount);
+                      vk::GeometryFlagsKHR geometryFlag, size_t primitiveCount);
 
-    void Update(vk::AccelerationStructureGeometryInstancesDataKHR instances, size_t primitiveCount);
+    void Update(vk::AccelerationStructureGeometryInstancesDataKHR instances);
 };

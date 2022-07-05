@@ -1,5 +1,4 @@
 #include "Context.hpp"
-#include <iostream>
 #include <regex>
 #include <spdlog/spdlog.h>
 #include "Window.hpp"
@@ -30,7 +29,7 @@ void Context::Init()
 
     commandPool = Helper::CreateCommandPool(*device, queueFamily);
 
-    descriptorPool = Helper::CraeteDescriptorPool(*device);
+    descriptorPool = Helper::CreateDescriptorPool(*device);
 
     swapchain = Swapchain{ *device, *surface, queueFamily };
 }
@@ -93,5 +92,5 @@ void Context::CopyToBackImage(vk::CommandBuffer commandBuffer, const Image& sour
 
 void Context::CopyToBackImage(const Image& source)
 {
-    CopyToBackImage(Context::GetCurrentCommandBuffer(), source);
+    CopyToBackImage(GetCurrentCommandBuffer(), source);
 }

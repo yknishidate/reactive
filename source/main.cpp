@@ -11,9 +11,9 @@ int main()
     // Add random lights
     BoundingBox bbox = scene.GetBoundingBox();
     std::mt19937 mt{};
-    std::uniform_real_distribution<float> distX{ bbox.min.x, bbox.max.x };
-    std::uniform_real_distribution<float> distY{ bbox.min.y, bbox.max.y };
-    std::uniform_real_distribution<float> distZ{ bbox.min.z, bbox.max.z };
+    std::uniform_real_distribution distX{ bbox.min.x, bbox.max.x };
+    std::uniform_real_distribution distY{ bbox.min.y, bbox.max.y };
+    std::uniform_real_distribution distZ{ bbox.min.z, bbox.max.z };
 
     PushConstants pushConstants;
     pushConstants.numLights = 100;

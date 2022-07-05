@@ -1,8 +1,6 @@
-#include <filesystem>
 #include <regex>
 #include "Context.hpp"
 #include "Pipeline.hpp"
-#include <spirv_glsl.hpp>
 #include <spdlog/spdlog.h>
 #include "Image.hpp"
 #include "Window.hpp"
@@ -62,14 +60,6 @@ namespace
         region.setStride(rtProperties.shaderGroupHandleAlignment);
         region.setSize(rtProperties.shaderGroupHandleAlignment);
         return region;
-    }
-
-    void UpdateDescSet(vk::DescriptorSet descSet, std::vector<vk::WriteDescriptorSet>& writes)
-    {
-        for (auto&& write : writes) {
-            write.setDstSet(descSet);
-        }
-        Context::GetDevice().updateDescriptorSets(writes, nullptr);
     }
 } // namespace
 

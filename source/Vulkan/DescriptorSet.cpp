@@ -1,21 +1,10 @@
-#include <filesystem>
 #include <regex>
-#include <spdlog/spdlog.h>
 #include "Context.hpp"
-#include "Pipeline.hpp"
 #include "DescriptorSet.hpp"
 #include "Compiler.hpp"
 
 namespace
 {
-    vk::UniqueShaderModule CreateShaderModule(const std::vector<uint32_t>& code)
-    {
-        return Context::GetDevice().createShaderModuleUnique(
-            vk::ShaderModuleCreateInfo()
-            .setCode(code)
-        );
-    }
-
     vk::UniqueDescriptorSetLayout CreateDescSetLayout(const std::vector<vk::DescriptorSetLayoutBinding>& bindings)
     {
         return Context::GetDevice().createDescriptorSetLayoutUnique(
@@ -66,6 +55,7 @@ void DescriptorSet::Update()
 void DescriptorSet::Register(const std::string& name, const std::vector<Image>& images)
 {
     std::vector<vk::DescriptorImageInfo> infos;
+    infos.reserve(images.size());
     for (auto&& image : images) {
         infos.push_back(image.GetInfo());
     }

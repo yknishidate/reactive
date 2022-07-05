@@ -15,7 +15,7 @@ namespace Helper
 
     vk::UniqueCommandPool CreateCommandPool(vk::Device device, uint32_t queueFamily);
 
-    vk::UniqueDescriptorPool CraeteDescriptorPool(vk::Device device);
+    vk::UniqueDescriptorPool CreateDescriptorPool(vk::Device device);
 
     vk::UniqueSwapchainKHR CreateSwapchain(vk::Device device, vk::SurfaceKHR surface,
                                            uint32_t width, uint32_t height,

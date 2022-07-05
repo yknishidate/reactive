@@ -1,6 +1,7 @@
 #include "Scene.hpp"
 #include "Loader.hpp"
 #include "Window.hpp"
+#include "Vulkan/Image.hpp"
 
 Scene::Scene(const std::string& filepath,
              glm::vec3 position, glm::vec3 scale, glm::vec3 rotation)

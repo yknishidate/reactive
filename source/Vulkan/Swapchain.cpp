@@ -2,6 +2,7 @@
 #include "Context.hpp"
 #include "Window.hpp"
 #include "Helper.hpp"
+#include "Image.hpp"
 
 Frame::Frame(vk::RenderPass renderPass, vk::ImageView attachment,
              uint32_t width, uint32_t height)
@@ -48,7 +49,7 @@ Swapchain::Swapchain(vk::Device device, vk::SurfaceKHR surface, uint32_t queueFa
 void Swapchain::BeginRenderPass()
 {
     const auto renderArea = vk::Rect2D()
-        .setExtent({ static_cast<uint32_t>(Window::GetWidth()), static_cast<uint32_t>(Window::GetHeight()) });
+        .setExtent({ Window::GetWidth(), Window::GetHeight() });
 
     const auto beginInfo = vk::RenderPassBeginInfo()
         .setRenderPass(*renderPass)
@@ -70,6 +71,7 @@ void Swapchain::WaitNextFrame(vk::Device device)
         frameIndex = device.acquireNextImageKHR(*swapchain, UINT64_MAX, imageAcquiredSemaphore).value;
     } catch (const std::exception& exception) {
         swapchainRebuild = true;
+        spdlog::error(exception.what());
         return;
     }
     frames[frameIndex].WaitForFence(device);
@@ -99,7 +101,7 @@ void Swapchain::Present(vk::Queue queue)
             .setImageIndices(frameIndex)
         );
     } catch (const std::exception& exception) {
-        std::cerr << "failed to present." << std::endl;
+        spdlog::error(exception.what());
         swapchainRebuild = true;
         return;
     }
