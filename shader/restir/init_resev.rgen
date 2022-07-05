@@ -125,9 +125,9 @@ void main()
         0     // payloadLocation
     );
 
-    // hit light
     if(payload.shadowed){
         reservoir.w_sum == 0.0;
+        reservoir.p_z == 0.0;
     }
     
     imageStore(resevSampleImage, id, ivec4(reservoir.x_z, reservoir.m, reservoir.x_z, reservoir.m));

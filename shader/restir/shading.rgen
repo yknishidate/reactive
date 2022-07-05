@@ -29,11 +29,12 @@ void main()
 
     /// DEBUG
     // imageStore(outputImage, id, vec4(reservoir.x_z / 100.0)); // OK
-    // imageStore(outputImage, id, vec4(reservoir.m / 20.0)); // buggy -> smaller
+    // imageStore(outputImage, id, vec4(reservoir.m / 20.0)); // buggy -> bigger
     // imageStore(outputImage, id, vec4(reservoir.p_z)); // OK
     // imageStore(outputImage, id, vec4(reservoir.w_sum / 300.0)); // buggy -> bgger
     // imageStore(outputImage, id, vec4(reservoir.x_z / 100.0, reservoir.m / 20.0,
     //                                  reservoir.p_z,         reservoir.w_sum / 300.0));
+    // imageStore(outputImage, id, vec4(reservoir.w_sum / float(reservoir.m))); // buggy -> bigger
     // return;
     /// DEBUG
 
@@ -70,6 +71,8 @@ void main()
     // hit light
     vec3 radiance = vec3(0);
     if(!payload.shadowed){
+        // float pdf = 1.0;
+        // float pdf = 1.0 / reservoir.p_z;
         float pdf = 1.0 / calcReservoirWeight(reservoir);
         radiance += calcRadiance(position, normal, diffuse, sphereLight.intensity, dist, dir, pdf);
     }
