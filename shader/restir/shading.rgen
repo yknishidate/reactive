@@ -6,14 +6,14 @@
 layout(location = 0) rayPayloadEXT HitPayload payload;
 
 vec3 calcRadiance(vec3 position, vec3 normal, vec3 diffuse,
-                  vec3 intensity, float dist, vec3 direction, float pdf)
+                  vec3 intensity, float dist, vec3 direction)
 {
     vec3 brdf = diffuse / M_PI;
     float squareDist = dist * dist;
     float cosine = max(0.0, dot(direction, normal));
 
     // Radiance: brdf * Le * G / pdf
-    return brdf * intensity / squareDist * cosine / pdf;
+    return brdf * intensity / squareDist * cosine;
 }
 
 void main()
@@ -73,8 +73,10 @@ void main()
     if(!payload.shadowed){
         // float pdf = 1.0;
         // float pdf = 1.0 / reservoir.p_z;
-        float pdf = 1.0 / calcReservoirWeight(reservoir);
-        radiance += calcRadiance(position, normal, diffuse, sphereLight.intensity, dist, dir, pdf);
+        // float pdf = 1.0 / calcReservoirWeight(reservoir);
+        // radiance += calcRadiance(position, normal, diffuse, sphereLight.intensity, dist, dir, pdf);
+        float weight = calcReservoirWeight(reservoir);
+        radiance += calcRadiance(position, normal, diffuse, sphereLight.intensity, dist, dir) * weight;
     }
     vec3 color = emission + radiance;
     
