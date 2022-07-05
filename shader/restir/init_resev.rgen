@@ -70,11 +70,7 @@ void main()
     SphereLights sphereLights = SphereLights(address.sphereLights);
 
     // Sample light
-    Reservoir reservoir;
-    reservoir.w_sum = 0.0;
-    reservoir.x_z = 0;
-    reservoir.p_z = 0.0;
-    reservoir.m = 0;
+    Reservoir reservoir = createReservoir();
     for(int i = 0; i < NUM_CANDIDATES; i++){
         // Sample candidates
         int x = sampleLightUniform(seed);

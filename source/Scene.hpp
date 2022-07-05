@@ -35,6 +35,7 @@ public:
     auto& GetObjects() { return objects; }
     auto GetBoundingBox() const { return bbox; }
     auto GetCenter() const { return (bbox.min + bbox.max) / 2.0f; }
+    auto GetNumSphereLights() const { return sphereLights.size(); }
 
 private:
     std::vector<std::shared_ptr<Mesh>> meshes;

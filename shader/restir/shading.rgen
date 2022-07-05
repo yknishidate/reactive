@@ -29,11 +29,7 @@ void main()
     uvec2 resevSample = imageLoad(resevSampleImage, ivec2(gl_LaunchIDEXT.xy)).zw;
     vec2 resevWeight = imageLoad(resevWeightImage, ivec2(gl_LaunchIDEXT.xy)).zw;
 
-    Reservoir reservoir;
-    reservoir.x_z = int(resevSample.x);
-    reservoir.m = int(resevSample.y);
-    reservoir.w_sum = resevWeight.x;
-    reservoir.p_z = resevWeight.y;
+    Reservoir reservoir = loadReservoir(ivec2(gl_LaunchIDEXT.xy));
 
     /// DEBUG
     // uvec2 s = pcg2d(uvec2(gl_LaunchIDEXT.xy * (pushConstants.frame + 1)));

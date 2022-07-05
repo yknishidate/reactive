@@ -72,3 +72,25 @@ vec3 sampleHemisphere(in float rand1, in float rand2)
     dir.z = rand1;
     return dir;
 }
+
+Reservoir createReservoir()
+{
+    Reservoir reservoir;
+    reservoir.w_sum = 0.0;
+    reservoir.x_z = 0;
+    reservoir.p_z = 0.0;
+    reservoir.m = 0;
+    return reservoir;
+}
+
+Reservoir loadReservoir(in ivec2 id)
+{
+    uvec2 resevSample_ = imageLoad(resevSampleImage, id).xy;
+    vec2 resevWeight_ = imageLoad(resevWeightImage, id).xy;
+    Reservoir reservoir;
+    reservoir.x_z = int(resevSample_.x);
+    reservoir.m = int(resevSample_.y);
+    reservoir.w_sum = resevWeight_.x;
+    reservoir.p_z = resevWeight_.y;
+    return reservoir;
+}

@@ -15,8 +15,7 @@ int main()
     std::uniform_real_distribution distY{ bbox.min.y, bbox.max.y };
     std::uniform_real_distribution distZ{ bbox.min.z, bbox.max.z };
 
-    constexpr int numLights = 100;
-    for (int index = 0; index < numLights; index++) {
+    for (int index = 0; index < 100; index++) {
         const glm::vec3 position = glm::vec3{ distX(mt), distY(mt), distZ(mt) } / 2.5f;
         const glm::vec3 color{ 1.0f };
         scene.AddSphereLight(color, position, 0.1f);
@@ -31,7 +30,7 @@ int main()
     ShadingPipeline shadingPipeline{ scene, gbufferPipeline.GetGBuffers(), initResevPipeline.GetResevImages(), sizeof(PushConstants) };
 
     PushConstants pushConstants;
-    pushConstants.numLights = numLights;
+    pushConstants.numLights = scene.GetNumSphereLights();
     pushConstants.invProj = scene.GetCamera().GetInvProj();
     pushConstants.invView = scene.GetCamera().GetInvView();
     pushConstants.frame = 0;

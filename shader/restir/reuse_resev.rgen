@@ -30,13 +30,7 @@ void combineReservoir(inout Reservoir reservoir, inout int m_c, int dx, int dy, 
                       vec3 position, vec3 normal, vec3 diffuse)
 {
     ivec2 id = ivec2(gl_LaunchIDEXT.xy) + ivec2(dx, dy);
-    uvec2 resevSample_ = imageLoad(resevSampleImage, id).xy;
-    vec2 resevWeight_ = imageLoad(resevWeightImage, id).xy;
-    Reservoir Ri;
-    Ri.x_z = int(resevSample_.x);
-    Ri.m = int(resevSample_.y);
-    Ri.w_sum = resevWeight_.x;
-    Ri.p_z = resevWeight_.y;
+    Reservoir Ri = loadReservoir(id);
 
     // Get buffer addresses
     BufferAddress address = addresses.address[0];
@@ -82,12 +76,7 @@ void main()
         return;
     }
 
-    // TODO: create createResev()
-    Reservoir reservoir;
-    reservoir.w_sum = 0.0;
-    reservoir.x_z = 0;
-    reservoir.p_z = 0.0;
-    reservoir.m = 0;    
+    Reservoir reservoir = createReservoir();
 
     int kernelSize = 1;
     if(gl_LaunchIDEXT.x - kernelSize < 0 || gl_LaunchIDEXT.x + kernelSize >= gl_LaunchSizeEXT.x || 
