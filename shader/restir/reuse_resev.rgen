@@ -3,7 +3,7 @@
 #define NUM_CANDIDATES 16
 #include "common.glsl"
 
-layout(binding =  14, rgba32ui) uniform uimage2D newResevSampleImage; // (x_z, m)
+layout(binding =  14, rg32ui) uniform uimage2D newResevSampleImage; // (x_z, m)
 layout(binding =  15, rgba16f) uniform image2D newResevWeightImage;  // (w_sum, p_z)
 
 layout(location = 0) rayPayloadEXT HitPayload payload;
