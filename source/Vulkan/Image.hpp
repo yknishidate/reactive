@@ -6,7 +6,7 @@ class Image
 public:
     Image() = default;
     Image(uint32_t width, uint32_t height, vk::Format format);
-    explicit Image(const std::string& filepath);
+    Image(const std::string& filepath);
 
     vk::Image GetImage() const { return *image; }
     vk::ImageView GetView() const { return *view; }
