@@ -8,10 +8,6 @@ layout(binding =  15, rg16f) uniform image2D newResevWeightImage;  // (w_sum, p_
 
 layout(location = 0) rayPayloadEXT HitPayload payload;
 
-// resev          init    reuse  shading
-//   xy: current   store   load   -
-//   zw: next      store   store  load
-
 float targetPDF(in SphereLight light, vec3 position, vec3 normal, vec3 diffuse)
 {
     vec3 hitToLight = light.position - position;
@@ -100,11 +96,13 @@ void main()
         return;
     }
 
-    // TODO: randomize neighbors
-    if(canCombine(position, normal, emission, instanceIndex,  0,  1)) combineReservoir(reservoir,  0,  1, seed, position, normal, diffuse);
-    if(canCombine(position, normal, emission, instanceIndex,  0, -1)) combineReservoir(reservoir,  0, -1, seed, position, normal, diffuse);
-    if(canCombine(position, normal, emission, instanceIndex,  1,  0)) combineReservoir(reservoir,  1,  0, seed, position, normal, diffuse);
-    if(canCombine(position, normal, emission, instanceIndex, -1,  0)) combineReservoir(reservoir, -1,  0, seed, position, normal, diffuse);
+    int radius = 20;
+    int numNeighbors = 5;
+    for(int i = 0; i < numNeighbors; i++){
+        int dx = int(radius * rand(seed) - radius * 0.5);
+        int dy = int(radius * rand(seed) - radius * 0.5);
+        if(canCombine(position, normal, emission, instanceIndex, dx, dy)) combineReservoir(reservoir, dx, dy, seed, position, normal, diffuse);
+    }
     
     imageStore(newResevSampleImage, id, ivec4(reservoir.x_z, reservoir.m, 0, 0));
     imageStore(newResevWeightImage, id, vec4(reservoir.w_sum, reservoir.p_z, 0, 0));
