@@ -47,21 +47,34 @@ vec3 calcRadiance(vec3 position, vec3 normal, vec3 diffuse,
     return brdf * intensity / squareDist * cosine / pdf;
 }
 
+bool updateReservoir(inout Reservoir reservoir, int x, float w, float p, inout uint seed)
+{
+    reservoir.w_sum += w;
+    reservoir.m += 1;
+    if (rand(seed) < (w / reservoir.w_sum)) {
+        reservoir.x_z = x;
+        reservoir.p_z = p;
+        return true;
+    }
+    return false;
+}
+
 void main()
 {
     // Calc seed
     uvec2 s = pcg2d(uvec2(gl_LaunchIDEXT.xy * (pushConstants.frame + 1)));
     uint seed = s.x + s.y;
 
-    vec3 position = imageLoad(positionImage, ivec2(gl_LaunchIDEXT.xy)).rgb;
-    vec3 normal = imageLoad(normalImage, ivec2(gl_LaunchIDEXT.xy)).rgb;
-    vec3 diffuse = imageLoad(diffuseImage, ivec2(gl_LaunchIDEXT.xy)).rgb;
-    vec3 emission = imageLoad(emissionImage, ivec2(gl_LaunchIDEXT.xy)).rgb;
-    uint instanceIndex = imageLoad(instanceIndexImage, ivec2(gl_LaunchIDEXT.xy)).x;
+    ivec2 id = ivec2(gl_LaunchIDEXT.xy);
+    vec3 position = imageLoad(positionImage, id).rgb;
+    vec3 normal = imageLoad(normalImage, id).rgb;
+    vec3 diffuse = imageLoad(diffuseImage, id).rgb;
+    vec3 emission = imageLoad(emissionImage, id).rgb;
+    uint instanceIndex = imageLoad(instanceIndexImage, id).x;
 
     if(length(emission) > 0.1 || normal == vec3(0.0)) {
-        imageStore(resevSampleImage, ivec2(gl_LaunchIDEXT.xy), ivec4(0));
-        imageStore(resevWeightImage, ivec2(gl_LaunchIDEXT.xy), vec4(0));
+        imageStore(resevSampleImage, id, ivec4(0));
+        imageStore(resevWeightImage, id, vec4(0));
         return;
     }
 
@@ -86,8 +99,8 @@ void main()
     
     // if all zero
     if(reservoir.w_sum == 0.0){
-        imageStore(resevSampleImage, ivec2(gl_LaunchIDEXT.xy), ivec4(0));
-        imageStore(resevWeightImage, ivec2(gl_LaunchIDEXT.xy), vec4(0));
+        imageStore(resevSampleImage, id, ivec4(0));
+        imageStore(resevWeightImage, id, vec4(0));
         return;
     }
 
@@ -117,6 +130,6 @@ void main()
         reservoir.w_sum == 0.0;
     }
     
-    imageStore(resevSampleImage, ivec2(gl_LaunchIDEXT.xy), ivec4(reservoir.x_z, reservoir.m, reservoir.x_z, reservoir.m));
-    imageStore(resevWeightImage, ivec2(gl_LaunchIDEXT.xy), vec4(reservoir.w_sum, reservoir.p_z, reservoir.w_sum, reservoir.p_z));
+    imageStore(resevSampleImage, id, ivec4(reservoir.x_z, reservoir.m, reservoir.x_z, reservoir.m));
+    imageStore(resevWeightImage, id, vec4(reservoir.w_sum, reservoir.p_z, reservoir.w_sum, reservoir.p_z));
 }

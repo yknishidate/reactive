@@ -22,18 +22,6 @@ struct Reservoir
     int m;       // number of streaming
 };
 
-bool updateReservoir(inout Reservoir reservoir, int x, float w, float p, inout uint seed)
-{
-    reservoir.w_sum += w;
-    reservoir.m += 1;
-    if (rand(seed) < (w / reservoir.w_sum)) {
-        reservoir.x_z = x;
-        reservoir.p_z = p;
-        return true;
-    }
-    return false;
-}
-
 float calcReservoirWeight(in Reservoir reservoir)
 {
     return reservoir.w_sum / reservoir.m / reservoir.p_z;
