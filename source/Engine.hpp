@@ -3,7 +3,6 @@
 #include <spdlog/spdlog.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
-
 #include "ImGui/imgui_impl_vulkan_hpp.h"
 #include "Vulkan/Image.hpp"
 #include "Vulkan/Pipeline.hpp"

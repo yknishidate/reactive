@@ -93,15 +93,12 @@ void Swapchain::Present(vk::Queue queue)
         return;
     }
 
-    try {
-        queue.presentKHR(
-            vk::PresentInfoKHR()
-            .setWaitSemaphores(*frameSemaphores[semaphoreIndex].renderCompleteSemaphore)
-            .setSwapchains(*swapchain)
-            .setImageIndices(frameIndex)
-        );
-    } catch (const std::exception& exception) {
-        spdlog::error(exception.what());
+    const auto presentInfo = vk::PresentInfoKHR()
+        .setWaitSemaphores(*frameSemaphores[semaphoreIndex].renderCompleteSemaphore)
+        .setSwapchains(*swapchain)
+        .setImageIndices(frameIndex);
+
+    if (queue.presentKHR(presentInfo) != vk::Result::eSuccess) {
         swapchainRebuild = true;
         return;
     }

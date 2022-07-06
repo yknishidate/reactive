@@ -1,7 +1,7 @@
 #include <regex>
+#include <spdlog/spdlog.h>
 #include "Context.hpp"
 #include "Pipeline.hpp"
-#include <spdlog/spdlog.h>
 #include "Image.hpp"
 #include "Window.hpp"
 #include "Compiler.hpp"
