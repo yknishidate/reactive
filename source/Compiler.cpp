@@ -153,6 +153,13 @@ namespace Compiler
 
     std::vector<uint32_t> CompileToSPV(const std::string& filepath)
     {
+        static std::unordered_map<std::string, std::vector<uint32_t>> cache;
+
+        if (cache.contains(filepath)) {
+            spdlog::info("  Find shader: {}", filepath);
+            return cache[filepath];
+        }
+
         spdlog::info("  Compile shader: {}", filepath);
         std::string glslShader = ReadFile(filepath);
         EShLanguage stage = GetShaderStage(filepath);
@@ -180,6 +187,9 @@ namespace Compiler
         std::vector<uint32_t> spvShader;
         glslang::GlslangToSpv(*program.getIntermediate(stage), spvShader);
         glslang::FinalizeProcess();
+
+        cache.insert({ filepath, spvShader });
+
         return spvShader;
     }
 } // namespace
