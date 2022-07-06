@@ -122,10 +122,10 @@ private:
     ResevImages resevImages;
 };
 
-class ReuseResevPipeline : public RayTracingPipeline
+class SpatialReusePipeline : public RayTracingPipeline
 {
 public:
-    ReuseResevPipeline(const Scene& scene, const GBuffers& gbuffers, const ResevImages& resevImages, size_t pushSize = 0);
+    SpatialReusePipeline(const Scene& scene, const GBuffers& gbuffers, const ResevImages& resevImages, size_t pushSize = 0);
 
     ResevImages& GetNewResevImages() { return newResevImages; }
 

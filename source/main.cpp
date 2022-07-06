@@ -26,7 +26,7 @@ int main()
     UniformLightPipeline uniformLightPipeline{ scene, gbufferPipeline.GetGBuffers(), sizeof(PushConstants) };
     WRSPipeline wrsPipeline{ scene, gbufferPipeline.GetGBuffers(), sizeof(PushConstants) };
     InitResevPipeline initResevPipeline{ scene, gbufferPipeline.GetGBuffers(), sizeof(PushConstants) };
-    ReuseResevPipeline reuseResevPipeline{ scene, gbufferPipeline.GetGBuffers(), initResevPipeline.GetResevImages(), sizeof(PushConstants) };
+    SpatialReusePipeline spatialReusePipeline{ scene, gbufferPipeline.GetGBuffers(), initResevPipeline.GetResevImages(), sizeof(PushConstants) };
     ShadingPipeline shadingPipeline{ scene, gbufferPipeline.GetGBuffers(), initResevPipeline.GetResevImages(), sizeof(PushConstants) };
 
     PushConstants pushConstants;
@@ -63,8 +63,8 @@ int main()
                 } else if (method == ReSTIR) {
                     initResevPipeline.Run(&pushConstants);
                     for (int i = 0; i < iteration; i++) {
-                        reuseResevPipeline.Run(&pushConstants);
-                        reuseResevPipeline.CopyToResevImages(initResevPipeline.GetResevImages());
+                        spatialReusePipeline.Run(&pushConstants);
+                        spatialReusePipeline.CopyToResevImages(initResevPipeline.GetResevImages());
                     }
                     shadingPipeline.Run(&pushConstants);
                     Context::CopyToBackImage(shadingPipeline.GetOutputImage());

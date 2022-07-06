@@ -384,9 +384,9 @@ ShadingPipeline::ShadingPipeline(const Scene& scene, const GBuffers& gbuffers, c
     RayTracingPipeline::Setup(pushSize);
 }
 
-ReuseResevPipeline::ReuseResevPipeline(const Scene& scene, const GBuffers& gbuffers, const ResevImages& resevImages, size_t pushSize)
+SpatialReusePipeline::SpatialReusePipeline(const Scene& scene, const GBuffers& gbuffers, const ResevImages& resevImages, size_t pushSize)
 {
-    RayTracingPipeline::LoadShaders("../shader/restir/reuse_resev.rgen",
+    RayTracingPipeline::LoadShaders("../shader/restir/spatial_reuse.rgen",
                                     "../shader/shadow_ray/shadow_ray.rmiss",
                                     "../shader/shadow_ray/shadow_ray.rchit");
 
@@ -408,7 +408,7 @@ ReuseResevPipeline::ReuseResevPipeline(const Scene& scene, const GBuffers& gbuff
     RayTracingPipeline::Setup(pushSize);
 }
 
-void ReuseResevPipeline::CopyToResevImages(ResevImages& dst)
+void SpatialReusePipeline::CopyToResevImages(ResevImages& dst)
 {
     newResevImages.sampleImage.SetImageLayout(vk::ImageLayout::eTransferSrcOptimal);
     newResevImages.weightImage.SetImageLayout(vk::ImageLayout::eTransferSrcOptimal);
