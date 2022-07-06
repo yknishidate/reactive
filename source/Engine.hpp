@@ -9,8 +9,8 @@
 #include "Vulkan/Pipeline.hpp"
 #include "Vulkan/DescriptorSet.hpp"
 #include "Window.hpp"
-#include "Mesh.hpp"
-#include "Scene.hpp"
+#include "Scene/Mesh.hpp"
+#include "Scene/Scene.hpp"
 #include "UI.hpp"
 
 namespace Engine

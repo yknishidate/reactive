@@ -1,6 +1,6 @@
 #include "Context.hpp"
 #include "Accel.hpp"
-#include "Object.hpp"
+#include "Scene/Object.hpp"
 
 namespace
 {

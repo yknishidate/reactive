@@ -5,7 +5,7 @@
 #include "Image.hpp"
 #include "Window.hpp"
 #include "Compiler.hpp"
-#include "Scene.hpp"
+#include "Scene/Scene.hpp"
 
 namespace
 {
