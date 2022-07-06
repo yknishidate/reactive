@@ -135,6 +135,21 @@ private:
     ResevImages newResevImages;
 };
 
+class TemporalReusePipeline : public RayTracingPipeline
+{
+public:
+    TemporalReusePipeline(const Scene& scene, const GBuffers& gbuffers, const ResevImages& resevImages, size_t pushSize = 0);
+
+    ResevImages& GetNewResevImages() { return newResevImages; }
+
+    void CopyToResevImages(ResevImages& dst);
+    void CopyFromResevImages(ResevImages& src);
+
+private:
+    ResevImages newResevImages;
+    ResevImages oldResevImages;
+};
+
 class ShadingPipeline : public RayTracingPipeline
 {
 public:

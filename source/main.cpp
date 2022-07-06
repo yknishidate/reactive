@@ -27,6 +27,7 @@ int main()
     WRSPipeline wrsPipeline{ scene, gbufferPipeline.GetGBuffers(), sizeof(PushConstants) };
     InitResevPipeline initResevPipeline{ scene, gbufferPipeline.GetGBuffers(), sizeof(PushConstants) };
     SpatialReusePipeline spatialReusePipeline{ scene, gbufferPipeline.GetGBuffers(), initResevPipeline.GetResevImages(), sizeof(PushConstants) };
+    TemporalReusePipeline temporalReusePipeline{ scene, gbufferPipeline.GetGBuffers(), initResevPipeline.GetResevImages(), sizeof(PushConstants) };
     ShadingPipeline shadingPipeline{ scene, gbufferPipeline.GetGBuffers(), initResevPipeline.GetResevImages(), sizeof(PushConstants) };
 
     PushConstants pushConstants;
@@ -37,6 +38,7 @@ int main()
 
     int method = 2;
     int iteration = 0;
+    bool temporalReuse = false;
     constexpr int Uniform = 0;
     constexpr int WRS = 1;
     constexpr int ReSTIR = 2;
@@ -44,6 +46,7 @@ int main()
         GUI::Combo("Method", method, { "Uniform", "WRS", "ReSTIR" });
         GUI::SliderInt("Samples", pushConstants.samples, 1, 32);
         GUI::SliderInt("Iteration", iteration, 0, 4);
+        GUI::Checkbox("Temporal reuse", temporalReuse);
 
         scene.Update(0.1);
         pushConstants.invProj = scene.GetCamera().GetInvProj();
@@ -62,6 +65,11 @@ int main()
                     Context::CopyToBackImage(wrsPipeline.GetOutputImage());
                 } else if (method == ReSTIR) {
                     initResevPipeline.Run(&pushConstants);
+                    if (temporalReuse) {
+                        temporalReusePipeline.Run(&pushConstants);
+                        temporalReusePipeline.CopyToResevImages(initResevPipeline.GetResevImages());
+                    }
+                    temporalReusePipeline.CopyFromResevImages(initResevPipeline.GetResevImages());
                     for (int i = 0; i < iteration; i++) {
                         spatialReusePipeline.Run(&pushConstants);
                         spatialReusePipeline.CopyToResevImages(initResevPipeline.GetResevImages());
