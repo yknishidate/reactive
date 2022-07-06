@@ -343,8 +343,8 @@ UniformLightPipeline::UniformLightPipeline(const Scene& scene, const GBuffers& g
 InitResevPipeline::InitResevPipeline(const Scene& scene, const GBuffers& gbuffers, size_t pushSize)
 {
     RayTracingPipeline::LoadShaders("../shader/restir/init_resev.rgen",
-                                    "../shader/restir/init_resev.rmiss",
-                                    "../shader/restir/init_resev.rchit");
+                                    "../shader/restir/shadow_ray.rmiss",
+                                    "../shader/restir/shadow_ray.rchit");
 
     RegisterScene(scene);
 
@@ -365,8 +365,8 @@ InitResevPipeline::InitResevPipeline(const Scene& scene, const GBuffers& gbuffer
 ShadingPipeline::ShadingPipeline(const Scene& scene, const GBuffers& gbuffers, const ResevImages& resevImages, size_t pushSize)
 {
     RayTracingPipeline::LoadShaders("../shader/restir/shading.rgen",
-                                    "../shader/restir/shading.rmiss",
-                                    "../shader/restir/shading.rchit");
+                                    "../shader/restir/shadow_ray.rmiss",
+                                    "../shader/restir/shadow_ray.rchit");
 
     RegisterScene(scene);
 
@@ -387,8 +387,8 @@ ShadingPipeline::ShadingPipeline(const Scene& scene, const GBuffers& gbuffers, c
 ReuseResevPipeline::ReuseResevPipeline(const Scene& scene, const GBuffers& gbuffers, const ResevImages& resevImages, size_t pushSize)
 {
     RayTracingPipeline::LoadShaders("../shader/restir/reuse_resev.rgen",
-                                    "../shader/restir/reuse_resev.rmiss",
-                                    "../shader/restir/reuse_resev.rchit");
+                                    "../shader/restir/shadow_ray.rmiss",
+                                    "../shader/restir/shadow_ray.rchit");
 
     RegisterScene(scene);
 
