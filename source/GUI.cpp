@@ -2,13 +2,13 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include "ImGui/imgui_impl_vulkan_hpp.h"
-#include "UI.hpp"
+#include "GUI.hpp"
 #include "Window.hpp"
 #include "Vulkan/Context.hpp"
 
-void UI::Init()
+void GUI::Init()
 {
-    spdlog::info("UI::Init()");
+    spdlog::info("GUI::Init()");
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -77,14 +77,14 @@ void UI::Init()
     }
 }
 
-void UI::Shutdown()
+void GUI::Shutdown()
 {
     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 }
 
-void UI::StartFrame()
+void GUI::StartFrame()
 {
     //if (swapchainRebuild) {
     //    RebuildSwapchain();
@@ -94,7 +94,7 @@ void UI::StartFrame()
     ImGui::NewFrame();
 }
 
-void UI::Render(vk::CommandBuffer commandBuffer)
+void GUI::Render(vk::CommandBuffer commandBuffer)
 {
     ImGui::Render();
     Context::BeginRenderPass();
@@ -103,12 +103,12 @@ void UI::Render(vk::CommandBuffer commandBuffer)
     Context::EndRenderPass();
 }
 
-bool UI::Checkbox(const std::string& label, bool& value)
+bool GUI::Checkbox(const std::string& label, bool& value)
 {
     return ImGui::Checkbox(label.c_str(), &value);
 }
 
-bool UI::Checkbox(const std::string& label, int& value)
+bool GUI::Checkbox(const std::string& label, int& value)
 {
     bool tmp_value;
     bool changed = ImGui::Checkbox(label.c_str(), &tmp_value);
@@ -116,7 +116,7 @@ bool UI::Checkbox(const std::string& label, int& value)
     return changed;
 }
 
-bool UI::Combo(const std::string& label, int& value, const std::vector<std::string>& items)
+bool GUI::Combo(const std::string& label, int& value, const std::vector<std::string>& items)
 {
     std::string concated;
     for (auto&& item : items) {
@@ -125,12 +125,12 @@ bool UI::Combo(const std::string& label, int& value, const std::vector<std::stri
     return ImGui::Combo(label.c_str(), &value, concated.c_str());
 }
 
-bool UI::SliderInt(const std::string& label, int& value, int min, int max)
+bool GUI::SliderInt(const std::string& label, int& value, int min, int max)
 {
     return ImGui::SliderInt(label.c_str(), &value, min, max);
 }
 
-bool UI::ColorPicker4(const std::string& label, glm::vec4& value)
+bool GUI::ColorPicker4(const std::string& label, glm::vec4& value)
 {
     return ImGui::ColorPicker4(label.c_str(), reinterpret_cast<float*>(&value));
 }

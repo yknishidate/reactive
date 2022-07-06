@@ -9,7 +9,7 @@ void Engine::Init()
         spdlog::info("Engine::Init()");
         Window::Init(1920, 1080);
         Context::Init();
-        UI::Init();
+        GUI::Init();
     } catch (const std::exception& e) {
         spdlog::error(e.what());
     }
@@ -19,7 +19,7 @@ void Engine::Shutdown()
 {
     try {
         Context::GetDevice().waitIdle();
-        UI::Shutdown();
+        GUI::Shutdown();
         Window::Shutdown();
     } catch (const std::exception& e) {
         spdlog::error(e.what());
@@ -30,7 +30,7 @@ bool Engine::Update()
 {
     bool shouldClose = Window::ShouldClose();
     Window::PollEvents();
-    UI::StartFrame();
+    GUI::StartFrame();
     return !shouldClose;
 }
 
@@ -40,7 +40,7 @@ void Engine::Render(std::function<void()> func)
     Context::WaitNextFrame();
     Context::BeginCommandBuffer();
     func();
-    UI::Render(Context::GetCurrentCommandBuffer());
+    GUI::Render(Context::GetCurrentCommandBuffer());
     Context::Submit();
     Context::Present();
 }

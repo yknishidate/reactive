@@ -1,7 +1,7 @@
 #pragma once
 #include <glm/glm.hpp>
 
-namespace UI
+namespace GUI
 {
     void Init();
     void Shutdown();

@@ -41,9 +41,9 @@ int main()
     constexpr int WRS = 1;
     constexpr int ReSTIR = 2;
     while (Engine::Update()) {
-        UI::Combo("Method", method, { "Uniform", "WRS", "ReSTIR" });
-        UI::SliderInt("Samples", pushConstants.samples, 1, 32);
-        UI::SliderInt("Iteration", iteration, 0, 4);
+        GUI::Combo("Method", method, { "Uniform", "WRS", "ReSTIR" });
+        GUI::SliderInt("Samples", pushConstants.samples, 1, 32);
+        GUI::SliderInt("Iteration", iteration, 0, 4);
 
         scene.Update(0.1);
         pushConstants.invProj = scene.GetCamera().GetInvProj();

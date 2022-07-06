@@ -11,7 +11,7 @@
 #include "Window.hpp"
 #include "Scene/Mesh.hpp"
 #include "Scene/Scene.hpp"
-#include "UI.hpp"
+#include "GUI.hpp"
 
 namespace Engine
 {
