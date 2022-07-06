@@ -1,7 +1,9 @@
 #version 460
 #extension GL_GOOGLE_include_directive : enable
 #define NUM_CANDIDATES 16
-#include "common.glsl"
+#include "../common.glsl"
+#include "../random.glsl"
+#include "reservoir.glsl"
 
 layout(location = 0) rayPayloadEXT HitPayload payload;
 

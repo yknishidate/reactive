@@ -119,7 +119,7 @@ namespace Compiler
     {
         std::ifstream input_file{ path };
         if (!input_file.is_open()) {
-            throw std::runtime_error("Failed to open file: " + path);
+            spdlog::error("Failed to open file: " + path);
         }
         return { (std::istreambuf_iterator<char>{input_file}), std::istreambuf_iterator<char>{} };
     }
