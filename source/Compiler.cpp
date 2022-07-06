@@ -127,13 +127,13 @@ namespace Compiler
     EShLanguage GetShaderStage(const std::string& filepath)
     {
         if (filepath.ends_with("vert")) return EShLangVertex;
-        else if (filepath.ends_with("frag")) return EShLangFragment;
-        else if (filepath.ends_with("comp")) return EShLangCompute;
-        else if (filepath.ends_with("rgen")) return EShLangRayGenNV;
-        else if (filepath.ends_with("rmiss")) return EShLangMissNV;
-        else if (filepath.ends_with("rchit")) return EShLangClosestHitNV;
-        else if (filepath.ends_with("rahit")) return EShLangAnyHitNV;
-        else assert(false && "Unknown shader stage");
+        if (filepath.ends_with("frag")) return EShLangFragment;
+        if (filepath.ends_with("comp")) return EShLangCompute;
+        if (filepath.ends_with("rgen")) return EShLangRayGenNV;
+        if (filepath.ends_with("rmiss")) return EShLangMissNV;
+        if (filepath.ends_with("rchit")) return EShLangClosestHitNV;
+        if (filepath.ends_with("rahit")) return EShLangAnyHitNV;
+        assert(false && "Unknown shader stage");
     }
 
     std::string Include(const std::string& filepath, const std::string& sourceText)
