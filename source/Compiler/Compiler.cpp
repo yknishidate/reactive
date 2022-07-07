@@ -3,7 +3,7 @@
 #include <filesystem>
 #include <GlslangToSpv.h>
 #include <spdlog/spdlog.h>
-#include "Compiler.hpp"
+#include "Compiler/Compiler.hpp"
 
 namespace Compiler
 {

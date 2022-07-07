@@ -1,9 +1,9 @@
 #include <spdlog/spdlog.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
-#include "ImGui/imgui_impl_vulkan_hpp.h"
-#include "GUI.hpp"
-#include "Window.hpp"
+#include "GUI/imgui_impl_vulkan_hpp.h"
+#include "GUI/GUI.hpp"
+#include "Window/Window.hpp"
 #include "Vulkan/Context.hpp"
 
 void GUI::Init()

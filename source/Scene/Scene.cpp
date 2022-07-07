@@ -1,6 +1,6 @@
 #include "Scene.hpp"
 #include "Loader.hpp"
-#include "Window.hpp"
+#include "Window/Window.hpp"
 #include "Vulkan/Image.hpp"
 
 Scene::Scene(const std::string& filepath,

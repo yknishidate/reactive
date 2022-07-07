@@ -3,8 +3,8 @@
 #include "Context.hpp"
 #include "Pipeline.hpp"
 #include "Image.hpp"
-#include "Window.hpp"
-#include "Compiler.hpp"
+#include "Window/Window.hpp"
+#include "Compiler/Compiler.hpp"
 #include "Scene/Scene.hpp"
 
 namespace
