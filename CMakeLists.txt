@@ -69,4 +69,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${PROJECT_SOURCE_DIR}/
 )
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    "ASSET_DIR=std::string{\"${PROJECT_SOURCE_DIR}/asset/\"}")
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    "SHADER_DIR=std::string{\"${PROJECT_SOURCE_DIR}/shader/\"}")
+
 add_subdirectory(sample/restir)

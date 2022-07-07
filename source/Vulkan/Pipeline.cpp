@@ -282,9 +282,9 @@ void RayTracingPipeline::RegisterScene(const Scene& scene)
 
 GBufferPipeline::GBufferPipeline(const Scene& scene, size_t pushSize)
 {
-    RayTracingPipeline::LoadShaders("../../../shader/gbuffer/gbuffer.rgen",
-                                    "../../../shader/gbuffer/gbuffer.rmiss",
-                                    "../../../shader/gbuffer/gbuffer.rchit");
+    RayTracingPipeline::LoadShaders(SHADER_DIR + "gbuffer/gbuffer.rgen",
+                                    SHADER_DIR + "gbuffer/gbuffer.rmiss",
+                                    SHADER_DIR + "gbuffer/gbuffer.rchit");
     RegisterScene(scene);
 
     gbuffers.position = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16B16A16Sfloat };
@@ -304,9 +304,9 @@ GBufferPipeline::GBufferPipeline(const Scene& scene, size_t pushSize)
 
 WRSPipeline::WRSPipeline(const Scene& scene, const GBuffers& gbuffers, size_t pushSize)
 {
-    RayTracingPipeline::LoadShaders("../../../shader/wrs/wrs.rgen",
-                                    "../../../shader/shadow_ray/shadow_ray.rmiss",
-                                    "../../../shader/shadow_ray/shadow_ray.rchit");
+    RayTracingPipeline::LoadShaders(SHADER_DIR + "wrs/wrs.rgen",
+                                    SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
+                                    SHADER_DIR + "shadow_ray/shadow_ray.rchit");
 
     RegisterScene(scene);
 
@@ -323,9 +323,9 @@ WRSPipeline::WRSPipeline(const Scene& scene, const GBuffers& gbuffers, size_t pu
 
 UniformLightPipeline::UniformLightPipeline(const Scene& scene, const GBuffers& gbuffers, size_t pushSize)
 {
-    RayTracingPipeline::LoadShaders("../../../shader/uniform_light/uniform_light.rgen",
-                                    "../../../shader/shadow_ray/shadow_ray.rmiss",
-                                    "../../../shader/shadow_ray/shadow_ray.rchit");
+    RayTracingPipeline::LoadShaders(SHADER_DIR + "uniform_light/uniform_light.rgen",
+                                    SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
+                                    SHADER_DIR + "shadow_ray/shadow_ray.rchit");
     RegisterScene(scene);
 
     Register("positionImage", gbuffers.position);
@@ -342,9 +342,9 @@ UniformLightPipeline::UniformLightPipeline(const Scene& scene, const GBuffers& g
 
 InitResevPipeline::InitResevPipeline(const Scene& scene, const GBuffers& gbuffers, size_t pushSize)
 {
-    RayTracingPipeline::LoadShaders("../../../shader/restir/init_resev.rgen",
-                                    "../../../shader/shadow_ray/shadow_ray.rmiss",
-                                    "../../../shader/shadow_ray/shadow_ray.rchit");
+    RayTracingPipeline::LoadShaders(SHADER_DIR + "restir/init_resev.rgen",
+                                    SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
+                                    SHADER_DIR + "shadow_ray/shadow_ray.rchit");
 
     RegisterScene(scene);
 
@@ -364,9 +364,9 @@ InitResevPipeline::InitResevPipeline(const Scene& scene, const GBuffers& gbuffer
 
 ShadingPipeline::ShadingPipeline(const Scene& scene, const GBuffers& gbuffers, const ResevImages& resevImages, size_t pushSize)
 {
-    RayTracingPipeline::LoadShaders("../../../shader/restir/shading.rgen",
-                                    "../../../shader/shadow_ray/shadow_ray.rmiss",
-                                    "../../../shader/shadow_ray/shadow_ray.rchit");
+    RayTracingPipeline::LoadShaders(SHADER_DIR + "restir/shading.rgen",
+                                    SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
+                                    SHADER_DIR + "shadow_ray/shadow_ray.rchit");
 
     RegisterScene(scene);
 
@@ -386,9 +386,9 @@ ShadingPipeline::ShadingPipeline(const Scene& scene, const GBuffers& gbuffers, c
 
 SpatialReusePipeline::SpatialReusePipeline(const Scene& scene, const GBuffers& gbuffers, const ResevImages& resevImages, size_t pushSize)
 {
-    RayTracingPipeline::LoadShaders("../../../shader/restir/spatial_reuse.rgen",
-                                    "../../../shader/shadow_ray/shadow_ray.rmiss",
-                                    "../../../shader/shadow_ray/shadow_ray.rchit");
+    RayTracingPipeline::LoadShaders(SHADER_DIR + "restir/spatial_reuse.rgen",
+                                    SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
+                                    SHADER_DIR + "shadow_ray/shadow_ray.rchit");
 
     RegisterScene(scene);
 
@@ -427,9 +427,9 @@ void SpatialReusePipeline::CopyToResevImages(ResevImages& dst)
 TemporalReusePipeline::TemporalReusePipeline(const Scene& scene, const GBuffers& gbuffers,
                                              const ResevImages& resevImages, size_t pushSize)
 {
-    RayTracingPipeline::LoadShaders("../../../shader/restir/temporal_reuse.rgen",
-                                    "../../../shader/shadow_ray/shadow_ray.rmiss",
-                                    "../../../shader/shadow_ray/shadow_ray.rchit");
+    RayTracingPipeline::LoadShaders(SHADER_DIR + "restir/temporal_reuse.rgen",
+                                    SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
+                                    SHADER_DIR + "shadow_ray/shadow_ray.rchit");
 
     RegisterScene(scene);
 

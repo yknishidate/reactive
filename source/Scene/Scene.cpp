@@ -6,7 +6,7 @@
 Scene::Scene(const std::string& filepath,
              glm::vec3 position, glm::vec3 scale, glm::vec3 rotation)
 {
-    Loader::LoadFromFile(filepath, meshes, textures);
+    Loader::LoadFromFile(ASSET_DIR + filepath, meshes, textures);
 
     // If textures is empty, append dummy texture
     if (textures.empty()) {
@@ -109,7 +109,7 @@ SphereLight& Scene::AddSphereLight(glm::vec3 intensity, glm::vec3 position, floa
         Material lightMaterial;
         lightMaterial.emission = glm::vec3{ 1.0f };
 
-        auto mesh = AddMesh("../../../asset/Sphere.obj");
+        auto mesh = AddMesh("Sphere.obj");
         mesh->SetMaterial(lightMaterial);
         sphereMeshIndex = meshes.size() - 1;
     }

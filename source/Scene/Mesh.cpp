@@ -18,7 +18,7 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& ind
 
 Mesh::Mesh(const std::string& filepath)
 {
-    Loader::LoadFromFile(filepath, vertices, indices);
+    Loader::LoadFromFile(ASSET_DIR + filepath, vertices, indices);
 
     vk::BufferUsageFlags usage{
         vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
