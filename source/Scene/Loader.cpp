@@ -111,7 +111,7 @@ void Loader::LoadFromFile(const std::string& filepath,
 
     std::string dir = std::filesystem::path{ filepath }.parent_path().string();
     if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filepath.c_str(), dir.c_str())) {
-        throw std::runtime_error(warn + err);
+        spdlog::error("Failed to load: {}", warn + err);
     }
 
     int texCount = 0;

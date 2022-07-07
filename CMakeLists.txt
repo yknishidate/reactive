@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 file(GLOB_RECURSE sources source/*.cpp)
 file(GLOB_RECURSE headers source/*.hpp)
-add_executable(${PROJECT_NAME} ${sources} ${headers})
+add_library(${PROJECT_NAME} ${sources} ${headers})
 
 target_precompile_headers(${PROJECT_NAME} PUBLIC source/pch.h)
 
@@ -68,3 +68,5 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${PROJECT_SOURCE_DIR}/source
     ${PROJECT_SOURCE_DIR}/
 )
+
+add_subdirectory(sample/restir)

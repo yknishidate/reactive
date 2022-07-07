@@ -1,0 +1,14 @@
+cmake_minimum_required(VERSION 3.16)
+
+file(GLOB_RECURSE sources *.cpp)
+file(GLOB_RECURSE headers *.hpp)
+add_executable(ReSTIR ${sources} ${headers})
+
+target_link_libraries(ReSTIR PRIVATE 
+    Reactive
+)
+
+target_include_directories(ReSTIR PUBLIC
+    ${PROJECT_SOURCE_DIR}/source
+    ${PROJECT_SOURCE_DIR}/
+)

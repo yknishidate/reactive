@@ -65,7 +65,7 @@ void GUI::Init()
     ImGui_ImplVulkan_Init(&initInfo, Context::GetRenderPass());
 
     // Setup font
-    io.Fonts->AddFontFromFileTTF("../asset/Roboto-Medium.ttf", 24.0f);
+    io.Fonts->AddFontFromFileTTF("../../../asset/Roboto-Medium.ttf", 24.0f);
     {
         Context::OneTimeSubmit(
             [&](vk::CommandBuffer commandBuffer)
