@@ -18,6 +18,7 @@ public:
     void SetImageLayout(vk::ImageLayout newLayout);
     void CopyToImage(vk::CommandBuffer commandBuffer, const Image& dst) const;
     void CopyToImage(Image& dst);
+    void CopyToBackImage() const;
 
     static void SetImageLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout);
 

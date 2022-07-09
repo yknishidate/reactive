@@ -2,12 +2,12 @@
 #include "Engine.hpp"
 #include "Scene/Loader.hpp"
 
-void Engine::Init()
+void Engine::Init(int width, int height)
 {
     try {
         spdlog::set_pattern("[%^%l%$] %v");
         spdlog::info("Engine::Init()");
-        Window::Init(1920, 1080);
+        Window::Init(width, height);
         Context::Init();
         GUI::Init();
     } catch (const std::exception& e) {

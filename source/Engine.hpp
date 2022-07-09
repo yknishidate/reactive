@@ -14,7 +14,7 @@
 
 namespace Engine
 {
-    void Init();
+    void Init(int width = 1920, int height = 1280);
     void Shutdown();
     bool Update();
     void Render(std::function<void()> func);

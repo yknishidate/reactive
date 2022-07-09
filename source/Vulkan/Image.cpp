@@ -159,6 +159,11 @@ void Image::CopyToImage(Image& dst)
     dst.SetImageLayout(dstOldLayout);
 }
 
+void Image::CopyToBackImage() const
+{
+    Context::CopyToBackImage(Context::GetCurrentCommandBuffer(), *this);
+}
+
 void Image::SetImageLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout)
 {
     vk::PipelineStageFlags srcStageMask = vk::PipelineStageFlagBits::eAllCommands;

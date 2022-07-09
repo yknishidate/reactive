@@ -8,13 +8,9 @@ struct PushConstants
 
 int main()
 {
-    Engine::Init();
+    Engine::Init(750, 750);
 
-    std::vector<Vertex> vertices = {
-        {glm::vec3{-1,  0, 0}},
-        {glm::vec3{ 0, -1, 0}},
-        {glm::vec3{ 1,  0, 0}},
-    };
+    std::vector<Vertex> vertices = { {{-1,  0, 0}}, {{ 0, -1, 0}}, {{ 1,  0, 0}} };
     std::vector<Index> indices = { 0, 1, 2 };
     auto mesh = std::make_shared<Mesh>(vertices, indices);
 
@@ -34,17 +30,15 @@ int main()
     pipeline.Setup(sizeof(PushConstants));
 
     while (Engine::Update()) {
-        scene.Update(0.1);
+        scene.Update(0.1f);
 
         PushConstants pushConstants;
         pushConstants.invProj = scene.GetCamera().GetInvProj();
         pushConstants.invView = scene.GetCamera().GetInvView();
 
-        Engine::Render(
-            [&]() {
-                pipeline.Run(&pushConstants);
-                Context::CopyToBackImage(outputImage);
-            });
+        Engine::Render([&]() {
+            pipeline.Run(&pushConstants);
+            outputImage.CopyToBackImage(); });
     }
     Engine::Shutdown();
 }
