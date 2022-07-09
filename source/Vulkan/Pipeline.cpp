@@ -272,10 +272,3 @@ void RayTracingPipeline::Run(void* pushData)
 {
     Run(Context::GetCurrentCommandBuffer(), Window::GetWidth(), Window::GetHeight(), pushData);
 }
-
-void RayTracingPipeline::RegisterScene(const Scene& scene)
-{
-    Register("topLevelAS", scene.GetAccel());
-    Register("samplers", scene.GetTextures());
-    Register("Addresses", scene.GetAddressBuffer());
-}

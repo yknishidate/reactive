@@ -19,7 +19,9 @@ public:
         RayTracingPipeline::LoadShaders(SHADER_DIR + "gbuffer/gbuffer.rgen",
                                         SHADER_DIR + "gbuffer/gbuffer.rmiss",
                                         SHADER_DIR + "gbuffer/gbuffer.rchit");
-        RegisterScene(scene);
+        Register("topLevelAS", scene.GetAccel());
+        Register("samplers", scene.GetTextures());
+        Register("Addresses", scene.GetAddressBuffer());
 
         gbuffers.position = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16B16A16Sfloat };
         gbuffers.normal = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16B16A16Sfloat };
@@ -50,7 +52,9 @@ public:
         RayTracingPipeline::LoadShaders(SHADER_DIR + "uniform_light/uniform_light.rgen",
                                         SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
                                         SHADER_DIR + "shadow_ray/shadow_ray.rchit");
-        RegisterScene(scene);
+        Register("topLevelAS", scene.GetAccel());
+        Register("samplers", scene.GetTextures());
+        Register("Addresses", scene.GetAddressBuffer());
 
         Register("positionImage", gbuffers.position);
         Register("normalImage", gbuffers.normal);
@@ -78,8 +82,9 @@ public:
         RayTracingPipeline::LoadShaders(SHADER_DIR + "wrs/wrs.rgen",
                                         SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
                                         SHADER_DIR + "shadow_ray/shadow_ray.rchit");
-
-        RegisterScene(scene);
+        Register("topLevelAS", scene.GetAccel());
+        Register("samplers", scene.GetTextures());
+        Register("Addresses", scene.GetAddressBuffer());
 
         Register("positionImage", gbuffers.position);
         Register("normalImage", gbuffers.normal);
@@ -112,8 +117,9 @@ public:
         RayTracingPipeline::LoadShaders(SHADER_DIR + "restir/init_resev.rgen",
                                         SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
                                         SHADER_DIR + "shadow_ray/shadow_ray.rchit");
-
-        RegisterScene(scene);
+        Register("topLevelAS", scene.GetAccel());
+        Register("samplers", scene.GetTextures());
+        Register("Addresses", scene.GetAddressBuffer());
 
         Register("positionImage", gbuffers.position);
         Register("normalImage", gbuffers.normal);
@@ -143,8 +149,9 @@ public:
         RayTracingPipeline::LoadShaders(SHADER_DIR + "restir/spatial_reuse.rgen",
                                         SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
                                         SHADER_DIR + "shadow_ray/shadow_ray.rchit");
-
-        RegisterScene(scene);
+        Register("topLevelAS", scene.GetAccel());
+        Register("samplers", scene.GetTextures());
+        Register("Addresses", scene.GetAddressBuffer());
 
         Register("positionImage", gbuffers.position);
         Register("normalImage", gbuffers.normal);
@@ -192,8 +199,9 @@ public:
         RayTracingPipeline::LoadShaders(SHADER_DIR + "restir/temporal_reuse.rgen",
                                         SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
                                         SHADER_DIR + "shadow_ray/shadow_ray.rchit");
-
-        RegisterScene(scene);
+        Register("topLevelAS", scene.GetAccel());
+        Register("samplers", scene.GetTextures());
+        Register("Addresses", scene.GetAddressBuffer());
 
         Register("positionImage", gbuffers.position);
         Register("normalImage", gbuffers.normal);
@@ -262,8 +270,9 @@ public:
         RayTracingPipeline::LoadShaders(SHADER_DIR + "restir/shading.rgen",
                                         SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
                                         SHADER_DIR + "shadow_ray/shadow_ray.rchit");
-
-        RegisterScene(scene);
+        Register("topLevelAS", scene.GetAccel());
+        Register("samplers", scene.GetTextures());
+        Register("Addresses", scene.GetAddressBuffer());
 
         Register("positionImage", gbuffers.position);
         Register("normalImage", gbuffers.normal);

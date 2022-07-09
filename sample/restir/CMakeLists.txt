@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 3.16)
 
 file(GLOB_RECURSE sources *.cpp)
 file(GLOB_RECURSE headers *.hpp)
-add_executable(ReSTIR ${sources} ${headers})
+file(GLOB_RECURSE shaders shader/*)
+add_executable(ReSTIR ${sources} ${headers} ${shaders})
+
+source_group("Shader Files" FILES ${shaders})
 
 target_link_libraries(ReSTIR PRIVATE 
     Reactive

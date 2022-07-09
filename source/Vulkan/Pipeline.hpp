@@ -43,8 +43,6 @@ public:
     virtual void Run(vk::CommandBuffer commandBuffer, void* pushData = nullptr);
     virtual void Run(void* pushData = nullptr);
 
-    void RegisterScene(const Scene& scene);
-
 private:
     std::vector<vk::UniqueShaderModule> shaderModules;
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
