@@ -5,7 +5,7 @@
 #include "../random.glsl"
 #include "reservoir.glsl"
 
-layout(location = 0) rayPayloadEXT HitPayload payload;
+layout(location = 0) rayPayloadEXT ShadowPayload payload;
 
 vec3 sampleSphereLight(in vec2 randVal, in vec3 dir)
 {

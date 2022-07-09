@@ -3,7 +3,7 @@
 #include "../common.glsl"
 #include "../random.glsl"
 
-layout(location = 0) rayPayloadEXT HitPayload payload;
+layout(location = 0) rayPayloadEXT ShadowPayload payload;
 
 int sampleLightUniform(inout uint seed)
 {

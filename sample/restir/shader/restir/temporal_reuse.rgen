@@ -10,7 +10,7 @@ layout(binding =  15, rg16f) uniform image2D newResevWeightImage;  // (w_sum, p_
 layout(binding =  16, rg32ui) uniform uimage2D oldResevSampleImage; // (x_z, m)
 layout(binding =  17, rg16f) uniform image2D oldResevWeightImage;  // (w_sum, p_z)
 
-layout(location = 0) rayPayloadEXT HitPayload payload;
+layout(location = 0) rayPayloadEXT ShadowPayload payload;
 
 Reservoir loadOldReservoir(in ivec2 id)
 {

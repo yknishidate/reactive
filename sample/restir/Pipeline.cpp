@@ -17,11 +17,11 @@ GBufferPipeline::GBufferPipeline(const Scene& scene, size_t pushSize)
     gbuffers.emission = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16B16A16Sfloat };
     gbuffers.instanceIndex = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR8G8B8A8Uint };
 
-    Register("position", gbuffers.position);
-    Register("normal", gbuffers.normal);
-    Register("diffuse", gbuffers.diffuse);
-    Register("emission", gbuffers.emission);
-    Register("instanceIndex", gbuffers.instanceIndex);
+    Register("positionImage", gbuffers.position);
+    Register("normalImage", gbuffers.normal);
+    Register("diffuseImage", gbuffers.diffuse);
+    Register("emissionImage", gbuffers.emission);
+    Register("instanceIndexImage", gbuffers.instanceIndex);
 
     RayTracingPipeline::Setup(pushSize);
 }
