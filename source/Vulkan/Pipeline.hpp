@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <vulkan/vulkan.hpp>
 #include "Buffer.hpp"
 #include "DescriptorSet.hpp"
@@ -18,7 +19,7 @@ protected:
     vk::UniquePipelineLayout pipelineLayout;
     vk::UniquePipeline pipeline;
     size_t pushSize{};
-    DescriptorSet descSet;
+    std::shared_ptr<DescriptorSet> descSet;
 };
 
 class ComputePipeline : public Pipeline

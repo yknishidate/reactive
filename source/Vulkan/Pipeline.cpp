@@ -48,7 +48,6 @@ namespace
             throw std::runtime_error("failed to create ray tracing pipeline.");
         }
         return std::move(res.value);
-        return {};
     }
 
     vk::StridedDeviceAddressRegionKHR CreateAddressRegion(
@@ -65,22 +64,22 @@ namespace
 
 void Pipeline::Register(const std::string& name, const std::vector<Image>& images)
 {
-    descSet.Register(name, images);
+    descSet->Register(name, images);
 }
 
 void Pipeline::Register(const std::string& name, const Buffer& buffer)
 {
-    descSet.Register(name, buffer);
+    descSet->Register(name, buffer);
 }
 
 void Pipeline::Register(const std::string& name, const Image& image)
 {
-    descSet.Register(name, image);
+    descSet->Register(name, image);
 }
 
 void Pipeline::Register(const std::string& name, const TopAccel& accel)
 {
-    descSet.Register(name, accel);
+    descSet->Register(name, accel);
 }
 
 void ComputePipeline::LoadShaders(const std::string& path)
@@ -88,23 +87,23 @@ void ComputePipeline::LoadShaders(const std::string& path)
     spdlog::info("ComputePipeline::LoadShaders()");
 
     std::vector spirvCode = Compiler::CompileToSPV(path);
-    descSet.AddBindingMap(spirvCode, vk::ShaderStageFlagBits::eCompute);
+    descSet->AddBindingMap(spirvCode, vk::ShaderStageFlagBits::eCompute);
     shaderModule = CreateShaderModule(spirvCode);
 }
 
 void ComputePipeline::Setup(size_t pushSize)
 {
     this->pushSize = pushSize;
-    descSet.SetupLayout();
-    pipelineLayout = descSet.CreatePipelineLayout(pushSize, vk::ShaderStageFlagBits::eCompute);
+    descSet->SetupLayout();
+    pipelineLayout = descSet->CreatePipelineLayout(pushSize, vk::ShaderStageFlagBits::eCompute);
     pipeline = CreateComputePipeline(*shaderModule, vk::ShaderStageFlagBits::eCompute, *pipelineLayout);
-    descSet.Allocate();
+    descSet->Allocate();
 }
 
 void ComputePipeline::Run(vk::CommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY, void* pushData)
 {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *pipeline);
-    descSet.Bind(commandBuffer, vk::PipelineBindPoint::eCompute, *pipelineLayout);
+    descSet->Bind(commandBuffer, vk::PipelineBindPoint::eCompute, *pipelineLayout);
     if (pushData) {
         commandBuffer.pushConstants(*pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0, pushSize, pushData);
     }
@@ -128,9 +127,9 @@ void RayTracingPipeline::LoadShaders(const std::string& rgenPath, const std::str
     std::vector chitShader = Compiler::CompileToSPV(chitPath);
 
     // Get bindings
-    descSet.AddBindingMap(rgenShader, vk::ShaderStageFlagBits::eRaygenKHR);
-    descSet.AddBindingMap(missShader, vk::ShaderStageFlagBits::eMissKHR);
-    descSet.AddBindingMap(chitShader, vk::ShaderStageFlagBits::eClosestHitKHR);
+    descSet->AddBindingMap(rgenShader, vk::ShaderStageFlagBits::eRaygenKHR);
+    descSet->AddBindingMap(missShader, vk::ShaderStageFlagBits::eMissKHR);
+    descSet->AddBindingMap(chitShader, vk::ShaderStageFlagBits::eClosestHitKHR);
 
     shaderModules.push_back(CreateShaderModule(rgenShader));
     shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eRaygenKHR, *shaderModules.back(), "main" });
@@ -168,10 +167,10 @@ void RayTracingPipeline::LoadShaders(const std::string& rgenPath, const std::str
     std::vector ahitShader = Compiler::CompileToSPV(ahitPath);
 
     // Get bindings
-    descSet.AddBindingMap(rgenShader, vk::ShaderStageFlagBits::eRaygenKHR);
-    descSet.AddBindingMap(missShader, vk::ShaderStageFlagBits::eMissKHR);
-    descSet.AddBindingMap(chitShader, vk::ShaderStageFlagBits::eClosestHitKHR);
-    descSet.AddBindingMap(ahitShader, vk::ShaderStageFlagBits::eAnyHitKHR);
+    descSet->AddBindingMap(rgenShader, vk::ShaderStageFlagBits::eRaygenKHR);
+    descSet->AddBindingMap(missShader, vk::ShaderStageFlagBits::eMissKHR);
+    descSet->AddBindingMap(chitShader, vk::ShaderStageFlagBits::eClosestHitKHR);
+    descSet->AddBindingMap(ahitShader, vk::ShaderStageFlagBits::eAnyHitKHR);
 
 
     shaderModules.push_back(CreateShaderModule(rgenShader));
@@ -196,12 +195,12 @@ void RayTracingPipeline::Setup(size_t pushSize)
 {
     this->pushSize = pushSize;
 
-    descSet.SetupLayout();
-    pipelineLayout = descSet.CreatePipelineLayout(pushSize,
-                                                  vk::ShaderStageFlagBits::eRaygenKHR |
-                                                  vk::ShaderStageFlagBits::eMissKHR |
-                                                  vk::ShaderStageFlagBits::eClosestHitKHR |
-                                                  vk::ShaderStageFlagBits::eAnyHitKHR);
+    descSet->SetupLayout();
+    pipelineLayout = descSet->CreatePipelineLayout(pushSize,
+                                                   vk::ShaderStageFlagBits::eRaygenKHR |
+                                                   vk::ShaderStageFlagBits::eMissKHR |
+                                                   vk::ShaderStageFlagBits::eClosestHitKHR |
+                                                   vk::ShaderStageFlagBits::eAnyHitKHR);
     pipeline = CreateRayTracingPipeline(shaderStages, shaderGroups, *pipelineLayout);
 
     // Get Ray Tracing Properties
@@ -240,13 +239,13 @@ void RayTracingPipeline::Setup(size_t pushSize)
     missSBT.Copy(shaderHandleStorage.data() + 1 * handleSizeAligned);
     hitSBT.Copy(shaderHandleStorage.data() + 2 * handleSizeAligned);
 
-    descSet.Allocate();
+    descSet->Allocate();
 }
 
 void RayTracingPipeline::Run(vk::CommandBuffer commandBuffer, uint32_t countX, uint32_t countY, void* pushData)
 {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, *pipeline);
-    descSet.Bind(commandBuffer, vk::PipelineBindPoint::eRayTracingKHR, *pipelineLayout);
+    descSet->Bind(commandBuffer, vk::PipelineBindPoint::eRayTracingKHR, *pipelineLayout);
     if (pushData) {
         commandBuffer.pushConstants(*pipelineLayout,
                                     vk::ShaderStageFlagBits::eRaygenKHR |

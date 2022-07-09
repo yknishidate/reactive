@@ -16,6 +16,7 @@ class GBufferPipeline : public RayTracingPipeline
 public:
     GBufferPipeline(const Scene& scene, size_t pushSize = 0)
     {
+        descSet = std::make_shared<DescriptorSet>();
         RayTracingPipeline::LoadShaders(SHADER_DIR + "gbuffer/gbuffer.rgen",
                                         SHADER_DIR + "gbuffer/gbuffer.rmiss",
                                         SHADER_DIR + "gbuffer/gbuffer.rchit");
@@ -49,6 +50,7 @@ class UniformLightPipeline : public RayTracingPipeline
 public:
     UniformLightPipeline(const Scene& scene, const GBuffers& gbuffers, size_t pushSize = 0)
     {
+        descSet = std::make_shared<DescriptorSet>();
         RayTracingPipeline::LoadShaders(SHADER_DIR + "uniform_light/uniform_light.rgen",
                                         SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
                                         SHADER_DIR + "shadow_ray/shadow_ray.rchit");
@@ -79,6 +81,7 @@ class WRSPipeline : public RayTracingPipeline
 public:
     WRSPipeline(const Scene& scene, const GBuffers& gbuffers, size_t pushSize = 0)
     {
+        descSet = std::make_shared<DescriptorSet>();
         RayTracingPipeline::LoadShaders(SHADER_DIR + "wrs/wrs.rgen",
                                         SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
                                         SHADER_DIR + "shadow_ray/shadow_ray.rchit");
@@ -114,6 +117,7 @@ class InitResevPipeline : public RayTracingPipeline
 public:
     InitResevPipeline(const Scene& scene, const GBuffers& gbuffers, size_t pushSize = 0)
     {
+        descSet = std::make_shared<DescriptorSet>();
         RayTracingPipeline::LoadShaders(SHADER_DIR + "restir/init_resev.rgen",
                                         SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
                                         SHADER_DIR + "shadow_ray/shadow_ray.rchit");
@@ -146,6 +150,7 @@ class SpatialReusePipeline : public RayTracingPipeline
 public:
     SpatialReusePipeline(const Scene& scene, const GBuffers& gbuffers, const ResevImages& resevImages, size_t pushSize = 0)
     {
+        descSet = std::make_shared<DescriptorSet>();
         RayTracingPipeline::LoadShaders(SHADER_DIR + "restir/spatial_reuse.rgen",
                                         SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
                                         SHADER_DIR + "shadow_ray/shadow_ray.rchit");
@@ -196,6 +201,7 @@ class TemporalReusePipeline : public RayTracingPipeline
 public:
     TemporalReusePipeline(const Scene& scene, const GBuffers& gbuffers, const ResevImages& resevImages, size_t pushSize = 0)
     {
+        descSet = std::make_shared<DescriptorSet>();
         RayTracingPipeline::LoadShaders(SHADER_DIR + "restir/temporal_reuse.rgen",
                                         SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
                                         SHADER_DIR + "shadow_ray/shadow_ray.rchit");
@@ -267,6 +273,7 @@ class ShadingPipeline : public RayTracingPipeline
 public:
     ShadingPipeline(const Scene& scene, const GBuffers& gbuffers, const ResevImages& resevImages, size_t pushSize = 0)
     {
+        descSet = std::make_shared<DescriptorSet>();
         RayTracingPipeline::LoadShaders(SHADER_DIR + "restir/shading.rgen",
                                         SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
                                         SHADER_DIR + "shadow_ray/shadow_ray.rchit");
