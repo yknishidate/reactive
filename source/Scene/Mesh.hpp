@@ -14,6 +14,8 @@ struct Vertex
     glm::vec2 texCoord{ 0.0 };
 };
 
+using Index = uint32_t;
+
 struct Material
 {
     glm::vec3 ambient{ 1.0 };

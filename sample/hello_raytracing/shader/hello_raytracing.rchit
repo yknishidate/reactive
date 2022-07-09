@@ -6,5 +6,5 @@ hitAttributeEXT vec3 attribs;
 
 void main()
 {
-    payload = vec3(1.0);
+    payload = vec3(attribs.xy, 0);
 }

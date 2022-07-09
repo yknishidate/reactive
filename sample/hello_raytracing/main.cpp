@@ -10,32 +10,35 @@ int main()
 {
     Engine::Init();
 
-    Scene scene{ "crytek_sponza/sponza.obj",
-                 glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 0.01f },
-                 glm::vec3{ 0.0f, glm::radians(90.0f), 0.0f } };
+    std::vector<Vertex> vertices = {
+        {glm::vec3{-1,  0, 0}},
+        {glm::vec3{ 0, -1, 0}},
+        {glm::vec3{ 1,  0, 0}},
+    };
+    std::vector<Index> indices = { 0, 1, 2 };
+    auto mesh = std::make_shared<Mesh>(vertices, indices);
+
+    Scene scene{};
+    scene.AddObject(mesh);
     scene.Setup();
 
     auto descSet = std::make_shared<DescriptorSet>();
 
     Image outputImage{ vk::Format::eB8G8R8A8Unorm };
-    RayTracingPipeline pipeline{ descSet };
 
+    RayTracingPipeline pipeline{ descSet };
     pipeline.LoadShaders(SHADER_DIR + "hello_raytracing.rgen",
                          SHADER_DIR + "hello_raytracing.rmiss",
                          SHADER_DIR + "hello_raytracing.rchit");
 
     descSet->Register("topLevelAS", scene.GetAccel());
-    descSet->Register("samplers", scene.GetTextures());
-    descSet->Register("Addresses", scene.GetAddressBuffer());
     descSet->Register("outputImage", outputImage);
     pipeline.Setup(sizeof(PushConstants));
 
-    PushConstants pushConstants;
-    pushConstants.invProj = scene.GetCamera().GetInvProj();
-    pushConstants.invView = scene.GetCamera().GetInvView();
-
     while (Engine::Update()) {
         scene.Update(0.1);
+
+        PushConstants pushConstants;
         pushConstants.invProj = scene.GetCamera().GetInvProj();
         pushConstants.invView = scene.GetCamera().GetInvView();
 
