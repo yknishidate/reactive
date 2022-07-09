@@ -12,6 +12,62 @@ struct PushConstants
     glm::vec4 skyColor{ 0, 0, 0, 0 };
 };
 
+struct OutputImage
+{
+    OutputImage()
+    {
+        outputImage = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm };
+    }
+
+    Image outputImage;
+};
+
+struct GBuffers
+{
+    GBuffers()
+    {
+        position = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16B16A16Sfloat };
+        normal = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16B16A16Sfloat };
+        diffuse = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm };
+        emission = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16B16A16Sfloat };
+        instanceIndex = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR8G8B8A8Uint };
+    }
+
+    Image position;
+    Image normal;
+    Image diffuse;
+    Image emission;
+    Image instanceIndex;
+};
+
+struct ResevImages
+{
+    ResevImages()
+    {
+        sampleImage = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR32G32Uint };
+        weightImage = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16Sfloat };
+    }
+
+    void Copy(ResevImages& dst)
+    {
+        sampleImage.SetImageLayout(vk::ImageLayout::eTransferSrcOptimal);
+        weightImage.SetImageLayout(vk::ImageLayout::eTransferSrcOptimal);
+        dst.sampleImage.SetImageLayout(vk::ImageLayout::eTransferDstOptimal);
+        dst.weightImage.SetImageLayout(vk::ImageLayout::eTransferDstOptimal);
+
+        sampleImage.CopyToImage(dst.sampleImage);
+        weightImage.CopyToImage(dst.weightImage);
+
+        sampleImage.SetImageLayout(vk::ImageLayout::eGeneral);
+        weightImage.SetImageLayout(vk::ImageLayout::eGeneral);
+        dst.sampleImage.SetImageLayout(vk::ImageLayout::eGeneral);
+        dst.weightImage.SetImageLayout(vk::ImageLayout::eGeneral);
+    }
+
+    Image sampleImage;
+    Image weightImage;
+};
+
 int main()
 {
     Engine::Init();
@@ -39,11 +95,11 @@ int main()
     std::unordered_map<std::string, RayTracingPipeline> pipelines;
     pipelines.insert({ "GBuffer", RayTracingPipeline{ descSet } });
     pipelines.insert({ "Uniform", RayTracingPipeline{ descSet } });
-    //pipelines.insert({ "WRS", RayTracingPipeline{ descSet } });
-    //pipelines.insert({ "InitResev", RayTracingPipeline{ descSet } });
-    //pipelines.insert({ "SpatialReuse", RayTracingPipeline{ descSet } });
-    //pipelines.insert({ "TemporalReuse", RayTracingPipeline{ descSet } });
-    //pipelines.insert({ "Shading", RayTracingPipeline{ descSet } });
+    pipelines.insert({ "WRS", RayTracingPipeline{ descSet } });
+    pipelines.insert({ "InitResev", RayTracingPipeline{ descSet } });
+    pipelines.insert({ "SpatialReuse", RayTracingPipeline{ descSet } });
+    pipelines.insert({ "TemporalReuse", RayTracingPipeline{ descSet } });
+    pipelines.insert({ "Shading", RayTracingPipeline{ descSet } });
 
     pipelines["GBuffer"].LoadShaders(SHADER_DIR + "gbuffer/gbuffer.rgen",
                                      SHADER_DIR + "gbuffer/gbuffer.rmiss",
@@ -53,32 +109,31 @@ int main()
                                      SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
                                      SHADER_DIR + "shadow_ray/shadow_ray.rchit");
 
-    //pipelines["WRS"].LoadShaders(SHADER_DIR + "wrs/wrs.rgen",
-    //                             SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
-    //                             SHADER_DIR + "shadow_ray/shadow_ray.rchit");
+    pipelines["WRS"].LoadShaders(SHADER_DIR + "wrs/wrs.rgen",
+                                 SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
+                                 SHADER_DIR + "shadow_ray/shadow_ray.rchit");
 
-    //pipelines["InitResev"].LoadShaders(SHADER_DIR + "restir/init_resev.rgen",
-    //                                   SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
-    //                                   SHADER_DIR + "shadow_ray/shadow_ray.rchit");
+    pipelines["InitResev"].LoadShaders(SHADER_DIR + "restir/init_resev.rgen",
+                                       SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
+                                       SHADER_DIR + "shadow_ray/shadow_ray.rchit");
 
-    //pipelines["SpatialReuse"].LoadShaders(SHADER_DIR + "restir/spatial_reuse.rgen",
-    //                                      SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
-    //                                      SHADER_DIR + "shadow_ray/shadow_ray.rchit");
+    pipelines["SpatialReuse"].LoadShaders(SHADER_DIR + "restir/spatial_reuse.rgen",
+                                          SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
+                                          SHADER_DIR + "shadow_ray/shadow_ray.rchit");
 
-    //pipelines["TemporalReuse"].LoadShaders(SHADER_DIR + "restir/temporal_reuse.rgen",
-    //                                       SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
-    //                                       SHADER_DIR + "shadow_ray/shadow_ray.rchit");
+    pipelines["TemporalReuse"].LoadShaders(SHADER_DIR + "restir/temporal_reuse.rgen",
+                                           SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
+                                           SHADER_DIR + "shadow_ray/shadow_ray.rchit");
 
-    //pipelines["Shading"].LoadShaders(SHADER_DIR + "restir/shading.rgen",
-    //                                 SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
-    //                                 SHADER_DIR + "shadow_ray/shadow_ray.rchit");
+    pipelines["Shading"].LoadShaders(SHADER_DIR + "restir/shading.rgen",
+                                     SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
+                                     SHADER_DIR + "shadow_ray/shadow_ray.rchit");
 
     GBuffers gbuffers;
     OutputImage outputImage;
-    //ResevImages initedResevImages;
-    //ResevImages spatialReusedResevImages;
-    //ResevImages temporalReusedResevImages;
-    //ResevImages storedResevImages;
+    ResevImages initedResevImages;
+    ResevImages reusedResevImages;
+    ResevImages storedResevImages;
 
     descSet->Register("topLevelAS", scene.GetAccel());
     descSet->Register("samplers", scene.GetTextures());
@@ -92,17 +147,16 @@ int main()
 
     descSet->Register("outputImage", outputImage.outputImage);
 
+    descSet->Register("resevSampleImage", initedResevImages.sampleImage);
+    descSet->Register("resevWeightImage", initedResevImages.weightImage);
+    descSet->Register("newResevSampleImage", reusedResevImages.sampleImage);
+    descSet->Register("newResevWeightImage", reusedResevImages.weightImage);
+    descSet->Register("oldResevSampleImage", storedResevImages.sampleImage);
+    descSet->Register("oldResevWeightImage", storedResevImages.weightImage);
+
     for (auto& [name, pipeline] : pipelines) {
         pipeline.Setup(sizeof(PushConstants));
     }
-
-    //GBufferPipeline gbufferPipeline{ scene, sizeof(PushConstants) };
-    //UniformLightPipeline uniformLightPipeline{ scene, gbufferPipeline.GetGBuffers(), sizeof(PushConstants) };
-    //WRSPipeline wrsPipeline{ scene, gbufferPipeline.GetGBuffers(), sizeof(PushConstants) };
-    //InitResevPipeline initResevPipeline{ scene, gbufferPipeline.GetGBuffers(), sizeof(PushConstants) };
-    //SpatialReusePipeline spatialReusePipeline{ scene, gbufferPipeline.GetGBuffers(), initResevPipeline.GetResevImages(), sizeof(PushConstants) };
-    //TemporalReusePipeline temporalReusePipeline{ scene, gbufferPipeline.GetGBuffers(), initResevPipeline.GetResevImages(), sizeof(PushConstants) };
-    //ShadingPipeline shadingPipeline{ scene, gbufferPipeline.GetGBuffers(), initResevPipeline.GetResevImages(), sizeof(PushConstants) };
 
     PushConstants pushConstants;
     pushConstants.numLights = scene.GetNumSphereLights();
@@ -110,7 +164,7 @@ int main()
     pushConstants.invView = scene.GetCamera().GetInvView();
     pushConstants.frame = 0;
 
-    int method = 2;
+    int method = 0;
     int iteration = 0;
     bool temporalReuse = false;
     constexpr int Uniform = 0;
@@ -130,29 +184,25 @@ int main()
         Engine::Render(
             [&]() {
                 pipelines["GBuffer"].Run(&pushConstants);
-                pipelines["Uniform"].Run(&pushConstants);
-                Context::CopyToBackImage(outputImage.outputImage);
 
-                //if (method == Uniform) {
-                //    uniformLightPipeline.Run(&pushConstants);
-                //    Context::CopyToBackImage(uniformLightPipeline.GetOutputImage());
-                //} else if (method == WRS) {
-                //    wrsPipeline.Run(&pushConstants);
-                //    Context::CopyToBackImage(wrsPipeline.GetOutputImage());
-                //} else if (method == ReSTIR) {
-                //    initResevPipeline.Run(&pushConstants);
-                //    if (temporalReuse) {
-                //        temporalReusePipeline.Run(&pushConstants);
-                //        temporalReusePipeline.CopyToResevImages(initResevPipeline.GetResevImages());
-                //    }
-                //    temporalReusePipeline.CopyFromResevImages(initResevPipeline.GetResevImages());
-                //    for (int i = 0; i < iteration; i++) {
-                //        spatialReusePipeline.Run(&pushConstants);
-                //        spatialReusePipeline.CopyToResevImages(initResevPipeline.GetResevImages());
-                //    }
-                //    shadingPipeline.Run(&pushConstants);
-                //    Context::CopyToBackImage(shadingPipeline.GetOutputImage());
-                //}
+                if (method == Uniform) {
+                    pipelines["Uniform"].Run(&pushConstants);
+                } else if (method == WRS) {
+                    pipelines["WRS"].Run(&pushConstants);
+                } else if (method == ReSTIR) {
+                    pipelines["InitResev"].Run(&pushConstants);
+                    if (temporalReuse) {
+                        pipelines["TemporalReuse"].Run(&pushConstants);
+                        reusedResevImages.Copy(initedResevImages);
+                    }
+                    initedResevImages.Copy(storedResevImages);
+                    for (int i = 0; i < iteration; i++) {
+                        pipelines["SpatialReuse"].Run(&pushConstants);
+                        reusedResevImages.Copy(initedResevImages);
+                    }
+                    pipelines["Shading"].Run(&pushConstants);
+                }
+                Context::CopyToBackImage(outputImage.outputImage);
             });
     }
     Engine::Shutdown();
