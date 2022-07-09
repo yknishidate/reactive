@@ -4,8 +4,18 @@
 #include "Mesh.hpp"
 #include "Camera.hpp"
 #include "Object.hpp"
+#include "Light.hpp"
 
 class Image;
+
+struct BufferAddress
+{
+    vk::DeviceAddress vertices;
+    vk::DeviceAddress indices;
+    vk::DeviceAddress objects;
+    vk::DeviceAddress pointLights;
+    vk::DeviceAddress sphereLights;
+};
 
 struct BoundingBox
 {

@@ -10,11 +10,78 @@ const highp float M_PI = 3.14159265358979323846;
 
 struct HitPayload
 {
+    vec3 position;
+    vec3 normal;
+    vec3 diffuse;
+    vec3 emission;
+    int instanceIndex;
+};
+
+struct ShadowPayload
+{
     bool shadowed;
 };
 
-#include "../../share/structure.inc"
+struct Vertex
+{
+    vec3 pos;
+    vec3 normal;
+    vec2 texCoord;
+};
 
+struct SphereLight
+{
+    vec3 intensity;
+    vec3 position;
+    float radius;
+};
+
+struct PointLight
+{
+    vec3 intensity;
+    vec3 position;
+};
+
+struct DirectionalLight
+{
+    vec3 intensity;
+    vec3 direction;
+};
+
+struct ObjectData
+{
+    mat4 matrix;
+    mat4 normalMatrix;
+    vec4 diffuse;
+    vec4 emission;
+    vec4 specular;
+    int diffuseTexture;
+    int alphaTexture;
+};
+
+struct BufferAddress
+{
+    uint64_t vertices;
+    uint64_t indices;
+    uint64_t objects;
+    uint64_t pointLights;
+    uint64_t sphereLights;
+};
+
+layout(push_constant) uniform 
+PushConstants{
+    mat4 invView;
+    mat4 invProj;
+    int frame;
+    int depth;
+    int samples;
+    int numLights;
+    vec4 skyColor;
+} pushConstants;
+
+layout(buffer_reference, scalar) buffer Vertices { Vertex v[]; };
+layout(buffer_reference, scalar) buffer Indices { uvec3 i[]; };
+layout(buffer_reference, scalar) buffer Objects { ObjectData o[]; };
 layout(buffer_reference, scalar) buffer SphereLights { SphereLight s[]; };
 layout(binding =  0) uniform accelerationStructureEXT topLevelAS;
 layout(binding =  1, rgba8) uniform image2D inputImage;

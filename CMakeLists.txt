@@ -66,12 +66,10 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${VULKAN_INCLUDE}/spirv_cross
     ${VULKAN_INCLUDE}/glslang/SPIRV
     ${PROJECT_SOURCE_DIR}/source
-    ${PROJECT_SOURCE_DIR}/
 )
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     "ASSET_DIR=std::string{\"${PROJECT_SOURCE_DIR}/asset/\"}")
-target_compile_definitions(${PROJECT_NAME} PRIVATE
-    "SHADER_DIR=std::string{\"${PROJECT_SOURCE_DIR}/shader/\"}")
 
 add_subdirectory(sample/restir)
+add_subdirectory(sample/hello_raytracing)

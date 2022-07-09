@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-set(TARGET_NAME "ReSTIR")
+set(TARGET_NAME "HelloRaytracing")
 
 file(GLOB_RECURSE sources *.cpp)
 file(GLOB_RECURSE headers *.hpp)

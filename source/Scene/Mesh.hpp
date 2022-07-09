@@ -7,7 +7,14 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
-#include "share/structure.inc"
+struct Vertex
+{
+    glm::vec3 pos{ 0.0 };
+    glm::vec3 normal{ 0.0 };
+    glm::vec2 texCoord{ 0.0 };
+};
+
+using Index = uint32_t;
 
 struct Material
 {

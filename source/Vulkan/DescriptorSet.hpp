@@ -9,8 +9,7 @@
 class DescriptorSet
 {
 public:
-    void SetupLayout();
-    void Allocate();
+    void Setup();
     void Update();
     void Bind(vk::CommandBuffer commandBuffer, vk::PipelineBindPoint bindPoint, vk::PipelineLayout pipelineLayout);
 

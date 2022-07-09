@@ -15,6 +15,17 @@ struct Transform
     vk::TransformMatrixKHR GetVkMatrix() const;
 };
 
+struct ObjectData
+{
+    glm::mat4 matrix{1.0};
+    glm::mat4 normalMatrix{1.0};
+    glm::vec4 diffuse{1.0};
+    glm::vec4 emission{0.0};
+    glm::vec4 specular{0.0};
+    int diffuseTexture{-1};
+    int alphaTexture{-1};
+};
+
 class Object
 {
 public:
