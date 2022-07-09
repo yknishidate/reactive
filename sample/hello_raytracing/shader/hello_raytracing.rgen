@@ -1,0 +1,35 @@
+#version 460
+#extension GL_EXT_ray_tracing : enable
+
+layout(binding = 0, set = 0) uniform accelerationStructureEXT topLevelAS;
+layout(binding = 1, set = 0, rgba8) uniform image2D outputImage;
+layout(push_constant) uniform PushConstants {
+    mat4 invView;
+    mat4 invProj;
+} pushConstants;
+
+layout(location = 0) rayPayloadEXT vec3 payload;
+
+void main()
+{
+    const vec2 screenPos = vec2(gl_LaunchIDEXT.xy);
+    const vec2 uv = vec2(gl_LaunchIDEXT.xy) / vec2(gl_LaunchSizeEXT.xy) * 2.0 - 1.0;
+    vec4 origin    = pushConstants.invView * vec4(0, 0, 0, 1);
+    vec4 target    = pushConstants.invProj * vec4(uv.x, uv.y, 1, 1);
+    vec4 direction = pushConstants.invView * vec4(normalize(target.xyz), 0);
+
+    traceRayEXT(
+        topLevelAS,
+        gl_RayFlagsOpaqueEXT,
+        0xff, // cullMask
+        0,    // sbtRecordOffset
+        0,    // sbtRecordStride
+        0,    // missIndex
+        origin.xyz,
+        0.001,
+        direction.xyz,
+        10000.0,
+        0     // payloadLocation
+    );
+    imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(payload, 1));
+}

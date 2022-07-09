@@ -72,3 +72,4 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
     "ASSET_DIR=std::string{\"${PROJECT_SOURCE_DIR}/asset/\"}")
 
 add_subdirectory(sample/restir)
+add_subdirectory(sample/hello_raytracing)
