@@ -1,5 +1,6 @@
 #include "Image.hpp"
 #include "Buffer.hpp"
+#include "Window/Window.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -77,6 +78,11 @@ Image::Image(uint32_t width, uint32_t height, vk::Format format)
         });
 }
 
+Image::Image(vk::Format format)
+    : Image(Window::GetWidth(), Window::GetHeight(), format)
+{
+}
+
 Image::Image(const std::string& filepath)
 {
     int width;
@@ -121,6 +127,11 @@ void Image::SetImageLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout newL
     layout = newLayout;
 }
 
+void Image::SetImageLayout(vk::ImageLayout newLayout)
+{
+    SetImageLayout(Context::GetCurrentCommandBuffer(), newLayout);
+}
+
 void Image::CopyToImage(vk::CommandBuffer commandBuffer, const Image& dst) const
 {
     vk::ImageCopy copyRegion;
@@ -133,6 +144,19 @@ void Image::CopyToImage(vk::CommandBuffer commandBuffer, const Image& dst) const
 
     commandBuffer.copyImage(srcImage, vk::ImageLayout::eTransferSrcOptimal,
                             dstImage, vk::ImageLayout::eTransferDstOptimal, copyRegion);
+}
+
+void Image::CopyToImage(Image& dst)
+{
+    vk::ImageLayout srcOldLayout = layout;
+    vk::ImageLayout dstOldLayout = dst.layout;
+    SetImageLayout(vk::ImageLayout::eTransferSrcOptimal);
+    dst.SetImageLayout(vk::ImageLayout::eTransferDstOptimal);
+
+    CopyToImage(Context::GetCurrentCommandBuffer(), dst);
+
+    SetImageLayout(srcOldLayout);
+    dst.SetImageLayout(dstOldLayout);
 }
 
 void Image::SetImageLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout)

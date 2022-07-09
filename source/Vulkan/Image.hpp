@@ -6,6 +6,7 @@ class Image
 public:
     Image() = default;
     Image(uint32_t width, uint32_t height, vk::Format format);
+    Image(vk::Format format);
     Image(const std::string& filepath);
 
     vk::Image GetImage() const { return *image; }
@@ -14,23 +15,9 @@ public:
     vk::DescriptorImageInfo GetInfo() const { return { *sampler, *view, layout }; }
 
     void SetImageLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout newLayout);
-    void SetImageLayout(vk::ImageLayout newLayout)
-    {
-        SetImageLayout(Context::GetCurrentCommandBuffer(), newLayout);
-    }
+    void SetImageLayout(vk::ImageLayout newLayout);
     void CopyToImage(vk::CommandBuffer commandBuffer, const Image& dst) const;
-    void CopyToImage(Image& dst)
-    {
-        vk::ImageLayout srcOldLayout = layout;
-        vk::ImageLayout dstOldLayout = dst.layout;
-        SetImageLayout(vk::ImageLayout::eTransferSrcOptimal);
-        dst.SetImageLayout(vk::ImageLayout::eTransferDstOptimal);
-
-        CopyToImage(Context::GetCurrentCommandBuffer(), dst);
-
-        SetImageLayout(srcOldLayout);
-        dst.SetImageLayout(dstOldLayout);
-    }
+    void CopyToImage(Image& dst);
 
     static void SetImageLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout);
 

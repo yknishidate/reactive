@@ -13,48 +13,28 @@ struct PushConstants
 
 struct OutputImage
 {
-    OutputImage()
-    {
-        outputImage = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm };
-    }
-
-    Image outputImage;
+    Image output{ vk::Format::eB8G8R8A8Unorm };
 };
 
 struct GBuffers
 {
-    GBuffers()
-    {
-        position = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16B16A16Sfloat };
-        normal = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16B16A16Sfloat };
-        diffuse = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm };
-        emission = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16B16A16Sfloat };
-        instanceIndex = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR8G8B8A8Uint };
-    }
-
-    Image position;
-    Image normal;
-    Image diffuse;
-    Image emission;
-    Image instanceIndex;
+    Image position{ vk::Format::eR16G16B16A16Sfloat };
+    Image normal{ vk::Format::eR16G16B16A16Sfloat };
+    Image diffuse{ vk::Format::eB8G8R8A8Unorm };
+    Image emission{ vk::Format::eR16G16B16A16Sfloat };
+    Image instanceIndex{ vk::Format::eR8G8B8A8Uint };
 };
 
 struct ResevImages
 {
-    ResevImages()
-    {
-        sampleImage = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR32G32Uint };
-        weightImage = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16Sfloat };
-    }
-
     void Copy(ResevImages& dst)
     {
-        sampleImage.CopyToImage(dst.sampleImage);
-        weightImage.CopyToImage(dst.weightImage);
+        sample.CopyToImage(dst.sample);
+        weight.CopyToImage(dst.weight);
     }
 
-    Image sampleImage;
-    Image weightImage;
+    Image sample{ vk::Format::eR32G32Uint };
+    Image weight{ vk::Format::eR16G16Sfloat };
 };
 
 int main()
@@ -65,13 +45,11 @@ int main()
                  glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 0.01f },
                  glm::vec3{ 0.0f, glm::radians(90.0f), 0.0f } };
 
-    // Add random lights
     BoundingBox bbox = scene.GetBoundingBox();
     std::mt19937 mt{};
     std::uniform_real_distribution distX{ bbox.min.x, bbox.max.x };
     std::uniform_real_distribution distY{ bbox.min.y, bbox.max.y };
     std::uniform_real_distribution distZ{ bbox.min.z, bbox.max.z };
-
     for (int index = 0; index < 100; index++) {
         const glm::vec3 position = glm::vec3{ distX(mt), distY(mt), distZ(mt) } / 2.5f;
         const glm::vec3 color{ 1.0f };
@@ -134,14 +112,14 @@ int main()
     descSet->Register("emissionImage", gbuffers.emission);
     descSet->Register("instanceIndexImage", gbuffers.instanceIndex);
 
-    descSet->Register("outputImage", outputImage.outputImage);
+    descSet->Register("outputImage", outputImage.output);
 
-    descSet->Register("resevSampleImage", initedResevImages.sampleImage);
-    descSet->Register("resevWeightImage", initedResevImages.weightImage);
-    descSet->Register("newResevSampleImage", reusedResevImages.sampleImage);
-    descSet->Register("newResevWeightImage", reusedResevImages.weightImage);
-    descSet->Register("oldResevSampleImage", storedResevImages.sampleImage);
-    descSet->Register("oldResevWeightImage", storedResevImages.weightImage);
+    descSet->Register("resevSampleImage", initedResevImages.sample);
+    descSet->Register("resevWeightImage", initedResevImages.weight);
+    descSet->Register("newResevSampleImage", reusedResevImages.sample);
+    descSet->Register("newResevWeightImage", reusedResevImages.weight);
+    descSet->Register("oldResevSampleImage", storedResevImages.sample);
+    descSet->Register("oldResevWeightImage", storedResevImages.weight);
 
     for (auto& [name, pipeline] : pipelines) {
         pipeline.Setup(sizeof(PushConstants));
@@ -191,7 +169,7 @@ int main()
                     }
                     pipelines["Shading"].Run(&pushConstants);
                 }
-                Context::CopyToBackImage(outputImage.outputImage);
+                Context::CopyToBackImage(outputImage.output);
             });
     }
     Engine::Shutdown();
