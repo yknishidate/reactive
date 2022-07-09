@@ -19,9 +19,17 @@ public:
         SetImageLayout(Context::GetCurrentCommandBuffer(), newLayout);
     }
     void CopyToImage(vk::CommandBuffer commandBuffer, const Image& dst) const;
-    void CopyToImage(const Image& dst) const
+    void CopyToImage(Image& dst)
     {
+        vk::ImageLayout srcOldLayout = layout;
+        vk::ImageLayout dstOldLayout = dst.layout;
+        SetImageLayout(vk::ImageLayout::eTransferSrcOptimal);
+        dst.SetImageLayout(vk::ImageLayout::eTransferDstOptimal);
+
         CopyToImage(Context::GetCurrentCommandBuffer(), dst);
+
+        SetImageLayout(srcOldLayout);
+        dst.SetImageLayout(dstOldLayout);
     }
 
     static void SetImageLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout);

@@ -1,5 +1,4 @@
 #include "Engine.hpp"
-#include "Pipeline.hpp"
 
 struct PushConstants
 {
@@ -50,18 +49,8 @@ struct ResevImages
 
     void Copy(ResevImages& dst)
     {
-        sampleImage.SetImageLayout(vk::ImageLayout::eTransferSrcOptimal);
-        weightImage.SetImageLayout(vk::ImageLayout::eTransferSrcOptimal);
-        dst.sampleImage.SetImageLayout(vk::ImageLayout::eTransferDstOptimal);
-        dst.weightImage.SetImageLayout(vk::ImageLayout::eTransferDstOptimal);
-
         sampleImage.CopyToImage(dst.sampleImage);
         weightImage.CopyToImage(dst.weightImage);
-
-        sampleImage.SetImageLayout(vk::ImageLayout::eGeneral);
-        weightImage.SetImageLayout(vk::ImageLayout::eGeneral);
-        dst.sampleImage.SetImageLayout(vk::ImageLayout::eGeneral);
-        dst.weightImage.SetImageLayout(vk::ImageLayout::eGeneral);
     }
 
     Image sampleImage;
