@@ -22,17 +22,15 @@ int main()
     scene.AddObject(mesh);
     scene.Setup();
 
-    auto descSet = std::make_shared<DescriptorSet>();
-
     Image outputImage{ vk::Format::eB8G8R8A8Unorm };
 
-    RayTracingPipeline pipeline{ descSet };
+    RayTracingPipeline pipeline{ };
     pipeline.LoadShaders(SHADER_DIR + "hello_raytracing.rgen",
                          SHADER_DIR + "hello_raytracing.rmiss",
                          SHADER_DIR + "hello_raytracing.rchit");
-
-    descSet->Register("topLevelAS", scene.GetAccel());
-    descSet->Register("outputImage", outputImage);
+    pipeline.GetDescSet().Register("topLevelAS", scene.GetAccel());
+    pipeline.GetDescSet().Register("outputImage", outputImage);
+    pipeline.GetDescSet().Setup();
     pipeline.Setup(sizeof(PushConstants));
 
     while (Engine::Update()) {

@@ -25,6 +25,8 @@ public:
     void Register(const std::string& name, const Image& image);
     void Register(const std::string& name, const TopAccel& accel);
 
+    DescriptorSet& GetDescSet() { return *descSet; }
+
 protected:
     vk::UniquePipelineLayout pipelineLayout;
     vk::UniquePipeline pipeline;

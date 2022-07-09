@@ -32,13 +32,9 @@ namespace
     }
 } // namespace
 
-void DescriptorSet::SetupLayout()
+void DescriptorSet::Setup()
 {
     descSetLayout = CreateDescSetLayout(GetBindings());
-}
-
-void DescriptorSet::Allocate()
-{
     descSet = AllocateDescSet(*descSetLayout);
     Update();
 }

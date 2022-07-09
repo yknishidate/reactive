@@ -120,6 +120,7 @@ int main()
     descSet->Register("newResevWeightImage", reusedResevImages.weight);
     descSet->Register("oldResevSampleImage", storedResevImages.sample);
     descSet->Register("oldResevWeightImage", storedResevImages.weight);
+    descSet->Setup();
 
     for (auto& [name, pipeline] : pipelines) {
         pipeline.Setup(sizeof(PushConstants));

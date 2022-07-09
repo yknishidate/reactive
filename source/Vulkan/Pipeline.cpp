@@ -94,10 +94,8 @@ void ComputePipeline::LoadShaders(const std::string& path)
 void ComputePipeline::Setup(size_t pushSize)
 {
     this->pushSize = pushSize;
-    descSet->SetupLayout();
     pipelineLayout = descSet->CreatePipelineLayout(pushSize, vk::ShaderStageFlagBits::eCompute);
     pipeline = CreateComputePipeline(*shaderModule, vk::ShaderStageFlagBits::eCompute, *pipelineLayout);
-    descSet->Allocate();
 }
 
 void ComputePipeline::Run(vk::CommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY, void* pushData)
@@ -195,7 +193,6 @@ void RayTracingPipeline::Setup(size_t pushSize)
 {
     this->pushSize = pushSize;
 
-    descSet->SetupLayout();
     pipelineLayout = descSet->CreatePipelineLayout(pushSize,
                                                    vk::ShaderStageFlagBits::eRaygenKHR |
                                                    vk::ShaderStageFlagBits::eMissKHR |
@@ -238,8 +235,6 @@ void RayTracingPipeline::Setup(size_t pushSize)
     raygenSBT.Copy(shaderHandleStorage.data() + 0 * handleSizeAligned);
     missSBT.Copy(shaderHandleStorage.data() + 1 * handleSizeAligned);
     hitSBT.Copy(shaderHandleStorage.data() + 2 * handleSizeAligned);
-
-    descSet->Allocate();
 }
 
 void RayTracingPipeline::Run(vk::CommandBuffer commandBuffer, uint32_t countX, uint32_t countY, void* pushData)
