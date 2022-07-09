@@ -2,13 +2,44 @@
 #include "Vulkan/Pipeline.hpp"
 #include "Window/Window.hpp"
 
+struct OutputImage
+{
+    OutputImage()
+    {
+        outputImage = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm };
+    }
+
+    Image outputImage;
+};
+
 struct GBuffers
 {
+    GBuffers()
+    {
+        position = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16B16A16Sfloat };
+        normal = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16B16A16Sfloat };
+        diffuse = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eB8G8R8A8Unorm };
+        emission = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16B16A16Sfloat };
+        instanceIndex = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR8G8B8A8Uint };
+    }
+
     Image position;
     Image normal;
     Image diffuse;
     Image emission;
     Image instanceIndex;
+};
+
+struct ResevImages
+{
+    ResevImages()
+    {
+        sampleImage = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR32G32Uint };
+        weightImage = Image{ Window::GetWidth(), Window::GetHeight(), vk::Format::eR16G16Sfloat };
+    }
+
+    Image sampleImage;
+    Image weightImage;
 };
 
 class GBufferPipeline : public RayTracingPipeline
@@ -104,12 +135,6 @@ public:
 
 private:
     Image outputImage;
-};
-
-struct ResevImages
-{
-    Image sampleImage;
-    Image weightImage;
 };
 
 class InitResevPipeline : public RayTracingPipeline

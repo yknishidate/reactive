@@ -10,6 +10,16 @@ class Scene;
 class Pipeline
 {
 public:
+    Pipeline()
+    {
+        descSet = std::make_shared<DescriptorSet>();
+    }
+
+    Pipeline(std::shared_ptr<DescriptorSet> descSet)
+    {
+        this->descSet = descSet;
+    }
+
     void Register(const std::string& name, const std::vector<Image>& images);
     void Register(const std::string& name, const Buffer& buffer);
     void Register(const std::string& name, const Image& image);
@@ -25,6 +35,9 @@ protected:
 class ComputePipeline : public Pipeline
 {
 public:
+    ComputePipeline() : Pipeline() {}
+    ComputePipeline(std::shared_ptr<DescriptorSet> descSet) : Pipeline(descSet) {}
+
     virtual void LoadShaders(const std::string& path);
     virtual void Setup(size_t pushSize = 0);
     virtual void Run(vk::CommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY, void* pushData = nullptr);
@@ -36,6 +49,9 @@ private:
 class RayTracingPipeline : public Pipeline
 {
 public:
+    RayTracingPipeline() : Pipeline() {}
+    RayTracingPipeline(std::shared_ptr<DescriptorSet> descSet) : Pipeline(descSet) {}
+
     virtual void LoadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath);
     virtual void LoadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath, const std::string& ahitPath);
     virtual void Setup(size_t pushSize = 0);
