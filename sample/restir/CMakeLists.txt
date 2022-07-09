@@ -12,3 +12,8 @@ target_include_directories(ReSTIR PUBLIC
     ${PROJECT_SOURCE_DIR}/source
     ${PROJECT_SOURCE_DIR}/
 )
+
+target_compile_definitions(ReSTIR PRIVATE
+    "ASSET_DIR=std::string{\"${PROJECT_SOURCE_DIR}/asset/\"}")
+target_compile_definitions(ReSTIR PRIVATE
+    "SHADER_DIR=std::string{\"${CMAKE_CURRENT_SOURCE_DIR}/shader/\"}")
