@@ -17,7 +17,7 @@ struct HitPayload
     int instanceIndex;
 };
 
-#include "../../share/structure.inc"
+#include "../../share/structure.glsl"
 
 layout(buffer_reference, scalar) buffer Vertices { Vertex v[]; };
 layout(buffer_reference, scalar) buffer Indices { uvec3 i[]; };

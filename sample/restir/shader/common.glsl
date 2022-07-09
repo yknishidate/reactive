@@ -13,7 +13,7 @@ struct HitPayload
     bool shadowed;
 };
 
-#include "../../share/structure.inc"
+#include "../../share/structure.glsl"
 
 layout(buffer_reference, scalar) buffer SphereLights { SphereLight s[]; };
 layout(binding =  0) uniform accelerationStructureEXT topLevelAS;
