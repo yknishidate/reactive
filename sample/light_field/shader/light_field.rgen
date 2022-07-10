@@ -5,6 +5,7 @@
 #extension GL_EXT_buffer_reference2 : require
 #extension GL_EXT_nonuniform_qualifier : enable
 
+layout(location = 0) rayPayloadEXT vec3 payload;
 layout(binding = 0, set = 0) uniform accelerationStructureEXT topLevelAS;
 layout(binding = 1, set = 0, rgba8) uniform image2D outputImage;
 layout(push_constant) uniform PushConstants {
@@ -13,8 +14,6 @@ layout(push_constant) uniform PushConstants {
     uint64_t vertices;
     uint64_t indices;
 } constants;
-
-layout(location = 0) rayPayloadEXT vec3 payload;
 
 void main()
 {

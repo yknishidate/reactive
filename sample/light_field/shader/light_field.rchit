@@ -1,3 +1,34 @@
+// // Work dimensions
+// in    uvec3  gl_LaunchIDEXT;
+// in    uvec3  gl_LaunchSizeEXT;
+
+// // Geometry instance ids
+// in     int   gl_PrimitiveID;
+// in     int   gl_InstanceID;
+// in     int   gl_InstanceCustomIndexEXT;
+// in     int   gl_GeometryIndexEXT;
+
+// // World space parameters
+// in    vec3   gl_WorldRayOriginEXT;
+// in    vec3   gl_WorldRayDirectionEXT;
+// in    vec3   gl_ObjectRayOriginEXT;
+// in    vec3   gl_ObjectRayDirectionEXT;
+
+// // Ray parameters
+// in    float  gl_RayTminEXT;
+// in    float  gl_RayTmaxEXT;
+// in    uint   gl_IncomingRayFlagsEXT;
+
+// // Ray hit info
+// in    float  gl_HitTEXT;
+// in    uint   gl_HitKindEXT;
+
+// // Transform matrices
+// in    mat4x3 gl_ObjectToWorldEXT;
+// in    mat3x4 gl_ObjectToWorld3x4EXT;
+// in    mat4x3 gl_WorldToObjectEXT;
+// in    mat3x4 gl_WorldToObject3x4EXT;
+
 #version 460
 #extension GL_EXT_ray_tracing : enable
 #extension GL_EXT_scalar_block_layout : enable
@@ -13,6 +44,7 @@ struct Vertex
 };
 
 layout(location = 0) rayPayloadInEXT vec3 payload;
+layout(binding = 0, set = 0) uniform accelerationStructureEXT topLevelAS;
 layout(buffer_reference, scalar) buffer Vertices { Vertex v[]; };
 layout(buffer_reference, scalar) buffer Indices { uvec3 i[]; };
 layout(push_constant) uniform PushConstants {
@@ -25,6 +57,8 @@ hitAttributeEXT vec3 attribs;
 
 void main()
 {
+
+    
     // Get buffer addresses
     Vertices vertices = Vertices(constants.vertices);
     Indices indices = Indices(constants.indices);
@@ -39,5 +73,33 @@ void main()
     vec3 barycentricCoords = vec3(1.0f - attribs.x - attribs.y, attribs.x, attribs.y);
     vec2 texCoord = v0.texCoord * barycentricCoords.x + v1.texCoord * barycentricCoords.y + v2.texCoord * barycentricCoords.z;
 
-    payload = vec3(texCoord, 0);
+    if(gl_InstanceID == 0){
+        payload = vec3(0.0);
+        traceRayEXT(
+            topLevelAS,
+            gl_RayFlagsOpaqueEXT,
+            0xff, // cullMask
+            0,    // sbtRecordOffset
+            0,    // sbtRecordStride
+            0,    // missIndex
+            gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT,
+            0.001,
+            gl_WorldRayDirectionEXT,
+            10000.0,
+            0     // payloadLocation
+        );
+
+        if(payload == vec3(0.0)){
+            // Miss
+            payload = vec3(0.2);
+        }else{
+            // Hit
+            vec2 uv = payload.xy;
+            vec2 st = texCoord;
+            payload = vec3(st, 0);
+        }
+    }
+    if(gl_InstanceID == 1){
+        payload = vec3(texCoord, 0);
+    }
 }
