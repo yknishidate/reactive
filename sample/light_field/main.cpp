@@ -48,8 +48,8 @@ int main()
     uvPlane.transform.position = { 0.0, 0.0, -3.0 };
     scene.Setup();
 
-    //auto imagePaths = GetAllFilePaths(ASSET_DIR + "chess_lf");
-    //Image images{ imagePaths };
+    auto imagePaths = GetAllFilePaths(ASSET_DIR + "chess_lf");
+    Image images{ imagePaths };
     Image outputImage{ vk::Format::eB8G8R8A8Unorm };
 
     RayTracingPipeline pipeline{};
@@ -58,7 +58,7 @@ int main()
                          SHADER_DIR + "light_field.rchit");
     pipeline.GetDescSet().Register("topLevelAS", scene.GetAccel());
     pipeline.GetDescSet().Register("outputImage", outputImage);
-    //pipeline.GetDescSet().Register("images", images);
+    pipeline.GetDescSet().Register("images", images);
     pipeline.GetDescSet().Setup();
     pipeline.Setup(sizeof(PushConstants));
 

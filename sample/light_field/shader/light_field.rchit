@@ -45,6 +45,7 @@ struct Vertex
 
 layout(location = 0) rayPayloadInEXT vec3 payload;
 layout(binding = 0, set = 0) uniform accelerationStructureEXT topLevelAS;
+layout(binding = 2) uniform sampler3D images;
 layout(buffer_reference, scalar) buffer Vertices { Vertex v[]; };
 layout(buffer_reference, scalar) buffer Indices { uvec3 i[]; };
 layout(push_constant) uniform PushConstants {
@@ -55,10 +56,44 @@ layout(push_constant) uniform PushConstants {
 } constants;
 hitAttributeEXT vec3 attribs;
 
+int GRID_SIZE = 17;
+
+float indexToDepth(int index)
+{
+    return (index + 0.5) / float(GRID_SIZE * GRID_SIZE);
+}
+
+int coordToIndex(vec2 coord)
+{
+    // coord: [0, 16]
+    return int(GRID_SIZE * coord.y + coord.x);
+}
+
+float coordToDepth(vec2 coord)
+{
+    return indexToDepth(coordToIndex(coord));
+}
+
+vec4 lightField(vec2 st, vec2 uv)
+{
+    // st: camera
+    // uv: pixel
+    // lt---rt
+    // |     |
+    // lb---rb
+
+    // [0, 16]
+    vec2 lt = floor(st * vec2(GRID_SIZE - 1, GRID_SIZE - 1));
+    vec2 rt = lt + vec2(1, 0);
+    vec2 lb = lt + vec2(0, 1);
+    vec2 rb = lt + vec2(1, 1);
+    float depth = coordToDepth(lt);
+
+    return texture(images, vec3(uv, depth));
+}
+
 void main()
 {
-
-    
     // Get buffer addresses
     Vertices vertices = Vertices(constants.vertices);
     Indices indices = Indices(constants.indices);
@@ -96,7 +131,8 @@ void main()
             // Hit
             vec2 uv = payload.xy;
             vec2 st = texCoord;
-            payload = vec3(st, 0);
+            vec4 color = lightField(st, uv);
+            payload = color.rgb;
         }
     }
     if(gl_InstanceID == 1){
