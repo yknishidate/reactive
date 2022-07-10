@@ -43,6 +43,7 @@ public:
     virtual void LoadShaders(const std::string& path);
     virtual void Setup(size_t pushSize = 0);
     virtual void Run(vk::CommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY, void* pushData = nullptr);
+    virtual void Run(void* pushData = nullptr);
 
 private:
     vk::UniqueShaderModule shaderModule;
