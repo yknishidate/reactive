@@ -30,7 +30,7 @@ std::vector<std::string> GetAllFilePaths(const fs::path& directory)
 
 int main()
 {
-    Engine::Init(720, 720);
+    Engine::Init(1000, 1000);
 
     std::vector<Vertex> vertices{
         {{ -1, -1, 0}, {}, {0, 0}},
@@ -66,8 +66,12 @@ int main()
     pushConstants.vertices = mesh->GetVertexBufferAddress();
     pushConstants.indices = mesh->GetIndexBufferAddress();
 
+    int fov = 45;
     while (Engine::Update()) {
         scene.Update(0.1f);
+
+        GUI::SliderInt("FOV", fov, 20, 80);
+        scene.GetCamera().SetFov(fov);
 
         pushConstants.invProj = scene.GetCamera().GetInvProj();
         pushConstants.invView = scene.GetCamera().GetInvView();

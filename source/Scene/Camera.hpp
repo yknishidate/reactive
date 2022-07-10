@@ -14,6 +14,7 @@ public:
     glm::mat4 GetProj() const;
     glm::mat4 GetInvView() const { return glm::inverse(GetView()); }
     glm::mat4 GetInvProj() const { return glm::inverse(GetProj()); }
+    void SetFov(float fov) { this->fov = fov; }
 
 private:
     glm::vec3 position = { 0.0f, 0.0f, 5.0f };
@@ -22,4 +23,5 @@ private:
     float yaw = 0.0f;
     float pitch = 0.0f;
     bool dirty = false;
+    float fov = 45.0f;
 };

@@ -63,7 +63,7 @@ glm::mat4 Camera::GetView() const
 
 glm::mat4 Camera::GetProj() const
 {
-    return glm::perspective(glm::radians(45.0f), aspect, 0.01f, 10000.0f);
+    return glm::perspective(glm::radians(fov), aspect, 0.01f, 10000.0f);
 }
 
 bool Camera::CheckDirtyAndClean()
