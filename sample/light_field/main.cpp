@@ -2,30 +2,35 @@
 
 struct PushConstants
 {
-    int rows = 1;
-    int cols = 1;
-    int index = 0;
+    int rows = 17;
+    int cols = 17;
+    glm::vec2 st = { 0.5, 0.5 };
+
+    void HandleInput()
+    {
+        if (!Window::MousePressed()) return;
+        auto motion = Window::GetMouseMotion() * 0.005f;
+        st = clamp(st + glm::vec2(-motion.x, motion.y), 0.0f, 1.0f);
+    }
 };
 
 namespace fs = std::filesystem;
-
-int main()
+std::vector<std::string> GetAllFilePaths(const fs::path& directory)
 {
-    Engine::Init(750, 750);
-
-    Image outputImage{ vk::Format::eB8G8R8A8Unorm };
-
-    fs::path directory{ ASSET_DIR + "chess_lf" };
     std::vector<std::string> imagePaths;
     for (const auto& file : fs::directory_iterator{ directory }) {
         imagePaths.push_back(file.path().string());
-        //    int row, col;
-        //    double camx, camy;
-        //    char ext[64];
-        //    std::sscanf(file.path().filename().string().c_str(),
-        //                "out_%d_%d_%lf_%lf%s", &row, &col, &camx, &camy, ext);
     }
+    return imagePaths;
+}
+
+int main()
+{
+    Engine::Init(1280, 1280);
+
+    auto imagePaths = GetAllFilePaths(ASSET_DIR + "chess_lf");
     Image images{ imagePaths };
+    Image outputImage{ vk::Format::eB8G8R8A8Unorm };
 
     ComputePipeline pipeline{ };
     pipeline.LoadShaders(SHADER_DIR + "light_field.comp");
@@ -35,11 +40,8 @@ int main()
     pipeline.Setup(sizeof(PushConstants));
 
     while (Engine::Update()) {
-        PushConstants pushConstants;
-        pushConstants.rows = 17;
-        pushConstants.cols = 17;
-        GUI::SliderInt("Index", pushConstants.index, 0, 17 * 17 - 1);
-
+        static PushConstants pushConstants;
+        pushConstants.HandleInput();
         Engine::Render([&]() {
             pipeline.Run(&pushConstants);
             outputImage.CopyToBackImage(); });

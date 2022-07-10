@@ -9,13 +9,46 @@ layout(binding = 1) uniform sampler3D images;
 layout(push_constant) uniform PushConstants {
     int rows;
     int cols;
-    int index;
+    vec2 st;
 } constants;
+
+float indexToDepth(int index)
+{
+    return (index + 0.5) / float(constants.rows * constants.cols);
+}
+
+int coordToIndex(vec2 coord)
+{
+    // coord: [0, 16]
+    return int(constants.cols * coord.y + coord.x);
+}
+
+float coordToDepth(vec2 coord)
+{
+    return indexToDepth(coordToIndex(coord));
+}
+
+vec4 lightField(vec2 st, vec2 uv)
+{
+    // st: camera
+    // uv: pixel
+    // lt---rt
+    // |     |
+    // lb---rb
+
+    // [0, 16]
+    vec2 lt = floor(st * vec2(constants.rows - 1, constants.cols - 1));
+    vec2 rt = lt + vec2(1, 0);
+    vec2 lb = lt + vec2(0, 1);
+    vec2 rb = lt + vec2(1, 1);
+    float depth = coordToDepth(lt);
+
+    return texture(images, vec3(uv, depth));
+}
 
 void main()
 {
     vec2 uv =  vec2(gl_GlobalInvocationID.xy) / vec2(gl_WorkGroupSize.xy * gl_NumWorkGroups.xy);
-    float depth = (constants.index + 0.5) / float(constants.rows * constants.cols);
-    vec4 color = texture(images, vec3(uv, depth));
+    vec4 color = lightField(constants.st, uv);
     imageStore(outputImage, ivec2(gl_GlobalInvocationID.xy), color);
 }
