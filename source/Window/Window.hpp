@@ -30,6 +30,7 @@ public:
 
     static void Update();
     static bool MousePressed();
+    static bool MouseRightPressed();
     static bool KeyPressed(int key);
     static glm::vec2 GetMousePos() { return currMousePos; }
     static glm::vec2 GetMouseMotion() { return currMousePos - lastMousePos; }

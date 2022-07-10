@@ -23,8 +23,16 @@ void Camera::ProcessInput()
         dirty = true;
     }
 
+    glm::vec3 up = -glm::vec3{ 0, 1, 0 };
     glm::vec3 forward = glm::normalize(glm::vec3{ front.x, 0, front.z });
-    glm::vec3 right = glm::normalize(glm::cross(-glm::vec3{ 0, 1, 0 }, forward));
+    glm::vec3 right = glm::normalize(glm::cross(up, forward));
+
+    if (Window::MouseRightPressed()) {
+        glm::vec2 motion = Window::GetMouseMotion();
+        position += right * motion.x * 0.001f;
+        position -= up * motion.y * 0.001f;
+        dirty = true;
+    }
 
     if (Window::KeyPressed(Key::W)) {
         position += forward * 0.15f;
