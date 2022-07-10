@@ -10,7 +10,7 @@ void Window::Init(int width, int height)
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     window = glfwCreateWindow(width, height, "Reactive", nullptr, nullptr);
-    SetIcon("../asset/Vulkan.png");
+    SetIcon(ASSET_DIR + "Vulkan.png");
 }
 
 void Window::SetIcon(const std::string& filepath)

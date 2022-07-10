@@ -10,8 +10,8 @@ int main()
 {
     Engine::Init(750, 750);
 
-    std::vector<Vertex> vertices = { {{-1,  0, 0}}, {{ 0, -1, 0}}, {{ 1,  0, 0}} };
-    std::vector<Index> indices = { 0, 1, 2 };
+    std::vector<Vertex> vertices{ {{-1, 0, 0}}, {{ 0, -1, 0}}, {{ 1, 0, 0}} };
+    std::vector<Index> indices{ 0, 1, 2 };
     auto mesh = std::make_shared<Mesh>(vertices, indices);
 
     Scene scene{};
