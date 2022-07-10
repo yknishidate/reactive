@@ -5,9 +5,17 @@
 #version 460
 layout(local_size_x = 1, local_size_y = 1) in;
 layout(binding = 0, rgba8) uniform image2D outputImage;
+layout(binding = 1) uniform sampler3D images;
+layout(push_constant) uniform PushConstants {
+    int rows;
+    int cols;
+    int index;
+} constants;
 
 void main()
 {
     vec2 uv =  vec2(gl_GlobalInvocationID.xy) / vec2(gl_WorkGroupSize.xy * gl_NumWorkGroups.xy);
-    imageStore(outputImage, ivec2(gl_GlobalInvocationID.xy), vec4(uv, 0, 1));
+    float depth = (constants.index + 0.5) / float(constants.rows * constants.cols);
+    vec4 color = texture(images, vec3(uv, depth));
+    imageStore(outputImage, ivec2(gl_GlobalInvocationID.xy), color);
 }

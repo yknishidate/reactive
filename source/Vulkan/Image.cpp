@@ -168,7 +168,7 @@ Image::Image(const std::vector<std::string>& filepaths)
     view = CreateImageView(*image, vk::Format::eR8G8B8A8Unorm, vk::ImageViewType::e3D);
     sampler = CreateSampler();
 
-    StagingBuffer staging{ static_cast<size_t>(width * height * depth * 4), data };
+    StagingBuffer staging{ static_cast<size_t>(width * height * depth * 4), allData.data() };
     Context::OneTimeSubmit(
         [&](vk::CommandBuffer commandBuffer)
         {
