@@ -17,6 +17,7 @@ public:
 
     void SetImageLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout newLayout);
     void SetImageLayout(vk::ImageLayout newLayout);
+    void SetSamplerMode(vk::SamplerAddressMode mode);
     void CopyToImage(vk::CommandBuffer commandBuffer, const Image& dst) const;
     void CopyToImage(Image& dst);
     void CopyToBackImage() const;

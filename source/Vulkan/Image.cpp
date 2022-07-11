@@ -57,7 +57,7 @@ namespace
         );
     }
 
-    vk::UniqueSampler CreateSampler()
+    vk::UniqueSampler CreateSampler(vk::SamplerAddressMode addressMode = vk::SamplerAddressMode::eRepeat)
     {
         return Context::GetDevice().createSamplerUnique(
             vk::SamplerCreateInfo()
@@ -67,9 +67,9 @@ namespace
             .setMaxLod(0.0f)
             .setMinLod(0.0f)
             .setMipmapMode(vk::SamplerMipmapMode::eLinear)
-            .setAddressModeU(vk::SamplerAddressMode::eRepeat)
-            .setAddressModeV(vk::SamplerAddressMode::eRepeat)
-            .setAddressModeW(vk::SamplerAddressMode::eRepeat)
+            .setAddressModeU(addressMode)
+            .setAddressModeV(addressMode)
+            .setAddressModeW(addressMode)
         );
     }
 }
@@ -193,6 +193,11 @@ void Image::SetImageLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout newL
 void Image::SetImageLayout(vk::ImageLayout newLayout)
 {
     SetImageLayout(Context::GetCurrentCommandBuffer(), newLayout);
+}
+
+void Image::SetSamplerMode(vk::SamplerAddressMode mode)
+{
+    sampler = CreateSampler(mode);
 }
 
 void Image::CopyToImage(vk::CommandBuffer commandBuffer, const Image& dst) const

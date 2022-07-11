@@ -30,7 +30,7 @@ std::vector<std::string> GetAllFilePaths(const fs::path& directory)
 
 int main()
 {
-    Engine::Init(1000, 1000);
+    Engine::Init(1500, 1500);
 
     std::vector<Vertex> vertices{
         {{ -1, -1, 0}, {}, {0, 0}},
@@ -46,6 +46,7 @@ int main()
     auto imagePaths = GetAllFilePaths(ASSET_DIR + "lego_lf");
     Image images{ imagePaths };
     Image outputImage{ vk::Format::eB8G8R8A8Unorm };
+    images.SetSamplerMode(vk::SamplerAddressMode::eClampToEdge);
 
     Scene scene{};
     auto& stPlane = scene.AddObject(mesh);
@@ -70,11 +71,15 @@ int main()
     pushConstants.indices = mesh->GetIndexBufferAddress();
 
     int fov = 45;
+    int farPlane;
     while (Engine::Update()) {
         scene.Update(0.1f);
 
         GUI::SliderInt("FOV", fov, 20, 80);
-        scene.GetCamera().SetFov(fov);
+        GUI::SliderInt("Far plane", farPlane, 1, 10);
+        scene.GetCamera().SetFov(static_cast<float>(fov));
+        uvPlane.transform.position.z = static_cast<float>(-farPlane);
+        //scene.Rebuild();
 
         pushConstants.invProj = scene.GetCamera().GetInvProj();
         pushConstants.invView = scene.GetCamera().GetInvView();
