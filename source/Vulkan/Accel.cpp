@@ -7,7 +7,7 @@ namespace
     vk::UniqueAccelerationStructureKHR CreateAccel(vk::Buffer buffer, vk::DeviceSize size,
                                                    vk::AccelerationStructureTypeKHR type)
     {
-        const auto accelInfo = vk::AccelerationStructureCreateInfoKHR()
+        const auto& accelInfo = vk::AccelerationStructureCreateInfoKHR()
             .setBuffer(buffer)
             .setSize(size)
             .setType(type);

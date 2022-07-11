@@ -35,7 +35,11 @@ private:
 class EventListener
 {
 public:
-    virtual void Listen(Event event) = 0;
+    //virtual void Listen(Event event) = 0;
+    virtual void Listen(Event event)
+    {
+        spdlog::info("Listen");
+    }
 };
 
 class Window
@@ -61,12 +65,12 @@ public:
     static glm::vec2 GetMousePos() { return currMousePos; }
     static glm::vec2 GetMouseMotion() { return currMousePos - lastMousePos; }
 
-    void AddEventListener(EventListener* listener)
+    static void AddEventListener(EventListener* listener)
     {
         listeners.push_back(listener);
     }
 
-    void OnScroll(double xoffset, double yoffset)
+    static void OnScroll(GLFWwindow* window, const double xoffset, const double yoffset)
     {
         Event event{ Event::MouseScroll };
         event.SetScrollOffset(yoffset);
@@ -81,4 +85,5 @@ private:
     static inline glm::vec2 currMousePos = { 0.0f, 0.0f };
     static inline glm::vec2 lastMousePos = { 0.0f, 0.0f };
     static inline std::vector<EventListener*> listeners;
+    static inline EventListener listener;
 };

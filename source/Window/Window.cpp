@@ -3,6 +3,20 @@
 #include <stb_image.h>
 #include <imgui.h>
 
+namespace
+{
+    void ScrollCallback(GLFWwindow* window, const double xoffset, const double yoffset)
+    {
+        auto* const this_ = static_cast<EventListener*>(glfwGetWindowUserPointer(window));
+        //auto* const this_ = static_cast<Window*>(glfwGetWindowUserPointer(window));
+        //this_->OnScroll(yoffset);
+        //Event event{ Event::MouseScroll };
+        //this_->Listen(event);
+        //Window::OnScroll(yoffset);
+        std::cout << "Hello\n";
+    }
+}
+
 void Window::Init(int width, int height)
 {
     spdlog::info("Window::Init()");
@@ -11,6 +25,11 @@ void Window::Init(int width, int height)
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     window = glfwCreateWindow(width, height, "Reactive", nullptr, nullptr);
     SetIcon(ASSET_DIR + "Vulkan.png");
+
+    //glfwSetWindowUserPointer(window, &listener);
+    //glfwSetScrollCallback(window, ScrollCallback);
+    //glfwSetScrollCallback(window, OnScroll);
+    //glfwSetScrollCallback(window, ScrollCallback);
 }
 
 void Window::SetIcon(const std::string& filepath)
