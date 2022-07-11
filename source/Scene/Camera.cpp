@@ -77,32 +77,30 @@ void FPSCamera::ProcessInput()
 
 void OrbitalCamera::ProcessInput()
 {
-    //proj = glm::perspective(glm::radians(fov), aspect, 0.01f, 10000.0f);
-    static auto originalPosition = position;
-
     if (Window::MousePressed()) {
         glm::vec2 motion = Window::GetMouseMotion();
 
         phi = glm::mod(phi - motion.x * 0.1f, 360.0f);
         theta = std::min(std::max(theta + motion.y * 0.1f, -89.9f), 89.9f);
 
-        //yaw = glm::mod(yaw - motion.x * 0.1f, 360.0f);
-        //pitch = glm::clamp(pitch + motion.y * 0.1f, -89.9f, 89.9f);
-
-        //glm::mat4 rotation{ 1.0 };
-        //rotation *= glm::rotate(glm::radians(yaw), glm::vec3{ 0, 1, 0 });
-        //rotation *= glm::rotate(glm::radians(pitch), glm::vec3{ 1, 0, 0 });
-        //front = { rotation * glm::vec4{0, 0, -1, 1} };
         glm::mat4 rotX = glm::rotate(glm::radians(theta), glm::vec3(1, 0, 0));
         glm::mat4 rotY = glm::rotate(glm::radians(phi), glm::vec3(0, 1, 0));
 
-        position = glm::vec3(rotY * rotX * glm::vec4{ originalPosition, 1 });
+        position = glm::vec3(rotY * rotX * glm::vec4{ 0, 0, distance, 1 });
         front = target - position;
 
         dirty = true;
     }
 
+    if (float scroll = Window::GetMouseScroll(); scroll != 0.0) {
+        if (scroll < 0.0) {
+            distance = std::max(distance * 1.1f, 0.001f);
+        } else {
+            distance = std::max(distance * 0.9f, 0.001f);
+        }
 
-    //view = glm::lookAt(glm::vec3(rotY * rotX * position), target, glm::vec3(0, 1, 0));
-    //proj = glm::perspective(glm::radians(fov), aspect, 0.01f, 10000.0f);
+        glm::mat4 rotX = glm::rotate(glm::radians(theta), glm::vec3(1, 0, 0));
+        glm::mat4 rotY = glm::rotate(glm::radians(phi), glm::vec3(0, 1, 0));
+        position = glm::vec3(rotY * rotX * glm::vec4{ 0, 0, distance, 1 });
+    }
 }

@@ -51,6 +51,7 @@ public:
 
 private:
     glm::vec3 target = { 0, 0, 0 };
+    float distance = 5.0;
     float phi = 0;
     float theta = 0;
 };

@@ -76,7 +76,6 @@ int main()
     while (Engine::Update()) {
         scene.Update(0.1f);
 
-        spdlog::info("scroll: {}", Window::GetMouseScroll());
         GUI::SliderInt("FOV", fov, 20, 80);
         GUI::SliderInt("Far plane", farPlane, 1, 10);
         scene.GetCamera().SetFov(static_cast<float>(fov));
