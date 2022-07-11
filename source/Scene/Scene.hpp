@@ -5,6 +5,7 @@
 #include "Camera.hpp"
 #include "Object.hpp"
 #include "Light.hpp"
+#include "Window/Window.hpp"
 
 class Image;
 
@@ -47,6 +48,12 @@ public:
     auto GetCenter() const { return (bbox.min + bbox.max) / 2.0f; }
     auto GetNumSphereLights() const { return sphereLights.size(); }
     void Rebuild() { topAccel.Rebuild(objects); }
+
+    template <typename T>
+    void SetCamera()
+    {
+        camera = std::make_unique<T>(Window::GetWidth(), Window::GetHeight());
+    }
 
 private:
     std::vector<std::shared_ptr<Mesh>> meshes;

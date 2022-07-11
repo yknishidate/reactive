@@ -12,6 +12,32 @@ namespace Key
     constexpr inline int Space = GLFW_KEY_SPACE;
 }
 
+class Event
+{
+public:
+    enum Type
+    {
+        MouseScroll,
+    };
+
+    Event(Type type);
+
+    void SetScrollOffset(double offset) { scrollOffset = offset; }
+    double GetScrollOffset() const { return scrollOffset; }
+
+    Type GetType() const { return type; }
+
+private:
+    Type type;
+    double scrollOffset;
+};
+
+class EventListener
+{
+public:
+    virtual void Listen(Event event) = 0;
+};
+
 class Window
 {
 public:
@@ -35,8 +61,24 @@ public:
     static glm::vec2 GetMousePos() { return currMousePos; }
     static glm::vec2 GetMouseMotion() { return currMousePos - lastMousePos; }
 
+    void AddEventListener(EventListener* listener)
+    {
+        listeners.push_back(listener);
+    }
+
+    void OnScroll(double xoffset, double yoffset)
+    {
+        Event event{ Event::MouseScroll };
+        event.SetScrollOffset(yoffset);
+
+        for (auto& listener : listeners) {
+            listener->Listen(event);
+        }
+    }
+
 private:
     static inline GLFWwindow* window;
     static inline glm::vec2 currMousePos = { 0.0f, 0.0f };
     static inline glm::vec2 lastMousePos = { 0.0f, 0.0f };
+    static inline std::vector<EventListener*> listeners;
 };

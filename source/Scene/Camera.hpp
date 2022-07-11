@@ -38,3 +38,19 @@ private:
     float yaw = 0.0f;
     float pitch = 0.0f;
 };
+
+class OrbitalCamera : public Camera
+{
+public:
+    OrbitalCamera() = default;
+    OrbitalCamera(uint32_t width, uint32_t height)
+        : Camera{ width, height }
+    {
+    }
+    void ProcessInput() override;
+
+private:
+    glm::vec3 target = { 0, 0, 0 };
+    float phi = 0;
+    float theta = 0;
+};

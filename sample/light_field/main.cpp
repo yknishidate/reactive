@@ -55,6 +55,7 @@ int main()
     uvPlane.transform.scale *= 1.5;
     uvPlane.transform.position = { 0.0, 0.0, -3.0 };
     scene.Setup();
+    scene.SetCamera<OrbitalCamera>();
 
     RayTracingPipeline pipeline{};
     pipeline.LoadShaders(SHADER_DIR + "light_field.rgen",
