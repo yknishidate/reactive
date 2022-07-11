@@ -8,7 +8,7 @@ Camera::Camera(uint32_t width, uint32_t height)
     aspect = static_cast<float>(width) / height;
 }
 
-void Camera::ProcessInput()
+void FPSCamera::ProcessInput()
 {
     if (Window::MousePressed()) {
         glm::vec2 motion = Window::GetMouseMotion();

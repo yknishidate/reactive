@@ -41,7 +41,7 @@ public:
     const auto& GetAccel() const { return topAccel; }
     const auto& GetTextures() const { return textures; }
     const auto& GetAddressBuffer() const { return addressBuffer; }
-    auto& GetCamera() { return camera; }
+    auto& GetCamera() { return *camera; }
     auto& GetObjects() { return objects; }
     auto GetBoundingBox() const { return bbox; }
     auto GetCenter() const { return (bbox.min + bbox.max) / 2.0f; }
@@ -58,7 +58,7 @@ private:
     BoundingBox bbox;
 
     TopAccel topAccel;
-    Camera camera;
+    std::unique_ptr<Camera> camera;
 
     StorageBuffer objectBuffer;
     StorageBuffer addressBuffer;

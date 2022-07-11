@@ -69,12 +69,12 @@ void Scene::Setup()
     }
     addressBuffer = StorageBuffer{ addresses };
 
-    camera = Camera{ Window::GetWidth(), Window::GetHeight() };
+    camera = std::make_unique<FPSCamera>(Window::GetWidth(), Window::GetHeight());
 }
 
 void Scene::Update(float dt)
 {
-    camera.ProcessInput();
+    camera->ProcessInput();
     //static float time = 0.0f;
     //time += dt;
     //for (int i = 0; i < objects.size(); i++) {
