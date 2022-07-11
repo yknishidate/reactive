@@ -20,6 +20,7 @@ public:
     void CopyToImage(vk::CommandBuffer commandBuffer, const Image& dst) const;
     void CopyToImage(Image& dst);
     void CopyToBackImage() const;
+    float GetAspect() const { return width / static_cast<float>(height); }
 
     static void SetImageLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout);
 

@@ -83,13 +83,34 @@ vec4 lightField(vec2 st, vec2 uv)
     // lb---rb
 
     // [0, 16]
-    vec2 lt = floor(st * vec2(GRID_SIZE - 1, GRID_SIZE - 1));
+    st = st * vec2(GRID_SIZE - 1, GRID_SIZE - 1);
+    vec2 lt = floor(st);
     vec2 rt = lt + vec2(1, 0);
     vec2 lb = lt + vec2(0, 1);
     vec2 rb = lt + vec2(1, 1);
-    float depth = coordToDepth(lt);
+    float depth_lt = coordToDepth(lt);
+    float depth_rt = coordToDepth(rt);
+    float depth_lb = coordToDepth(lb);
+    float depth_rb = coordToDepth(rb);
 
-    return texture(images, vec3(uv, depth));
+    vec4 color_lt = texture(images, vec3(uv, depth_lt));
+    vec4 color_rt = texture(images, vec3(uv, depth_rt));
+    vec4 color_lb = texture(images, vec3(uv, depth_lb));
+    vec4 color_rb = texture(images, vec3(uv, depth_rb));
+
+    float a = st.x - lt.x;
+    float b = st.y - lt.y;
+    float weight_lt = (1.0 - a) * (1.0 - b);
+    float weight_rt = a * (1.0 - b);
+    float weight_lb = (1.0 - a) * b;
+    float weight_rb = a * b;
+
+    vec4 color = weight_lt * color_lt
+               + weight_rt * color_rt
+               + weight_lb * color_lb
+               + weight_rb * color_rb;
+
+    return color;
 }
 
 void main()
