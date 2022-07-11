@@ -5,15 +5,10 @@
 
 namespace
 {
+    double scrollOffset = 0.0;
     void ScrollCallback(GLFWwindow* window, const double xoffset, const double yoffset)
     {
-        auto* const this_ = static_cast<EventListener*>(glfwGetWindowUserPointer(window));
-        //auto* const this_ = static_cast<Window*>(glfwGetWindowUserPointer(window));
-        //this_->OnScroll(yoffset);
-        //Event event{ Event::MouseScroll };
-        //this_->Listen(event);
-        //Window::OnScroll(yoffset);
-        std::cout << "Hello\n";
+        scrollOffset = yoffset;
     }
 }
 
@@ -26,10 +21,7 @@ void Window::Init(int width, int height)
     window = glfwCreateWindow(width, height, "Reactive", nullptr, nullptr);
     SetIcon(ASSET_DIR + "Vulkan.png");
 
-    //glfwSetWindowUserPointer(window, &listener);
-    //glfwSetScrollCallback(window, ScrollCallback);
-    //glfwSetScrollCallback(window, OnScroll);
-    //glfwSetScrollCallback(window, ScrollCallback);
+    glfwSetScrollCallback(window, ScrollCallback);
 }
 
 void Window::SetIcon(const std::string& filepath)
@@ -70,6 +62,7 @@ bool Window::ShouldClose()
 
 void Window::PollEvents()
 {
+    scrollOffset = 0.0;
     glfwPollEvents();
 
     lastMousePos = currMousePos;
@@ -122,4 +115,9 @@ bool Window::MouseRightPressed()
 bool Window::KeyPressed(int key)
 {
     return glfwGetKey(window, key) == GLFW_PRESS;
+}
+
+double Window::GetMouseScroll()
+{
+    return scrollOffset;
 }
