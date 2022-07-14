@@ -41,7 +41,6 @@ int main()
     std::vector<Index> indices{ 0, 1, 2, 0, 2, 3 };
     auto mesh = std::make_shared<Mesh>(vertices, indices);
 
-    // TODO: texture no repeat
     //auto imagePaths = GetAllFilePaths(ASSET_DIR + "chess_lf");
     auto imagePaths = GetAllFilePaths(ASSET_DIR + "lego_lf");
     Image images{ imagePaths };
@@ -51,11 +50,12 @@ int main()
     Scene scene{};
     auto& stPlane = scene.AddObject(mesh);
     auto& uvPlane = scene.AddObject(mesh);
+    float scale = 15;
     uvPlane.transform.scale.x *= images.GetAspect();
-    uvPlane.transform.scale *= 1.5;
-    uvPlane.transform.position = { 0.0, 0.0, -3.0 };
+    uvPlane.transform.scale *= scale;
+    uvPlane.transform.position = { 0.0, 0.0, -scale * 2 };
     scene.Setup();
-    scene.SetCamera<OrbitalCamera>();
+    //scene.SetCamera<OrbitalCamera>();
 
     RayTracingPipeline pipeline{};
     pipeline.LoadShaders(SHADER_DIR + "light_field.rgen",
@@ -84,7 +84,6 @@ int main()
 
         pushConstants.invProj = scene.GetCamera().GetInvProj();
         pushConstants.invView = scene.GetCamera().GetInvView();
-        //pushConstants.HandleInput();
         Engine::Render([&]() {
             pipeline.Run(&pushConstants);
             outputImage.CopyToBackImage(); });

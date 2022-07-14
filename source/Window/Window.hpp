@@ -28,7 +28,6 @@ public:
     static void PollEvents();
     static bool IsMinimized();
 
-    static void Update();
     static bool MousePressed();
     static bool MouseRightPressed();
     static bool KeyPressed(int key);
