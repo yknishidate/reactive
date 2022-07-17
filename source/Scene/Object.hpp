@@ -6,9 +6,9 @@
 
 struct Transform
 {
-    glm::vec3 position{ 0 };
-    glm::vec3 scale{ 1 };
-    glm::quat rotation{ 1, 0, 0, 0 };
+    glm::vec3 position = { 0.0f, 0.0f, 0.0f };
+    glm::vec3 scale = { 1.0f, 1.0f, 1.0f };
+    glm::quat rotation = { 1.0f, 0.0f, 0.0f, 0.0f };
 
     glm::mat4 GetMatrix() const;
     glm::mat3 GetNormalMatrix() const;
@@ -17,13 +17,13 @@ struct Transform
 
 struct ObjectData
 {
-    glm::mat4 matrix{1.0};
-    glm::mat4 normalMatrix{1.0};
-    glm::vec4 diffuse{1.0};
-    glm::vec4 emission{0.0};
-    glm::vec4 specular{0.0};
-    int diffuseTexture{-1};
-    int alphaTexture{-1};
+    glm::mat4 matrix{ 1.0 };
+    glm::mat4 normalMatrix{ 1.0 };
+    glm::vec4 diffuse{ 1.0 };
+    glm::vec4 emission{ 0.0 };
+    glm::vec4 specular{ 0.0 };
+    int diffuseTexture{ -1 };
+    int alphaTexture{ -1 };
 };
 
 class Object

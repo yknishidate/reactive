@@ -48,12 +48,16 @@ int main()
     images.SetSamplerMode(vk::SamplerAddressMode::eClampToEdge);
 
     Scene scene{};
-    auto& stPlane = scene.AddObject(mesh);
-    auto& uvPlane = scene.AddObject(mesh);
-    float scale = 15;
-    uvPlane.transform.scale.x *= images.GetAspect();
-    uvPlane.transform.scale *= scale;
-    uvPlane.transform.position = { 0.0, 0.0, -scale * 2 };
+    auto& cameraPlane = scene.AddObject(mesh);
+    //cameraPlane.transform.position.z = 3.0;
+    cameraPlane.transform.scale *= 3.0f;
+
+    int scale = 5;
+    glm::vec3 defaultScale = { images.GetAspect(), 1, 1 };
+    auto& focalPlane = scene.AddObject(mesh);
+    focalPlane.transform.position = { 0.0, 0.0, -scale };
+    focalPlane.transform.scale = defaultScale * static_cast<float>(scale);
+
     scene.Setup();
     //scene.SetCamera<OrbitalCamera>();
 
@@ -72,15 +76,15 @@ int main()
     pushConstants.indices = mesh->GetIndexBufferAddress();
 
     int fov = 45;
-    int farPlane;
     while (Engine::Update()) {
         scene.Update(0.1f);
 
         GUI::SliderInt("FOV", fov, 20, 80);
-        GUI::SliderInt("Far plane", farPlane, 1, 10);
+        bool changed = GUI::SliderInt("Far plane", scale, 1, 25);
         scene.GetCamera().SetFov(static_cast<float>(fov));
-        uvPlane.transform.position.z = static_cast<float>(-farPlane);
-        //scene.Rebuild();
+        focalPlane.transform.position = { 0.0, 0.0, -scale };
+        focalPlane.transform.scale = defaultScale * static_cast<float>(scale);
+        if (changed) scene.Rebuild();
 
         pushConstants.invProj = scene.GetCamera().GetInvProj();
         pushConstants.invView = scene.GetCamera().GetInvView();
