@@ -32,7 +32,8 @@ int main()
     auto mesh = std::make_shared<Mesh>(vertices, indices);
 
     //auto imagePaths = GetAllFilePaths(ASSET_DIR + "chess_lf");
-    auto imagePaths = GetAllFilePaths(ASSET_DIR + "lego_lf");
+    //auto imagePaths = GetAllFilePaths(ASSET_DIR + "lego_lf");
+    auto imagePaths = GetAllFilePaths(ASSET_DIR + "bulldozer_lf");
     Image images{ imagePaths };
     Image outputImage{ vk::Format::eB8G8R8A8Unorm };
     images.SetSamplerMode(vk::SamplerAddressMode::eClampToEdge);
