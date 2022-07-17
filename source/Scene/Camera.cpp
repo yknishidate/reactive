@@ -92,6 +92,19 @@ void OrbitalCamera::ProcessInput()
         dirty = true;
     }
 
+    if (Window::MouseRightPressed()) {
+        glm::vec2 motion = Window::GetMouseMotion();
+
+        glm::vec3 up = -glm::vec3{ 0, 1, 0 };
+        glm::vec3 forward = glm::normalize(glm::vec3{ front.x, 0, front.z });
+        glm::vec3 right = glm::normalize(glm::cross(up, forward));
+
+        target -= right * motion.x * 0.001f;
+        target += up * motion.y * 0.001f;
+        front = target - position;
+        dirty = true;
+    }
+
     if (float scroll = Window::GetMouseScroll(); scroll != 0.0) {
         if (scroll < 0.0) {
             distance = std::max(distance * 1.1f, 0.001f);
@@ -102,5 +115,6 @@ void OrbitalCamera::ProcessInput()
         glm::mat4 rotX = glm::rotate(glm::radians(theta), glm::vec3(1, 0, 0));
         glm::mat4 rotY = glm::rotate(glm::radians(phi), glm::vec3(0, 1, 0));
         position = glm::vec3(rotY * rotX * glm::vec4{ 0, 0, distance, 1 });
+        front = target - position;
     }
 }

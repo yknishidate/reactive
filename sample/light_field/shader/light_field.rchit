@@ -93,6 +93,7 @@ vec4 lightField(vec2 st, vec2 uv)
     float depth_lb = coordToDepth(lb);
     float depth_rb = coordToDepth(rb);
 
+    // linear interpolation in uv plane is done at texture sampling time
     vec4 color_lt = texture(images, vec3(uv, depth_lt));
     vec4 color_rt = texture(images, vec3(uv, depth_rt));
     vec4 color_lb = texture(images, vec3(uv, depth_lb));
