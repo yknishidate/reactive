@@ -74,6 +74,25 @@ float coordToDepth(vec2 coord)
     return indexToDepth(coordToIndex(coord));
 }
 
+bool traceRay(in vec3 origin, in vec3 direction)
+{
+    payload = vec3(0.0);
+    traceRayEXT(
+        topLevelAS,
+        gl_RayFlagsOpaqueEXT,
+        0xff, // cullMask
+        0,    // sbtRecordOffset
+        0,    // sbtRecordStride
+        0,    // missIndex
+        origin,
+        0.001,
+        direction,
+        10000.0,
+        0     // payloadLocation
+    );
+    return payload != vec3(0.0);
+}
+
 vec4 lightField(vec2 uv, vec2 st)
 {
     // uv: camera
@@ -131,30 +150,18 @@ void main()
     vec2 texCoord = v0.texCoord * barycentricCoords.x + v1.texCoord * barycentricCoords.y + v2.texCoord * barycentricCoords.z;
 
     if(gl_InstanceID == 0){
-        payload = vec3(0.0);
-        traceRayEXT(
-            topLevelAS,
-            gl_RayFlagsOpaqueEXT,
-            0xff, // cullMask
-            0,    // sbtRecordOffset
-            0,    // sbtRecordStride
-            0,    // missIndex
-            gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT,
-            0.001,
-            gl_WorldRayDirectionEXT,
-            10000.0,
-            0     // payloadLocation
-        );
+        vec3 origin = gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT;
+        vec3 direction = gl_WorldRayDirectionEXT;
 
-        if(payload == vec3(0.0)){
-            // Miss
-            payload = vec3(0.2);
-        }else{
+        if(traceRay(origin, direction)){
             // Hit
             vec2 st = payload.xy;
             vec2 uv = texCoord;
             vec4 color = lightField(uv, st);
             payload = color.rgb;
+        }else{
+            // Miss
+            payload = vec3(0.2);
         }
     }
     if(gl_InstanceID == 1){
