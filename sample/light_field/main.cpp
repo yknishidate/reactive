@@ -2,20 +2,10 @@
 
 struct PushConstants
 {
-    //int rows = 17;
-    //int cols = 17;
-    //glm::vec2 st = { 0.5, 0.5 };
     glm::mat4 invView;
     glm::mat4 invProj;
     vk::DeviceAddress vertices;
     vk::DeviceAddress indices;
-
-    void HandleInput()
-    {
-        //if (!Window::MousePressed()) return;
-        //auto motion = Window::GetMouseMotion() * 0.005f;
-        //st = clamp(st + glm::vec2(-motion.x, motion.y), 0.0f, 1.0f);
-    }
 };
 
 namespace fs = std::filesystem;
@@ -58,7 +48,7 @@ int main()
     focalPlane.transform.scale = defaultScale * static_cast<float>(scale);
 
     scene.Setup();
-    scene.SetCamera<OrbitalCamera>();
+    //scene.SetCamera<OrbitalCamera>();
 
     RayTracingPipeline pipeline{};
     pipeline.LoadShaders(SHADER_DIR + "light_field.rgen",

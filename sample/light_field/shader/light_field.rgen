@@ -18,9 +18,9 @@ layout(push_constant) uniform PushConstants {
 void main()
 {
     const vec2 screenPos = vec2(gl_LaunchIDEXT.xy);
-    const vec2 uv = vec2(gl_LaunchIDEXT.xy) / vec2(gl_LaunchSizeEXT.xy) * 2.0 - 1.0;
+    const vec2 xy = vec2(gl_LaunchIDEXT.xy) / vec2(gl_LaunchSizeEXT.xy) * 2.0 - 1.0;
     vec4 origin    = constants.invView * vec4(0, 0, 0, 1);
-    vec4 target    = constants.invProj * vec4(uv.x, uv.y, 1, 1);
+    vec4 target    = constants.invProj * vec4(xy.x, xy.y, 1, 1);
     vec4 direction = constants.invView * vec4(normalize(target.xyz), 0);
 
     traceRayEXT(

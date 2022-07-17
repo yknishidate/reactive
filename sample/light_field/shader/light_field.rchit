@@ -74,17 +74,17 @@ float coordToDepth(vec2 coord)
     return indexToDepth(coordToIndex(coord));
 }
 
-vec4 lightField(vec2 st, vec2 uv)
+vec4 lightField(vec2 uv, vec2 st)
 {
-    // st: camera
-    // uv: pixel
+    // uv: camera
+    // st: pixel
     // lt---rt
     // |     |
     // lb---rb
 
     // [0, 16]
-    st = st * vec2(GRID_SIZE - 1, GRID_SIZE - 1);
-    vec2 lt = floor(st);
+    uv = uv * vec2(GRID_SIZE - 1, GRID_SIZE - 1);
+    vec2 lt = floor(uv);
     vec2 rt = lt + vec2(1, 0);
     vec2 lb = lt + vec2(0, 1);
     vec2 rb = lt + vec2(1, 1);
@@ -93,14 +93,14 @@ vec4 lightField(vec2 st, vec2 uv)
     float depth_lb = coordToDepth(lb);
     float depth_rb = coordToDepth(rb);
 
-    // linear interpolation in uv plane is done at texture sampling time
-    vec4 color_lt = texture(images, vec3(uv, depth_lt));
-    vec4 color_rt = texture(images, vec3(uv, depth_rt));
-    vec4 color_lb = texture(images, vec3(uv, depth_lb));
-    vec4 color_rb = texture(images, vec3(uv, depth_rb));
+    // linear interpolation in st plane is done at texture sampling time
+    vec4 color_lt = texture(images, vec3(st, depth_lt));
+    vec4 color_rt = texture(images, vec3(st, depth_rt));
+    vec4 color_lb = texture(images, vec3(st, depth_lb));
+    vec4 color_rb = texture(images, vec3(st, depth_rb));
 
-    float a = st.x - lt.x;
-    float b = st.y - lt.y;
+    float a = uv.x - lt.x;
+    float b = uv.y - lt.y;
     float weight_lt = (1.0 - a) * (1.0 - b);
     float weight_rt = a * (1.0 - b);
     float weight_lb = (1.0 - a) * b;
@@ -151,9 +151,9 @@ void main()
             payload = vec3(0.2);
         }else{
             // Hit
-            vec2 uv = payload.xy;
-            vec2 st = texCoord;
-            vec4 color = lightField(st, uv);
+            vec2 st = payload.xy;
+            vec2 uv = texCoord;
+            vec4 color = lightField(uv, st);
             payload = color.rgb;
         }
     }
