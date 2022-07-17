@@ -5,6 +5,7 @@ struct PushConstants
     int rows = 17;
     int cols = 17;
     glm::vec2 st = { 0.5, 0.5 };
+    float apertureSize = 0.1f;
 
     void HandleInput(bool invX, bool invY)
     {
@@ -47,6 +48,7 @@ int main()
     while (Engine::Update()) {
         GUI::Checkbox("Invert x", invertX);
         GUI::Checkbox("Invert y", invertY);
+        GUI::SliderFloat("Aperture size", pushConstants.apertureSize, 0.1f, 0.5f);
 
         pushConstants.HandleInput(invertX, invertY);
         Engine::Render([&]() {
