@@ -6,11 +6,13 @@ struct PushConstants
     int cols = 17;
     glm::vec2 st = { 0.5, 0.5 };
 
-    void HandleInput()
+    void HandleInput(bool invX, bool invY)
     {
         if (!Window::MousePressed()) return;
         auto motion = Window::GetMouseMotion() * 0.005f;
-        st = clamp(st + glm::vec2(-motion.x, motion.y), 0.0f, 1.0f);
+        if (invX) motion.x = -motion.x;
+        if (invY) motion.y = -motion.y;
+        st = clamp(st + glm::vec2(motion.x, motion.y), 0.0f, 0.99f);
     }
 };
 
@@ -28,7 +30,7 @@ int main()
 {
     Engine::Init(1280, 1280);
 
-    auto imagePaths = GetAllFilePaths(ASSET_DIR + "chess_lf");
+    auto imagePaths = GetAllFilePaths(ASSET_DIR + "lego_lf");
     Image images{ imagePaths };
     Image outputImage{ vk::Format::eB8G8R8A8Unorm };
 
@@ -39,9 +41,14 @@ int main()
     pipeline.GetDescSet().Setup();
     pipeline.Setup(sizeof(PushConstants));
 
+    PushConstants pushConstants;
+    bool invertX = false;
+    bool invertY = false;
     while (Engine::Update()) {
-        static PushConstants pushConstants;
-        pushConstants.HandleInput();
+        GUI::Checkbox("Invert x", invertX);
+        GUI::Checkbox("Invert y", invertY);
+
+        pushConstants.HandleInput(invertX, invertY);
         Engine::Render([&]() {
             pipeline.Run(&pushConstants);
             outputImage.CopyToBackImage(); });
