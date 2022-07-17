@@ -108,8 +108,7 @@ bool Window::MousePressed()
 
 bool Window::MouseRightPressed()
 {
-    bool pressed = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
-    return  pressed && !ImGui::IsWindowFocused(ImGuiFocusedFlags_AnyWindow);
+    return  glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
 }
 
 bool Window::KeyPressed(int key)
