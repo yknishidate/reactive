@@ -39,16 +39,16 @@ int main()
 
     Scene scene{};
     auto& cameraPlane = scene.AddObject(mesh);
+    cameraPlane.transform.position.z = 3.0f;
     cameraPlane.transform.scale *= 5.0f;
 
     int scale = 3;
     glm::vec3 defaultScale = { images.GetAspect(), 1, 1 };
     auto& focalPlane = scene.AddObject(mesh);
-    focalPlane.transform.position = { 0.0, 0.0, -scale };
     focalPlane.transform.scale = defaultScale * static_cast<float>(scale);
 
     scene.Setup();
-    //scene.SetCamera<OrbitalCamera>();
+    scene.SetCamera<OrbitalCamera>();
 
     RayTracingPipeline pipeline{};
     pipeline.LoadShaders(SHADER_DIR + "light_field.rgen",
@@ -71,7 +71,6 @@ int main()
         GUI::SliderInt("FOV", fov, 20, 80);
         bool changed = GUI::SliderInt("Far plane", scale, 1, 25);
         scene.GetCamera().SetFov(static_cast<float>(fov));
-        focalPlane.transform.position = { 0.0, 0.0, -scale };
         focalPlane.transform.scale = defaultScale * static_cast<float>(scale);
         if (changed) scene.Rebuild();
 
