@@ -27,10 +27,16 @@ HostBuffer::HostBuffer(vk::BufferUsageFlags usage, size_t size)
 
 void HostBuffer::Copy(const void* data)
 {
+    Map();
+    std::memcpy(mapped, data, size);
+}
+
+void* HostBuffer::Map()
+{
     if (!mapped) {
         mapped = Context::GetDevice().mapMemory(*memory, 0, size);
     }
-    std::memcpy(mapped, data, size);
+    return mapped;
 }
 
 DeviceBuffer::DeviceBuffer(vk::BufferUsageFlags usage, size_t size)

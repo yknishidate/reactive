@@ -108,6 +108,11 @@ void ComputePipeline::Run(vk::CommandBuffer commandBuffer, uint32_t groupCountX,
     commandBuffer.dispatch(groupCountX, groupCountY, 1);
 }
 
+void ComputePipeline::Run(void* pushData)
+{
+    Run(Context::GetCurrentCommandBuffer(), Window::GetWidth(), Window::GetHeight(), pushData);
+}
+
 void RayTracingPipeline::LoadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath)
 {
     spdlog::info("RayTracingPipeline::LoadShaders()");

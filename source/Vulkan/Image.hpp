@@ -1,6 +1,8 @@
 #pragma once
 #include "Context.hpp"
 
+class Buffer;
+
 class Image
 {
 public:
@@ -8,6 +10,7 @@ public:
     Image(uint32_t width, uint32_t height, vk::Format format);
     Image(vk::Format format);
     Image(const std::string& filepath);
+    Image(const std::vector<std::string>& filepaths);
 
     vk::Image GetImage() const { return *image; }
     vk::ImageView GetView() const { return *view; }
@@ -20,6 +23,9 @@ public:
     void CopyToImage(Image& dst);
     void CopyToBackImage() const;
 
+    void CopyToBuffer(vk::CommandBuffer commandBuffer, Buffer& dst);
+    void Save(const std::string& filepath);
+
     static void SetImageLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout);
 
 private:
@@ -30,4 +36,5 @@ private:
     vk::ImageLayout layout = vk::ImageLayout::eUndefined;
     uint32_t width;
     uint32_t height;
+    uint32_t depth = 1;
 };

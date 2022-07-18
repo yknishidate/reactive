@@ -134,3 +134,13 @@ bool GUI::ColorPicker4(const std::string& label, glm::vec4& value)
 {
     return ImGui::ColorPicker4(label.c_str(), reinterpret_cast<float*>(&value));
 }
+
+bool GUI::SliderFloat(const std::string& label, float& value, float min, float max)
+{
+    return ImGui::SliderFloat(label.c_str(), &value, min, max);
+}
+
+bool GUI::Button(const std::string& label)
+{
+    return ImGui::Button(label.c_str());
+}

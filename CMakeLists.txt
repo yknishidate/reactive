@@ -73,3 +73,4 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 
 add_subdirectory(sample/restir)
 add_subdirectory(sample/hello_raytracing)
+add_subdirectory(sample/light_field)

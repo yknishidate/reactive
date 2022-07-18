@@ -13,4 +13,6 @@ namespace GUI
     bool Combo(const std::string& label, int& value, const std::vector<std::string>& items);
     bool SliderInt(const std::string& label, int& value, int min, int max);
     bool ColorPicker4(const std::string& label, glm::vec4& value);
+    bool SliderFloat(const std::string& label, float& value, float min, float max);
+    bool Button(const std::string& label);
 };
