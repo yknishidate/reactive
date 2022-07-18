@@ -4,8 +4,9 @@ struct PushConstants
 {
     int rows = 17;
     int cols = 17;
-    glm::vec2 st = { 0.5, 0.5 };
+    glm::vec2 uv = { 0.5, 0.5 };
     float apertureSize = 0.1f;
+    float focalOffset = 0.0f;
 
     void HandleInput(bool invX, bool invY)
     {
@@ -13,7 +14,7 @@ struct PushConstants
         auto motion = Window::GetMouseMotion() * 0.005f;
         if (invX) motion.x = -motion.x;
         if (invY) motion.y = -motion.y;
-        st = clamp(st + glm::vec2(motion.x, motion.y), 0.0f, 0.99f);
+        uv = clamp(uv + glm::vec2(motion.x, motion.y), 0.0f, 0.99f);
     }
 };
 
@@ -48,7 +49,8 @@ int main()
     while (Engine::Update()) {
         GUI::Checkbox("Invert x", invertX);
         GUI::Checkbox("Invert y", invertY);
-        GUI::SliderFloat("Aperture size", pushConstants.apertureSize, 0.1f, 0.5f);
+        GUI::SliderFloat("Aperture", pushConstants.apertureSize, 0.1f, 0.5f);
+        GUI::SliderFloat("Focal", pushConstants.focalOffset, -0.08f, 0.07f);
 
         pushConstants.HandleInput(invertX, invertY);
         Engine::Render([&]() {
