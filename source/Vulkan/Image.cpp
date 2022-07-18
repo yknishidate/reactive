@@ -3,7 +3,9 @@
 #include "Window/Window.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image.h>
+#include <stb_image_write.h>
 
 namespace
 {
@@ -225,6 +227,52 @@ void Image::CopyToImage(Image& dst)
 void Image::CopyToBackImage() const
 {
     Context::CopyToBackImage(Context::GetCurrentCommandBuffer(), *this);
+}
+
+void Image::CopyToBuffer(vk::CommandBuffer commandBuffer, Buffer& dst)
+{
+    vk::ImageSubresourceLayers subresource;
+    subresource.setAspectMask(vk::ImageAspectFlagBits::eColor);
+    subresource.setBaseArrayLayer(0);
+    subresource.setLayerCount(1);
+    subresource.setMipLevel(0);
+
+    vk::BufferImageCopy copyInfo;
+    copyInfo.setBufferOffset(0);
+    copyInfo.setBufferRowLength(width);
+    copyInfo.setBufferImageHeight(height);
+    copyInfo.setImageExtent({ width, height, 1 });
+    copyInfo.setImageSubresource(subresource);
+
+    auto oldLayout = layout;
+    SetImageLayout(commandBuffer, vk::ImageLayout::eTransferSrcOptimal);
+    commandBuffer.copyImageToBuffer(*image, vk::ImageLayout::eTransferSrcOptimal,
+                                    dst.GetBuffer(), copyInfo);
+    SetImageLayout(commandBuffer, oldLayout);
+}
+
+void Image::Save(const std::string& filepath)
+{
+    static vk::DeviceSize size = Window::GetWidth() * Window::GetWidth() * 4;
+    static HostBuffer buffer{ vk::BufferUsageFlagBits::eTransferDst, size };
+    static uint8_t* pixels = static_cast<uint8_t*>(buffer.Map());
+
+    Context::OneTimeSubmit(
+        [&](vk::CommandBuffer commandBuffer) {
+            CopyToBuffer(commandBuffer, buffer);
+        });
+
+    std::vector<uint8_t> output(width * height * 3);
+    for (int h = 0; h < height; h++) {
+        for (int w = 0; w < width; w++) {
+            int index = h * width + w;
+            output[index * 3 + 0] = pixels[index * 4 + 2];
+            output[index * 3 + 1] = pixels[index * 4 + 1];
+            output[index * 3 + 2] = pixels[index * 4 + 0];
+        }
+    }
+
+    stbi_write_png(filepath.c_str(), width, height, 3, output.data(), width * 3);
 }
 
 void Image::SetImageLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout)

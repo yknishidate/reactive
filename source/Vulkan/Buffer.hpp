@@ -28,6 +28,7 @@ public:
     HostBuffer(vk::BufferUsageFlags usage, size_t size);
 
     void Copy(const void* data);
+    void* Map();
 
 private:
     void* mapped = nullptr;

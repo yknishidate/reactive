@@ -47,15 +47,20 @@ int main()
     bool invertX = false;
     bool invertY = false;
     while (Engine::Update()) {
+        static uint64_t frame = 0;
         GUI::Checkbox("Invert x", invertX);
         GUI::Checkbox("Invert y", invertY);
         GUI::SliderFloat("Aperture", pushConstants.apertureSize, 0.1f, 0.5f);
-        GUI::SliderFloat("Focal", pushConstants.focalOffset, -0.08f, 0.07f);
+        GUI::SliderFloat("Focal", pushConstants.focalOffset, -0.08f, 0.06f);
+        if (GUI::Button("Save")) {
+            outputImage.Save("output_" + std::to_string(frame) + ".png");
+        }
 
         pushConstants.HandleInput(invertX, invertY);
         Engine::Render([&]() {
             pipeline.Run(&pushConstants);
             outputImage.CopyToBackImage(); });
+        frame++;
     }
     Engine::Shutdown();
 }

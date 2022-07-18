@@ -139,3 +139,8 @@ bool GUI::SliderFloat(const std::string& label, float& value, float min, float m
 {
     return ImGui::SliderFloat(label.c_str(), &value, min, max);
 }
+
+bool GUI::Button(const std::string& label)
+{
+    return ImGui::Button(label.c_str());
+}
