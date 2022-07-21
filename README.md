@@ -13,12 +13,10 @@ Realtime Ray Tracing Engine using Vulkan
 ### Install dependencies
 
 ```
+vcpkg install stb:x64-windows
 vcpkg install glm:x64-windows
-vcpkg install glfw:x64-windows
-vcpkg install imgui:x64-windows
-vcpkg install imgui[glfw-binding]:x64-windows
-vcpkg install imgui[vulkan-binding]:x64-windows
-vcpkg install imgui[docking-experimental]:x64-windows
+vcpkg install glfw3:x64-windows
+vcpkg install imgui[docking-experimental,glfw-binding,vulkan-binding]:x64-windows
 vcpkg install spdlog:x64-windows
 vcpkg install tinyobjloader:x64-windows
 ```
