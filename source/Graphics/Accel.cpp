@@ -1,4 +1,4 @@
-#include "Context.hpp"
+#include "Graphics.hpp"
 #include "Accel.hpp"
 #include "Scene/Object.hpp"
 
@@ -12,7 +12,7 @@ namespace
             .setSize(size)
             .setType(type);
 
-        return Context::GetDevice().createAccelerationStructureKHRUnique(accelInfo);
+        return Graphics::GetDevice().createAccelerationStructureKHRUnique(accelInfo);
     }
 
     void BuildAccel(vk::AccelerationStructureKHR accel, vk::DeviceSize size, uint32_t primitiveCount,
@@ -23,7 +23,7 @@ namespace
         geometryInfo.setScratchData(scratchBuffer.GetAddress());
         geometryInfo.setDstAccelerationStructure(accel);
 
-        Context::OneTimeSubmit(
+        Graphics::OneTimeSubmit(
             [&](vk::CommandBuffer commandBuffer)
             {
                 vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo{ primitiveCount, 0, 0, 0 };

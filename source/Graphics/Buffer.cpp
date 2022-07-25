@@ -5,18 +5,18 @@ Buffer::Buffer(vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memoryProp, s
 {
     this->size = size;
 
-    buffer = Helper::CreateBuffer(Context::GetDevice(), size, usage);
+    buffer = Helper::CreateBuffer(Graphics::GetDevice(), size, usage);
 
-    vk::MemoryRequirements requirements = Context::GetDevice().getBufferMemoryRequirements(*buffer);
-    uint32_t memoryTypeIndex = Context::FindMemoryTypeIndex(requirements, memoryProp);
+    vk::MemoryRequirements requirements = Graphics::GetDevice().getBufferMemoryRequirements(*buffer);
+    uint32_t memoryTypeIndex = Graphics::FindMemoryTypeIndex(requirements, memoryProp);
     vk::MemoryAllocateFlagsInfo flagsInfo{ vk::MemoryAllocateFlagBits::eDeviceAddress };
-    memory = Helper::AllocateMemory(Context::GetDevice(), requirements.size, memoryTypeIndex, flagsInfo);
+    memory = Helper::AllocateMemory(Graphics::GetDevice(), requirements.size, memoryTypeIndex, flagsInfo);
 
-    Context::GetDevice().bindBufferMemory(*buffer, *memory, 0);
+    Graphics::GetDevice().bindBufferMemory(*buffer, *memory, 0);
 
     if (usage & vk::BufferUsageFlagBits::eShaderDeviceAddress) {
         vk::BufferDeviceAddressInfoKHR bufferDeviceAI{ *buffer };
-        deviceAddress = Context::GetDevice().getBufferAddressKHR(&bufferDeviceAI);
+        deviceAddress = Graphics::GetDevice().getBufferAddressKHR(&bufferDeviceAI);
     }
 }
 
@@ -34,7 +34,7 @@ void HostBuffer::Copy(const void* data)
 void* HostBuffer::Map()
 {
     if (!mapped) {
-        mapped = Context::GetDevice().mapMemory(*memory, 0, size);
+        mapped = Graphics::GetDevice().mapMemory(*memory, 0, size);
     }
     return mapped;
 }
@@ -47,7 +47,7 @@ DeviceBuffer::DeviceBuffer(vk::BufferUsageFlags usage, size_t size)
 void DeviceBuffer::Copy(const void* data)
 {
     StagingBuffer stagingBuffer{ size, data };
-    Context::OneTimeSubmit(
+    Graphics::OneTimeSubmit(
         [&](vk::CommandBuffer commandBuffer)
         {
             vk::BufferCopy region{ 0, 0, size };

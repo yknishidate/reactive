@@ -1,5 +1,5 @@
 #pragma once
-#include "Context.hpp"
+#include "Graphics.hpp"
 
 class Buffer;
 

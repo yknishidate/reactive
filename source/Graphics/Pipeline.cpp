@@ -1,6 +1,6 @@
 #include <regex>
 #include <spdlog/spdlog.h>
-#include "Context.hpp"
+#include "Graphics.hpp"
 #include "Pipeline.hpp"
 #include "Image.hpp"
 #include "Window/Window.hpp"
@@ -13,7 +13,7 @@ namespace
     {
         vk::ShaderModuleCreateInfo createInfo;
         createInfo.setCode(code);
-        return Context::GetDevice().createShaderModuleUnique(createInfo);
+        return Graphics::GetDevice().createShaderModuleUnique(createInfo);
     }
 
     vk::UniquePipeline CreateComputePipeline(vk::ShaderModule shaderModule, vk::ShaderStageFlagBits shaderStage,
@@ -27,7 +27,7 @@ namespace
         vk::ComputePipelineCreateInfo createInfo;
         createInfo.setStage(stage);
         createInfo.setLayout(pipelineLayout);
-        auto res = Context::GetDevice().createComputePipelinesUnique({}, createInfo);
+        auto res = Graphics::GetDevice().createComputePipelinesUnique({}, createInfo);
         if (res.result != vk::Result::eSuccess) {
             throw std::runtime_error("failed to create ray tracing pipeline.");
         }
@@ -43,7 +43,7 @@ namespace
         createInfo.setGroups(shaderGroups);
         createInfo.setMaxPipelineRayRecursionDepth(4);
         createInfo.setLayout(pipelineLayout);
-        auto res = Context::GetDevice().createRayTracingPipelineKHRUnique(nullptr, nullptr, createInfo);
+        auto res = Graphics::GetDevice().createRayTracingPipelineKHRUnique(nullptr, nullptr, createInfo);
         if (res.result != vk::Result::eSuccess) {
             throw std::runtime_error("failed to create ray tracing pipeline.");
         }
@@ -110,7 +110,7 @@ void ComputePipeline::Run(vk::CommandBuffer commandBuffer, uint32_t groupCountX,
 
 void ComputePipeline::Run(void* pushData)
 {
-    Run(Context::GetCurrentCommandBuffer(), Window::GetWidth(), Window::GetHeight(), pushData);
+    Run(Graphics::GetCurrentCommandBuffer(), Window::GetWidth(), Window::GetHeight(), pushData);
 }
 
 void RayTracingPipeline::LoadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath)
@@ -207,7 +207,7 @@ void RayTracingPipeline::Setup(size_t pushSize)
 
     // Get Ray Tracing Properties
     using vkRTP = vk::PhysicalDeviceRayTracingPipelinePropertiesKHR;
-    auto rtProperties = Context::GetPhysicalDevice().getProperties2<vk::PhysicalDeviceProperties2, vkRTP>().get<vkRTP>();
+    auto rtProperties = Graphics::GetPhysicalDevice().getProperties2<vk::PhysicalDeviceProperties2, vkRTP>().get<vkRTP>();
 
     // Calculate SBT size
     const uint32_t handleSize = rtProperties.shaderGroupHandleSize;
@@ -217,7 +217,7 @@ void RayTracingPipeline::Setup(size_t pushSize)
 
     // Get shader group handles
     std::vector<uint8_t> shaderHandleStorage(sbtSize);
-    const vk::Result result = Context::GetDevice().getRayTracingShaderGroupHandlesKHR(*pipeline, 0, groupCount, sbtSize,
+    const vk::Result result = Graphics::GetDevice().getRayTracingShaderGroupHandlesKHR(*pipeline, 0, groupCount, sbtSize,
                                                                                       shaderHandleStorage.data());
     if (result != vk::Result::eSuccess) {
         throw std::runtime_error("failed to get ray tracing shader group handles.");
@@ -259,7 +259,7 @@ void RayTracingPipeline::Run(vk::CommandBuffer commandBuffer, uint32_t countX, u
 
 void RayTracingPipeline::Run(uint32_t countX, uint32_t countY, void* pushData)
 {
-    Run(Context::GetCurrentCommandBuffer(), countX, countY, pushData);
+    Run(Graphics::GetCurrentCommandBuffer(), countX, countY, pushData);
 }
 
 void RayTracingPipeline::Run(vk::CommandBuffer commandBuffer, void* pushData)
@@ -269,5 +269,5 @@ void RayTracingPipeline::Run(vk::CommandBuffer commandBuffer, void* pushData)
 
 void RayTracingPipeline::Run(void* pushData)
 {
-    Run(Context::GetCurrentCommandBuffer(), Window::GetWidth(), Window::GetHeight(), pushData);
+    Run(Graphics::GetCurrentCommandBuffer(), Window::GetWidth(), Window::GetHeight(), pushData);
 }

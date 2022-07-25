@@ -4,7 +4,7 @@
 #include "GUI/imgui_impl_vulkan_hpp.h"
 #include "GUI/GUI.hpp"
 #include "Window/Window.hpp"
-#include "Graphics/Context.hpp"
+#include "Graphics/Graphics.hpp"
 
 void GUI::Init()
 {
@@ -50,24 +50,24 @@ void GUI::Init()
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForVulkan(Window::GetWindow(), true);
     ImGui_ImplVulkan_InitInfo initInfo{};
-    initInfo.Instance = Context::GetInstance();
-    initInfo.PhysicalDevice = Context::GetPhysicalDevice();
-    initInfo.Device = Context::GetDevice();
-    initInfo.QueueFamily = Context::GetQueueFamily();
-    initInfo.Queue = Context::GetQueue();
+    initInfo.Instance = Graphics::GetInstance();
+    initInfo.PhysicalDevice = Graphics::GetPhysicalDevice();
+    initInfo.Device = Graphics::GetDevice();
+    initInfo.QueueFamily = Graphics::GetQueueFamily();
+    initInfo.Queue = Graphics::GetQueue();
     initInfo.PipelineCache = nullptr;
-    initInfo.DescriptorPool = Context::GetDescriptorPool();
+    initInfo.DescriptorPool = Graphics::GetDescriptorPool();
     initInfo.Subpass = 0;
-    initInfo.MinImageCount = Context::GetMinImageCount();
-    initInfo.ImageCount = Context::GetImageCount();
+    initInfo.MinImageCount = Graphics::GetMinImageCount();
+    initInfo.ImageCount = Graphics::GetImageCount();
     initInfo.MSAASamples = vk::SampleCountFlagBits::e1;
     initInfo.Allocator = nullptr;
-    ImGui_ImplVulkan_Init(&initInfo, Context::GetRenderPass());
+    ImGui_ImplVulkan_Init(&initInfo, Graphics::GetRenderPass());
 
     // Setup font
     io.Fonts->AddFontFromFileTTF("../../../asset/Roboto-Medium.ttf", 24.0f);
     {
-        Context::OneTimeSubmit(
+        Graphics::OneTimeSubmit(
             [&](vk::CommandBuffer commandBuffer)
             {
                 ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
@@ -97,10 +97,10 @@ void GUI::StartFrame()
 void GUI::Render(vk::CommandBuffer commandBuffer)
 {
     ImGui::Render();
-    Context::BeginRenderPass();
+    Graphics::BeginRenderPass();
     ImDrawData* drawData = ImGui::GetDrawData();
     ImGui_ImplVulkan_RenderDrawData(drawData, commandBuffer);
-    Context::EndRenderPass();
+    Graphics::EndRenderPass();
 }
 
 bool GUI::Checkbox(const std::string& label, bool& value)

@@ -1,4 +1,4 @@
-#include "Context.hpp"
+#include "Graphics.hpp"
 #include <regex>
 #include <spdlog/spdlog.h>
 #include "Window/Window.hpp"
@@ -7,9 +7,9 @@
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
-void Context::Init()
+void Graphics::Init()
 {
-    spdlog::info("Context::Init()");
+    spdlog::info("Graphics::Init()");
 
     std::vector layers{ "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_monitor" };
 
@@ -35,12 +35,12 @@ void Context::Init()
     swapchain = Swapchain{ *device, *surface, queueFamily };
 }
 
-vk::UniqueCommandBuffer Context::AllocateCommandBuffer()
+vk::UniqueCommandBuffer Graphics::AllocateCommandBuffer()
 {
     return std::move(Helper::AllocateCommandBuffers(*device, *commandPool, 1).front());
 }
 
-void Context::SubmitAndWait(vk::CommandBuffer commandBuffer)
+void Graphics::SubmitAndWait(vk::CommandBuffer commandBuffer)
 {
     queue.submit(
         vk::SubmitInfo()
@@ -49,7 +49,7 @@ void Context::SubmitAndWait(vk::CommandBuffer commandBuffer)
     queue.waitIdle();
 }
 
-void Context::OneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command)
+void Graphics::OneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command)
 {
     vk::UniqueCommandBuffer commandBuffer = AllocateCommandBuffer();
 
@@ -63,7 +63,7 @@ void Context::OneTimeSubmit(const std::function<void(vk::CommandBuffer)>& comman
     SubmitAndWait(*commandBuffer);
 }
 
-uint32_t Context::FindMemoryTypeIndex(vk::MemoryRequirements requirements, vk::MemoryPropertyFlags memoryProp)
+uint32_t Graphics::FindMemoryTypeIndex(vk::MemoryRequirements requirements, vk::MemoryPropertyFlags memoryProp)
 {
     const vk::PhysicalDeviceMemoryProperties memoryProperties = physicalDevice.getMemoryProperties();
     for (uint32_t index = 0; index < memoryProperties.memoryTypeCount; ++index) {
@@ -76,17 +76,17 @@ uint32_t Context::FindMemoryTypeIndex(vk::MemoryRequirements requirements, vk::M
     throw std::runtime_error("Failed to find memory type index.");
 }
 
-void Context::BeginRenderPass()
+void Graphics::BeginRenderPass()
 {
     swapchain.BeginRenderPass();
 }
 
-void Context::EndRenderPass()
+void Graphics::EndRenderPass()
 {
     swapchain.EndRenderPass();
 }
 
-void Context::CopyToBackImage(vk::CommandBuffer commandBuffer, const Image& source)
+void Graphics::CopyToBackImage(vk::CommandBuffer commandBuffer, const Image& source)
 {
     swapchain.CopyToBackImage(commandBuffer, source);
 }

@@ -12,7 +12,7 @@ namespace
     vk::UniqueImage CreateImage(uint32_t width, uint32_t height, vk::Format format)
     {
         using Usage = vk::ImageUsageFlagBits;
-        return Context::GetDevice().createImageUnique(
+        return Graphics::GetDevice().createImageUnique(
             vk::ImageCreateInfo()
             .setImageType(vk::ImageType::e2D)
             .setFormat(format)
@@ -26,7 +26,7 @@ namespace
     vk::UniqueImage CreateImage(uint32_t width, uint32_t height, uint32_t depth, vk::Format format)
     {
         using Usage = vk::ImageUsageFlagBits;
-        return Context::GetDevice().createImageUnique(
+        return Graphics::GetDevice().createImageUnique(
             vk::ImageCreateInfo()
             .setImageType(vk::ImageType::e3D)
             .setFormat(format)
@@ -39,9 +39,9 @@ namespace
 
     vk::UniqueDeviceMemory AllocateMemory(vk::Image image)
     {
-        vk::MemoryRequirements requirements = Context::GetDevice().getImageMemoryRequirements(image);
-        uint32_t memoryTypeIndex = Context::FindMemoryTypeIndex(requirements, vk::MemoryPropertyFlagBits::eDeviceLocal);
-        return Context::GetDevice().allocateMemoryUnique(
+        vk::MemoryRequirements requirements = Graphics::GetDevice().getImageMemoryRequirements(image);
+        uint32_t memoryTypeIndex = Graphics::FindMemoryTypeIndex(requirements, vk::MemoryPropertyFlagBits::eDeviceLocal);
+        return Graphics::GetDevice().allocateMemoryUnique(
             vk::MemoryAllocateInfo()
             .setAllocationSize(requirements.size)
             .setMemoryTypeIndex(memoryTypeIndex)
@@ -50,7 +50,7 @@ namespace
 
     vk::UniqueImageView CreateImageView(vk::Image image, vk::Format format, vk::ImageViewType type = vk::ImageViewType::e2D)
     {
-        return Context::GetDevice().createImageViewUnique(
+        return Graphics::GetDevice().createImageViewUnique(
             vk::ImageViewCreateInfo()
             .setImage(image)
             .setViewType(type)
@@ -61,7 +61,7 @@ namespace
 
     vk::UniqueSampler CreateSampler()
     {
-        return Context::GetDevice().createSamplerUnique(
+        return Graphics::GetDevice().createSamplerUnique(
             vk::SamplerCreateInfo()
             .setMagFilter(vk::Filter::eLinear)
             .setMinFilter(vk::Filter::eLinear)
@@ -82,12 +82,12 @@ Image::Image(uint32_t width, uint32_t height, vk::Format format)
 {
     image = CreateImage(width, height, format);
     memory = AllocateMemory(*image);
-    Context::GetDevice().bindImageMemory(*image, *memory, 0);
+    Graphics::GetDevice().bindImageMemory(*image, *memory, 0);
 
     view = CreateImageView(*image, format);
     sampler = CreateSampler();
 
-    Context::OneTimeSubmit(
+    Graphics::OneTimeSubmit(
         [&](vk::CommandBuffer commandBuffer)
         {
             SetImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
@@ -113,13 +113,13 @@ Image::Image(const std::string& filepath)
     this->height = height;
     image = CreateImage(width, height, vk::Format::eR8G8B8A8Unorm);
     memory = AllocateMemory(*image);
-    Context::GetDevice().bindImageMemory(*image, *memory, 0);
+    Graphics::GetDevice().bindImageMemory(*image, *memory, 0);
 
     view = CreateImageView(*image, vk::Format::eR8G8B8A8Unorm);
     sampler = CreateSampler();
 
     StagingBuffer staging{ static_cast<size_t>(width * height * 4), data };
-    Context::OneTimeSubmit(
+    Graphics::OneTimeSubmit(
         [&](vk::CommandBuffer commandBuffer)
         {
             vk::BufferImageCopy region{};
@@ -165,13 +165,13 @@ Image::Image(const std::vector<std::string>& filepaths)
 
     image = CreateImage(width, height, depth, vk::Format::eR8G8B8A8Unorm);
     memory = AllocateMemory(*image);
-    Context::GetDevice().bindImageMemory(*image, *memory, 0);
+    Graphics::GetDevice().bindImageMemory(*image, *memory, 0);
 
     view = CreateImageView(*image, vk::Format::eR8G8B8A8Unorm, vk::ImageViewType::e3D);
     sampler = CreateSampler();
 
     StagingBuffer staging{ static_cast<size_t>(width * height * depth * 4), allData.data() };
-    Context::OneTimeSubmit(
+    Graphics::OneTimeSubmit(
         [&](vk::CommandBuffer commandBuffer)
         {
             vk::BufferImageCopy region{};
@@ -194,7 +194,7 @@ void Image::SetImageLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout newL
 
 void Image::SetImageLayout(vk::ImageLayout newLayout)
 {
-    SetImageLayout(Context::GetCurrentCommandBuffer(), newLayout);
+    SetImageLayout(Graphics::GetCurrentCommandBuffer(), newLayout);
 }
 
 void Image::CopyToImage(vk::CommandBuffer commandBuffer, const Image& dst) const
@@ -218,7 +218,7 @@ void Image::CopyToImage(Image& dst)
     SetImageLayout(vk::ImageLayout::eTransferSrcOptimal);
     dst.SetImageLayout(vk::ImageLayout::eTransferDstOptimal);
 
-    CopyToImage(Context::GetCurrentCommandBuffer(), dst);
+    CopyToImage(Graphics::GetCurrentCommandBuffer(), dst);
 
     SetImageLayout(srcOldLayout);
     dst.SetImageLayout(dstOldLayout);
@@ -226,7 +226,7 @@ void Image::CopyToImage(Image& dst)
 
 void Image::CopyToBackImage() const
 {
-    Context::CopyToBackImage(Context::GetCurrentCommandBuffer(), *this);
+    Graphics::CopyToBackImage(Graphics::GetCurrentCommandBuffer(), *this);
 }
 
 void Image::CopyToBuffer(vk::CommandBuffer commandBuffer, Buffer& dst)
@@ -257,7 +257,7 @@ void Image::Save(const std::string& filepath)
     static HostBuffer buffer{ vk::BufferUsageFlagBits::eTransferDst, size };
     static uint8_t* pixels = static_cast<uint8_t*>(buffer.Map());
 
-    Context::OneTimeSubmit(
+    Graphics::OneTimeSubmit(
         [&](vk::CommandBuffer commandBuffer) {
             CopyToBuffer(commandBuffer, buffer);
         });

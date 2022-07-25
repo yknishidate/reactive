@@ -1,5 +1,5 @@
 #include "Swapchain.hpp"
-#include "Context.hpp"
+#include "Graphics.hpp"
 #include "Window/Window.hpp"
 #include "Helper.hpp"
 #include "Image.hpp"
@@ -7,7 +7,7 @@
 Frame::Frame(vk::RenderPass renderPass, vk::ImageView attachment,
              uint32_t width, uint32_t height)
 {
-    framebuffer = Context::GetDevice().createFramebufferUnique(
+    framebuffer = Graphics::GetDevice().createFramebufferUnique(
         vk::FramebufferCreateInfo()
         .setRenderPass(renderPass)
         .setAttachments(attachment)
@@ -15,8 +15,8 @@ Frame::Frame(vk::RenderPass renderPass, vk::ImageView attachment,
         .setHeight(height)
         .setLayers(1)
     );
-    commandBuffer = Context::AllocateCommandBuffer();
-    fence = Context::GetDevice().createFenceUnique(
+    commandBuffer = Graphics::AllocateCommandBuffer();
+    fence = Graphics::GetDevice().createFenceUnique(
         vk::FenceCreateInfo()
         .setFlags(vk::FenceCreateFlagBits::eSignaled)
     );
@@ -24,8 +24,8 @@ Frame::Frame(vk::RenderPass renderPass, vk::ImageView attachment,
 
 FrameSemaphores::FrameSemaphores()
 {
-    imageAcquiredSemaphore = Context::GetDevice().createSemaphoreUnique({});
-    renderCompleteSemaphore = Context::GetDevice().createSemaphoreUnique({});
+    imageAcquiredSemaphore = Graphics::GetDevice().createSemaphoreUnique({});
+    renderCompleteSemaphore = Graphics::GetDevice().createSemaphoreUnique({});
 }
 
 Swapchain::Swapchain(vk::Device device, vk::SurfaceKHR surface, uint32_t queueFamily)

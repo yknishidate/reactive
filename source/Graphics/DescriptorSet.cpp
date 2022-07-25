@@ -1,5 +1,5 @@
 #include <regex>
-#include "Context.hpp"
+#include "Graphics.hpp"
 #include "DescriptorSet.hpp"
 #include "Compiler/Compiler.hpp"
 
@@ -7,7 +7,7 @@ namespace
 {
     vk::UniqueDescriptorSetLayout CreateDescSetLayout(const std::vector<vk::DescriptorSetLayoutBinding>& bindings)
     {
-        return Context::GetDevice().createDescriptorSetLayoutUnique(
+        return Graphics::GetDevice().createDescriptorSetLayoutUnique(
             vk::DescriptorSetLayoutCreateInfo()
             .setBindings(bindings)
         );
@@ -15,9 +15,9 @@ namespace
 
     vk::UniqueDescriptorSet AllocateDescSet(vk::DescriptorSetLayout descSetLayout)
     {
-        std::vector descSets = Context::GetDevice().allocateDescriptorSetsUnique(
+        std::vector descSets = Graphics::GetDevice().allocateDescriptorSetsUnique(
             vk::DescriptorSetAllocateInfo()
-            .setDescriptorPool(Context::GetDescriptorPool())
+            .setDescriptorPool(Graphics::GetDescriptorPool())
             .setSetLayouts(descSetLayout)
         );
         return std::move(descSets.front());
@@ -28,7 +28,7 @@ namespace
         for (auto&& write : writes) {
             write.setDstSet(descSet);
         }
-        Context::GetDevice().updateDescriptorSets(writes, nullptr);
+        Graphics::GetDevice().updateDescriptorSets(writes, nullptr);
     }
 } // namespace
 
@@ -124,7 +124,7 @@ vk::UniquePipelineLayout DescriptorSet::CreatePipelineLayout(size_t pushSize, vk
         layoutInfo.setPushConstantRanges(pushRange);
     }
 
-    return Context::GetDevice().createPipelineLayoutUnique(layoutInfo);
+    return Graphics::GetDevice().createPipelineLayoutUnique(layoutInfo);
 }
 
 void DescriptorSet::Bind(vk::CommandBuffer commandBuffer, vk::PipelineBindPoint bindPoint, vk::PipelineLayout pipelineLayout)

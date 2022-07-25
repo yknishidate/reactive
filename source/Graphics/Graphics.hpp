@@ -3,7 +3,7 @@
 #include <vulkan/vulkan.hpp>
 #include "Swapchain.hpp"
 
-struct Context
+struct Graphics
 {
     static void Init();
     static auto AllocateCommandBuffer()->vk::UniqueCommandBuffer;
