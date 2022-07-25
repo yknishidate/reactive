@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <spdlog/spdlog.h>
 #include "Loader.hpp"
-#include "Vulkan/Image.hpp"
+#include "Graphics/Image.hpp"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>

@@ -4,7 +4,7 @@
 #include "GUI/imgui_impl_vulkan_hpp.h"
 #include "GUI/GUI.hpp"
 #include "Window/Window.hpp"
-#include "Vulkan/Context.hpp"
+#include "Graphics/Context.hpp"
 
 void GUI::Init()
 {
