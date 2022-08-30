@@ -34,7 +34,7 @@ void HostBuffer::Copy(const void* data)
 void* HostBuffer::Map()
 {
     if (!mapped) {
-        mapped = Graphics::GetDevice().mapMemory(*memory, 0, size);
+        mapped = Graphics::GetDevice().mapMemory(*memory, 0, VK_WHOLE_SIZE);
     }
     return mapped;
 }
@@ -47,12 +47,10 @@ DeviceBuffer::DeviceBuffer(vk::BufferUsageFlags usage, size_t size)
 void DeviceBuffer::Copy(const void* data)
 {
     StagingBuffer stagingBuffer{ size, data };
-    Graphics::OneTimeSubmit(
-        [&](vk::CommandBuffer commandBuffer)
-        {
-            vk::BufferCopy region{ 0, 0, size };
-            commandBuffer.copyBuffer(stagingBuffer.GetBuffer(), *buffer, region);
-        });
+    Graphics::OneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
+        vk::BufferCopy region{ 0, 0, size };
+        commandBuffer.copyBuffer(stagingBuffer.GetBuffer(), *buffer, region);
+    });
 }
 
 StagingBuffer::StagingBuffer(size_t size, const void* data)

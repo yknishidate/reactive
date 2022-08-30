@@ -3,7 +3,6 @@
 #include <spdlog/spdlog.h>
 #include "Window/Window.hpp"
 #include "Helper.hpp"
-#include "Buffer.hpp"
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 

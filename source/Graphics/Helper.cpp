@@ -62,7 +62,7 @@ uint32_t Helper::FindGenericQueueFamily(vk::PhysicalDevice physicalDevice, vk::S
 
 vk::UniqueDevice Helper::CreateDevice(vk::PhysicalDevice physicalDevice, uint32_t queueFamily)
 {
-    constexpr float queuePriority = 0.0f;
+    constexpr float queuePriority = 1.0f;
     const auto queueInfo = vk::DeviceQueueCreateInfo()
         .setQueueFamilyIndex(queueFamily)
         .setQueueCount(1)
