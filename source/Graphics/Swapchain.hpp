@@ -98,6 +98,10 @@ struct Swapchain
     uint32_t width = 0;
     uint32_t height = 0;
 
+    vk::UniqueImage depthImage;
+    vk::UniqueImageView depthImageView;
+    vk::UniqueDeviceMemory depthImageMemory;
+
     bool swapchainRebuild = false;
     int minImageCount = 3;
     uint32_t frameIndex = 0;

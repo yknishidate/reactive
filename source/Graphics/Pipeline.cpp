@@ -16,6 +16,110 @@ namespace
         return Graphics::GetDevice().createShaderModuleUnique(createInfo);
     }
 
+    vk::UniquePipeline CreateGraphicsPipeline(vk::ShaderModule vertModule, vk::ShaderModule fragModule,
+                                              vk::PipelineLayout pipelineLayout)
+    {
+        vk::PipelineShaderStageCreateInfo vertShaderStageInfo;
+        vertShaderStageInfo.setStage(vk::ShaderStageFlagBits::eVertex);
+        vertShaderStageInfo.setModule(vertModule);
+        vertShaderStageInfo.setPName("main");
+
+        vk::PipelineShaderStageCreateInfo fragShaderStageInfo;
+        fragShaderStageInfo.setStage(vk::ShaderStageFlagBits::eFragment);
+        fragShaderStageInfo.setModule(fragModule);
+        fragShaderStageInfo.setPName("main");
+
+        std::array shaderStages{ vertShaderStageInfo, fragShaderStageInfo };
+
+        vk::VertexInputBindingDescription bindingDescription;
+        bindingDescription.setBinding(0);
+        bindingDescription.setStride(sizeof(Vertex));
+        bindingDescription.setInputRate(vk::VertexInputRate::eVertex);
+
+        std::array<vk::VertexInputAttributeDescription, 3> attributeDescriptions;
+        attributeDescriptions[0].setBinding(0);
+        attributeDescriptions[0].setLocation(0);
+        attributeDescriptions[0].setFormat(vk::Format::eR32G32B32Sfloat);
+        attributeDescriptions[0].setOffset(offsetof(Vertex, pos));
+
+        attributeDescriptions[1].setBinding(0);
+        attributeDescriptions[1].setLocation(1);
+        attributeDescriptions[1].setFormat(vk::Format::eR32G32B32Sfloat);
+        attributeDescriptions[1].setOffset(offsetof(Vertex, normal));
+
+        attributeDescriptions[2].setBinding(0);
+        attributeDescriptions[2].setLocation(2);
+        attributeDescriptions[2].setFormat(vk::Format::eR32G32Sfloat);
+        attributeDescriptions[2].setOffset(offsetof(Vertex, texCoord));
+
+        vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
+        vertexInputInfo.setVertexBindingDescriptions(bindingDescription);
+        vertexInputInfo.setVertexAttributeDescriptions(attributeDescriptions);
+
+        vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
+        inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
+
+        auto width = static_cast<float>(Window::GetWidth());
+        auto height = static_cast<float>(Window::GetHeight());
+        vk::Viewport viewport{ 0.0f, 0.0f, width, height, 0.0f, 1.0f };
+        vk::Rect2D scissor{ { 0, 0 }, {Window::GetWidth(), Window::GetWidth()} };
+        vk::PipelineViewportStateCreateInfo viewportState{ {}, 1, &viewport, 1, &scissor };
+
+        vk::PipelineRasterizationStateCreateInfo rasterization;
+        rasterization.setDepthClampEnable(VK_FALSE);
+        rasterization.setRasterizerDiscardEnable(VK_FALSE);
+        rasterization.setPolygonMode(vk::PolygonMode::eFill);
+        rasterization.setCullMode(vk::CullModeFlagBits::eNone);
+        rasterization.setFrontFace(vk::FrontFace::eCounterClockwise);
+        rasterization.setDepthBiasEnable(VK_FALSE);
+        rasterization.setLineWidth(1.0f);
+
+        vk::PipelineMultisampleStateCreateInfo multisampling;
+        multisampling.setSampleShadingEnable(VK_FALSE);
+
+        vk::PipelineDepthStencilStateCreateInfo depthStencil;
+        depthStencil.setDepthTestEnable(VK_TRUE);
+        depthStencil.setDepthWriteEnable(VK_TRUE);
+        depthStencil.setDepthCompareOp(vk::CompareOp::eLess);
+        depthStencil.setDepthBoundsTestEnable(VK_FALSE);
+        depthStencil.setStencilTestEnable(VK_FALSE);
+
+        using vkCC = vk::ColorComponentFlagBits;
+        vk::PipelineColorBlendAttachmentState colorBlendAttachment;
+        colorBlendAttachment.setBlendEnable(VK_FALSE);
+        colorBlendAttachment.setColorWriteMask(vkCC::eR | vkCC::eG | vkCC::eB | vkCC::eA);
+
+        vk::PipelineColorBlendStateCreateInfo colorBlending;
+        colorBlending.setLogicOpEnable(VK_FALSE);
+        colorBlending.setAttachments(colorBlendAttachment);
+
+        vk::Format colorFormat = vk::Format::eB8G8R8A8Unorm;
+        vk::Format depthFormat = vk::Format::eD32Sfloat;
+        vk::PipelineRenderingCreateInfo renderingInfo;
+        renderingInfo.setColorAttachmentCount(1);
+        renderingInfo.setColorAttachmentFormats(colorFormat);
+        renderingInfo.setDepthAttachmentFormat(depthFormat);
+
+        vk::GraphicsPipelineCreateInfo pipelineInfo;
+        pipelineInfo.setStages(shaderStages);
+        pipelineInfo.setPVertexInputState(&vertexInputInfo);
+        pipelineInfo.setPInputAssemblyState(&inputAssembly);
+        pipelineInfo.setPViewportState(&viewportState);
+        pipelineInfo.setPRasterizationState(&rasterization);
+        pipelineInfo.setPMultisampleState(&multisampling);
+        pipelineInfo.setPDepthStencilState(&depthStencil);
+        pipelineInfo.setPColorBlendState(&colorBlending);
+        pipelineInfo.setLayout(pipelineLayout);
+        pipelineInfo.setSubpass(0);
+        pipelineInfo.setPNext(&renderingInfo);
+
+        auto result = Graphics::GetDevice().createGraphicsPipelineUnique({}, pipelineInfo);
+        if (result.result != vk::Result::eSuccess) {
+            throw std::runtime_error("failed to create a pipeline!");
+        }
+        return std::move(result.value);
+    }
+
     vk::UniquePipeline CreateComputePipeline(vk::ShaderModule shaderModule, vk::ShaderStageFlagBits shaderStage,
                                              vk::PipelineLayout pipelineLayout)
     {
@@ -80,6 +184,62 @@ void Pipeline::Register(const std::string& name, const Image& image)
 void Pipeline::Register(const std::string& name, const TopAccel& accel)
 {
     descSet->Register(name, accel);
+}
+
+void GraphicsPipeline::LoadShaders(const std::string& vertPath, const std::string& fragPath)
+{
+    spdlog::info("ComputePipeline::LoadShaders()");
+
+    std::vector vertCode = Compiler::CompileToSPV(vertPath);
+    std::vector fragCode = Compiler::CompileToSPV(fragPath);
+    descSet->AddBindingMap(vertCode, vk::ShaderStageFlagBits::eVertex);
+    descSet->AddBindingMap(fragCode, vk::ShaderStageFlagBits::eFragment);
+    vertModule = CreateShaderModule(vertCode);
+    fragModule = CreateShaderModule(fragCode);
+}
+
+void GraphicsPipeline::Setup(size_t pushSize)
+{
+    this->pushSize = pushSize;
+    pipelineLayout = descSet->CreatePipelineLayout(pushSize, vk::ShaderStageFlagBits::eCompute);
+    pipeline = CreateGraphicsPipeline(*vertModule, *fragModule, *pipelineLayout);
+}
+
+void GraphicsPipeline::Begin(vk::CommandBuffer commandBuffer, void* pushData)
+{
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *pipeline);
+    descSet->Bind(commandBuffer, vk::PipelineBindPoint::eGraphics, *pipelineLayout);
+    if (pushData) {
+        commandBuffer.pushConstants(*pipelineLayout, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, pushSize, pushData);
+    }
+
+    vk::ClearValue clearColorValue;
+    clearColorValue.setColor(vk::ClearColorValue{ std::array{0.0f, 0.0f, 0.0f, 1.0f} });
+
+    vk::RenderingAttachmentInfo colorAttachment;
+    colorAttachment.setImageView(Swapchain::GetBackImage());
+    colorAttachment.setImageLayout(vk::ImageLayout::eAttachmentOptimal);
+    colorAttachment.setClearValue(clearColorValue);
+    colorAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
+    colorAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
+
+    vk::ClearValue clearDepthStencilValue;
+    clearDepthStencilValue.setDepthStencil(vk::ClearDepthStencilValue{ 1.0f, 0 });
+
+    vk::RenderingAttachmentInfo depthStencilAttachment;
+    depthStencilAttachment.setImageView(*depthImageView);
+    depthStencilAttachment.setImageLayout(vk::ImageLayout::eAttachmentOptimal);
+    depthStencilAttachment.setClearValue(clearDepthStencilValue);
+    depthStencilAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
+    depthStencilAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
+
+    vk::RenderingInfo renderingInfo;
+    renderingInfo.setRenderArea({ {0, 0}, {Window::GetWidth(), Window::GetHeight()} });
+    renderingInfo.setLayerCount(1);
+    renderingInfo.setColorAttachments(colorAttachment);
+    renderingInfo.setPDepthAttachment(&depthStencilAttachment);
+
+    commandBuffer.beginRendering(renderingInfo);
 }
 
 void ComputePipeline::LoadShaders(const std::string& path)
@@ -218,7 +378,7 @@ void RayTracingPipeline::Setup(size_t pushSize)
     // Get shader group handles
     std::vector<uint8_t> shaderHandleStorage(sbtSize);
     const vk::Result result = Graphics::GetDevice().getRayTracingShaderGroupHandlesKHR(*pipeline, 0, groupCount, sbtSize,
-                                                                                      shaderHandleStorage.data());
+                                                                                       shaderHandleStorage.data());
     if (result != vk::Result::eSuccess) {
         throw std::runtime_error("failed to get ray tracing shader group handles.");
     }

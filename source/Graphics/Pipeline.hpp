@@ -34,6 +34,22 @@ protected:
     std::shared_ptr<DescriptorSet> descSet;
 };
 
+class GraphicsPipeline : public Pipeline
+{
+public:
+    GraphicsPipeline() : Pipeline() {}
+    GraphicsPipeline(std::shared_ptr<DescriptorSet> descSet) : Pipeline(descSet) {}
+
+    virtual void LoadShaders(const std::string& vertPath, const std::string& fragPath);
+    virtual void Setup(size_t pushSize = 0);
+    virtual void Begin(vk::CommandBuffer commandBuffer, void* pushData = nullptr);
+    virtual void Run(void* pushData = nullptr);
+
+private:
+    vk::UniqueShaderModule vertModule;
+    vk::UniqueShaderModule fragModule;
+};
+
 class ComputePipeline : public Pipeline
 {
 public:
