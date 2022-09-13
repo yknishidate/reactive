@@ -15,14 +15,14 @@ int main()
 
     while (Engine::Update()) {
         Engine::Render(
-            [&]()
+            [&](auto commandBuffer)
             {
-                pipeline.Begin();
+                pipeline.Begin(commandBuffer);
                 vk::DeviceSize offsets{ 0 };
-                Graphics::GetCurrentCommandBuffer().bindVertexBuffers(0, mesh->GetVertexBuffer(), offsets);
-                Graphics::GetCurrentCommandBuffer().bindIndexBuffer(mesh->GetIndexBuffer(), 0, vk::IndexType::eUint32);
-                Graphics::GetCurrentCommandBuffer().drawIndexed(static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
-                pipeline.End();
+                commandBuffer.bindVertexBuffers(0, mesh->GetVertexBuffer(), offsets);
+                commandBuffer.bindIndexBuffer(mesh->GetIndexBuffer(), 0, vk::IndexType::eUint32);
+                commandBuffer.drawIndexed(static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+                pipeline.End(commandBuffer);
             });
     }
     Engine::Shutdown();

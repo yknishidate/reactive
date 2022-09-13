@@ -18,10 +18,7 @@ public:
     vk::DescriptorImageInfo GetInfo() const { return { *sampler, *view, layout }; }
 
     void SetImageLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout newLayout);
-    void SetImageLayout(vk::ImageLayout newLayout);
     void CopyToImage(vk::CommandBuffer commandBuffer, const Image& dst) const;
-    void CopyToImage(Image& dst);
-    void CopyToBackImage() const;
 
     void CopyToBuffer(vk::CommandBuffer commandBuffer, Buffer& dst);
     void Save(const std::string& filepath);

@@ -36,7 +36,7 @@ int main()
     Image images{ imagePaths };
     Image outputImage{ vk::Format::eB8G8R8A8Unorm };
 
-    ComputePipeline pipeline{ };
+    ComputePipeline pipeline{};
     pipeline.LoadShaders(SHADER_DIR + "light_field.comp");
     pipeline.GetDescSet().Register("outputImage", outputImage);
     pipeline.GetDescSet().Register("images", images);
@@ -57,9 +57,9 @@ int main()
         }
 
         pushConstants.HandleInput(invertX, invertY);
-        Engine::Render([&]() {
-            pipeline.Run(&pushConstants);
-            outputImage.CopyToBackImage(); });
+        Engine::Render([&](auto commandBuffer) {
+            pipeline.Run(commandBuffer, Window::GetWidth(), Window::GetHeight(), &pushConstants);
+            Graphics::CopyToBackImage(commandBuffer, outputImage); });
         frame++;
     }
     Engine::Shutdown();

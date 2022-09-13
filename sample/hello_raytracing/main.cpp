@@ -36,9 +36,9 @@ int main()
         pushConstants.invProj = scene.GetCamera().GetInvProj();
         pushConstants.invView = scene.GetCamera().GetInvView();
 
-        Engine::Render([&]() {
-            pipeline.Run(&pushConstants);
-            outputImage.CopyToBackImage(); });
+        Engine::Render([&](auto commandBuffer) {
+            pipeline.Run(commandBuffer, Window::GetWidth(), Window::GetHeight(), &pushConstants);
+            Graphics::CopyToBackImage(commandBuffer, outputImage); });
     }
     Engine::Shutdown();
 }

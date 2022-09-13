@@ -20,7 +20,6 @@ struct Graphics
     static auto GetImageCount() { return swapchain.GetImageCount(); }
     static auto GetMinImageCount() { return swapchain.GetMinImageCount(); }
     static auto GetRenderPass() { return swapchain.GetRenderPass(); }
-    static auto GetCurrentCommandBuffer() { return swapchain.GetCurrentCommandBuffer(); }
     static const auto& GetSwapchain() { return swapchain; }
 
     static void BeginRenderPass();

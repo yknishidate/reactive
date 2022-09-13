@@ -44,15 +44,7 @@ public:
     virtual void LoadShaders(const std::string& vertPath, const std::string& fragPath);
     virtual void Setup(size_t pushSize = 0);
     virtual void Begin(vk::CommandBuffer commandBuffer, void* pushData = nullptr);
-    virtual void Begin(void* pushData = nullptr)
-    {
-        Begin(Graphics::GetCurrentCommandBuffer(), pushData);
-    }
     virtual void End(vk::CommandBuffer commandBuffer);
-    virtual void End()
-    {
-        End(Graphics::GetCurrentCommandBuffer());
-    }
 
 private:
     vk::UniqueShaderModule vertModule;
@@ -68,7 +60,6 @@ public:
     virtual void LoadShaders(const std::string& path);
     virtual void Setup(size_t pushSize = 0);
     virtual void Run(vk::CommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY, void* pushData = nullptr);
-    virtual void Run(void* pushData = nullptr);
 
 private:
     vk::UniqueShaderModule shaderModule;
@@ -84,9 +75,6 @@ public:
     virtual void LoadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath, const std::string& ahitPath);
     virtual void Setup(size_t pushSize = 0);
     virtual void Run(vk::CommandBuffer commandBuffer, uint32_t countX, uint32_t countY, void* pushData = nullptr);
-    virtual void Run(uint32_t countX, uint32_t countY, void* pushData = nullptr);
-    virtual void Run(vk::CommandBuffer commandBuffer, void* pushData = nullptr);
-    virtual void Run(void* pushData = nullptr);
 
 private:
     std::vector<vk::UniqueShaderModule> shaderModules;

@@ -266,11 +266,6 @@ void ComputePipeline::Run(vk::CommandBuffer commandBuffer, uint32_t groupCountX,
     commandBuffer.dispatch(groupCountX, groupCountY, 1);
 }
 
-void ComputePipeline::Run(void* pushData)
-{
-    Run(Graphics::GetCurrentCommandBuffer(), Window::GetWidth(), Window::GetHeight(), pushData);
-}
-
 void RayTracingPipeline::LoadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath)
 {
     spdlog::info("RayTracingPipeline::LoadShaders()");
@@ -413,19 +408,4 @@ void RayTracingPipeline::Run(vk::CommandBuffer commandBuffer, uint32_t countX, u
                                     0, pushSize, pushData);
     }
     commandBuffer.traceRaysKHR(raygenRegion, missRegion, hitRegion, {}, countX, countY, 1);
-}
-
-void RayTracingPipeline::Run(uint32_t countX, uint32_t countY, void* pushData)
-{
-    Run(Graphics::GetCurrentCommandBuffer(), countX, countY, pushData);
-}
-
-void RayTracingPipeline::Run(vk::CommandBuffer commandBuffer, void* pushData)
-{
-    Run(commandBuffer, Window::GetWidth(), Window::GetHeight(), pushData);
-}
-
-void RayTracingPipeline::Run(void* pushData)
-{
-    Run(Graphics::GetCurrentCommandBuffer(), Window::GetWidth(), Window::GetHeight(), pushData);
 }

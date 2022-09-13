@@ -27,10 +27,18 @@ struct GBuffers
 
 struct ResevImages
 {
-    void Copy(ResevImages& dst)
+    void Copy(vk::CommandBuffer commandBuffer, ResevImages& dst)
     {
-        sample.CopyToImage(dst.sample);
-        weight.CopyToImage(dst.weight);
+        sample.SetImageLayout(commandBuffer, vk::ImageLayout::eTransferSrcOptimal);
+        weight.SetImageLayout(commandBuffer, vk::ImageLayout::eTransferSrcOptimal);
+        dst.sample.SetImageLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);
+        dst.weight.SetImageLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);
+        sample.CopyToImage(commandBuffer, dst.sample);
+        weight.CopyToImage(commandBuffer, dst.weight);
+        sample.SetImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
+        weight.SetImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
+        dst.sample.SetImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
+        dst.weight.SetImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
     }
 
     Image sample{ vk::Format::eR32G32Uint };
@@ -150,27 +158,29 @@ int main()
         pushConstants.frame++;
 
         Engine::Render(
-            [&]() {
-                pipelines["GBuffer"].Run(&pushConstants);
+            [&](auto commandBuffer) {
+                auto width = Window::GetWidth();
+                auto height = Window::GetHeight();
+                pipelines["GBuffer"].Run(commandBuffer, width, height, &pushConstants);
 
                 if (method == Uniform) {
-                    pipelines["Uniform"].Run(&pushConstants);
+                    pipelines["Uniform"].Run(commandBuffer, width, height, &pushConstants);
                 } else if (method == WRS) {
-                    pipelines["WRS"].Run(&pushConstants);
+                    pipelines["WRS"].Run(commandBuffer, width, height, &pushConstants);
                 } else if (method == ReSTIR) {
-                    pipelines["InitResev"].Run(&pushConstants);
+                    pipelines["InitResev"].Run(commandBuffer, width, height, &pushConstants);
                     if (temporalReuse) {
-                        pipelines["TemporalReuse"].Run(&pushConstants);
-                        reusedResevImages.Copy(initedResevImages);
+                        pipelines["TemporalReuse"].Run(commandBuffer, width, height, &pushConstants);
+                        reusedResevImages.Copy(commandBuffer, initedResevImages);
                     }
-                    initedResevImages.Copy(storedResevImages);
+                    initedResevImages.Copy(commandBuffer, storedResevImages);
                     for (int i = 0; i < iteration; i++) {
-                        pipelines["SpatialReuse"].Run(&pushConstants);
-                        reusedResevImages.Copy(initedResevImages);
+                        pipelines["SpatialReuse"].Run(commandBuffer, width, height, &pushConstants);
+                        reusedResevImages.Copy(commandBuffer, initedResevImages);
                     }
-                    pipelines["Shading"].Run(&pushConstants);
+                    pipelines["Shading"].Run(commandBuffer, width, height, &pushConstants);
                 }
-                outputImage.output.CopyToBackImage();
+                Graphics::CopyToBackImage(commandBuffer, outputImage.output);
             });
     }
     Engine::Shutdown();

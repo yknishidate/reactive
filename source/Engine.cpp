@@ -34,13 +34,13 @@ bool Engine::Update()
     return !shouldClose;
 }
 
-void Engine::Render(std::function<void()> func)
+void Engine::Render(std::function<void(vk::CommandBuffer)> func)
 {
     if (Window::IsMinimized()) return;
     Graphics::WaitNextFrame();
-    Graphics::BeginCommandBuffer();
-    func();
-    GUI::Render(Graphics::GetCurrentCommandBuffer());
+    vk::CommandBuffer commandBuffer = Graphics::BeginCommandBuffer();
+    func(commandBuffer);
+    GUI::Render(commandBuffer);
     Graphics::Submit();
     Graphics::Present();
 }

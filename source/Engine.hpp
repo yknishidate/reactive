@@ -17,5 +17,5 @@ namespace Engine
     void Init(int width = 1920, int height = 1280);
     void Shutdown();
     bool Update();
-    void Render(std::function<void()> func);
+    void Render(std::function<void(vk::CommandBuffer)> func);
 };

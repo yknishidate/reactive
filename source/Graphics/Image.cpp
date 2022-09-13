@@ -192,11 +192,6 @@ void Image::SetImageLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout newL
     layout = newLayout;
 }
 
-void Image::SetImageLayout(vk::ImageLayout newLayout)
-{
-    SetImageLayout(Graphics::GetCurrentCommandBuffer(), newLayout);
-}
-
 void Image::CopyToImage(vk::CommandBuffer commandBuffer, const Image& dst) const
 {
     vk::ImageCopy copyRegion;
@@ -209,24 +204,6 @@ void Image::CopyToImage(vk::CommandBuffer commandBuffer, const Image& dst) const
 
     commandBuffer.copyImage(srcImage, vk::ImageLayout::eTransferSrcOptimal,
                             dstImage, vk::ImageLayout::eTransferDstOptimal, copyRegion);
-}
-
-void Image::CopyToImage(Image& dst)
-{
-    vk::ImageLayout srcOldLayout = layout;
-    vk::ImageLayout dstOldLayout = dst.layout;
-    SetImageLayout(vk::ImageLayout::eTransferSrcOptimal);
-    dst.SetImageLayout(vk::ImageLayout::eTransferDstOptimal);
-
-    CopyToImage(Graphics::GetCurrentCommandBuffer(), dst);
-
-    SetImageLayout(srcOldLayout);
-    dst.SetImageLayout(dstOldLayout);
-}
-
-void Image::CopyToBackImage() const
-{
-    Graphics::CopyToBackImage(Graphics::GetCurrentCommandBuffer(), *this);
 }
 
 void Image::CopyToBuffer(vk::CommandBuffer commandBuffer, Buffer& dst)
