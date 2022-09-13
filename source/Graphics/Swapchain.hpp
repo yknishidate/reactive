@@ -3,6 +3,7 @@
 
 class Image;
 
+// TODO: remove this
 struct FrameSemaphores
 {
     FrameSemaphores();
@@ -72,6 +73,34 @@ struct Swapchain
 
     void Present(vk::Queue queue);
 
+    vk::RenderingAttachmentInfo GetColorAttachmentInfo() const
+    {
+        vk::ClearValue clearColorValue;
+        clearColorValue.setColor(vk::ClearColorValue{ std::array{0.0f, 0.0f, 0.0f, 1.0f} });
+
+        vk::RenderingAttachmentInfo colorAttachment;
+        colorAttachment.setImageView(*swapchainImageViews[frameIndex]);
+        colorAttachment.setImageLayout(vk::ImageLayout::eAttachmentOptimal);
+        colorAttachment.setClearValue(clearColorValue);
+        colorAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
+        colorAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
+        return colorAttachment;
+    }
+
+    vk::RenderingAttachmentInfo GetDepthAttachmentInfo() const
+    {
+        vk::ClearValue clearDepthStencilValue;
+        clearDepthStencilValue.setDepthStencil(vk::ClearDepthStencilValue{ 1.0f, 0 });
+
+        vk::RenderingAttachmentInfo depthStencilAttachment;
+        depthStencilAttachment.setImageView(*depthImageView);
+        depthStencilAttachment.setImageLayout(vk::ImageLayout::eAttachmentOptimal);
+        depthStencilAttachment.setClearValue(clearDepthStencilValue);
+        depthStencilAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
+        depthStencilAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
+        return depthStencilAttachment;
+    }
+
     void RebuildSwapchain()
     {
         //int width, height;
@@ -107,6 +136,8 @@ struct Swapchain
     uint32_t frameIndex = 0;
     uint32_t imageCount = 0;
     uint32_t semaphoreIndex = 0;
+
+    // TODO: move to GUI
     vk::UniqueRenderPass renderPass;
     std::vector<Frame> frames{};
     std::vector<FrameSemaphores> frameSemaphores{};

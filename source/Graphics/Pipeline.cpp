@@ -213,31 +213,14 @@ void GraphicsPipeline::Begin(vk::CommandBuffer commandBuffer, void* pushData)
         commandBuffer.pushConstants(*pipelineLayout, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, pushSize, pushData);
     }
 
-    vk::ClearValue clearColorValue;
-    clearColorValue.setColor(vk::ClearColorValue{ std::array{0.0f, 0.0f, 0.0f, 1.0f} });
-
-    vk::RenderingAttachmentInfo colorAttachment;
-    colorAttachment.setImageView(Swapchain::GetBackImage());
-    colorAttachment.setImageLayout(vk::ImageLayout::eAttachmentOptimal);
-    colorAttachment.setClearValue(clearColorValue);
-    colorAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
-    colorAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
-
-    vk::ClearValue clearDepthStencilValue;
-    clearDepthStencilValue.setDepthStencil(vk::ClearDepthStencilValue{ 1.0f, 0 });
-
-    vk::RenderingAttachmentInfo depthStencilAttachment;
-    depthStencilAttachment.setImageView(*depthImageView);
-    depthStencilAttachment.setImageLayout(vk::ImageLayout::eAttachmentOptimal);
-    depthStencilAttachment.setClearValue(clearDepthStencilValue);
-    depthStencilAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
-    depthStencilAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
+    vk::RenderingAttachmentInfo colorAttachment = Graphics::GetSwapchain().GetColorAttachmentInfo();
+    //vk::RenderingAttachmentInfo depthStencilAttachment = Graphics::GetSwapchain().GetDepthAttachmentInfo();
 
     vk::RenderingInfo renderingInfo;
     renderingInfo.setRenderArea({ {0, 0}, {Window::GetWidth(), Window::GetHeight()} });
     renderingInfo.setLayerCount(1);
     renderingInfo.setColorAttachments(colorAttachment);
-    renderingInfo.setPDepthAttachment(&depthStencilAttachment);
+    //renderingInfo.setPDepthAttachment(&depthStencilAttachment);
 
     commandBuffer.beginRendering(renderingInfo);
 }
