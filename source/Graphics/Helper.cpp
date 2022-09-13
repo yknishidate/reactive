@@ -26,7 +26,7 @@ vk::UniqueInstance Helper::CreateInstance(const std::vector<const char*>& extens
     VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
 
     const auto appInfo = vk::ApplicationInfo()
-        .setApiVersion(VK_API_VERSION_1_2);
+        .setApiVersion(VK_API_VERSION_1_3);
 
     return vk::createInstanceUnique(
         vk::InstanceCreateInfo()
@@ -98,8 +98,9 @@ vk::UniqueDevice Helper::CreateDevice(vk::PhysicalDevice physicalDevice, uint32_
         vk::PhysicalDeviceBufferDeviceAddressFeatures,
         vk::PhysicalDeviceRayTracingPipelineFeaturesKHR,
         vk::PhysicalDeviceAccelerationStructureFeaturesKHR,
+        vk::PhysicalDeviceDynamicRenderingFeatures,
         vk::PhysicalDeviceDescriptorIndexingFeatures>
-        createInfoChain{ deviceInfo,{ true },{ true },{ true }, descFeatures };
+        createInfoChain{ deviceInfo,{ true }, { true }, { true }, { true }, descFeatures };
 
     return physicalDevice.createDeviceUnique(createInfoChain.get<vk::DeviceCreateInfo>());
 }

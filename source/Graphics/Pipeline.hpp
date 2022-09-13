@@ -32,6 +32,7 @@ protected:
     vk::UniquePipeline pipeline;
     size_t pushSize{};
     std::shared_ptr<DescriptorSet> descSet;
+    bool registered = false;
 };
 
 class GraphicsPipeline : public Pipeline
@@ -43,7 +44,15 @@ public:
     virtual void LoadShaders(const std::string& vertPath, const std::string& fragPath);
     virtual void Setup(size_t pushSize = 0);
     virtual void Begin(vk::CommandBuffer commandBuffer, void* pushData = nullptr);
-    virtual void Run(void* pushData = nullptr);
+    virtual void Begin(void* pushData = nullptr)
+    {
+        Begin(Graphics::GetCurrentCommandBuffer(), pushData);
+    }
+    virtual void End(vk::CommandBuffer commandBuffer);
+    virtual void End()
+    {
+        End(Graphics::GetCurrentCommandBuffer());
+    }
 
 private:
     vk::UniqueShaderModule vertModule;

@@ -38,6 +38,8 @@ public:
 
     const BottomAccel& GetAccel() const { return bottomAccel; }
 
+    auto GetVertexBuffer() const { return vertexBuffer.GetBuffer(); }
+    auto GetIndexBuffer() const { return indexBuffer.GetBuffer(); }
     uint64_t GetVertexBufferAddress() const { return vertexBuffer.GetAddress(); }
     uint64_t GetIndexBufferAddress() const { return indexBuffer.GetAddress(); }
     const std::vector<Vertex>& GetVertices() const { return vertices; }

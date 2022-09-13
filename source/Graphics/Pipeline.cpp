@@ -168,21 +168,25 @@ namespace
 
 void Pipeline::Register(const std::string& name, const std::vector<Image>& images)
 {
+    registered = true;
     descSet->Register(name, images);
 }
 
 void Pipeline::Register(const std::string& name, const Buffer& buffer)
 {
+    registered = true;
     descSet->Register(name, buffer);
 }
 
 void Pipeline::Register(const std::string& name, const Image& image)
 {
+    registered = true;
     descSet->Register(name, image);
 }
 
 void Pipeline::Register(const std::string& name, const TopAccel& accel)
 {
+    registered = true;
     descSet->Register(name, accel);
 }
 
@@ -201,14 +205,20 @@ void GraphicsPipeline::LoadShaders(const std::string& vertPath, const std::strin
 void GraphicsPipeline::Setup(size_t pushSize)
 {
     this->pushSize = pushSize;
-    pipelineLayout = descSet->CreatePipelineLayout(pushSize, vk::ShaderStageFlagBits::eCompute);
+    if (registered) {
+        pipelineLayout = descSet->CreatePipelineLayout(pushSize, vk::ShaderStageFlagBits::eAllGraphics);
+    } else {
+        pipelineLayout = Graphics::GetDevice().createPipelineLayoutUnique(vk::PipelineLayoutCreateInfo{});
+    }
     pipeline = CreateGraphicsPipeline(*vertModule, *fragModule, *pipelineLayout);
 }
 
 void GraphicsPipeline::Begin(vk::CommandBuffer commandBuffer, void* pushData)
 {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *pipeline);
-    descSet->Bind(commandBuffer, vk::PipelineBindPoint::eGraphics, *pipelineLayout);
+    if (registered) {
+        descSet->Bind(commandBuffer, vk::PipelineBindPoint::eGraphics, *pipelineLayout);
+    }
     if (pushData) {
         commandBuffer.pushConstants(*pipelineLayout, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, pushSize, pushData);
     }
@@ -223,6 +233,11 @@ void GraphicsPipeline::Begin(vk::CommandBuffer commandBuffer, void* pushData)
     //renderingInfo.setPDepthAttachment(&depthStencilAttachment);
 
     commandBuffer.beginRendering(renderingInfo);
+}
+
+void GraphicsPipeline::End(vk::CommandBuffer commandBuffer)
+{
+    commandBuffer.endRendering();
 }
 
 void ComputePipeline::LoadShaders(const std::string& path)
