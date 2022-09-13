@@ -3,15 +3,6 @@
 
 class Image;
 
-// TODO: remove this
-struct FrameSemaphores
-{
-    FrameSemaphores();
-
-    vk::UniqueSemaphore imageAcquiredSemaphore{};
-    vk::UniqueSemaphore renderCompleteSemaphore{};
-};
-
 struct Frame
 {
     Frame() = default;
@@ -27,7 +18,7 @@ struct Frame
         return *commandBuffer;
     }
 
-    void SubmitCommandBuffer(vk::Queue queue, const FrameSemaphores& semaphores)
+    void SubmitCommandBuffer(vk::Queue queue, vk::Semaphore waitSemaphore, vk::Semaphore signalSemaphore)
     {
         commandBuffer->end();
 
@@ -36,8 +27,8 @@ struct Frame
         const auto submitInfo = vk::SubmitInfo()
             .setWaitDstStageMask(waitStage)
             .setCommandBuffers(*commandBuffer)
-            .setWaitSemaphores(*semaphores.imageAcquiredSemaphore)
-            .setSignalSemaphores(*semaphores.renderCompleteSemaphore);
+            .setWaitSemaphores(waitSemaphore)
+            .setSignalSemaphores(signalSemaphore);
 
         queue.submit(submitInfo, *fence);
     }
@@ -139,6 +130,7 @@ struct Swapchain
 
     // TODO: move to GUI
     vk::UniqueRenderPass renderPass;
+    vk::UniqueSemaphore imageAcquiredSemaphore;
+    vk::UniqueSemaphore renderCompleteSemaphore;
     std::vector<Frame> frames{};
-    std::vector<FrameSemaphores> frameSemaphores{};
 };

@@ -22,12 +22,6 @@ Frame::Frame(vk::RenderPass renderPass, vk::ImageView attachment,
     );
 }
 
-FrameSemaphores::FrameSemaphores()
-{
-    imageAcquiredSemaphore = Graphics::GetDevice().createSemaphoreUnique({});
-    renderCompleteSemaphore = Graphics::GetDevice().createSemaphoreUnique({});
-}
-
 Swapchain::Swapchain(vk::Device device, vk::SurfaceKHR surface, uint32_t queueFamily)
     : width{ Window::GetWidth() }
     , height{ Window::GetHeight() }
@@ -40,7 +34,8 @@ Swapchain::Swapchain(vk::Device device, vk::SurfaceKHR surface, uint32_t queueFa
 
     size_t imageCount = swapchainImages.size();
     frames = std::vector<Frame>(imageCount);
-    frameSemaphores = std::vector<FrameSemaphores>(imageCount);
+    imageAcquiredSemaphore = Graphics::GetDevice().createSemaphoreUnique({});
+    renderCompleteSemaphore = Graphics::GetDevice().createSemaphoreUnique({});
     for (uint32_t i = 0; i < imageCount; i++) {
         frames[i] = Frame{ *renderPass, *swapchainImageViews[i], width, height };
     }
@@ -66,9 +61,8 @@ void Swapchain::EndRenderPass()
 
 void Swapchain::WaitNextFrame(vk::Device device)
 {
-    const vk::Semaphore imageAcquiredSemaphore = *frameSemaphores[semaphoreIndex].imageAcquiredSemaphore;
     try {
-        frameIndex = device.acquireNextImageKHR(*swapchain, UINT64_MAX, imageAcquiredSemaphore).value;
+        frameIndex = device.acquireNextImageKHR(*swapchain, UINT64_MAX, *imageAcquiredSemaphore).value;
     } catch (const std::exception& exception) {
         swapchainRebuild = true;
         spdlog::error(exception.what());
@@ -84,7 +78,7 @@ vk::CommandBuffer Swapchain::BeginCommandBuffer()
 
 void Swapchain::Submit(vk::Queue queue)
 {
-    frames[frameIndex].SubmitCommandBuffer(queue, frameSemaphores[semaphoreIndex]);
+    frames[frameIndex].SubmitCommandBuffer(queue, *imageAcquiredSemaphore, *renderCompleteSemaphore);
 }
 
 void Swapchain::Present(vk::Queue queue)
@@ -94,7 +88,7 @@ void Swapchain::Present(vk::Queue queue)
     }
 
     const auto presentInfo = vk::PresentInfoKHR()
-        .setWaitSemaphores(*frameSemaphores[semaphoreIndex].renderCompleteSemaphore)
+        .setWaitSemaphores(*renderCompleteSemaphore)
         .setSwapchains(*swapchain)
         .setImageIndices(frameIndex);
 
