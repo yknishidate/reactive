@@ -5,55 +5,18 @@
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
-VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-	VkDebugUtilsMessageTypeFlagsEXT messageTypes,
-	VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData,
-	void* pUserData)
-{
-	const std::string message{ pCallbackData->pMessage };
-	const std::regex regex{ "The Vulkan spec states: " };
-	std::smatch result;
-	if (std::regex_search(message, result, regex)) {
-		spdlog::error("{}\n", message.substr(0, result.position()));
-	} else {
-		spdlog::error("{}\n", message);
-	}
-	return VK_FALSE;
-}
-
 void Graphics::Init()
 {
 	spdlog::info("Graphics::Init()");
 
+	// Create instance
 	std::vector instanceExtensions = Window::GetExtensions();
 	std::vector layers{ "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_monitor" };
+	instance = Instance::create(instanceExtensions, layers);
 
-	// Create instance
-	static const vk::DynamicLoader dl;
-	const auto vkGetInstanceProcAddr = dl.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
-	VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
+	physicalDevice = instance.GetInstance().enumeratePhysicalDevices().front();
 
-	const auto appInfo = vk::ApplicationInfo()
-		.setApiVersion(VK_API_VERSION_1_3);
-
-	instance = vk::createInstanceUnique(
-		vk::InstanceCreateInfo()
-		.setPApplicationInfo(&appInfo)
-		.setPEnabledExtensionNames(instanceExtensions)
-		.setPEnabledLayerNames(layers));
-
-	VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
-
-	// Create debug messenger
-	debugMessenger = instance->createDebugUtilsMessengerEXTUnique(
-		vk::DebugUtilsMessengerCreateInfoEXT()
-		.setMessageSeverity(vk::DebugUtilsMessageSeverityFlagBitsEXT::eError | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning)
-		.setMessageType(vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance)
-		.setPfnUserCallback(&DebugCallback));
-
-	physicalDevice = instance->enumeratePhysicalDevices().front();
-
-	surface = Window::CreateSurface(*instance);
+	surface = Window::CreateSurface(instance.GetInstance());
 
 	// Find queue family
 	const std::vector properties = physicalDevice.getQueueFamilyProperties();
