@@ -2,6 +2,7 @@
 #define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include <vulkan/vulkan.hpp>
 #include <functional>
+#include "Swapchain.hpp"
 
 struct Device
 {
@@ -55,6 +56,11 @@ struct Device
 	auto GetQueueFamily() const { return queueFamily; }
 	auto GetQueue() const { return queue; }
 	auto GetDescriptorPool() const { return *descriptorPool; }
+
+	Swapchain CreateSwapchain(vk::SurfaceKHR surface)
+	{
+		return { *device, surface, queueFamily };
+	}
 
 private:
 	Device(vk::Instance instance, vk::SurfaceKHR surface)

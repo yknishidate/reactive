@@ -17,7 +17,7 @@ void Graphics::Init()
 
 	device = instance.CreateDevice(*surface);
 
-	swapchain = Swapchain{ device.GetDevice(), *surface, device.GetQueueFamily() };
+	swapchain = device.CreateSwapchain(*surface);
 }
 
 void Graphics::BeginRenderPass()
