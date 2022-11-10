@@ -3,12 +3,17 @@
 #include <vulkan/vulkan.hpp>
 #include <regex>
 #include <spdlog/spdlog.h>
+#include "Device.hpp"
 
 struct Instance {
 	auto GetInstance() { return *instance; }
 
-	static Instance create(const std::vector<const char*>& extensions,
-		const std::vector<const char*>& layers) {
+	Device CreateDevice(vk::SurfaceKHR surface = VK_NULL_HANDLE)
+	{
+		return { *instance, surface };
+	}
+
+	static Instance Create(const std::vector<const char*>& extensions, const std::vector<const char*>& layers) {
 		static const vk::DynamicLoader dl;
 		const auto vkGetInstanceProcAddr = dl.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
 		VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
