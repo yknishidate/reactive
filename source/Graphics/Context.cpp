@@ -11,13 +11,13 @@ void Context::Init()
 
     std::vector instanceExtensions = Window::GetExtensions();
     std::vector layers{ "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_monitor" };
-    instance = Instance::Create(instanceExtensions, layers);
+    CreateInstance(instanceExtensions, layers);
 
-    surface = Window::CreateSurface(instance.GetInstance());
+    surface = Window::CreateSurface(*instance);
 
-    device = instance.CreateDevice(*surface);
+    CreateDevice();
 
-    swapchain = device.CreateSwapchain(*surface);
+    swapchain = Swapchain{ *device, *surface, queueFamily };
 }
 
 void Context::BeginRenderPass()
