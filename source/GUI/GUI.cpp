@@ -69,9 +69,9 @@ void GUI::Init()
     {
         Context::OneTimeSubmit(
             [&](vk::CommandBuffer commandBuffer)
-            {
-                ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
-            }
+        {
+            ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
+        }
         );
         ImGui_ImplVulkan_DestroyFontUploadObjects();
     }

@@ -22,8 +22,13 @@ namespace fs = std::filesystem;
 std::vector<std::string> GetAllFilePaths(const fs::path& directory)
 {
     std::vector<std::string> imagePaths;
-    for (const auto& file : fs::directory_iterator{ directory }) {
-        imagePaths.push_back(file.path().string());
+    try {
+        for (const auto& file : fs::directory_iterator{ directory }) {
+            imagePaths.push_back(file.path().string());
+        }
+    } catch (const std::filesystem::filesystem_error& error) {
+        spdlog::error(error.what());
+        return {};
     }
     return imagePaths;
 }
@@ -59,7 +64,7 @@ int main()
         pushConstants.HandleInput(invertX, invertY);
         Engine::Render([&](auto commandBuffer) {
             pipeline.Run(commandBuffer, Window::GetWidth(), Window::GetHeight(), &pushConstants);
-            Context::CopyToBackImage(commandBuffer, outputImage); });
+        Context::CopyToBackImage(commandBuffer, outputImage); });
         frame++;
     }
     Engine::Shutdown();
