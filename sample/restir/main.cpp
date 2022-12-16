@@ -180,7 +180,7 @@ int main()
                     }
                     pipelines["Shading"].Run(commandBuffer, width, height, &pushConstants);
                 }
-                Graphics::CopyToBackImage(commandBuffer, outputImage.output);
+                Context::CopyToBackImage(commandBuffer, outputImage.output);
             });
     }
     Engine::Shutdown();

@@ -9,7 +9,7 @@ Geometry::Geometry(vk::GeometryFlagsKHR geometryFlag, size_t primitiveCount)
 vk::DeviceSize Geometry::GetAccelSize() const
 {
     constexpr auto buildType = vk::AccelerationStructureBuildTypeKHR::eDevice;
-    const auto buildSizes = Graphics::GetDevice().getAccelerationStructureBuildSizesKHR(buildType, geometryInfo, primitiveCount);
+    const auto buildSizes = Context::GetDevice().getAccelerationStructureBuildSizesKHR(buildType, geometryInfo, primitiveCount);
     return buildSizes.accelerationStructureSize;
 }
 

@@ -1,6 +1,6 @@
 #include <regex>
 #include <spdlog/spdlog.h>
-#include "Graphics.hpp"
+#include "Context.hpp"
 #include "Pipeline.hpp"
 #include "Image.hpp"
 #include "Window/Window.hpp"
@@ -13,7 +13,7 @@ namespace
     {
         vk::ShaderModuleCreateInfo createInfo;
         createInfo.setCode(code);
-        return Graphics::GetDevice().createShaderModuleUnique(createInfo);
+        return Context::GetDevice().createShaderModuleUnique(createInfo);
     }
 
     vk::UniquePipeline CreateGraphicsPipeline(vk::ShaderModule vertModule, vk::ShaderModule fragModule,
@@ -113,7 +113,7 @@ namespace
         pipelineInfo.setSubpass(0);
         pipelineInfo.setPNext(&renderingInfo);
 
-        auto result = Graphics::GetDevice().createGraphicsPipelineUnique({}, pipelineInfo);
+        auto result = Context::GetDevice().createGraphicsPipelineUnique({}, pipelineInfo);
         if (result.result != vk::Result::eSuccess) {
             throw std::runtime_error("failed to create a pipeline!");
         }
@@ -131,7 +131,7 @@ namespace
         vk::ComputePipelineCreateInfo createInfo;
         createInfo.setStage(stage);
         createInfo.setLayout(pipelineLayout);
-        auto res = Graphics::GetDevice().createComputePipelinesUnique({}, createInfo);
+        auto res = Context::GetDevice().createComputePipelinesUnique({}, createInfo);
         if (res.result != vk::Result::eSuccess) {
             throw std::runtime_error("failed to create ray tracing pipeline.");
         }
@@ -147,7 +147,7 @@ namespace
         createInfo.setGroups(shaderGroups);
         createInfo.setMaxPipelineRayRecursionDepth(4);
         createInfo.setLayout(pipelineLayout);
-        auto res = Graphics::GetDevice().createRayTracingPipelineKHRUnique(nullptr, nullptr, createInfo);
+        auto res = Context::GetDevice().createRayTracingPipelineKHRUnique(nullptr, nullptr, createInfo);
         if (res.result != vk::Result::eSuccess) {
             throw std::runtime_error("failed to create ray tracing pipeline.");
         }
@@ -208,7 +208,7 @@ void GraphicsPipeline::Setup(size_t pushSize)
     if (registered) {
         pipelineLayout = descSet->CreatePipelineLayout(pushSize, vk::ShaderStageFlagBits::eAllGraphics);
     } else {
-        pipelineLayout = Graphics::GetDevice().createPipelineLayoutUnique(vk::PipelineLayoutCreateInfo{});
+        pipelineLayout = Context::GetDevice().createPipelineLayoutUnique(vk::PipelineLayoutCreateInfo{});
     }
     pipeline = CreateGraphicsPipeline(*vertModule, *fragModule, *pipelineLayout);
 }
@@ -223,8 +223,8 @@ void GraphicsPipeline::Begin(vk::CommandBuffer commandBuffer, void* pushData)
         commandBuffer.pushConstants(*pipelineLayout, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, pushSize, pushData);
     }
 
-    vk::RenderingAttachmentInfo colorAttachment = Graphics::GetSwapchain().GetColorAttachmentInfo();
-    //vk::RenderingAttachmentInfo depthStencilAttachment = Graphics::GetSwapchain().GetDepthAttachmentInfo();
+    vk::RenderingAttachmentInfo colorAttachment = Context::GetSwapchain().GetColorAttachmentInfo();
+    //vk::RenderingAttachmentInfo depthStencilAttachment = Context::GetSwapchain().GetDepthAttachmentInfo();
 
     vk::RenderingInfo renderingInfo;
     renderingInfo.setRenderArea({ {0, 0}, {Window::GetWidth(), Window::GetHeight()} });
@@ -360,7 +360,7 @@ void RayTracingPipeline::Setup(size_t pushSize)
 
     // Get Ray Tracing Properties
     using vkRTP = vk::PhysicalDeviceRayTracingPipelinePropertiesKHR;
-    auto rtProperties = Graphics::GetPhysicalDevice().getProperties2<vk::PhysicalDeviceProperties2, vkRTP>().get<vkRTP>();
+    auto rtProperties = Context::GetPhysicalDevice().getProperties2<vk::PhysicalDeviceProperties2, vkRTP>().get<vkRTP>();
 
     // Calculate SBT size
     const uint32_t handleSize = rtProperties.shaderGroupHandleSize;
@@ -370,7 +370,7 @@ void RayTracingPipeline::Setup(size_t pushSize)
 
     // Get shader group handles
     std::vector<uint8_t> shaderHandleStorage(sbtSize);
-    const vk::Result result = Graphics::GetDevice().getRayTracingShaderGroupHandlesKHR(*pipeline, 0, groupCount, sbtSize,
+    const vk::Result result = Context::GetDevice().getRayTracingShaderGroupHandlesKHR(*pipeline, 0, groupCount, sbtSize,
                                                                                        shaderHandleStorage.data());
     if (result != vk::Result::eSuccess) {
         throw std::runtime_error("failed to get ray tracing shader group handles.");

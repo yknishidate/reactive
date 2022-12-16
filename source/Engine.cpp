@@ -8,7 +8,7 @@ void Engine::Init(int width, int height)
         spdlog::set_pattern("[%^%l%$] %v");
         spdlog::info("Engine::Init()");
         Window::Init(width, height);
-        Graphics::Init();
+        Context::Init();
         GUI::Init();
     } catch (const std::exception& e) {
         spdlog::error(e.what());
@@ -18,7 +18,7 @@ void Engine::Init(int width, int height)
 void Engine::Shutdown()
 {
     try {
-        Graphics::GetDevice().waitIdle();
+        Context::GetDevice().waitIdle();
         GUI::Shutdown();
         Window::Shutdown();
     } catch (const std::exception& e) {
@@ -37,10 +37,10 @@ bool Engine::Update()
 void Engine::Render(std::function<void(vk::CommandBuffer)> func)
 {
     if (Window::IsMinimized()) return;
-    Graphics::WaitNextFrame();
-    vk::CommandBuffer commandBuffer = Graphics::BeginCommandBuffer();
+    Context::WaitNextFrame();
+    vk::CommandBuffer commandBuffer = Context::BeginCommandBuffer();
     func(commandBuffer);
     GUI::Render(commandBuffer);
-    Graphics::Submit();
-    Graphics::Present();
+    Context::Submit();
+    Context::Present();
 }

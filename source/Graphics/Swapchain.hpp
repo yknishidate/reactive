@@ -98,7 +98,7 @@ struct Swapchain
         //glfwGetFramebufferSize(window, &width, &height);
         //if (width > 0 && height > 0) {
         //    ImGui_ImplVulkan_SetMinImageCount(minImageCount);
-        //    ImGui_ImplVulkanH_CreateOrResizeWindow(instance, physicalDevice, device, &windowData, Graphics::queueFamily, nullptr, width, height, minImageCount);
+        //    ImGui_ImplVulkanH_CreateOrResizeWindow(instance, physicalDevice, device, &windowData, Context::queueFamily, nullptr, width, height, minImageCount);
         //    windowData.FrameIndex = 0;
         //    swapchainRebuild = false;
         //}

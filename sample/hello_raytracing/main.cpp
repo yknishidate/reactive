@@ -38,7 +38,7 @@ int main()
 
         Engine::Render([&](auto commandBuffer) {
             pipeline.Run(commandBuffer, Window::GetWidth(), Window::GetHeight(), &pushConstants);
-            Graphics::CopyToBackImage(commandBuffer, outputImage); });
+        Context::CopyToBackImage(commandBuffer, outputImage); });
     }
     Engine::Shutdown();
 }
