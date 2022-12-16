@@ -6,7 +6,6 @@ void Engine::Init(int width, int height)
 {
     try {
         spdlog::set_pattern("[%^%l%$] %v");
-        spdlog::info("Engine::Init()");
         Window::Init(width, height);
         Context::Init();
         GUI::Init();

@@ -12,8 +12,6 @@ struct Context
 
     static vk::UniqueCommandBuffer AllocateCommandBuffer();
 
-    static void SubmitAndWait(vk::CommandBuffer commandBuffer);
-
     static void OneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command);
 
     static uint32_t FindMemoryTypeIndex(vk::MemoryRequirements requirements, vk::MemoryPropertyFlags memoryProp);

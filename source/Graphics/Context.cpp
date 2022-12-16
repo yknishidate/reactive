@@ -9,14 +9,13 @@ void Context::Init()
 {
     spdlog::info("Context::Init()");
 
-    std::vector instanceExtensions = Window::GetExtensions();
-    std::vector layers{ "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_monitor" };
-
     static const vk::DynamicLoader dl;
     const auto vkGetInstanceProcAddr = dl.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
     VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
 
     // Create instance
+    std::vector instanceExtensions = Window::GetExtensions();
+    std::vector layers{ "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_monitor" };
     const auto appInfo = vk::ApplicationInfo().setApiVersion(VK_API_VERSION_1_3);
 
     instance = vk::createInstanceUnique(vk::InstanceCreateInfo()
@@ -135,20 +134,14 @@ vk::UniqueCommandBuffer Context::AllocateCommandBuffer()
         .setCommandBufferCount(1)).front());
 }
 
-void Context::SubmitAndWait(vk::CommandBuffer commandBuffer)
-{
-    queue.submit(vk::SubmitInfo()
-                 .setCommandBuffers(commandBuffer));
-    queue.waitIdle();
-}
-
 void Context::OneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command)
 {
     vk::UniqueCommandBuffer commandBuffer = AllocateCommandBuffer();
     commandBuffer->begin(vk::CommandBufferBeginInfo().setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
     command(*commandBuffer);
     commandBuffer->end();
-    SubmitAndWait(*commandBuffer);
+    queue.submit(vk::SubmitInfo().setCommandBuffers(*commandBuffer));
+    queue.waitIdle();
 }
 
 uint32_t Context::FindMemoryTypeIndex(vk::MemoryRequirements requirements, vk::MemoryPropertyFlags memoryProp)
