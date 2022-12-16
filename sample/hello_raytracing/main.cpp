@@ -29,8 +29,10 @@ int main()
     pipeline.GetDescSet().Setup();
     pipeline.Setup(sizeof(PushConstants));
 
+    int testInt = 0;
     while (Engine::Update()) {
         scene.Update(0.1f);
+        GUI::SliderInt("Test slider", testInt, 0, 100);
 
         PushConstants pushConstants;
         pushConstants.invProj = scene.GetCamera().GetInvProj();
