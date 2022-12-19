@@ -9,13 +9,14 @@
 #include "Graphics/DescriptorSet.hpp"
 #include "Window/Window.hpp"
 #include "Scene/Mesh.hpp"
-#include "Scene/Scene.hpp"
+#include "Scene/Camera.hpp"
+#include "Scene/Object.hpp"
 #include "GUI/GUI.hpp"
 
 namespace Engine
 {
-    void Init(int width = 1920, int height = 1280);
-    void Shutdown();
-    bool Update();
-    void Render(std::function<void(vk::CommandBuffer)> func);
+void Init(int width = 1920, int height = 1280);
+void Shutdown();
+bool Update();
+void Render(std::function<void(vk::CommandBuffer)> func);
 };

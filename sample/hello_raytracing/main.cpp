@@ -12,11 +12,10 @@ int main()
 
     std::vector<Vertex> vertices{ {{-1, 0, 0}}, {{ 0, -1, 0}}, {{ 1, 0, 0}} };
     std::vector<Index> indices{ 0, 1, 2 };
-    auto mesh = std::make_shared<Mesh>(vertices, indices);
-
-    Scene scene{};
-    scene.AddObject(mesh);
-    scene.Setup();
+    Mesh mesh{ vertices, indices };
+    Object object{ mesh };
+    TopAccel topAccel{ object };
+    Camera camera{ Window::GetWidth(), Window::GetHeight() };
 
     Image outputImage{ vk::Format::eB8G8R8A8Unorm };
 
@@ -24,23 +23,24 @@ int main()
     pipeline.LoadShaders(SHADER_DIR + "hello_raytracing.rgen",
                          SHADER_DIR + "hello_raytracing.rmiss",
                          SHADER_DIR + "hello_raytracing.rchit");
-    pipeline.GetDescSet().Register("topLevelAS", scene.GetAccel());
+    pipeline.GetDescSet().Register("topLevelAS", topAccel);
     pipeline.GetDescSet().Register("outputImage", outputImage);
     pipeline.GetDescSet().Setup();
     pipeline.Setup(sizeof(PushConstants));
 
     int testInt = 0;
     while (Engine::Update()) {
-        scene.Update(0.1f);
+        camera.ProcessInput();
         GUI::SliderInt("Test slider", testInt, 0, 100);
 
         PushConstants pushConstants;
-        pushConstants.invProj = scene.GetCamera().GetInvProj();
-        pushConstants.invView = scene.GetCamera().GetInvView();
+        pushConstants.invProj = camera.GetInvProj();
+        pushConstants.invView = camera.GetInvView();
 
         Engine::Render([&](auto commandBuffer) {
             pipeline.Run(commandBuffer, Window::GetWidth(), Window::GetHeight(), &pushConstants);
-        Context::CopyToBackImage(commandBuffer, outputImage); });
+        Context::CopyToBackImage(commandBuffer, outputImage);
+        });
     }
     Engine::Shutdown();
 }

@@ -17,19 +17,20 @@ struct Transform
 
 struct ObjectData
 {
-    glm::mat4 matrix{1.0};
-    glm::mat4 normalMatrix{1.0};
-    glm::vec4 diffuse{1.0};
-    glm::vec4 emission{0.0};
-    glm::vec4 specular{0.0};
-    int diffuseTexture{-1};
-    int alphaTexture{-1};
+    glm::mat4 matrix{ 1.0 };
+    glm::mat4 normalMatrix{ 1.0 };
+    glm::vec4 diffuse{ 1.0 };
+    glm::vec4 emission{ 0.0 };
+    glm::vec4 specular{ 0.0 };
+    int diffuseTexture{ -1 };
+    int alphaTexture{ -1 };
 };
 
 class Object
 {
 public:
-    explicit Object(std::shared_ptr<Mesh> mesh);
+    //explicit Object(std::shared_ptr<Mesh> mesh);
+    explicit Object(const Mesh& mesh);
     virtual void Update(float dt) {}
 
     const Mesh& GetMesh() const;
@@ -40,6 +41,6 @@ public:
     Transform transform{};
 
 private:
-    std::shared_ptr<Mesh> mesh;
+    const Mesh* mesh;
     std::optional<Material> material;
 };

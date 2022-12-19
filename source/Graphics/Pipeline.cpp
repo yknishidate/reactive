@@ -5,165 +5,165 @@
 #include "Image.hpp"
 #include "Window/Window.hpp"
 #include "Compiler/Compiler.hpp"
-#include "Scene/Scene.hpp"
+#include "Scene/Object.hpp"
 
 namespace
 {
-    vk::UniqueShaderModule CreateShaderModule(const std::vector<uint32_t>& code)
-    {
-        vk::ShaderModuleCreateInfo createInfo;
-        createInfo.setCode(code);
-        return Context::GetDevice().createShaderModuleUnique(createInfo);
+vk::UniqueShaderModule CreateShaderModule(const std::vector<uint32_t>& code)
+{
+    vk::ShaderModuleCreateInfo createInfo;
+    createInfo.setCode(code);
+    return Context::GetDevice().createShaderModuleUnique(createInfo);
+}
+
+vk::UniquePipeline CreateGraphicsPipeline(vk::ShaderModule vertModule, vk::ShaderModule fragModule,
+                                          vk::PipelineLayout pipelineLayout)
+{
+    vk::PipelineShaderStageCreateInfo vertShaderStageInfo;
+    vertShaderStageInfo.setStage(vk::ShaderStageFlagBits::eVertex);
+    vertShaderStageInfo.setModule(vertModule);
+    vertShaderStageInfo.setPName("main");
+
+    vk::PipelineShaderStageCreateInfo fragShaderStageInfo;
+    fragShaderStageInfo.setStage(vk::ShaderStageFlagBits::eFragment);
+    fragShaderStageInfo.setModule(fragModule);
+    fragShaderStageInfo.setPName("main");
+
+    std::array shaderStages{ vertShaderStageInfo, fragShaderStageInfo };
+
+    vk::VertexInputBindingDescription bindingDescription;
+    bindingDescription.setBinding(0);
+    bindingDescription.setStride(sizeof(Vertex));
+    bindingDescription.setInputRate(vk::VertexInputRate::eVertex);
+
+    std::array<vk::VertexInputAttributeDescription, 3> attributeDescriptions;
+    attributeDescriptions[0].setBinding(0);
+    attributeDescriptions[0].setLocation(0);
+    attributeDescriptions[0].setFormat(vk::Format::eR32G32B32Sfloat);
+    attributeDescriptions[0].setOffset(offsetof(Vertex, pos));
+
+    attributeDescriptions[1].setBinding(0);
+    attributeDescriptions[1].setLocation(1);
+    attributeDescriptions[1].setFormat(vk::Format::eR32G32B32Sfloat);
+    attributeDescriptions[1].setOffset(offsetof(Vertex, normal));
+
+    attributeDescriptions[2].setBinding(0);
+    attributeDescriptions[2].setLocation(2);
+    attributeDescriptions[2].setFormat(vk::Format::eR32G32Sfloat);
+    attributeDescriptions[2].setOffset(offsetof(Vertex, texCoord));
+
+    vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
+    vertexInputInfo.setVertexBindingDescriptions(bindingDescription);
+    vertexInputInfo.setVertexAttributeDescriptions(attributeDescriptions);
+
+    vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
+    inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
+
+    auto width = static_cast<float>(Window::GetWidth());
+    auto height = static_cast<float>(Window::GetHeight());
+    vk::Viewport viewport{ 0.0f, 0.0f, width, height, 0.0f, 1.0f };
+    vk::Rect2D scissor{ { 0, 0 }, {Window::GetWidth(), Window::GetWidth()} };
+    vk::PipelineViewportStateCreateInfo viewportState{ {}, 1, &viewport, 1, &scissor };
+
+    vk::PipelineRasterizationStateCreateInfo rasterization;
+    rasterization.setDepthClampEnable(VK_FALSE);
+    rasterization.setRasterizerDiscardEnable(VK_FALSE);
+    rasterization.setPolygonMode(vk::PolygonMode::eFill);
+    rasterization.setCullMode(vk::CullModeFlagBits::eNone);
+    rasterization.setFrontFace(vk::FrontFace::eCounterClockwise);
+    rasterization.setDepthBiasEnable(VK_FALSE);
+    rasterization.setLineWidth(1.0f);
+
+    vk::PipelineMultisampleStateCreateInfo multisampling;
+    multisampling.setSampleShadingEnable(VK_FALSE);
+
+    vk::PipelineDepthStencilStateCreateInfo depthStencil;
+    depthStencil.setDepthTestEnable(VK_TRUE);
+    depthStencil.setDepthWriteEnable(VK_TRUE);
+    depthStencil.setDepthCompareOp(vk::CompareOp::eLess);
+    depthStencil.setDepthBoundsTestEnable(VK_FALSE);
+    depthStencil.setStencilTestEnable(VK_FALSE);
+
+    using vkCC = vk::ColorComponentFlagBits;
+    vk::PipelineColorBlendAttachmentState colorBlendAttachment;
+    colorBlendAttachment.setBlendEnable(VK_FALSE);
+    colorBlendAttachment.setColorWriteMask(vkCC::eR | vkCC::eG | vkCC::eB | vkCC::eA);
+
+    vk::PipelineColorBlendStateCreateInfo colorBlending;
+    colorBlending.setLogicOpEnable(VK_FALSE);
+    colorBlending.setAttachments(colorBlendAttachment);
+
+    vk::Format colorFormat = vk::Format::eB8G8R8A8Unorm;
+    vk::Format depthFormat = vk::Format::eD32Sfloat;
+    vk::PipelineRenderingCreateInfo renderingInfo;
+    renderingInfo.setColorAttachmentCount(1);
+    renderingInfo.setColorAttachmentFormats(colorFormat);
+    renderingInfo.setDepthAttachmentFormat(depthFormat);
+
+    vk::GraphicsPipelineCreateInfo pipelineInfo;
+    pipelineInfo.setStages(shaderStages);
+    pipelineInfo.setPVertexInputState(&vertexInputInfo);
+    pipelineInfo.setPInputAssemblyState(&inputAssembly);
+    pipelineInfo.setPViewportState(&viewportState);
+    pipelineInfo.setPRasterizationState(&rasterization);
+    pipelineInfo.setPMultisampleState(&multisampling);
+    pipelineInfo.setPDepthStencilState(&depthStencil);
+    pipelineInfo.setPColorBlendState(&colorBlending);
+    pipelineInfo.setLayout(pipelineLayout);
+    pipelineInfo.setSubpass(0);
+    pipelineInfo.setPNext(&renderingInfo);
+
+    auto result = Context::GetDevice().createGraphicsPipelineUnique({}, pipelineInfo);
+    if (result.result != vk::Result::eSuccess) {
+        throw std::runtime_error("failed to create a pipeline!");
     }
+    return std::move(result.value);
+}
 
-    vk::UniquePipeline CreateGraphicsPipeline(vk::ShaderModule vertModule, vk::ShaderModule fragModule,
-                                              vk::PipelineLayout pipelineLayout)
-    {
-        vk::PipelineShaderStageCreateInfo vertShaderStageInfo;
-        vertShaderStageInfo.setStage(vk::ShaderStageFlagBits::eVertex);
-        vertShaderStageInfo.setModule(vertModule);
-        vertShaderStageInfo.setPName("main");
+vk::UniquePipeline CreateComputePipeline(vk::ShaderModule shaderModule, vk::ShaderStageFlagBits shaderStage,
+                                         vk::PipelineLayout pipelineLayout)
+{
+    vk::PipelineShaderStageCreateInfo stage;
+    stage.setStage(shaderStage);
+    stage.setModule(shaderModule);
+    stage.setPName("main");
 
-        vk::PipelineShaderStageCreateInfo fragShaderStageInfo;
-        fragShaderStageInfo.setStage(vk::ShaderStageFlagBits::eFragment);
-        fragShaderStageInfo.setModule(fragModule);
-        fragShaderStageInfo.setPName("main");
-
-        std::array shaderStages{ vertShaderStageInfo, fragShaderStageInfo };
-
-        vk::VertexInputBindingDescription bindingDescription;
-        bindingDescription.setBinding(0);
-        bindingDescription.setStride(sizeof(Vertex));
-        bindingDescription.setInputRate(vk::VertexInputRate::eVertex);
-
-        std::array<vk::VertexInputAttributeDescription, 3> attributeDescriptions;
-        attributeDescriptions[0].setBinding(0);
-        attributeDescriptions[0].setLocation(0);
-        attributeDescriptions[0].setFormat(vk::Format::eR32G32B32Sfloat);
-        attributeDescriptions[0].setOffset(offsetof(Vertex, pos));
-
-        attributeDescriptions[1].setBinding(0);
-        attributeDescriptions[1].setLocation(1);
-        attributeDescriptions[1].setFormat(vk::Format::eR32G32B32Sfloat);
-        attributeDescriptions[1].setOffset(offsetof(Vertex, normal));
-
-        attributeDescriptions[2].setBinding(0);
-        attributeDescriptions[2].setLocation(2);
-        attributeDescriptions[2].setFormat(vk::Format::eR32G32Sfloat);
-        attributeDescriptions[2].setOffset(offsetof(Vertex, texCoord));
-
-        vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
-        vertexInputInfo.setVertexBindingDescriptions(bindingDescription);
-        vertexInputInfo.setVertexAttributeDescriptions(attributeDescriptions);
-
-        vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
-        inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
-
-        auto width = static_cast<float>(Window::GetWidth());
-        auto height = static_cast<float>(Window::GetHeight());
-        vk::Viewport viewport{ 0.0f, 0.0f, width, height, 0.0f, 1.0f };
-        vk::Rect2D scissor{ { 0, 0 }, {Window::GetWidth(), Window::GetWidth()} };
-        vk::PipelineViewportStateCreateInfo viewportState{ {}, 1, &viewport, 1, &scissor };
-
-        vk::PipelineRasterizationStateCreateInfo rasterization;
-        rasterization.setDepthClampEnable(VK_FALSE);
-        rasterization.setRasterizerDiscardEnable(VK_FALSE);
-        rasterization.setPolygonMode(vk::PolygonMode::eFill);
-        rasterization.setCullMode(vk::CullModeFlagBits::eNone);
-        rasterization.setFrontFace(vk::FrontFace::eCounterClockwise);
-        rasterization.setDepthBiasEnable(VK_FALSE);
-        rasterization.setLineWidth(1.0f);
-
-        vk::PipelineMultisampleStateCreateInfo multisampling;
-        multisampling.setSampleShadingEnable(VK_FALSE);
-
-        vk::PipelineDepthStencilStateCreateInfo depthStencil;
-        depthStencil.setDepthTestEnable(VK_TRUE);
-        depthStencil.setDepthWriteEnable(VK_TRUE);
-        depthStencil.setDepthCompareOp(vk::CompareOp::eLess);
-        depthStencil.setDepthBoundsTestEnable(VK_FALSE);
-        depthStencil.setStencilTestEnable(VK_FALSE);
-
-        using vkCC = vk::ColorComponentFlagBits;
-        vk::PipelineColorBlendAttachmentState colorBlendAttachment;
-        colorBlendAttachment.setBlendEnable(VK_FALSE);
-        colorBlendAttachment.setColorWriteMask(vkCC::eR | vkCC::eG | vkCC::eB | vkCC::eA);
-
-        vk::PipelineColorBlendStateCreateInfo colorBlending;
-        colorBlending.setLogicOpEnable(VK_FALSE);
-        colorBlending.setAttachments(colorBlendAttachment);
-
-        vk::Format colorFormat = vk::Format::eB8G8R8A8Unorm;
-        vk::Format depthFormat = vk::Format::eD32Sfloat;
-        vk::PipelineRenderingCreateInfo renderingInfo;
-        renderingInfo.setColorAttachmentCount(1);
-        renderingInfo.setColorAttachmentFormats(colorFormat);
-        renderingInfo.setDepthAttachmentFormat(depthFormat);
-
-        vk::GraphicsPipelineCreateInfo pipelineInfo;
-        pipelineInfo.setStages(shaderStages);
-        pipelineInfo.setPVertexInputState(&vertexInputInfo);
-        pipelineInfo.setPInputAssemblyState(&inputAssembly);
-        pipelineInfo.setPViewportState(&viewportState);
-        pipelineInfo.setPRasterizationState(&rasterization);
-        pipelineInfo.setPMultisampleState(&multisampling);
-        pipelineInfo.setPDepthStencilState(&depthStencil);
-        pipelineInfo.setPColorBlendState(&colorBlending);
-        pipelineInfo.setLayout(pipelineLayout);
-        pipelineInfo.setSubpass(0);
-        pipelineInfo.setPNext(&renderingInfo);
-
-        auto result = Context::GetDevice().createGraphicsPipelineUnique({}, pipelineInfo);
-        if (result.result != vk::Result::eSuccess) {
-            throw std::runtime_error("failed to create a pipeline!");
-        }
-        return std::move(result.value);
+    vk::ComputePipelineCreateInfo createInfo;
+    createInfo.setStage(stage);
+    createInfo.setLayout(pipelineLayout);
+    auto res = Context::GetDevice().createComputePipelinesUnique({}, createInfo);
+    if (res.result != vk::Result::eSuccess) {
+        throw std::runtime_error("failed to create ray tracing pipeline.");
     }
+    return std::move(res.value.front());
+}
 
-    vk::UniquePipeline CreateComputePipeline(vk::ShaderModule shaderModule, vk::ShaderStageFlagBits shaderStage,
-                                             vk::PipelineLayout pipelineLayout)
-    {
-        vk::PipelineShaderStageCreateInfo stage;
-        stage.setStage(shaderStage);
-        stage.setModule(shaderModule);
-        stage.setPName("main");
-
-        vk::ComputePipelineCreateInfo createInfo;
-        createInfo.setStage(stage);
-        createInfo.setLayout(pipelineLayout);
-        auto res = Context::GetDevice().createComputePipelinesUnique({}, createInfo);
-        if (res.result != vk::Result::eSuccess) {
-            throw std::runtime_error("failed to create ray tracing pipeline.");
-        }
-        return std::move(res.value.front());
+vk::UniquePipeline CreateRayTracingPipeline(const std::vector<vk::PipelineShaderStageCreateInfo>& shaderStages,
+                                            const std::vector<vk::RayTracingShaderGroupCreateInfoKHR>& shaderGroups,
+                                            vk::PipelineLayout pipelineLayout)
+{
+    vk::RayTracingPipelineCreateInfoKHR createInfo;
+    createInfo.setStages(shaderStages);
+    createInfo.setGroups(shaderGroups);
+    createInfo.setMaxPipelineRayRecursionDepth(4);
+    createInfo.setLayout(pipelineLayout);
+    auto res = Context::GetDevice().createRayTracingPipelineKHRUnique(nullptr, nullptr, createInfo);
+    if (res.result != vk::Result::eSuccess) {
+        throw std::runtime_error("failed to create ray tracing pipeline.");
     }
+    return std::move(res.value);
+}
 
-    vk::UniquePipeline CreateRayTracingPipeline(const std::vector<vk::PipelineShaderStageCreateInfo>& shaderStages,
-                                                const std::vector<vk::RayTracingShaderGroupCreateInfoKHR>& shaderGroups,
-                                                vk::PipelineLayout pipelineLayout)
-    {
-        vk::RayTracingPipelineCreateInfoKHR createInfo;
-        createInfo.setStages(shaderStages);
-        createInfo.setGroups(shaderGroups);
-        createInfo.setMaxPipelineRayRecursionDepth(4);
-        createInfo.setLayout(pipelineLayout);
-        auto res = Context::GetDevice().createRayTracingPipelineKHRUnique(nullptr, nullptr, createInfo);
-        if (res.result != vk::Result::eSuccess) {
-            throw std::runtime_error("failed to create ray tracing pipeline.");
-        }
-        return std::move(res.value);
-    }
-
-    vk::StridedDeviceAddressRegionKHR CreateAddressRegion(
-        vk::PhysicalDeviceRayTracingPipelinePropertiesKHR rtProperties,
-        vk::DeviceAddress deviceAddress)
-    {
-        vk::StridedDeviceAddressRegionKHR region{};
-        region.setDeviceAddress(deviceAddress);
-        region.setStride(rtProperties.shaderGroupHandleAlignment);
-        region.setSize(rtProperties.shaderGroupHandleAlignment);
-        return region;
-    }
+vk::StridedDeviceAddressRegionKHR CreateAddressRegion(
+    vk::PhysicalDeviceRayTracingPipelinePropertiesKHR rtProperties,
+    vk::DeviceAddress deviceAddress)
+{
+    vk::StridedDeviceAddressRegionKHR region{};
+    region.setDeviceAddress(deviceAddress);
+    region.setStride(rtProperties.shaderGroupHandleAlignment);
+    region.setSize(rtProperties.shaderGroupHandleAlignment);
+    return region;
+}
 } // namespace
 
 void Pipeline::Register(const std::string& name, const std::vector<Image>& images)
@@ -371,7 +371,7 @@ void RayTracingPipeline::Setup(size_t pushSize)
     // Get shader group handles
     std::vector<uint8_t> shaderHandleStorage(sbtSize);
     const vk::Result result = Context::GetDevice().getRayTracingShaderGroupHandlesKHR(*pipeline, 0, groupCount, sbtSize,
-                                                                                       shaderHandleStorage.data());
+                                                                                      shaderHandleStorage.data());
     if (result != vk::Result::eSuccess) {
         throw std::runtime_error("failed to get ray tracing shader group handles.");
     }

@@ -18,10 +18,16 @@ vk::TransformMatrixKHR Transform::GetVkMatrix() const
     return vk::TransformMatrixKHR{ data };
 }
 
-Object::Object(std::shared_ptr<Mesh> mesh)
-    : mesh{ mesh }
+//Object::Object(std::shared_ptr<Mesh> mesh)
+//    : mesh{ mesh }
+//{
+//}
+
+Object::Object(const Mesh& mesh)
+    : mesh{ &mesh }
 {
 }
+
 
 const Mesh& Object::GetMesh() const
 {
