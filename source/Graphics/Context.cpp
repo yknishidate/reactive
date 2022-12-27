@@ -125,13 +125,18 @@ void Context::init()
     swapchain = Swapchain{ *device, *surface, queueFamily };
 }
 
-vk::UniqueCommandBuffer Context::allocateCommandBuffer()
+std::vector<vk::UniqueCommandBuffer> Context::allocateCommandBuffers(uint32_t count)
 {
-    return std::move(device->allocateCommandBuffersUnique(
+    return device->allocateCommandBuffersUnique(
         vk::CommandBufferAllocateInfo()
         .setCommandPool(*commandPool)
         .setLevel(vk::CommandBufferLevel::ePrimary)
-        .setCommandBufferCount(1)).front());
+        .setCommandBufferCount(count));
+}
+
+vk::UniqueCommandBuffer Context::allocateCommandBuffer()
+{
+    return std::move(allocateCommandBuffers(1).front());
 }
 
 void Context::oneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command)

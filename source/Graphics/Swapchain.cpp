@@ -3,24 +3,6 @@
 #include "Window/Window.hpp"
 #include "Image.hpp"
 
-Frame::Frame(vk::RenderPass renderPass, vk::ImageView attachment,
-             uint32_t width, uint32_t height)
-{
-    framebuffer = Context::getDevice().createFramebufferUnique(
-        vk::FramebufferCreateInfo()
-        .setRenderPass(renderPass)
-        .setAttachments(attachment)
-        .setWidth(width)
-        .setHeight(height)
-        .setLayers(1)
-    );
-    commandBuffer = Context::allocateCommandBuffer();
-    fence = Context::getDevice().createFenceUnique(
-        vk::FenceCreateInfo()
-        .setFlags(vk::FenceCreateFlagBits::eSignaled)
-    );
-}
-
 Swapchain::Swapchain(vk::Device device, vk::SurfaceKHR surface, uint32_t queueFamily)
     : width{ Window::getWidth() }
     , height{ Window::getHeight() }
@@ -86,11 +68,22 @@ Swapchain::Swapchain(vk::Device device, vk::SurfaceKHR surface, uint32_t queueFa
         .setDependencies(dependency));
 
     size_t imageCount = swapchainImages.size();
-    frames = std::vector<Frame>(imageCount);
+    commandBuffers = Context::allocateCommandBuffers(imageCount);
+    framebuffers.resize(imageCount);
+    fences.resize(imageCount);
     imageAcquiredSemaphore = Context::getDevice().createSemaphoreUnique({});
     renderCompleteSemaphore = Context::getDevice().createSemaphoreUnique({});
     for (uint32_t i = 0; i < imageCount; i++) {
-        frames[i] = Frame{ *renderPass, *swapchainImageViews[i], width, height };
+        framebuffers[i] = Context::getDevice().createFramebufferUnique(
+            vk::FramebufferCreateInfo()
+            .setRenderPass(*renderPass)
+            .setAttachments(*swapchainImageViews[i])
+            .setWidth(width)
+            .setHeight(height)
+            .setLayers(1));
+        fences[i] = Context::getDevice().createFenceUnique(
+            vk::FenceCreateInfo()
+            .setFlags(vk::FenceCreateFlagBits::eSignaled));
     }
 }
 
@@ -105,15 +98,15 @@ void Swapchain::beginRenderPass() const
     const auto beginInfo = vk::RenderPassBeginInfo()
         .setRenderPass(*renderPass)
         .setClearValues(clearColor)
-        .setFramebuffer(*frames[frameIndex].framebuffer)
+        .setFramebuffer(*framebuffers[frameIndex])
         .setRenderArea(renderArea);
 
-    frames[frameIndex].commandBuffer->beginRenderPass(beginInfo, vk::SubpassContents::eInline);
+    commandBuffers[frameIndex]->beginRenderPass(beginInfo, vk::SubpassContents::eInline);
 }
 
 void Swapchain::endRenderPass() const
 {
-    frames[frameIndex].commandBuffer->endRenderPass();
+    commandBuffers[frameIndex]->endRenderPass();
 }
 
 void Swapchain::waitNextFrame(vk::Device device)
@@ -125,17 +118,32 @@ void Swapchain::waitNextFrame(vk::Device device)
         spdlog::error(exception.what());
         return;
     }
-    frames[frameIndex].waitForFence(device);
+    vk::Result result = device.waitForFences(*fences[frameIndex], VK_TRUE, UINT64_MAX);
+    if (result != vk::Result::eSuccess) {
+        throw std::runtime_error("Failed to wait for fence");
+    }
+    device.resetFences(*fences[frameIndex]);
 }
 
 vk::CommandBuffer Swapchain::beginCommandBuffer()
 {
-    return frames[frameIndex].beginCommandBuffer();
+    commandBuffers[frameIndex]->begin(
+        vk::CommandBufferBeginInfo()
+        .setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit)
+    );
+    return *commandBuffers[frameIndex];
 }
 
 void Swapchain::submit(vk::Queue queue)
 {
-    frames[frameIndex].submitCommandBuffer(queue, *imageAcquiredSemaphore, *renderCompleteSemaphore);
+    commandBuffers[frameIndex]->end();
+    vk::PipelineStageFlags waitStage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    const auto submitInfo = vk::SubmitInfo()
+        .setWaitDstStageMask(waitStage)
+        .setCommandBuffers(*commandBuffers[frameIndex])
+        .setWaitSemaphores(*imageAcquiredSemaphore)
+        .setSignalSemaphores(*renderCompleteSemaphore);
+    queue.submit(submitInfo, *fences[frameIndex]);
 }
 
 void Swapchain::present(vk::Queue queue)

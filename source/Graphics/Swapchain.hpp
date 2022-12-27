@@ -3,50 +3,6 @@
 
 class Image;
 
-struct Frame
-{
-    Frame() = default;
-    Frame(vk::RenderPass renderPass, vk::ImageView attachment,
-          uint32_t width, uint32_t height);
-
-    vk::CommandBuffer beginCommandBuffer()
-    {
-        commandBuffer->begin(
-            vk::CommandBufferBeginInfo()
-            .setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit)
-        );
-        return *commandBuffer;
-    }
-
-    void submitCommandBuffer(vk::Queue queue, vk::Semaphore waitSemaphore, vk::Semaphore signalSemaphore)
-    {
-        commandBuffer->end();
-
-        vk::PipelineStageFlags waitStage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-
-        const auto submitInfo = vk::SubmitInfo()
-            .setWaitDstStageMask(waitStage)
-            .setCommandBuffers(*commandBuffer)
-            .setWaitSemaphores(waitSemaphore)
-            .setSignalSemaphores(signalSemaphore);
-
-        queue.submit(submitInfo, *fence);
-    }
-
-    void waitForFence(vk::Device device)
-    {
-        vk::Result result = device.waitForFences(*fence, VK_TRUE, UINT64_MAX);
-        if (result != vk::Result::eSuccess) {
-            throw std::runtime_error("Failed to wait for fence");
-        }
-        device.resetFences(*fence);
-    }
-
-    vk::UniqueFramebuffer framebuffer{};
-    vk::UniqueCommandBuffer commandBuffer{};
-    vk::UniqueFence fence{};
-};
-
 struct Swapchain
 {
     Swapchain() = default;
@@ -110,7 +66,7 @@ struct Swapchain
     auto getImageCount() const { return swapchainImages.size(); }
     auto getMinImageCount() const { return minImageCount; }
     auto getRenderPass() const { return *renderPass; }
-    auto getCurrentCommandBuffer() const { return *frames[frameIndex].commandBuffer; }
+    auto getCurrentCommandBuffer() const { return *commandBuffers[frameIndex]; }
 
     vk::UniqueSwapchainKHR swapchain;
     std::vector<vk::Image> swapchainImages;
@@ -132,5 +88,7 @@ struct Swapchain
     vk::UniqueRenderPass renderPass;
     vk::UniqueSemaphore imageAcquiredSemaphore;
     vk::UniqueSemaphore renderCompleteSemaphore;
-    std::vector<Frame> frames{};
+    std::vector<vk::UniqueCommandBuffer> commandBuffers{};
+    std::vector<vk::UniqueFramebuffer> framebuffers{};
+    std::vector<vk::UniqueFence> fences{};
 };

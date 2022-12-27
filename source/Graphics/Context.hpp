@@ -10,6 +10,7 @@ struct Context
 {
     static void init();
 
+    static std::vector<vk::UniqueCommandBuffer> allocateCommandBuffers(uint32_t count);
     static vk::UniqueCommandBuffer allocateCommandBuffer();
 
     static void oneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command);
