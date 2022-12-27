@@ -5,6 +5,14 @@ class Buffer
 {
 public:
     using Usage = vk::BufferUsageFlagBits;
+    //enum class Usage {
+    //    Host,
+    //    Device,
+    //    Staging,
+    //    Storage,
+    //    AccelInput,
+    //    AccelStorage
+    //};
     Buffer() = default;
 
     vk::Buffer getBuffer() const { return *buffer; }
@@ -49,13 +57,6 @@ public:
     }
 
     void copy(const void* data);
-};
-
-class StagingBuffer : public HostBuffer
-{
-public:
-    StagingBuffer() = default;
-    StagingBuffer(size_t size, const void* data);
 };
 
 class StorageBuffer : public DeviceBuffer

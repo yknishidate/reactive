@@ -102,7 +102,8 @@ Image::Image(const std::string& filepath) {
     view = CreateImageView(*image, vk::Format::eR8G8B8A8Unorm);
     sampler = CreateSampler();
 
-    StagingBuffer staging{ static_cast<size_t>(width * height * 4), data };
+    HostBuffer staging{ Buffer::Usage::eTransferSrc, static_cast<size_t>(width * height * 4) };
+    staging.copy(data);
     Context::oneTimeSubmit(
         [&](vk::CommandBuffer commandBuffer) {
         vk::BufferImageCopy region{};
@@ -151,7 +152,8 @@ Image::Image(const std::vector<std::string>& filepaths) {
     view = CreateImageView(*image, vk::Format::eR8G8B8A8Unorm, vk::ImageViewType::e3D);
     sampler = CreateSampler();
 
-    StagingBuffer staging{ static_cast<size_t>(width * height * depth * 4), allData.data() };
+    HostBuffer staging{ Buffer::Usage::eTransferSrc, static_cast<size_t>(width * height * depth * 4) };
+    staging.copy(allData.data());
     Context::oneTimeSubmit(
         [&](vk::CommandBuffer commandBuffer) {
         vk::BufferImageCopy region{};

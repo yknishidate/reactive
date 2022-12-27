@@ -48,15 +48,10 @@ DeviceBuffer::DeviceBuffer(vk::BufferUsageFlags usage, size_t size)
 
 void DeviceBuffer::copy(const void* data)
 {
-    StagingBuffer stagingBuffer{ size, data };
+    HostBuffer stagingBuffer{ Usage::eTransferSrc, size };
+    stagingBuffer.copy(data);
     Context::oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
         vk::BufferCopy region{ 0, 0, size };
     commandBuffer.copyBuffer(stagingBuffer.getBuffer(), *buffer, region);
     });
-}
-
-StagingBuffer::StagingBuffer(size_t size, const void* data)
-    : HostBuffer{ Usage::eTransferSrc, size }
-{
-    copy(data);
 }
