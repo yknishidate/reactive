@@ -14,9 +14,11 @@ int main()
         Context::init();
         GUI::init();
 
-        std::vector<Vertex> vertices{ {{-1, 0, 0}}, {{ 0, -1, 0}}, {{ 1, 0, 0}} };
-        std::vector<Index> indices{ 0, 1, 2 };
-        Mesh mesh{ vertices, indices };
+        //std::vector<Vertex> vertices{ {{-1, 0, 0}}, {{ 0, -1, 0}}, {{ 1, 0, 0}} };
+        //std::vector<Index> indices{ 0, 1, 2 };
+        //Mesh mesh{ vertices, indices };
+
+        Mesh mesh{ "bunny.obj" };
         Object object{ mesh };
         TopAccel topAccel{ object };
         Camera camera{ Window::getWidth(), Window::getHeight() };

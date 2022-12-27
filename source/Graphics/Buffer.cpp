@@ -60,11 +60,6 @@ Buffer::Buffer(BufferUsage usage, vk::MemoryPropertyFlags memoryProp, size_t siz
         .setPNext(&flagsInfo));
 
     Context::getDevice().bindBufferMemory(*buffer, *memory, 0);
-
-    if (usageFlag & vk::BufferUsageFlagBits::eShaderDeviceAddress) {
-        vk::BufferDeviceAddressInfoKHR bufferDeviceAI{ *buffer };
-        deviceAddress = Context::getDevice().getBufferAddressKHR(&bufferDeviceAI);
-    }
 }
 
 HostBuffer::HostBuffer(BufferUsage usage, size_t size)
