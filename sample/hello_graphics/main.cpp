@@ -9,21 +9,21 @@ int main()
     auto mesh = std::make_shared<Mesh>(vertices, indices);
 
     GraphicsPipeline pipeline{ };
-    pipeline.LoadShaders(SHADER_DIR + "hello_graphics.vert",
+    pipeline.loadShaders(SHADER_DIR + "hello_graphics.vert",
                          SHADER_DIR + "hello_graphics.frag");
-    pipeline.Setup();
+    pipeline.setup();
 
     while (Engine::Update()) {
         Engine::Render(
             [&](auto commandBuffer)
-            {
-                pipeline.Begin(commandBuffer);
-                vk::DeviceSize offsets{ 0 };
-                commandBuffer.bindVertexBuffers(0, mesh->GetVertexBuffer(), offsets);
-                commandBuffer.bindIndexBuffer(mesh->GetIndexBuffer(), 0, vk::IndexType::eUint32);
-                commandBuffer.drawIndexed(static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
-                pipeline.End(commandBuffer);
-            });
+        {
+            pipeline.begin(commandBuffer);
+        vk::DeviceSize offsets{ 0 };
+        commandBuffer.bindVertexBuffers(0, mesh->getVertexBuffer(), offsets);
+        commandBuffer.bindIndexBuffer(mesh->getIndexBuffer(), 0, vk::IndexType::eUint32);
+        commandBuffer.drawIndexed(static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+        pipeline.end(commandBuffer);
+        });
     }
     Engine::Shutdown();
 }

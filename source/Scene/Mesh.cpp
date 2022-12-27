@@ -18,7 +18,7 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& ind
 
 Mesh::Mesh(const std::string& filepath)
 {
-    Loader::LoadFromFile(ASSET_DIR + filepath, vertices, indices);
+    Loader::loadFromFile(ASSET_DIR + filepath, vertices, indices);
 
     vk::BufferUsageFlags usage{
         vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
@@ -30,18 +30,18 @@ Mesh::Mesh(const std::string& filepath)
     bottomAccel = BottomAccel{ *this, vk::GeometryFlagBitsKHR::eNoDuplicateAnyHitInvocation };
 }
 
-vk::AccelerationStructureGeometryTrianglesDataKHR Mesh::GetTriangles() const
+vk::AccelerationStructureGeometryTrianglesDataKHR Mesh::getTriangles() const
 {
     return vk::AccelerationStructureGeometryTrianglesDataKHR()
         .setVertexFormat(vk::Format::eR32G32B32Sfloat)
-        .setVertexData(vertexBuffer.GetAddress())
+        .setVertexData(vertexBuffer.getAddress())
         .setVertexStride(sizeof(Vertex))
         .setMaxVertex(vertices.size())
         .setIndexType(vk::IndexType::eUint32)
-        .setIndexData(indexBuffer.GetAddress());
+        .setIndexData(indexBuffer.getAddress());
 }
 
-void Mesh::SetMaterial(const Material& material)
+void Mesh::setMaterial(const Material& material)
 {
     this->material = material;
 }

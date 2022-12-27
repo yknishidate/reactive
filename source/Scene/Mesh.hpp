@@ -36,18 +36,18 @@ public:
     Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, Material material = {});
     Mesh(const std::string& filepath);
 
-    const BottomAccel& GetAccel() const { return bottomAccel; }
+    const BottomAccel& getAccel() const { return bottomAccel; }
 
-    auto GetVertexBuffer() const { return vertexBuffer.GetBuffer(); }
-    auto GetIndexBuffer() const { return indexBuffer.GetBuffer(); }
-    uint64_t GetVertexBufferAddress() const { return vertexBuffer.GetAddress(); }
-    uint64_t GetIndexBufferAddress() const { return indexBuffer.GetAddress(); }
-    const std::vector<Vertex>& GetVertices() const { return vertices; }
-    uint32_t GetTriangleCount() const { return indices.size() / 3; }
-    vk::AccelerationStructureGeometryTrianglesDataKHR GetTriangles() const;
+    auto getVertexBuffer() const { return vertexBuffer.getBuffer(); }
+    auto getIndexBuffer() const { return indexBuffer.getBuffer(); }
+    uint64_t getVertexBufferAddress() const { return vertexBuffer.getAddress(); }
+    uint64_t getIndexBufferAddress() const { return indexBuffer.getAddress(); }
+    const std::vector<Vertex>& getVertices() const { return vertices; }
+    uint32_t getTriangleCount() const { return indices.size() / 3; }
+    vk::AccelerationStructureGeometryTrianglesDataKHR getTriangles() const;
 
-    Material GetMaterial() const { return material; }
-    void SetMaterial(const Material& material);
+    Material getMaterial() const { return material; }
+    void setMaterial(const Material& material);
 
 private:
     DeviceBuffer vertexBuffer;

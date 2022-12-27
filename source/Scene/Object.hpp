@@ -10,9 +10,9 @@ struct Transform
     glm::vec3 scale{ 1 };
     glm::quat rotation{ 1, 0, 0, 0 };
 
-    glm::mat4 GetMatrix() const;
-    glm::mat3 GetNormalMatrix() const;
-    vk::TransformMatrixKHR GetVkMatrix() const;
+    glm::mat4 getMatrix() const;
+    glm::mat3 getNormalMatrix() const;
+    vk::TransformMatrixKHR getVkMatrix() const;
 };
 
 struct ObjectData
@@ -29,14 +29,13 @@ struct ObjectData
 class Object
 {
 public:
-    //explicit Object(std::shared_ptr<Mesh> mesh);
     explicit Object(const Mesh& mesh);
     virtual void Update(float dt) {}
 
-    const Mesh& GetMesh() const;
+    const Mesh& getMesh() const;
 
-    Material GetMaterial();
-    void SetMaterial(const Material& material);
+    Material getMaterial();
+    void setMaterial(const Material& material);
 
     Transform transform{};
 

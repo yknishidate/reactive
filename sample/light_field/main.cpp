@@ -10,8 +10,8 @@ struct PushConstants
 
     void HandleInput(bool invX, bool invY)
     {
-        if (!Window::MousePressed()) return;
-        auto motion = Window::GetMouseMotion() * 0.005f;
+        if (!Window::mousePressed()) return;
+        auto motion = Window::getMouseMotion() * 0.005f;
         if (invX) motion.x = -motion.x;
         if (invY) motion.y = -motion.y;
         uv = clamp(uv + glm::vec2(motion.x, motion.y), 0.0f, 0.99f);
@@ -42,29 +42,29 @@ int main()
     Image outputImage{ vk::Format::eB8G8R8A8Unorm };
 
     ComputePipeline pipeline{};
-    pipeline.LoadShaders(SHADER_DIR + "light_field.comp");
-    pipeline.GetDescSet().Register("outputImage", outputImage);
-    pipeline.GetDescSet().Register("images", images);
-    pipeline.GetDescSet().Setup();
-    pipeline.Setup(sizeof(PushConstants));
+    pipeline.loadShaders(SHADER_DIR + "light_field.comp");
+    pipeline.getDescSet().record("outputImage", outputImage);
+    pipeline.getDescSet().record("images", images);
+    pipeline.getDescSet().setup();
+    pipeline.setup(sizeof(PushConstants));
 
     PushConstants pushConstants;
     bool invertX = false;
     bool invertY = false;
     while (Engine::Update()) {
         static uint64_t frame = 0;
-        GUI::Checkbox("Invert x", invertX);
-        GUI::Checkbox("Invert y", invertY);
-        GUI::SliderFloat("Aperture", pushConstants.apertureSize, 0.1f, 0.5f);
-        GUI::SliderFloat("Focal", pushConstants.focalOffset, -0.08f, 0.06f);
-        if (GUI::Button("Save")) {
-            outputImage.Save("output_" + std::to_string(frame) + ".png");
+        GUI::checkbox("Invert x", invertX);
+        GUI::checkbox("Invert y", invertY);
+        GUI::sliderFloat("Aperture", pushConstants.apertureSize, 0.1f, 0.5f);
+        GUI::sliderFloat("Focal", pushConstants.focalOffset, -0.08f, 0.06f);
+        if (GUI::button("Save")) {
+            outputImage.save("output_" + std::to_string(frame) + ".png");
         }
 
         pushConstants.HandleInput(invertX, invertY);
         Engine::Render([&](auto commandBuffer) {
-            pipeline.Run(commandBuffer, Window::GetWidth(), Window::GetHeight(), &pushConstants);
-        Context::CopyToBackImage(commandBuffer, outputImage); });
+            pipeline.run(commandBuffer, Window::getWidth(), Window::getHeight(), &pushConstants);
+        Context::copyToBackImage(commandBuffer, outputImage); });
         frame++;
     }
     Engine::Shutdown();

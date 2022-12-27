@@ -6,22 +6,22 @@ Geometry::Geometry(vk::GeometryFlagsKHR geometryFlag, size_t primitiveCount)
 {
 }
 
-vk::DeviceSize Geometry::GetAccelSize() const
+vk::DeviceSize Geometry::getAccelSize() const
 {
     constexpr auto buildType = vk::AccelerationStructureBuildTypeKHR::eDevice;
-    const auto buildSizes = Context::GetDevice().getAccelerationStructureBuildSizesKHR(buildType, geometryInfo, primitiveCount);
+    const auto buildSizes = Context::getDevice().getAccelerationStructureBuildSizesKHR(buildType, geometryInfo, primitiveCount);
     return buildSizes.accelerationStructureSize;
 }
 
-vk::AccelerationStructureBuildGeometryInfoKHR Geometry::GetInfo() const
+vk::AccelerationStructureBuildGeometryInfoKHR Geometry::getInfo() const
 {
     return geometryInfo;
 }
 
-DeviceBuffer Geometry::CreateAccelBuffer() const
+DeviceBuffer Geometry::createAccelBuffer() const
 {
     return { vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR |
-        vk::BufferUsageFlagBits::eShaderDeviceAddress, GetAccelSize() };
+        vk::BufferUsageFlagBits::eShaderDeviceAddress, getAccelSize() };
 }
 
 TrianglesGeometry::TrianglesGeometry(vk::AccelerationStructureGeometryTrianglesDataKHR triangles,
@@ -43,10 +43,10 @@ InstancesGeometry::InstancesGeometry(vk::AccelerationStructureGeometryInstancesD
                                      vk::GeometryFlagsKHR geometryFlag, size_t primitiveCount)
     : Geometry{ geometryFlag, primitiveCount }
 {
-    Update(instances);
+    update(instances);
 }
 
-void InstancesGeometry::Update(vk::AccelerationStructureGeometryInstancesDataKHR instances)
+void InstancesGeometry::update(vk::AccelerationStructureGeometryInstancesDataKHR instances)
 {
     geometry = vk::AccelerationStructureGeometryKHR()
         .setGeometryType(vk::GeometryTypeKHR::eInstances)

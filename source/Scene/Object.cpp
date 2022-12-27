@@ -1,18 +1,18 @@
 #include "Object.hpp"
 
-glm::mat4 Transform::GetMatrix() const
+glm::mat4 Transform::getMatrix() const
 {
     return glm::translate(position) * glm::toMat4(rotation) * glm::scale(scale);
 }
 
-glm::mat3 Transform::GetNormalMatrix() const
+glm::mat3 Transform::getNormalMatrix() const
 {
     return glm::toMat3(rotation);
 }
 
-vk::TransformMatrixKHR Transform::GetVkMatrix() const
+vk::TransformMatrixKHR Transform::getVkMatrix() const
 {
-    glm::mat4 transposed = glm::transpose(GetMatrix());
+    glm::mat4 transposed = glm::transpose(getMatrix());
     std::array<std::array<float, 4>, 3> data;
     std::memcpy(&data, &transposed, sizeof(vk::TransformMatrixKHR));
     return vk::TransformMatrixKHR{ data };
@@ -29,21 +29,21 @@ Object::Object(const Mesh& mesh)
 }
 
 
-const Mesh& Object::GetMesh() const
+const Mesh& Object::getMesh() const
 {
     assert(mesh && "Mesh is nullptr");
     return *mesh;
 }
 
-Material Object::GetMaterial()
+Material Object::getMaterial()
 {
     if (material) {
         return material.value();
     }
-    return mesh->GetMaterial();
+    return mesh->getMaterial();
 }
 
-void Object::SetMaterial(const Material& material)
+void Object::setMaterial(const Material& material)
 {
     this->material = material;
 }

@@ -8,36 +8,36 @@
 
 struct Context
 {
-    static void Init();
+    static void init();
 
-    static vk::UniqueCommandBuffer AllocateCommandBuffer();
+    static vk::UniqueCommandBuffer allocateCommandBuffer();
 
-    static void OneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command);
+    static void oneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command);
 
-    static uint32_t FindMemoryTypeIndex(vk::MemoryRequirements requirements, vk::MemoryPropertyFlags memoryProp);
+    static uint32_t findMemoryTypeIndex(vk::MemoryRequirements requirements, vk::MemoryPropertyFlags memoryProp);
 
-    static auto GetInstance() { return *instance; }
-    static auto GetDevice() { return *device; }
-    static auto GetPhysicalDevice() { return physicalDevice; }
-    static auto GetQueueFamily() { return queueFamily; }
-    static auto GetQueue() { return queue; }
-    static auto GetDescriptorPool() { return *descriptorPool; }
-    static auto GetImageCount() { return swapchain.GetImageCount(); }
-    static auto GetMinImageCount() { return swapchain.GetMinImageCount(); }
-    static auto GetRenderPass() { return swapchain.GetRenderPass(); }
-    static const auto& GetSwapchain() { return swapchain; }
+    static auto getInstance() { return *instance; }
+    static auto getDevice() { return *device; }
+    static auto getPhysicalDevice() { return physicalDevice; }
+    static auto getQueueFamily() { return queueFamily; }
+    static auto getQueue() { return queue; }
+    static auto getDescriptorPool() { return *descriptorPool; }
+    static auto getImageCount() { return swapchain.getImageCount(); }
+    static auto getMinImageCount() { return swapchain.getMinImageCount(); }
+    static auto getRenderPass() { return swapchain.getRenderPass(); }
+    static const auto& getSwapchain() { return swapchain; }
 
-    static void BeginRenderPass();
-    static void EndRenderPass();
-    static void CopyToBackImage(vk::CommandBuffer commandBuffer, const Image& source);
-    static void WaitNextFrame() { swapchain.WaitNextFrame(*device); }
-    static auto BeginCommandBuffer() -> vk::CommandBuffer { return swapchain.BeginCommandBuffer(); }
-    static void Submit() { swapchain.Submit(queue); }
-    static void Present() { swapchain.Present(queue); }
+    static void beginRenderPass();
+    static void endRenderPass();
+    static void copyToBackImage(vk::CommandBuffer commandBuffer, const Image& source);
+    static void waitNextFrame() { swapchain.waitNextFrame(*device); }
+    static auto beginCommandBuffer() -> vk::CommandBuffer { return swapchain.beginCommandBuffer(); }
+    static void submit() { swapchain.submit(queue); }
+    static void present() { swapchain.present(queue); }
 
 private:
     static VKAPI_ATTR VkBool32 VKAPI_CALL
-        DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+        debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                       VkDebugUtilsMessageTypeFlagsEXT messageTypes,
                       VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData,
                       void* pUserData) {

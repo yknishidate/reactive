@@ -13,7 +13,7 @@ vk::UniqueShaderModule CreateShaderModule(const std::vector<uint32_t>& code)
 {
     vk::ShaderModuleCreateInfo createInfo;
     createInfo.setCode(code);
-    return Context::GetDevice().createShaderModuleUnique(createInfo);
+    return Context::getDevice().createShaderModuleUnique(createInfo);
 }
 
 vk::UniquePipeline CreateGraphicsPipeline(vk::ShaderModule vertModule, vk::ShaderModule fragModule,
@@ -59,10 +59,10 @@ vk::UniquePipeline CreateGraphicsPipeline(vk::ShaderModule vertModule, vk::Shade
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
     inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
 
-    auto width = static_cast<float>(Window::GetWidth());
-    auto height = static_cast<float>(Window::GetHeight());
+    auto width = static_cast<float>(Window::getWidth());
+    auto height = static_cast<float>(Window::getHeight());
     vk::Viewport viewport{ 0.0f, 0.0f, width, height, 0.0f, 1.0f };
-    vk::Rect2D scissor{ { 0, 0 }, {Window::GetWidth(), Window::GetWidth()} };
+    vk::Rect2D scissor{ { 0, 0 }, {Window::getWidth(), Window::getWidth()} };
     vk::PipelineViewportStateCreateInfo viewportState{ {}, 1, &viewport, 1, &scissor };
 
     vk::PipelineRasterizationStateCreateInfo rasterization;
@@ -113,7 +113,7 @@ vk::UniquePipeline CreateGraphicsPipeline(vk::ShaderModule vertModule, vk::Shade
     pipelineInfo.setSubpass(0);
     pipelineInfo.setPNext(&renderingInfo);
 
-    auto result = Context::GetDevice().createGraphicsPipelineUnique({}, pipelineInfo);
+    auto result = Context::getDevice().createGraphicsPipelineUnique({}, pipelineInfo);
     if (result.result != vk::Result::eSuccess) {
         throw std::runtime_error("failed to create a pipeline!");
     }
@@ -131,7 +131,7 @@ vk::UniquePipeline CreateComputePipeline(vk::ShaderModule shaderModule, vk::Shad
     vk::ComputePipelineCreateInfo createInfo;
     createInfo.setStage(stage);
     createInfo.setLayout(pipelineLayout);
-    auto res = Context::GetDevice().createComputePipelinesUnique({}, createInfo);
+    auto res = Context::getDevice().createComputePipelinesUnique({}, createInfo);
     if (res.result != vk::Result::eSuccess) {
         throw std::runtime_error("failed to create ray tracing pipeline.");
     }
@@ -147,7 +147,7 @@ vk::UniquePipeline CreateRayTracingPipeline(const std::vector<vk::PipelineShader
     createInfo.setGroups(shaderGroups);
     createInfo.setMaxPipelineRayRecursionDepth(4);
     createInfo.setLayout(pipelineLayout);
-    auto res = Context::GetDevice().createRayTracingPipelineKHRUnique(nullptr, nullptr, createInfo);
+    auto res = Context::getDevice().createRayTracingPipelineKHRUnique(nullptr, nullptr, createInfo);
     if (res.result != vk::Result::eSuccess) {
         throw std::runtime_error("failed to create ray tracing pipeline.");
     }
@@ -166,68 +166,68 @@ vk::StridedDeviceAddressRegionKHR CreateAddressRegion(
 }
 } // namespace
 
-void Pipeline::Register(const std::string& name, const std::vector<Image>& images)
+void Pipeline::record(const std::string& name, const std::vector<Image>& images)
 {
     registered = true;
-    descSet->Register(name, images);
+    descSet->record(name, images);
 }
 
-void Pipeline::Register(const std::string& name, const Buffer& buffer)
+void Pipeline::record(const std::string& name, const Buffer& buffer)
 {
     registered = true;
-    descSet->Register(name, buffer);
+    descSet->record(name, buffer);
 }
 
-void Pipeline::Register(const std::string& name, const Image& image)
+void Pipeline::record(const std::string& name, const Image& image)
 {
     registered = true;
-    descSet->Register(name, image);
+    descSet->record(name, image);
 }
 
-void Pipeline::Register(const std::string& name, const TopAccel& accel)
+void Pipeline::record(const std::string& name, const TopAccel& accel)
 {
     registered = true;
-    descSet->Register(name, accel);
+    descSet->record(name, accel);
 }
 
-void GraphicsPipeline::LoadShaders(const std::string& vertPath, const std::string& fragPath)
+void GraphicsPipeline::loadShaders(const std::string& vertPath, const std::string& fragPath)
 {
     spdlog::info("ComputePipeline::LoadShaders()");
 
-    std::vector vertCode = Compiler::CompileToSPV(vertPath);
-    std::vector fragCode = Compiler::CompileToSPV(fragPath);
-    descSet->AddBindingMap(vertCode, vk::ShaderStageFlagBits::eVertex);
-    descSet->AddBindingMap(fragCode, vk::ShaderStageFlagBits::eFragment);
+    std::vector vertCode = Compiler::compileToSPV(vertPath);
+    std::vector fragCode = Compiler::compileToSPV(fragPath);
+    descSet->addBindingMap(vertCode, vk::ShaderStageFlagBits::eVertex);
+    descSet->addBindingMap(fragCode, vk::ShaderStageFlagBits::eFragment);
     vertModule = CreateShaderModule(vertCode);
     fragModule = CreateShaderModule(fragCode);
 }
 
-void GraphicsPipeline::Setup(size_t pushSize)
+void GraphicsPipeline::setup(size_t pushSize)
 {
     this->pushSize = pushSize;
     if (registered) {
-        pipelineLayout = descSet->CreatePipelineLayout(pushSize, vk::ShaderStageFlagBits::eAllGraphics);
+        pipelineLayout = descSet->createPipelineLayout(pushSize, vk::ShaderStageFlagBits::eAllGraphics);
     } else {
-        pipelineLayout = Context::GetDevice().createPipelineLayoutUnique(vk::PipelineLayoutCreateInfo{});
+        pipelineLayout = Context::getDevice().createPipelineLayoutUnique(vk::PipelineLayoutCreateInfo{});
     }
     pipeline = CreateGraphicsPipeline(*vertModule, *fragModule, *pipelineLayout);
 }
 
-void GraphicsPipeline::Begin(vk::CommandBuffer commandBuffer, void* pushData)
+void GraphicsPipeline::begin(vk::CommandBuffer commandBuffer, void* pushData)
 {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *pipeline);
     if (registered) {
-        descSet->Bind(commandBuffer, vk::PipelineBindPoint::eGraphics, *pipelineLayout);
+        descSet->bind(commandBuffer, vk::PipelineBindPoint::eGraphics, *pipelineLayout);
     }
     if (pushData) {
         commandBuffer.pushConstants(*pipelineLayout, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, pushSize, pushData);
     }
 
-    vk::RenderingAttachmentInfo colorAttachment = Context::GetSwapchain().GetColorAttachmentInfo();
+    vk::RenderingAttachmentInfo colorAttachment = Context::getSwapchain().getColorAttachmentInfo();
     //vk::RenderingAttachmentInfo depthStencilAttachment = Context::GetSwapchain().GetDepthAttachmentInfo();
 
     vk::RenderingInfo renderingInfo;
-    renderingInfo.setRenderArea({ {0, 0}, {Window::GetWidth(), Window::GetHeight()} });
+    renderingInfo.setRenderArea({ {0, 0}, {Window::getWidth(), Window::getHeight()} });
     renderingInfo.setLayerCount(1);
     renderingInfo.setColorAttachments(colorAttachment);
     //renderingInfo.setPDepthAttachment(&depthStencilAttachment);
@@ -235,38 +235,38 @@ void GraphicsPipeline::Begin(vk::CommandBuffer commandBuffer, void* pushData)
     commandBuffer.beginRendering(renderingInfo);
 }
 
-void GraphicsPipeline::End(vk::CommandBuffer commandBuffer)
+void GraphicsPipeline::end(vk::CommandBuffer commandBuffer)
 {
     commandBuffer.endRendering();
 }
 
-void ComputePipeline::LoadShaders(const std::string& path)
+void ComputePipeline::loadShaders(const std::string& path)
 {
     spdlog::info("ComputePipeline::LoadShaders()");
 
-    std::vector spirvCode = Compiler::CompileToSPV(path);
-    descSet->AddBindingMap(spirvCode, vk::ShaderStageFlagBits::eCompute);
+    std::vector spirvCode = Compiler::compileToSPV(path);
+    descSet->addBindingMap(spirvCode, vk::ShaderStageFlagBits::eCompute);
     shaderModule = CreateShaderModule(spirvCode);
 }
 
-void ComputePipeline::Setup(size_t pushSize)
+void ComputePipeline::setup(size_t pushSize)
 {
     this->pushSize = pushSize;
-    pipelineLayout = descSet->CreatePipelineLayout(pushSize, vk::ShaderStageFlagBits::eCompute);
+    pipelineLayout = descSet->createPipelineLayout(pushSize, vk::ShaderStageFlagBits::eCompute);
     pipeline = CreateComputePipeline(*shaderModule, vk::ShaderStageFlagBits::eCompute, *pipelineLayout);
 }
 
-void ComputePipeline::Run(vk::CommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY, void* pushData)
+void ComputePipeline::run(vk::CommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY, void* pushData)
 {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *pipeline);
-    descSet->Bind(commandBuffer, vk::PipelineBindPoint::eCompute, *pipelineLayout);
+    descSet->bind(commandBuffer, vk::PipelineBindPoint::eCompute, *pipelineLayout);
     if (pushData) {
         commandBuffer.pushConstants(*pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0, pushSize, pushData);
     }
     commandBuffer.dispatch(groupCountX, groupCountY, 1);
 }
 
-void RayTracingPipeline::LoadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath)
+void RayTracingPipeline::loadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath)
 {
     spdlog::info("RayTracingPipeline::LoadShaders()");
     rgenCount = 1;
@@ -278,14 +278,14 @@ void RayTracingPipeline::LoadShaders(const std::string& rgenPath, const std::str
     const uint32_t chitIndex = 2;
 
     // Compile shaders
-    std::vector rgenShader = Compiler::CompileToSPV(rgenPath);
-    std::vector missShader = Compiler::CompileToSPV(missPath);
-    std::vector chitShader = Compiler::CompileToSPV(chitPath);
+    std::vector rgenShader = Compiler::compileToSPV(rgenPath);
+    std::vector missShader = Compiler::compileToSPV(missPath);
+    std::vector chitShader = Compiler::compileToSPV(chitPath);
 
     // Get bindings
-    descSet->AddBindingMap(rgenShader, vk::ShaderStageFlagBits::eRaygenKHR);
-    descSet->AddBindingMap(missShader, vk::ShaderStageFlagBits::eMissKHR);
-    descSet->AddBindingMap(chitShader, vk::ShaderStageFlagBits::eClosestHitKHR);
+    descSet->addBindingMap(rgenShader, vk::ShaderStageFlagBits::eRaygenKHR);
+    descSet->addBindingMap(missShader, vk::ShaderStageFlagBits::eMissKHR);
+    descSet->addBindingMap(chitShader, vk::ShaderStageFlagBits::eClosestHitKHR);
 
     shaderModules.push_back(CreateShaderModule(rgenShader));
     shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eRaygenKHR, *shaderModules.back(), "main" });
@@ -304,7 +304,7 @@ void RayTracingPipeline::LoadShaders(const std::string& rgenPath, const std::str
 
 }
 
-void RayTracingPipeline::LoadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath, const std::string& ahitPath)
+void RayTracingPipeline::loadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath, const std::string& ahitPath)
 {
     spdlog::info("RayTracingPipeline::LoadShaders()");
     rgenCount = 1;
@@ -317,16 +317,16 @@ void RayTracingPipeline::LoadShaders(const std::string& rgenPath, const std::str
     const uint32_t ahitIndex = 3;
 
     // Compile shaders
-    std::vector rgenShader = Compiler::CompileToSPV(rgenPath);
-    std::vector missShader = Compiler::CompileToSPV(missPath);
-    std::vector chitShader = Compiler::CompileToSPV(chitPath);
-    std::vector ahitShader = Compiler::CompileToSPV(ahitPath);
+    std::vector rgenShader = Compiler::compileToSPV(rgenPath);
+    std::vector missShader = Compiler::compileToSPV(missPath);
+    std::vector chitShader = Compiler::compileToSPV(chitPath);
+    std::vector ahitShader = Compiler::compileToSPV(ahitPath);
 
     // Get bindings
-    descSet->AddBindingMap(rgenShader, vk::ShaderStageFlagBits::eRaygenKHR);
-    descSet->AddBindingMap(missShader, vk::ShaderStageFlagBits::eMissKHR);
-    descSet->AddBindingMap(chitShader, vk::ShaderStageFlagBits::eClosestHitKHR);
-    descSet->AddBindingMap(ahitShader, vk::ShaderStageFlagBits::eAnyHitKHR);
+    descSet->addBindingMap(rgenShader, vk::ShaderStageFlagBits::eRaygenKHR);
+    descSet->addBindingMap(missShader, vk::ShaderStageFlagBits::eMissKHR);
+    descSet->addBindingMap(chitShader, vk::ShaderStageFlagBits::eClosestHitKHR);
+    descSet->addBindingMap(ahitShader, vk::ShaderStageFlagBits::eAnyHitKHR);
 
 
     shaderModules.push_back(CreateShaderModule(rgenShader));
@@ -347,11 +347,11 @@ void RayTracingPipeline::LoadShaders(const std::string& rgenPath, const std::str
                            VK_SHADER_UNUSED_KHR, chitIndex, ahitIndex, VK_SHADER_UNUSED_KHR });
 }
 
-void RayTracingPipeline::Setup(size_t pushSize)
+void RayTracingPipeline::setup(size_t pushSize)
 {
     this->pushSize = pushSize;
 
-    pipelineLayout = descSet->CreatePipelineLayout(pushSize,
+    pipelineLayout = descSet->createPipelineLayout(pushSize,
                                                    vk::ShaderStageFlagBits::eRaygenKHR |
                                                    vk::ShaderStageFlagBits::eMissKHR |
                                                    vk::ShaderStageFlagBits::eClosestHitKHR |
@@ -360,7 +360,7 @@ void RayTracingPipeline::Setup(size_t pushSize)
 
     // Get Ray Tracing Properties
     using vkRTP = vk::PhysicalDeviceRayTracingPipelinePropertiesKHR;
-    auto rtProperties = Context::GetPhysicalDevice().getProperties2<vk::PhysicalDeviceProperties2, vkRTP>().get<vkRTP>();
+    auto rtProperties = Context::getPhysicalDevice().getProperties2<vk::PhysicalDeviceProperties2, vkRTP>().get<vkRTP>();
 
     // Calculate SBT size
     const uint32_t handleSize = rtProperties.shaderGroupHandleSize;
@@ -370,7 +370,7 @@ void RayTracingPipeline::Setup(size_t pushSize)
 
     // Get shader group handles
     std::vector<uint8_t> shaderHandleStorage(sbtSize);
-    const vk::Result result = Context::GetDevice().getRayTracingShaderGroupHandlesKHR(*pipeline, 0, groupCount, sbtSize,
+    const vk::Result result = Context::getDevice().getRayTracingShaderGroupHandlesKHR(*pipeline, 0, groupCount, sbtSize,
                                                                                       shaderHandleStorage.data());
     if (result != vk::Result::eSuccess) {
         throw std::runtime_error("failed to get ray tracing shader group handles.");
@@ -386,19 +386,19 @@ void RayTracingPipeline::Setup(size_t pushSize)
     missSBT = DeviceBuffer{ usage, handleSize * missCount };
     hitSBT = DeviceBuffer{ usage, handleSize * hitCount };
 
-    raygenRegion = CreateAddressRegion(rtProperties, raygenSBT.GetAddress());
-    missRegion = CreateAddressRegion(rtProperties, missSBT.GetAddress());
-    hitRegion = CreateAddressRegion(rtProperties, hitSBT.GetAddress());
+    raygenRegion = CreateAddressRegion(rtProperties, raygenSBT.getAddress());
+    missRegion = CreateAddressRegion(rtProperties, missSBT.getAddress());
+    hitRegion = CreateAddressRegion(rtProperties, hitSBT.getAddress());
 
-    raygenSBT.Copy(shaderHandleStorage.data() + 0 * handleSizeAligned);
-    missSBT.Copy(shaderHandleStorage.data() + 1 * handleSizeAligned);
-    hitSBT.Copy(shaderHandleStorage.data() + 2 * handleSizeAligned);
+    raygenSBT.copy(shaderHandleStorage.data() + 0 * handleSizeAligned);
+    missSBT.copy(shaderHandleStorage.data() + 1 * handleSizeAligned);
+    hitSBT.copy(shaderHandleStorage.data() + 2 * handleSizeAligned);
 }
 
-void RayTracingPipeline::Run(vk::CommandBuffer commandBuffer, uint32_t countX, uint32_t countY, void* pushData)
+void RayTracingPipeline::run(vk::CommandBuffer commandBuffer, uint32_t countX, uint32_t countY, void* pushData)
 {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, *pipeline);
-    descSet->Bind(commandBuffer, vk::PipelineBindPoint::eRayTracingKHR, *pipelineLayout);
+    descSet->bind(commandBuffer, vk::PipelineBindPoint::eRayTracingKHR, *pipelineLayout);
     if (pushData) {
         commandBuffer.pushConstants(*pipelineLayout,
                                     vk::ShaderStageFlagBits::eRaygenKHR |

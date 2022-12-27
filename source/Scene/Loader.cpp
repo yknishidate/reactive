@@ -12,43 +12,43 @@
 
 namespace
 {
-    void LoadShape(const tinyobj::attrib_t& attrib, const tinyobj::shape_t& shape,
-                   std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
-    {
-        for (const auto& index : shape.mesh.indices) {
-            Vertex vertex{};
+void LoadShape(const tinyobj::attrib_t& attrib, const tinyobj::shape_t& shape,
+               std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
+{
+    for (const auto& index : shape.mesh.indices) {
+        Vertex vertex{};
 
-            vertex.pos = {
-                attrib.vertices[3 * index.vertex_index + 0],
-               -attrib.vertices[3 * index.vertex_index + 1],
-                attrib.vertices[3 * index.vertex_index + 2],
-            };
+        vertex.pos = {
+            attrib.vertices[3 * index.vertex_index + 0],
+           -attrib.vertices[3 * index.vertex_index + 1],
+            attrib.vertices[3 * index.vertex_index + 2],
+        };
 
-            if (attrib.normals.size() < 1) {
-                throw std::runtime_error("This shape dosen't have normals.");
-            }
-            vertex.normal = {
-                attrib.normals[3 * index.normal_index + 0],
-               -attrib.normals[3 * index.normal_index + 1],
-                attrib.normals[3 * index.normal_index + 2],
-            };
-
-            if (attrib.texcoords.size() < 1) {
-                throw std::runtime_error("This shape dosen't have texcoords.");
-            }
-            vertex.texCoord = {
-                attrib.texcoords[2 * index.texcoord_index + 0],
-                1.0f - attrib.texcoords[2 * index.texcoord_index + 1],
-            };
-
-            vertices.push_back(vertex);
-            indices.push_back(indices.size());
+        if (attrib.normals.size() < 1) {
+            throw std::runtime_error("This shape dosen't have normals.");
         }
+        vertex.normal = {
+            attrib.normals[3 * index.normal_index + 0],
+           -attrib.normals[3 * index.normal_index + 1],
+            attrib.normals[3 * index.normal_index + 2],
+        };
+
+        if (attrib.texcoords.size() < 1) {
+            throw std::runtime_error("This shape dosen't have texcoords.");
+        }
+        vertex.texCoord = {
+            attrib.texcoords[2 * index.texcoord_index + 0],
+            1.0f - attrib.texcoords[2 * index.texcoord_index + 1],
+        };
+
+        vertices.push_back(vertex);
+        indices.push_back(indices.size());
     }
+}
 }
 
 // Load as single mesh
-void Loader::LoadFromFile(const std::string& filepath,
+void Loader::loadFromFile(const std::string& filepath,
                           std::vector<Vertex>& vertices,
                           std::vector<uint32_t>& indices)
 {
@@ -69,7 +69,7 @@ void Loader::LoadFromFile(const std::string& filepath,
 }
 
 // Load as multiple mesh
-void Loader::LoadFromFile(const std::string& filepath, std::vector<std::shared_ptr<Mesh>>& meshes)
+void Loader::loadFromFile(const std::string& filepath, std::vector<std::shared_ptr<Mesh>>& meshes)
 {
     spdlog::info("Load file: {}", filepath);
     tinyobj::attrib_t attrib;
@@ -99,7 +99,7 @@ void Loader::LoadFromFile(const std::string& filepath, std::vector<std::shared_p
     }
 }
 
-void Loader::LoadFromFile(const std::string& filepath,
+void Loader::loadFromFile(const std::string& filepath,
                           std::vector<std::shared_ptr<Mesh>>& meshes,
                           std::vector<Image>& textures)
 {

@@ -17,7 +17,7 @@ namespace Log
 {
 using namespace spdlog;
 
-void Init()
+void init()
 {
     spdlog::set_pattern("[%^%l%$] %v");
 }

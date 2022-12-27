@@ -3,22 +3,22 @@
 Buffer::Buffer(vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memoryProp, size_t size)
     : size(size)
 {
-    buffer = Context::GetDevice().createBufferUnique({ {}, size, usage });
+    buffer = Context::getDevice().createBufferUnique({ {}, size, usage });
 
-    vk::MemoryRequirements requirements = Context::GetDevice().getBufferMemoryRequirements(*buffer);
-    uint32_t memoryTypeIndex = Context::FindMemoryTypeIndex(requirements, memoryProp);
+    vk::MemoryRequirements requirements = Context::getDevice().getBufferMemoryRequirements(*buffer);
+    uint32_t memoryTypeIndex = Context::findMemoryTypeIndex(requirements, memoryProp);
     vk::MemoryAllocateFlagsInfo flagsInfo{ vk::MemoryAllocateFlagBits::eDeviceAddress };
-    memory = Context::GetDevice().allocateMemoryUnique(
+    memory = Context::getDevice().allocateMemoryUnique(
         vk::MemoryAllocateInfo()
         .setAllocationSize(requirements.size)
         .setMemoryTypeIndex(memoryTypeIndex)
         .setPNext(&flagsInfo));
 
-    Context::GetDevice().bindBufferMemory(*buffer, *memory, 0);
+    Context::getDevice().bindBufferMemory(*buffer, *memory, 0);
 
     if (usage & vk::BufferUsageFlagBits::eShaderDeviceAddress) {
         vk::BufferDeviceAddressInfoKHR bufferDeviceAI{ *buffer };
-        deviceAddress = Context::GetDevice().getBufferAddressKHR(&bufferDeviceAI);
+        deviceAddress = Context::getDevice().getBufferAddressKHR(&bufferDeviceAI);
     }
 }
 
@@ -27,16 +27,16 @@ HostBuffer::HostBuffer(vk::BufferUsageFlags usage, size_t size)
 {
 }
 
-void HostBuffer::Copy(const void* data)
+void HostBuffer::copy(const void* data)
 {
-    Map();
+    map();
     std::memcpy(mapped, data, size);
 }
 
-void* HostBuffer::Map()
+void* HostBuffer::map()
 {
     if (!mapped) {
-        mapped = Context::GetDevice().mapMemory(*memory, 0, VK_WHOLE_SIZE);
+        mapped = Context::getDevice().mapMemory(*memory, 0, VK_WHOLE_SIZE);
     }
     return mapped;
 }
@@ -46,17 +46,17 @@ DeviceBuffer::DeviceBuffer(vk::BufferUsageFlags usage, size_t size)
 {
 }
 
-void DeviceBuffer::Copy(const void* data)
+void DeviceBuffer::copy(const void* data)
 {
     StagingBuffer stagingBuffer{ size, data };
-    Context::OneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
+    Context::oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
         vk::BufferCopy region{ 0, 0, size };
-    commandBuffer.copyBuffer(stagingBuffer.GetBuffer(), *buffer, region);
+    commandBuffer.copyBuffer(stagingBuffer.getBuffer(), *buffer, region);
     });
 }
 
 StagingBuffer::StagingBuffer(size_t size, const void* data)
     : HostBuffer{ Usage::eTransferSrc, size }
 {
-    Copy(data);
+    copy(data);
 }

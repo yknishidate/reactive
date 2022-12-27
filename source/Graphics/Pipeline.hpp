@@ -20,12 +20,12 @@ public:
         this->descSet = descSet;
     }
 
-    void Register(const std::string& name, const std::vector<Image>& images);
-    void Register(const std::string& name, const Buffer& buffer);
-    void Register(const std::string& name, const Image& image);
-    void Register(const std::string& name, const TopAccel& accel);
+    void record(const std::string& name, const std::vector<Image>& images);
+    void record(const std::string& name, const Buffer& buffer);
+    void record(const std::string& name, const Image& image);
+    void record(const std::string& name, const TopAccel& accel);
 
-    DescriptorSet& GetDescSet() { return *descSet; }
+    DescriptorSet& getDescSet() { return *descSet; }
 
 protected:
     vk::UniquePipelineLayout pipelineLayout;
@@ -41,10 +41,10 @@ public:
     GraphicsPipeline() : Pipeline() {}
     GraphicsPipeline(std::shared_ptr<DescriptorSet> descSet) : Pipeline(descSet) {}
 
-    virtual void LoadShaders(const std::string& vertPath, const std::string& fragPath);
-    virtual void Setup(size_t pushSize = 0);
-    virtual void Begin(vk::CommandBuffer commandBuffer, void* pushData = nullptr);
-    virtual void End(vk::CommandBuffer commandBuffer);
+    virtual void loadShaders(const std::string& vertPath, const std::string& fragPath);
+    virtual void setup(size_t pushSize = 0);
+    virtual void begin(vk::CommandBuffer commandBuffer, void* pushData = nullptr);
+    virtual void end(vk::CommandBuffer commandBuffer);
 
 private:
     vk::UniqueShaderModule vertModule;
@@ -57,9 +57,9 @@ public:
     ComputePipeline() : Pipeline() {}
     ComputePipeline(std::shared_ptr<DescriptorSet> descSet) : Pipeline(descSet) {}
 
-    virtual void LoadShaders(const std::string& path);
-    virtual void Setup(size_t pushSize = 0);
-    virtual void Run(vk::CommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY, void* pushData = nullptr);
+    virtual void loadShaders(const std::string& path);
+    virtual void setup(size_t pushSize = 0);
+    virtual void run(vk::CommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY, void* pushData = nullptr);
 
 private:
     vk::UniqueShaderModule shaderModule;
@@ -71,10 +71,10 @@ public:
     RayTracingPipeline() : Pipeline() {}
     RayTracingPipeline(std::shared_ptr<DescriptorSet> descSet) : Pipeline(descSet) {}
 
-    virtual void LoadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath);
-    virtual void LoadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath, const std::string& ahitPath);
-    virtual void Setup(size_t pushSize = 0);
-    virtual void Run(vk::CommandBuffer commandBuffer, uint32_t countX, uint32_t countY, void* pushData = nullptr);
+    virtual void loadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath);
+    virtual void loadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath, const std::string& ahitPath);
+    virtual void setup(size_t pushSize = 0);
+    virtual void run(vk::CommandBuffer commandBuffer, uint32_t countX, uint32_t countY, void* pushData = nullptr);
 
 private:
     std::vector<vk::UniqueShaderModule> shaderModules;

@@ -7,10 +7,10 @@ public:
     using Usage = vk::BufferUsageFlagBits;
     Buffer() = default;
 
-    vk::Buffer GetBuffer() const { return *buffer; }
-    vk::DeviceSize GetSize() const { return size; }
-    uint64_t GetAddress() const { return deviceAddress; }
-    vk::DescriptorBufferInfo GetInfo() const { return { *buffer, 0, size }; }
+    vk::Buffer getBuffer() const { return *buffer; }
+    vk::DeviceSize getSize() const { return size; }
+    uint64_t getAddress() const { return deviceAddress; }
+    vk::DescriptorBufferInfo getInfo() const { return { *buffer, 0, size }; }
 
 protected:
     Buffer(vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memoryProp, size_t size);
@@ -27,13 +27,14 @@ public:
     HostBuffer() = default;
     HostBuffer(vk::BufferUsageFlags usage, size_t size);
 
-    void Copy(const void* data);
-    void* Map();
+    void copy(const void* data);
+    void* map();
 
 private:
     void* mapped = nullptr;
 };
 
+// TODO: change to enum BufferUsage
 class DeviceBuffer : public Buffer
 {
 public:
@@ -44,10 +45,10 @@ public:
     DeviceBuffer(vk::BufferUsageFlags usage, const std::vector<T>& data)
         : DeviceBuffer(usage | Usage::eTransferDst, sizeof(T)* data.size())
     {
-        Copy(data.data());
+        copy(data.data());
     }
 
-    void Copy(const void* data);
+    void copy(const void* data);
 };
 
 class StagingBuffer : public HostBuffer
@@ -70,6 +71,6 @@ public:
     StorageBuffer(const std::vector<T>& data)
         : DeviceBuffer(Usage::eStorageBuffer | Usage::eShaderDeviceAddress | Usage::eTransferDst, sizeof(T)* data.size())
     {
-        Copy(data.data());
+        copy(data.data());
     }
 };

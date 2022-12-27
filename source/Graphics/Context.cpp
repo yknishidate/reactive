@@ -5,7 +5,7 @@
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
-void Context::Init()
+void Context::init()
 {
     spdlog::info("Context::Init()");
 
@@ -14,7 +14,7 @@ void Context::Init()
     VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
 
     // Create instance
-    std::vector instanceExtensions = Window::GetExtensions();
+    std::vector instanceExtensions = Window::getExtensions();
     std::vector layers{ "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_monitor" };
     const auto appInfo = vk::ApplicationInfo().setApiVersion(VK_API_VERSION_1_3);
 
@@ -29,9 +29,9 @@ void Context::Init()
         vk::DebugUtilsMessengerCreateInfoEXT()
         .setMessageSeverity(vk::DebugUtilsMessageSeverityFlagBitsEXT::eError | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning)
         .setMessageType(vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance)
-        .setPfnUserCallback(&DebugCallback));
+        .setPfnUserCallback(&debugCallback));
 
-    surface = Window::CreateSurface(*instance);
+    surface = Window::createSurface(*instance);
     physicalDevice = instance->enumeratePhysicalDevices().front();
 
     // Find queue family
@@ -125,7 +125,7 @@ void Context::Init()
     swapchain = Swapchain{ *device, *surface, queueFamily };
 }
 
-vk::UniqueCommandBuffer Context::AllocateCommandBuffer()
+vk::UniqueCommandBuffer Context::allocateCommandBuffer()
 {
     return std::move(device->allocateCommandBuffersUnique(
         vk::CommandBufferAllocateInfo()
@@ -134,9 +134,9 @@ vk::UniqueCommandBuffer Context::AllocateCommandBuffer()
         .setCommandBufferCount(1)).front());
 }
 
-void Context::OneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command)
+void Context::oneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command)
 {
-    vk::UniqueCommandBuffer commandBuffer = AllocateCommandBuffer();
+    vk::UniqueCommandBuffer commandBuffer = allocateCommandBuffer();
     commandBuffer->begin(vk::CommandBufferBeginInfo().setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
     command(*commandBuffer);
     commandBuffer->end();
@@ -144,7 +144,7 @@ void Context::OneTimeSubmit(const std::function<void(vk::CommandBuffer)>& comman
     queue.waitIdle();
 }
 
-uint32_t Context::FindMemoryTypeIndex(vk::MemoryRequirements requirements, vk::MemoryPropertyFlags memoryProp)
+uint32_t Context::findMemoryTypeIndex(vk::MemoryRequirements requirements, vk::MemoryPropertyFlags memoryProp)
 {
     const vk::PhysicalDeviceMemoryProperties memoryProperties = physicalDevice.getMemoryProperties();
     for (uint32_t index = 0; index < memoryProperties.memoryTypeCount; ++index) {
@@ -157,17 +157,17 @@ uint32_t Context::FindMemoryTypeIndex(vk::MemoryRequirements requirements, vk::M
     throw std::runtime_error("Failed to find memory type index.");
 }
 
-void Context::BeginRenderPass()
+void Context::beginRenderPass()
 {
-    swapchain.BeginRenderPass();
+    swapchain.beginRenderPass();
 }
 
-void Context::EndRenderPass()
+void Context::endRenderPass()
 {
-    swapchain.EndRenderPass();
+    swapchain.endRenderPass();
 }
 
-void Context::CopyToBackImage(vk::CommandBuffer commandBuffer, const Image& source)
+void Context::copyToBackImage(vk::CommandBuffer commandBuffer, const Image& source)
 {
-    swapchain.CopyToBackImage(commandBuffer, source);
+    swapchain.copyToBackImage(commandBuffer, source);
 }

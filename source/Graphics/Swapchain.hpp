@@ -9,7 +9,7 @@ struct Frame
     Frame(vk::RenderPass renderPass, vk::ImageView attachment,
           uint32_t width, uint32_t height);
 
-    vk::CommandBuffer BeginCommandBuffer()
+    vk::CommandBuffer beginCommandBuffer()
     {
         commandBuffer->begin(
             vk::CommandBufferBeginInfo()
@@ -18,7 +18,7 @@ struct Frame
         return *commandBuffer;
     }
 
-    void SubmitCommandBuffer(vk::Queue queue, vk::Semaphore waitSemaphore, vk::Semaphore signalSemaphore)
+    void submitCommandBuffer(vk::Queue queue, vk::Semaphore waitSemaphore, vk::Semaphore signalSemaphore)
     {
         commandBuffer->end();
 
@@ -33,7 +33,7 @@ struct Frame
         queue.submit(submitInfo, *fence);
     }
 
-    void WaitForFence(vk::Device device)
+    void waitForFence(vk::Device device)
     {
         vk::Result result = device.waitForFences(*fence, VK_TRUE, UINT64_MAX);
         if (result != vk::Result::eSuccess) {
@@ -52,19 +52,19 @@ struct Swapchain
     Swapchain() = default;
     Swapchain(vk::Device device, vk::SurfaceKHR surface, uint32_t queueFamily);
 
-    void BeginRenderPass();
+    void beginRenderPass();
 
-    void EndRenderPass();
+    void endRenderPass();
 
-    void WaitNextFrame(vk::Device device);
+    void waitNextFrame(vk::Device device);
 
-    vk::CommandBuffer BeginCommandBuffer();
+    vk::CommandBuffer beginCommandBuffer();
 
-    void Submit(vk::Queue queue);
+    void submit(vk::Queue queue);
 
-    void Present(vk::Queue queue);
+    void present(vk::Queue queue);
 
-    vk::RenderingAttachmentInfo GetColorAttachmentInfo() const
+    vk::RenderingAttachmentInfo getColorAttachmentInfo() const
     {
         vk::ClearValue clearColorValue;
         clearColorValue.setColor(vk::ClearColorValue{ std::array{0.0f, 0.0f, 0.0f, 1.0f} });
@@ -78,7 +78,7 @@ struct Swapchain
         return colorAttachment;
     }
 
-    vk::RenderingAttachmentInfo GetDepthAttachmentInfo() const
+    vk::RenderingAttachmentInfo getDepthAttachmentInfo() const
     {
         vk::ClearValue clearDepthStencilValue;
         clearDepthStencilValue.setDepthStencil(vk::ClearDepthStencilValue{ 1.0f, 0 });
@@ -92,7 +92,7 @@ struct Swapchain
         return depthStencilAttachment;
     }
 
-    void RebuildSwapchain()
+    void rebuildSwapchain()
     {
         //int width, height;
         //glfwGetFramebufferSize(window, &width, &height);
@@ -104,13 +104,13 @@ struct Swapchain
         //}
     }
 
-    void CopyToBackImage(vk::CommandBuffer commandBuffer, const Image& source);
+    void copyToBackImage(vk::CommandBuffer commandBuffer, const Image& source);
 
-    auto GetBackImage() const { return swapchainImages[frameIndex]; }
-    auto GetImageCount() const { return swapchainImages.size(); }
-    auto GetMinImageCount() const { return minImageCount; }
-    auto GetRenderPass() const { return *renderPass; }
-    auto GetCurrentCommandBuffer() const { return *frames[frameIndex].commandBuffer; }
+    auto getBackImage() const { return swapchainImages[frameIndex]; }
+    auto getImageCount() const { return swapchainImages.size(); }
+    auto getMinImageCount() const { return minImageCount; }
+    auto getRenderPass() const { return *renderPass; }
+    auto getCurrentCommandBuffer() const { return *frames[frameIndex].commandBuffer; }
 
     vk::UniqueSwapchainKHR swapchain;
     std::vector<vk::Image> swapchainImages;

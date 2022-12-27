@@ -12,18 +12,18 @@ public:
     Image(const std::string& filepath);
     Image(const std::vector<std::string>& filepaths);
 
-    vk::Image GetImage() const { return *image; }
-    vk::ImageView GetView() const { return *view; }
-    vk::Sampler GetSampler() const { return *sampler; }
-    vk::DescriptorImageInfo GetInfo() const { return { *sampler, *view, layout }; }
+    vk::Image getImage() const { return *image; }
+    vk::ImageView getView() const { return *view; }
+    vk::Sampler getSampler() const { return *sampler; }
+    vk::DescriptorImageInfo getInfo() const { return { *sampler, *view, layout }; }
 
-    void SetImageLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout newLayout);
-    void CopyToImage(vk::CommandBuffer commandBuffer, const Image& dst) const;
+    void setImageLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout newLayout);
+    void copyToImage(vk::CommandBuffer commandBuffer, const Image& dst) const;
 
-    void CopyToBuffer(vk::CommandBuffer commandBuffer, Buffer& dst);
-    void Save(const std::string& filepath);
+    void copyToBuffer(vk::CommandBuffer commandBuffer, Buffer& dst);
+    void save(const std::string& filepath);
 
-    static void SetImageLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout);
+    static void setImageLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout);
 
 private:
     vk::UniqueImage image{};

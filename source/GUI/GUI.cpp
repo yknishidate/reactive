@@ -6,7 +6,7 @@
 #include "Window/Window.hpp"
 #include "Graphics/Context.hpp"
 
-void GUI::Init()
+void GUI::init()
 {
     spdlog::info("GUI::Init()");
 
@@ -48,26 +48,26 @@ void GUI::Init()
     style.Colors[ImGuiCol_ResizeGripActive] = red80;
 
     // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForVulkan(Window::GetWindow(), true);
+    ImGui_ImplGlfw_InitForVulkan(Window::getWindow(), true);
     ImGui_ImplVulkan_InitInfo initInfo{};
-    initInfo.Instance = Context::GetInstance();
-    initInfo.PhysicalDevice = Context::GetPhysicalDevice();
-    initInfo.Device = Context::GetDevice();
-    initInfo.QueueFamily = Context::GetQueueFamily();
-    initInfo.Queue = Context::GetQueue();
+    initInfo.Instance = Context::getInstance();
+    initInfo.PhysicalDevice = Context::getPhysicalDevice();
+    initInfo.Device = Context::getDevice();
+    initInfo.QueueFamily = Context::getQueueFamily();
+    initInfo.Queue = Context::getQueue();
     initInfo.PipelineCache = nullptr;
-    initInfo.DescriptorPool = Context::GetDescriptorPool();
+    initInfo.DescriptorPool = Context::getDescriptorPool();
     initInfo.Subpass = 0;
-    initInfo.MinImageCount = Context::GetMinImageCount();
-    initInfo.ImageCount = Context::GetImageCount();
+    initInfo.MinImageCount = Context::getMinImageCount();
+    initInfo.ImageCount = Context::getImageCount();
     initInfo.MSAASamples = vk::SampleCountFlagBits::e1;
     initInfo.Allocator = nullptr;
-    ImGui_ImplVulkan_Init(&initInfo, Context::GetRenderPass());
+    ImGui_ImplVulkan_Init(&initInfo, Context::getRenderPass());
 
     // Setup font
     io.Fonts->AddFontFromFileTTF("../../../asset/Roboto-Medium.ttf", 24.0f);
     {
-        Context::OneTimeSubmit(
+        Context::oneTimeSubmit(
             [&](vk::CommandBuffer commandBuffer)
         {
             ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
@@ -77,14 +77,14 @@ void GUI::Init()
     }
 }
 
-void GUI::Shutdown()
+void GUI::shutdown()
 {
     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 }
 
-void GUI::StartFrame()
+void GUI::startFrame()
 {
     //if (swapchainRebuild) {
     //    RebuildSwapchain();
@@ -94,21 +94,21 @@ void GUI::StartFrame()
     ImGui::NewFrame();
 }
 
-void GUI::Render(vk::CommandBuffer commandBuffer)
+void GUI::render(vk::CommandBuffer commandBuffer)
 {
     ImGui::Render();
-    Context::BeginRenderPass();
+    Context::beginRenderPass();
     ImDrawData* drawData = ImGui::GetDrawData();
     ImGui_ImplVulkan_RenderDrawData(drawData, commandBuffer);
-    Context::EndRenderPass();
+    Context::endRenderPass();
 }
 
-bool GUI::Checkbox(const std::string& label, bool& value)
+bool GUI::checkbox(const std::string& label, bool& value)
 {
     return ImGui::Checkbox(label.c_str(), &value);
 }
 
-bool GUI::Checkbox(const std::string& label, int& value)
+bool GUI::checkbox(const std::string& label, int& value)
 {
     bool tmp_value;
     bool changed = ImGui::Checkbox(label.c_str(), &tmp_value);
@@ -116,7 +116,7 @@ bool GUI::Checkbox(const std::string& label, int& value)
     return changed;
 }
 
-bool GUI::Combo(const std::string& label, int& value, const std::vector<std::string>& items)
+bool GUI::combo(const std::string& label, int& value, const std::vector<std::string>& items)
 {
     std::string concated;
     for (auto&& item : items) {
@@ -125,22 +125,22 @@ bool GUI::Combo(const std::string& label, int& value, const std::vector<std::str
     return ImGui::Combo(label.c_str(), &value, concated.c_str());
 }
 
-bool GUI::SliderInt(const std::string& label, int& value, int min, int max)
+bool GUI::sliderInt(const std::string& label, int& value, int min, int max)
 {
     return ImGui::SliderInt(label.c_str(), &value, min, max);
 }
 
-bool GUI::ColorPicker4(const std::string& label, glm::vec4& value)
+bool GUI::colorPicker4(const std::string& label, glm::vec4& value)
 {
     return ImGui::ColorPicker4(label.c_str(), reinterpret_cast<float*>(&value));
 }
 
-bool GUI::SliderFloat(const std::string& label, float& value, float min, float max)
+bool GUI::sliderFloat(const std::string& label, float& value, float min, float max)
 {
     return ImGui::SliderFloat(label.c_str(), &value, min, max);
 }
 
-bool GUI::Button(const std::string& label)
+bool GUI::button(const std::string& label)
 {
     return ImGui::Button(label.c_str());
 }

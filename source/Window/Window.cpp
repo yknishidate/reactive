@@ -3,17 +3,17 @@
 #include <stb_image.h>
 #include <imgui.h>
 
-void Window::Init(int width, int height)
+void Window::init(int width, int height)
 {
     spdlog::info("Window::Init()");
     glfwInit();
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     window = glfwCreateWindow(width, height, "Reactive", nullptr, nullptr);
-    SetIcon(ASSET_DIR + "Vulkan.png");
+    setIcon(ASSET_DIR + "Vulkan.png");
 }
 
-void Window::SetIcon(const std::string& filepath)
+void Window::setIcon(const std::string& filepath)
 {
     GLFWimage icon;
     icon.pixels = stbi_load(filepath.c_str(), &icon.width, &icon.height, nullptr, 4);
@@ -23,54 +23,54 @@ void Window::SetIcon(const std::string& filepath)
     stbi_image_free(icon.pixels);
 }
 
-uint32_t Window::GetWidth()
+uint32_t Window::getWidth()
 {
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
     return width;
 }
 
-uint32_t Window::GetHeight()
+uint32_t Window::getHeight()
 {
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
     return height;
 }
 
-void Window::Shutdown()
+void Window::shutdown()
 {
     spdlog::info("Window::Shutdown()");
     glfwDestroyWindow(window);
     glfwTerminate();
 }
 
-bool Window::ShouldClose()
+bool Window::shouldClose()
 {
     return glfwWindowShouldClose(window);
 }
 
-void Window::PollEvents()
+void Window::pollEvents()
 {
     glfwPollEvents();
 
     lastMousePos = currMousePos;
     double xpos{};
     double ypos{};
-    glfwGetCursorPos(GetWindow(), &xpos, &ypos);
+    glfwGetCursorPos(getWindow(), &xpos, &ypos);
     currMousePos = { xpos, ypos };
 }
 
-bool Window::IsMinimized()
+bool Window::isMinimized()
 {
-    return GetWidth() <= 0 || GetHeight() <= 0;
+    return getWidth() <= 0 || getHeight() <= 0;
 }
 
-GLFWwindow* Window::GetWindow()
+GLFWwindow* Window::getWindow()
 {
     return window;
 }
 
-std::vector<const char*> Window::GetExtensions()
+std::vector<const char*> Window::getExtensions()
 {
     uint32_t glfwExtensionCount = 0;
     const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
@@ -79,7 +79,7 @@ std::vector<const char*> Window::GetExtensions()
     return extensions;
 }
 
-vk::UniqueSurfaceKHR Window::CreateSurface(vk::Instance instance)
+vk::UniqueSurfaceKHR Window::createSurface(vk::Instance instance)
 {
     VkSurfaceKHR _surface;
     if (glfwCreateWindowSurface(VkInstance{ instance }, window, nullptr, &_surface) != VK_SUCCESS) {
@@ -88,13 +88,13 @@ vk::UniqueSurfaceKHR Window::CreateSurface(vk::Instance instance)
     return vk::UniqueSurfaceKHR{ _surface,{ instance } };
 }
 
-bool Window::MousePressed()
+bool Window::mousePressed()
 {
     bool pressed = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
     return  pressed && !ImGui::IsWindowFocused(ImGuiFocusedFlags_AnyWindow);
 }
 
-bool Window::KeyPressed(int key)
+bool Window::keyPressed(int key)
 {
     return glfwGetKey(window, key) == GLFW_PRESS;
 }

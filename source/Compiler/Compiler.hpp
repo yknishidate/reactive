@@ -4,5 +4,5 @@
 
 namespace Compiler
 {
-    std::vector<uint32_t> CompileToSPV(const std::string& filepath);
+std::vector<uint32_t> compileToSPV(const std::string& filepath);
 }

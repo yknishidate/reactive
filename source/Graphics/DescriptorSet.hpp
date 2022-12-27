@@ -9,23 +9,23 @@
 class DescriptorSet
 {
 public:
-    void Setup();
-    void Update();
-    void Bind(vk::CommandBuffer commandBuffer, vk::PipelineBindPoint bindPoint, vk::PipelineLayout pipelineLayout);
+    void setup();
+    void update();
+    void bind(vk::CommandBuffer commandBuffer, vk::PipelineBindPoint bindPoint, vk::PipelineLayout pipelineLayout);
 
-    void Register(const std::string& name, const std::vector<Image>& images);
-    void Register(const std::string& name, const Buffer& buffer);
-    void Register(const std::string& name, const Image& image);
-    void Register(const std::string& name, const TopAccel& accel);
+    void record(const std::string& name, const std::vector<Image>& images);
+    void record(const std::string& name, const Buffer& buffer);
+    void record(const std::string& name, const Image& image);
+    void record(const std::string& name, const TopAccel& accel);
 
-    void AddBindingMap(const std::vector<uint32_t>& spvShader, vk::ShaderStageFlags stage);
+    void addBindingMap(const std::vector<uint32_t>& spvShader, vk::ShaderStageFlags stage);
 
-    std::vector<vk::DescriptorSetLayoutBinding> GetBindings() const;
+    std::vector<vk::DescriptorSetLayoutBinding> getBindings() const;
 
-    vk::UniquePipelineLayout CreatePipelineLayout(size_t pushSize, vk::ShaderStageFlags shaderStage) const;
+    vk::UniquePipelineLayout createPipelineLayout(size_t pushSize, vk::ShaderStageFlags shaderStage) const;
 
 private:
-    void UpdateBindingMap(spirv_cross::Resource& resource, spirv_cross::CompilerGLSL& glsl,
+    void updateBindingMap(spirv_cross::Resource& resource, spirv_cross::CompilerGLSL& glsl,
                           vk::ShaderStageFlags stage, vk::DescriptorType type);
 
     vk::UniqueDescriptorSet descSet;

@@ -29,16 +29,16 @@ struct ResevImages
 {
     void Copy(vk::CommandBuffer commandBuffer, ResevImages& dst)
     {
-        sample.SetImageLayout(commandBuffer, vk::ImageLayout::eTransferSrcOptimal);
-        weight.SetImageLayout(commandBuffer, vk::ImageLayout::eTransferSrcOptimal);
-        dst.sample.SetImageLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);
-        dst.weight.SetImageLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);
-        sample.CopyToImage(commandBuffer, dst.sample);
-        weight.CopyToImage(commandBuffer, dst.weight);
-        sample.SetImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
-        weight.SetImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
-        dst.sample.SetImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
-        dst.weight.SetImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
+        sample.setImageLayout(commandBuffer, vk::ImageLayout::eTransferSrcOptimal);
+        weight.setImageLayout(commandBuffer, vk::ImageLayout::eTransferSrcOptimal);
+        dst.sample.setImageLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);
+        dst.weight.setImageLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);
+        sample.copyToImage(commandBuffer, dst.sample);
+        weight.copyToImage(commandBuffer, dst.weight);
+        sample.setImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
+        weight.setImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
+        dst.sample.setImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
+        dst.weight.setImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
     }
 
     Image sample{ vk::Format::eR32G32Uint };
@@ -76,31 +76,31 @@ int main()
     pipelines.insert({ "TemporalReuse", RayTracingPipeline{ descSet } });
     pipelines.insert({ "Shading", RayTracingPipeline{ descSet } });
 
-    pipelines["GBuffer"].LoadShaders(SHADER_DIR + "gbuffer/gbuffer.rgen",
+    pipelines["GBuffer"].loadShaders(SHADER_DIR + "gbuffer/gbuffer.rgen",
                                      SHADER_DIR + "gbuffer/gbuffer.rmiss",
                                      SHADER_DIR + "gbuffer/gbuffer.rchit");
 
-    pipelines["Uniform"].LoadShaders(SHADER_DIR + "uniform_light/uniform_light.rgen",
+    pipelines["Uniform"].loadShaders(SHADER_DIR + "uniform_light/uniform_light.rgen",
                                      SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
                                      SHADER_DIR + "shadow_ray/shadow_ray.rchit");
 
-    pipelines["WRS"].LoadShaders(SHADER_DIR + "wrs/wrs.rgen",
+    pipelines["WRS"].loadShaders(SHADER_DIR + "wrs/wrs.rgen",
                                  SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
                                  SHADER_DIR + "shadow_ray/shadow_ray.rchit");
 
-    pipelines["InitResev"].LoadShaders(SHADER_DIR + "restir/init_resev.rgen",
+    pipelines["InitResev"].loadShaders(SHADER_DIR + "restir/init_resev.rgen",
                                        SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
                                        SHADER_DIR + "shadow_ray/shadow_ray.rchit");
 
-    pipelines["SpatialReuse"].LoadShaders(SHADER_DIR + "restir/spatial_reuse.rgen",
+    pipelines["SpatialReuse"].loadShaders(SHADER_DIR + "restir/spatial_reuse.rgen",
                                           SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
                                           SHADER_DIR + "shadow_ray/shadow_ray.rchit");
 
-    pipelines["TemporalReuse"].LoadShaders(SHADER_DIR + "restir/temporal_reuse.rgen",
+    pipelines["TemporalReuse"].loadShaders(SHADER_DIR + "restir/temporal_reuse.rgen",
                                            SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
                                            SHADER_DIR + "shadow_ray/shadow_ray.rchit");
 
-    pipelines["Shading"].LoadShaders(SHADER_DIR + "restir/shading.rgen",
+    pipelines["Shading"].loadShaders(SHADER_DIR + "restir/shading.rgen",
                                      SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
                                      SHADER_DIR + "shadow_ray/shadow_ray.rchit");
 
@@ -114,24 +114,24 @@ int main()
     descSet->Register("samplers", scene.GetTextures());
     descSet->Register("Addresses", scene.GetAddressBuffer());
 
-    descSet->Register("positionImage", gbuffers.position);
-    descSet->Register("normalImage", gbuffers.normal);
-    descSet->Register("diffuseImage", gbuffers.diffuse);
-    descSet->Register("emissionImage", gbuffers.emission);
-    descSet->Register("instanceIndexImage", gbuffers.instanceIndex);
+    descSet->record("positionImage", gbuffers.position);
+    descSet->record("normalImage", gbuffers.normal);
+    descSet->record("diffuseImage", gbuffers.diffuse);
+    descSet->record("emissionImage", gbuffers.emission);
+    descSet->record("instanceIndexImage", gbuffers.instanceIndex);
 
-    descSet->Register("outputImage", outputImage.output);
+    descSet->record("outputImage", outputImage.output);
 
-    descSet->Register("resevSampleImage", initedResevImages.sample);
-    descSet->Register("resevWeightImage", initedResevImages.weight);
-    descSet->Register("newResevSampleImage", reusedResevImages.sample);
-    descSet->Register("newResevWeightImage", reusedResevImages.weight);
-    descSet->Register("oldResevSampleImage", storedResevImages.sample);
-    descSet->Register("oldResevWeightImage", storedResevImages.weight);
-    descSet->Setup();
+    descSet->record("resevSampleImage", initedResevImages.sample);
+    descSet->record("resevWeightImage", initedResevImages.weight);
+    descSet->record("newResevSampleImage", reusedResevImages.sample);
+    descSet->record("newResevWeightImage", reusedResevImages.weight);
+    descSet->record("oldResevSampleImage", storedResevImages.sample);
+    descSet->record("oldResevWeightImage", storedResevImages.weight);
+    descSet->setup();
 
     for (auto& [name, pipeline] : pipelines) {
-        pipeline.Setup(sizeof(PushConstants));
+        pipeline.setup(sizeof(PushConstants));
     }
 
     PushConstants pushConstants;
@@ -147,10 +147,10 @@ int main()
     constexpr int WRS = 1;
     constexpr int ReSTIR = 2;
     while (Engine::Update()) {
-        GUI::Combo("Method", method, { "Uniform", "WRS", "ReSTIR" });
-        GUI::SliderInt("Samples", pushConstants.samples, 1, 32);
-        GUI::SliderInt("Iteration", iteration, 0, 4);
-        GUI::Checkbox("Temporal reuse", temporalReuse);
+        GUI::combo("Method", method, { "Uniform", "WRS", "ReSTIR" });
+        GUI::sliderInt("Samples", pushConstants.samples, 1, 32);
+        GUI::sliderInt("Iteration", iteration, 0, 4);
+        GUI::checkbox("Temporal reuse", temporalReuse);
 
         scene.Update(0.1);
         pushConstants.invProj = scene.GetCamera().GetInvProj();
@@ -159,29 +159,29 @@ int main()
 
         Engine::Render(
             [&](auto commandBuffer) {
-                auto width = Window::GetWidth();
-                auto height = Window::GetHeight();
-                pipelines["GBuffer"].Run(commandBuffer, width, height, &pushConstants);
+            auto width = Window::getWidth();
+        auto height = Window::getHeight();
+        pipelines["GBuffer"].run(commandBuffer, width, height, &pushConstants);
 
-                if (method == Uniform) {
-                    pipelines["Uniform"].Run(commandBuffer, width, height, &pushConstants);
-                } else if (method == WRS) {
-                    pipelines["WRS"].Run(commandBuffer, width, height, &pushConstants);
-                } else if (method == ReSTIR) {
-                    pipelines["InitResev"].Run(commandBuffer, width, height, &pushConstants);
-                    if (temporalReuse) {
-                        pipelines["TemporalReuse"].Run(commandBuffer, width, height, &pushConstants);
-                        reusedResevImages.Copy(commandBuffer, initedResevImages);
-                    }
-                    initedResevImages.Copy(commandBuffer, storedResevImages);
-                    for (int i = 0; i < iteration; i++) {
-                        pipelines["SpatialReuse"].Run(commandBuffer, width, height, &pushConstants);
-                        reusedResevImages.Copy(commandBuffer, initedResevImages);
-                    }
-                    pipelines["Shading"].Run(commandBuffer, width, height, &pushConstants);
-                }
-                Context::CopyToBackImage(commandBuffer, outputImage.output);
-            });
+        if (method == Uniform) {
+            pipelines["Uniform"].run(commandBuffer, width, height, &pushConstants);
+        } else if (method == WRS) {
+            pipelines["WRS"].run(commandBuffer, width, height, &pushConstants);
+        } else if (method == ReSTIR) {
+            pipelines["InitResev"].run(commandBuffer, width, height, &pushConstants);
+            if (temporalReuse) {
+                pipelines["TemporalReuse"].run(commandBuffer, width, height, &pushConstants);
+                reusedResevImages.Copy(commandBuffer, initedResevImages);
+            }
+            initedResevImages.Copy(commandBuffer, storedResevImages);
+            for (int i = 0; i < iteration; i++) {
+                pipelines["SpatialReuse"].run(commandBuffer, width, height, &pushConstants);
+                reusedResevImages.Copy(commandBuffer, initedResevImages);
+            }
+            pipelines["Shading"].run(commandBuffer, width, height, &pushConstants);
+        }
+        Context::copyToBackImage(commandBuffer, outputImage.output);
+        });
     }
     Engine::Shutdown();
 }

@@ -14,7 +14,7 @@ public:
 
     WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding, vk::WriteDescriptorSetAccelerationStructureKHR accelInfo);
 
-    vk::WriteDescriptorSet Get() const { return write; }
+    vk::WriteDescriptorSet get() const { return write; }
 
 private:
     WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding);

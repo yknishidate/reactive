@@ -7,9 +7,9 @@ public:
     Geometry() = default;
     Geometry(vk::GeometryFlagsKHR geometryFlag, size_t primitiveCount);
 
-    vk::DeviceSize GetAccelSize() const;
-    vk::AccelerationStructureBuildGeometryInfoKHR GetInfo() const;
-    DeviceBuffer CreateAccelBuffer() const;
+    vk::DeviceSize getAccelSize() const;
+    vk::AccelerationStructureBuildGeometryInfoKHR getInfo() const;
+    DeviceBuffer createAccelBuffer() const;
 
 protected:
     vk::AccelerationStructureGeometryKHR geometry;
@@ -33,5 +33,5 @@ public:
     InstancesGeometry(vk::AccelerationStructureGeometryInstancesDataKHR instances,
                       vk::GeometryFlagsKHR geometryFlag, size_t primitiveCount);
 
-    void Update(vk::AccelerationStructureGeometryInstancesDataKHR instances);
+    void update(vk::AccelerationStructureGeometryInstancesDataKHR instances);
 };
