@@ -218,7 +218,7 @@ void GraphicsPipeline::setup(size_t pushSize)
     pipeline = CreateGraphicsPipeline(*vertModule, *fragModule, *pipelineLayout);
 }
 
-void GraphicsPipeline::begin(vk::CommandBuffer commandBuffer, void* pushData)
+void GraphicsPipeline::bind(vk::CommandBuffer commandBuffer, void* pushData)
 {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *pipeline);
     if (registered) {
@@ -227,22 +227,6 @@ void GraphicsPipeline::begin(vk::CommandBuffer commandBuffer, void* pushData)
     if (pushData) {
         commandBuffer.pushConstants(*pipelineLayout, vk::ShaderStageFlagBits::eAllGraphics, 0, pushSize, pushData);
     }
-
-    //vk::RenderingAttachmentInfo colorAttachment = Context::getSwapchain().getColorAttachmentInfo();
-    //vk::RenderingAttachmentInfo depthStencilAttachment = Context::GetSwapchain().GetDepthAttachmentInfo();
-
-    //vk::RenderingInfo renderingInfo;
-    //renderingInfo.setRenderArea({ {0, 0}, {Window::getWidth(), Window::getHeight()} });
-    //renderingInfo.setLayerCount(1);
-    //renderingInfo.setColorAttachments(colorAttachment);
-    //renderingInfo.setPDepthAttachment(&depthStencilAttachment);
-
-    //commandBuffer.beginRendering(renderingInfo);
-}
-
-void GraphicsPipeline::end(vk::CommandBuffer commandBuffer)
-{
-    //commandBuffer.endRendering();
 }
 
 void ComputePipeline::loadShaders(const std::string& path)

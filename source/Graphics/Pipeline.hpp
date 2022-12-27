@@ -43,8 +43,7 @@ public:
 
     virtual void loadShaders(const std::string& vertPath, const std::string& fragPath);
     virtual void setup(size_t pushSize = 0);
-    virtual void begin(vk::CommandBuffer commandBuffer, void* pushData = nullptr);
-    virtual void end(vk::CommandBuffer commandBuffer);
+    virtual void bind(vk::CommandBuffer commandBuffer, void* pushData = nullptr);
 
 private:
     vk::UniqueShaderModule vertModule;
