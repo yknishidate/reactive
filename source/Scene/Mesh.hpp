@@ -46,6 +46,14 @@ public:
     uint32_t getTriangleCount() const { return indices.size() / 3; }
     vk::AccelerationStructureGeometryTrianglesDataKHR getTriangles() const;
 
+    void drawIndexed(vk::CommandBuffer commandBuffer) const
+    {
+        vk::DeviceSize offsets{ 0 };
+        commandBuffer.bindVertexBuffers(0, getVertexBuffer(), offsets);
+        commandBuffer.bindIndexBuffer(getIndexBuffer(), 0, vk::IndexType::eUint32);
+        commandBuffer.drawIndexed(static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+    }
+
     Material getMaterial() const { return material; }
     void setMaterial(const Material& material);
 

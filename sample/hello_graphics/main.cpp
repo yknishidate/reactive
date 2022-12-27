@@ -17,7 +17,7 @@ int main()
 
         std::vector<Vertex> vertices{ {{-1, 0, 0}}, {{ 0, -1, 0}}, {{ 1, 0, 0}} };
         std::vector<Index> indices{ 0, 1, 2 };
-        auto mesh = std::make_shared<Mesh>(vertices, indices);
+        Mesh mesh{ vertices, indices };
         Camera camera{ Window::getWidth(), Window::getHeight() };
 
         GraphicsPipeline pipeline{ };
@@ -48,10 +48,7 @@ int main()
                                           vk::ClearColorValue{ std::array{0.0f, 0.0f, 0.3f, 1.0f} },
                                           vk::ImageSubresourceRange{ vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 });
             Context::beginRenderPass();
-            vk::DeviceSize offsets{ 0 };
-            commandBuffer.bindVertexBuffers(0, mesh->getVertexBuffer(), offsets);
-            commandBuffer.bindIndexBuffer(mesh->getIndexBuffer(), 0, vk::IndexType::eUint32);
-            commandBuffer.drawIndexed(static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+            mesh.drawIndexed(commandBuffer);
 
             GUI::startFrame();
             GUI::sliderInt("Test slider", testInt, 0, 100);
