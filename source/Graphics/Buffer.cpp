@@ -22,7 +22,8 @@ Buffer::Buffer(BufferUsage usage, vk::MemoryPropertyFlags memoryProp, size_t siz
         case BufferUsage::AccelInput:
             usageFlag = vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
                 vk::BufferUsageFlagBits::eStorageBuffer |
-                vk::BufferUsageFlagBits::eShaderDeviceAddress;
+                vk::BufferUsageFlagBits::eShaderDeviceAddress |
+                vk::BufferUsageFlagBits::eTransferDst;
             break;
         case BufferUsage::AccelStorage:
             usageFlag = vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR |
@@ -41,7 +42,8 @@ Buffer::Buffer(BufferUsage usage, vk::MemoryPropertyFlags memoryProp, size_t siz
                 vk::BufferUsageFlagBits::eShaderDeviceAddress;
         case BufferUsage::ShaderBindingTable:
             usageFlag = vk::BufferUsageFlagBits::eShaderBindingTableKHR |
-                vk::BufferUsageFlagBits::eShaderDeviceAddress;
+                vk::BufferUsageFlagBits::eShaderDeviceAddress |
+                vk::BufferUsageFlagBits::eTransferDst;
             break;
         default:
             assert(false);
