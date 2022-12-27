@@ -20,8 +20,7 @@ vk::AccelerationStructureBuildGeometryInfoKHR Geometry::getInfo() const
 
 DeviceBuffer Geometry::createAccelBuffer() const
 {
-    return { vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR |
-        vk::BufferUsageFlagBits::eShaderDeviceAddress, getAccelSize() };
+    return { BufferUsage::AccelStorage, getAccelSize() };
 }
 
 TrianglesGeometry::TrianglesGeometry(vk::AccelerationStructureGeometryTrianglesDataKHR triangles,

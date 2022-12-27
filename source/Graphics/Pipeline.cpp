@@ -359,14 +359,9 @@ void RayTracingPipeline::setup(size_t pushSize)
     }
 
     // Create shader binding table
-    vk::BufferUsageFlags usage =
-        vk::BufferUsageFlagBits::eShaderBindingTableKHR |
-        vk::BufferUsageFlagBits::eTransferDst |
-        vk::BufferUsageFlagBits::eShaderDeviceAddress;
-
-    raygenSBT = DeviceBuffer{ usage, handleSize * rgenCount };
-    missSBT = DeviceBuffer{ usage, handleSize * missCount };
-    hitSBT = DeviceBuffer{ usage, handleSize * hitCount };
+    raygenSBT = DeviceBuffer{ BufferUsage::ShaderBindingTable, handleSize * rgenCount };
+    missSBT = DeviceBuffer{ BufferUsage::ShaderBindingTable, handleSize * missCount };
+    hitSBT = DeviceBuffer{ BufferUsage::ShaderBindingTable, handleSize * hitCount };
 
     raygenRegion = CreateAddressRegion(rtProperties, raygenSBT.getAddress());
     missRegion = CreateAddressRegion(rtProperties, missSBT.getAddress());

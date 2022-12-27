@@ -102,7 +102,7 @@ Image::Image(const std::string& filepath) {
     view = CreateImageView(*image, vk::Format::eR8G8B8A8Unorm);
     sampler = CreateSampler();
 
-    HostBuffer staging{ Buffer::Usage::eTransferSrc, static_cast<size_t>(width * height * 4) };
+    HostBuffer staging{ BufferUsage::Staging, static_cast<size_t>(width * height * 4) };
     staging.copy(data);
     Context::oneTimeSubmit(
         [&](vk::CommandBuffer commandBuffer) {
@@ -152,7 +152,7 @@ Image::Image(const std::vector<std::string>& filepaths) {
     view = CreateImageView(*image, vk::Format::eR8G8B8A8Unorm, vk::ImageViewType::e3D);
     sampler = CreateSampler();
 
-    HostBuffer staging{ Buffer::Usage::eTransferSrc, static_cast<size_t>(width * height * depth * 4) };
+    HostBuffer staging{ BufferUsage::Staging, static_cast<size_t>(width * height * depth * 4) };
     staging.copy(allData.data());
     Context::oneTimeSubmit(
         [&](vk::CommandBuffer commandBuffer) {
@@ -209,7 +209,7 @@ void Image::copyToBuffer(vk::CommandBuffer commandBuffer, Buffer& dst) {
 
 void Image::save(const std::string& filepath) {
     static vk::DeviceSize size = Window::getWidth() * Window::getWidth() * 4;
-    static HostBuffer buffer{ vk::BufferUsageFlagBits::eTransferDst, size };
+    static HostBuffer buffer{ BufferUsage::Staging, size };
     static uint8_t* pixels = static_cast<uint8_t*>(buffer.map());
 
     Context::oneTimeSubmit(

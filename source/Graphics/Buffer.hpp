@@ -1,18 +1,20 @@
 #pragma once
 #include "Context.hpp"
 
+enum class BufferUsage {
+    Vertex,
+    Index,
+    AccelInput,
+    AccelStorage,
+    Scratch,
+    ShaderBindingTable,
+    Staging,
+    Storage,
+};
+
 class Buffer
 {
 public:
-    using Usage = vk::BufferUsageFlagBits;
-    //enum class Usage {
-    //    Host,
-    //    Device,
-    //    Staging,
-    //    Storage,
-    //    AccelInput,
-    //    AccelStorage
-    //};
     Buffer() = default;
 
     vk::Buffer getBuffer() const { return *buffer; }
@@ -21,7 +23,7 @@ public:
     vk::DescriptorBufferInfo getInfo() const { return { *buffer, 0, size }; }
 
 protected:
-    Buffer(vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memoryProp, size_t size);
+    Buffer(BufferUsage usage, vk::MemoryPropertyFlags memoryProp, size_t size);
 
     vk::UniqueBuffer buffer;
     vk::UniqueDeviceMemory memory;
@@ -33,7 +35,7 @@ class HostBuffer : public Buffer
 {
 public:
     HostBuffer() = default;
-    HostBuffer(vk::BufferUsageFlags usage, size_t size);
+    HostBuffer(BufferUsage usage, size_t size);
 
     void copy(const void* data);
     void* map();
@@ -42,36 +44,18 @@ private:
     void* mapped = nullptr;
 };
 
-// TODO: change to enum BufferUsage
 class DeviceBuffer : public Buffer
 {
 public:
     DeviceBuffer() = default;
-    DeviceBuffer(vk::BufferUsageFlags usage, size_t size);
+    DeviceBuffer(BufferUsage usage, size_t size);
 
     template <typename T>
-    DeviceBuffer(vk::BufferUsageFlags usage, const std::vector<T>& data)
-        : DeviceBuffer(usage | Usage::eTransferDst, sizeof(T)* data.size())
+    DeviceBuffer(BufferUsage usage, const std::vector<T>& data)
+        : DeviceBuffer(usage, sizeof(T)* data.size())
     {
         copy(data.data());
     }
 
     void copy(const void* data);
-};
-
-class StorageBuffer : public DeviceBuffer
-{
-public:
-    StorageBuffer() = default;
-    StorageBuffer(size_t size)
-        : DeviceBuffer(Usage::eStorageBuffer | Usage::eShaderDeviceAddress, size)
-    {
-    }
-
-    template <typename T>
-    StorageBuffer(const std::vector<T>& data)
-        : DeviceBuffer(Usage::eStorageBuffer | Usage::eShaderDeviceAddress | Usage::eTransferDst, sizeof(T)* data.size())
-    {
-        copy(data.data());
-    }
 };

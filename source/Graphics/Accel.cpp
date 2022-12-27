@@ -18,7 +18,7 @@ vk::UniqueAccelerationStructureKHR CreateAccel(vk::Buffer buffer, vk::DeviceSize
 void BuildAccel(vk::AccelerationStructureKHR accel, vk::DeviceSize size, uint32_t primitiveCount,
                 vk::AccelerationStructureBuildGeometryInfoKHR geometryInfo)
 {
-    const StorageBuffer scratchBuffer{ size };
+    const DeviceBuffer scratchBuffer{ BufferUsage::Scratch, size };
 
     geometryInfo.setScratchData(scratchBuffer.getAddress());
     geometryInfo.setDstAccelerationStructure(accel);
@@ -61,10 +61,7 @@ TopAccel::TopAccel(const ArrayProxy<Object>& objects, vk::GeometryFlagBitsKHR ge
         instances.push_back(instance);
     }
 
-    instanceBuffer = DeviceBuffer{ vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
-                                   vk::BufferUsageFlagBits::eShaderDeviceAddress |
-                                   vk::BufferUsageFlagBits::eTransferDst,
-                                   instances };
+    instanceBuffer = DeviceBuffer{ BufferUsage::AccelInput, instances };
 
     const auto instancesData = vk::AccelerationStructureGeometryInstancesDataKHR()
         .setArrayOfPointers(false)

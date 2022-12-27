@@ -1,9 +1,52 @@
 #include "Buffer.hpp"
 
-Buffer::Buffer(vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memoryProp, size_t size)
+Buffer::Buffer(BufferUsage usage, vk::MemoryPropertyFlags memoryProp, size_t size)
     : size(size)
 {
-    buffer = Context::getDevice().createBufferUnique({ {}, size, usage });
+    vk::BufferUsageFlags usageFlag;
+    switch (usage) {
+        case BufferUsage::Vertex:
+            usageFlag = vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
+                vk::BufferUsageFlagBits::eStorageBuffer |
+                vk::BufferUsageFlagBits::eShaderDeviceAddress |
+                vk::BufferUsageFlagBits::eVertexBuffer |
+                vk::BufferUsageFlagBits::eTransferDst;
+            break;
+        case BufferUsage::Index:
+            usageFlag = vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
+                vk::BufferUsageFlagBits::eStorageBuffer |
+                vk::BufferUsageFlagBits::eShaderDeviceAddress |
+                vk::BufferUsageFlagBits::eIndexBuffer |
+                vk::BufferUsageFlagBits::eTransferDst;
+            break;
+        case BufferUsage::AccelInput:
+            usageFlag = vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
+                vk::BufferUsageFlagBits::eStorageBuffer |
+                vk::BufferUsageFlagBits::eShaderDeviceAddress;
+            break;
+        case BufferUsage::AccelStorage:
+            usageFlag = vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR |
+                vk::BufferUsageFlagBits::eShaderDeviceAddress;
+            break;
+        case BufferUsage::Scratch:
+            usageFlag = vk::BufferUsageFlagBits::eStorageBuffer |
+                vk::BufferUsageFlagBits::eShaderDeviceAddress;
+            break;
+        case BufferUsage::Staging:
+            usageFlag = vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst;
+            break;
+        case BufferUsage::Storage:
+            usageFlag = vk::BufferUsageFlagBits::eStorageBuffer |
+                vk::BufferUsageFlagBits::eTransferDst |
+                vk::BufferUsageFlagBits::eShaderDeviceAddress;
+        case BufferUsage::ShaderBindingTable:
+            usageFlag = vk::BufferUsageFlagBits::eShaderBindingTableKHR |
+                vk::BufferUsageFlagBits::eShaderDeviceAddress;
+            break;
+        default:
+            assert(false);
+    }
+    buffer = Context::getDevice().createBufferUnique({ {}, size, usageFlag });
 
     vk::MemoryRequirements requirements = Context::getDevice().getBufferMemoryRequirements(*buffer);
     uint32_t memoryTypeIndex = Context::findMemoryTypeIndex(requirements, memoryProp);
@@ -16,13 +59,13 @@ Buffer::Buffer(vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memoryProp, s
 
     Context::getDevice().bindBufferMemory(*buffer, *memory, 0);
 
-    if (usage & vk::BufferUsageFlagBits::eShaderDeviceAddress) {
+    if (usageFlag & vk::BufferUsageFlagBits::eShaderDeviceAddress) {
         vk::BufferDeviceAddressInfoKHR bufferDeviceAI{ *buffer };
         deviceAddress = Context::getDevice().getBufferAddressKHR(&bufferDeviceAI);
     }
 }
 
-HostBuffer::HostBuffer(vk::BufferUsageFlags usage, size_t size)
+HostBuffer::HostBuffer(BufferUsage usage, size_t size)
     : Buffer(usage, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, size)
 {
 }
@@ -41,14 +84,14 @@ void* HostBuffer::map()
     return mapped;
 }
 
-DeviceBuffer::DeviceBuffer(vk::BufferUsageFlags usage, size_t size)
+DeviceBuffer::DeviceBuffer(BufferUsage usage, size_t size)
     : Buffer(usage, vk::MemoryPropertyFlagBits::eDeviceLocal, size)
 {
 }
 
 void DeviceBuffer::copy(const void* data)
 {
-    HostBuffer stagingBuffer{ Usage::eTransferSrc, size };
+    HostBuffer stagingBuffer{ BufferUsage::Staging, size };
     stagingBuffer.copy(data);
     Context::oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
         vk::BufferCopy region{ 0, 0, size };
