@@ -40,20 +40,13 @@ int main()
             vk::CommandBuffer commandBuffer = Context::beginCommandBuffer();
             pipeline.begin(commandBuffer, &pushConstants);
 
-            Image::setImageLayout(commandBuffer, Context::getSwapchain().getBackImage(),
-                                  vk::ImageLayout::eUndefined,
-                                  vk::ImageLayout::eTransferDstOptimal);
-            commandBuffer.clearColorImage(Context::getSwapchain().getBackImage(),
-                                          vk::ImageLayout::eTransferDstOptimal,
-                                          vk::ClearColorValue{ std::array{0.0f, 0.0f, 0.3f, 1.0f} },
-                                          vk::ImageSubresourceRange{ vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 });
+            Context::clearBackImage(commandBuffer, { 0.8f, 0.0f, 0.3f, 1.0f });
+
             Context::beginRenderPass();
             mesh.drawIndexed(commandBuffer);
-
             GUI::startFrame();
             GUI::sliderInt("Test slider", testInt, 0, 100);
             GUI::render(commandBuffer);
-
             Context::endRenderPass();
 
             Context::submit();

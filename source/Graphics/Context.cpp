@@ -2,6 +2,7 @@
 #include <regex>
 #include <spdlog/spdlog.h>
 #include "Window/Window.hpp"
+#include "Graphics/Image.hpp"
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
@@ -169,4 +170,14 @@ void Context::endRenderPass()
 void Context::copyToBackImage(vk::CommandBuffer commandBuffer, const Image& source)
 {
     swapchain.copyToBackImage(commandBuffer, source);
+}
+
+void Context::clearBackImage(vk::CommandBuffer commandBuffer, std::array<float, 4> color)
+{
+    Image::setImageLayout(commandBuffer, swapchain.getBackImage(),
+                          vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+    commandBuffer.clearColorImage(swapchain.getBackImage(),
+                                  vk::ImageLayout::eTransferDstOptimal,
+                                  vk::ClearColorValue{ color },
+                                  vk::ImageSubresourceRange{ vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 });
 }

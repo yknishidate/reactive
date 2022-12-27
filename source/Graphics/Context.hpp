@@ -35,6 +35,8 @@ struct Context
     static void submit() { swapchain.submit(queue); }
     static void present() { swapchain.present(queue); }
 
+    static void clearBackImage(vk::CommandBuffer commandBuffer, std::array<float, 4> color);
+
 private:
     static VKAPI_ATTR VkBool32 VKAPI_CALL
         debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
