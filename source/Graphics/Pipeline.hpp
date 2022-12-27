@@ -24,6 +24,8 @@ public:
     void record(const std::string& name, const Buffer& buffer);
     void record(const std::string& name, const Image& image);
     void record(const std::string& name, const TopAccel& accel);
+    virtual void bind(vk::CommandBuffer commandBuffer) = 0;
+    virtual void pushConstants(vk::CommandBuffer commandBuffer, void* pushData) = 0;
 
     DescriptorSet& getDescSet() { return *descSet; }
 
@@ -43,7 +45,8 @@ public:
 
     void loadShaders(const std::string& vertPath, const std::string& fragPath);
     void setup(size_t pushSize = 0);
-    void bind(vk::CommandBuffer commandBuffer, void* pushData = nullptr);
+    void bind(vk::CommandBuffer commandBuffer) override;
+    void pushConstants(vk::CommandBuffer commandBuffer, void* pushData) override;
 
 private:
     vk::UniqueShaderModule vertModule;
@@ -58,7 +61,9 @@ public:
 
     void loadShaders(const std::string& path);
     void setup(size_t pushSize = 0);
-    void run(vk::CommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY, void* pushData = nullptr);
+    void bind(vk::CommandBuffer commandBuffer) override;
+    void pushConstants(vk::CommandBuffer commandBuffer, void* pushData) override;
+    void dispatch(vk::CommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY);
 
 private:
     vk::UniqueShaderModule shaderModule;
@@ -73,7 +78,9 @@ public:
     void loadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath);
     void loadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath, const std::string& ahitPath);
     void setup(size_t pushSize = 0);
-    void run(vk::CommandBuffer commandBuffer, uint32_t countX, uint32_t countY, void* pushData = nullptr);
+    void bind(vk::CommandBuffer commandBuffer) override;
+    void pushConstants(vk::CommandBuffer commandBuffer, void* pushData) override;
+    void traceRays(vk::CommandBuffer commandBuffer, uint32_t countX, uint32_t countY);
 
 private:
     std::vector<vk::UniqueShaderModule> shaderModules;

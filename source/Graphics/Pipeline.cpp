@@ -218,15 +218,17 @@ void GraphicsPipeline::setup(size_t pushSize)
     pipeline = CreateGraphicsPipeline(*vertModule, *fragModule, *pipelineLayout);
 }
 
-void GraphicsPipeline::bind(vk::CommandBuffer commandBuffer, void* pushData)
+void GraphicsPipeline::bind(vk::CommandBuffer commandBuffer)
 {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *pipeline);
     if (registered) {
         descSet->bind(commandBuffer, vk::PipelineBindPoint::eGraphics, *pipelineLayout);
     }
-    if (pushData) {
-        commandBuffer.pushConstants(*pipelineLayout, vk::ShaderStageFlagBits::eAllGraphics, 0, pushSize, pushData);
-    }
+}
+
+void GraphicsPipeline::pushConstants(vk::CommandBuffer commandBuffer, void* pushData)
+{
+    commandBuffer.pushConstants(*pipelineLayout, vk::ShaderStageFlagBits::eAllGraphics, 0, pushSize, pushData);
 }
 
 void ComputePipeline::loadShaders(const std::string& path)
@@ -245,13 +247,19 @@ void ComputePipeline::setup(size_t pushSize)
     pipeline = CreateComputePipeline(*shaderModule, vk::ShaderStageFlagBits::eCompute, *pipelineLayout);
 }
 
-void ComputePipeline::run(vk::CommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY, void* pushData)
+void ComputePipeline::bind(vk::CommandBuffer commandBuffer)
 {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *pipeline);
     descSet->bind(commandBuffer, vk::PipelineBindPoint::eCompute, *pipelineLayout);
-    if (pushData) {
-        commandBuffer.pushConstants(*pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0, pushSize, pushData);
-    }
+}
+
+void ComputePipeline::pushConstants(vk::CommandBuffer commandBuffer, void* pushData)
+{
+    commandBuffer.pushConstants(*pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0, pushSize, pushData);
+}
+
+void ComputePipeline::dispatch(vk::CommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY)
+{
     commandBuffer.dispatch(groupCountX, groupCountY, 1);
 }
 
@@ -384,17 +392,23 @@ void RayTracingPipeline::setup(size_t pushSize)
     hitSBT.copy(shaderHandleStorage.data() + 2 * handleSizeAligned);
 }
 
-void RayTracingPipeline::run(vk::CommandBuffer commandBuffer, uint32_t countX, uint32_t countY, void* pushData)
+void RayTracingPipeline::bind(vk::CommandBuffer commandBuffer)
 {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, *pipeline);
     descSet->bind(commandBuffer, vk::PipelineBindPoint::eRayTracingKHR, *pipelineLayout);
-    if (pushData) {
-        commandBuffer.pushConstants(*pipelineLayout,
-                                    vk::ShaderStageFlagBits::eRaygenKHR |
-                                    vk::ShaderStageFlagBits::eMissKHR |
-                                    vk::ShaderStageFlagBits::eClosestHitKHR |
-                                    vk::ShaderStageFlagBits::eAnyHitKHR,
-                                    0, pushSize, pushData);
-    }
+}
+
+void RayTracingPipeline::pushConstants(vk::CommandBuffer commandBuffer, void* pushData)
+{
+    commandBuffer.pushConstants(*pipelineLayout,
+                                vk::ShaderStageFlagBits::eRaygenKHR |
+                                vk::ShaderStageFlagBits::eMissKHR |
+                                vk::ShaderStageFlagBits::eClosestHitKHR |
+                                vk::ShaderStageFlagBits::eAnyHitKHR,
+                                0, pushSize, pushData);
+}
+
+void RayTracingPipeline::traceRays(vk::CommandBuffer commandBuffer, uint32_t countX, uint32_t countY)
+{
     commandBuffer.traceRaysKHR(raygenRegion, missRegion, hitRegion, {}, countX, countY, 1);
 }

@@ -38,7 +38,8 @@ int main()
 
             Context::waitNextFrame();
             vk::CommandBuffer commandBuffer = Context::beginCommandBuffer();
-            pipeline.bind(commandBuffer, &pushConstants);
+            pipeline.bind(commandBuffer);
+            pipeline.pushConstants(commandBuffer, &pushConstants);
 
             Context::clearBackImage(commandBuffer, { 0.0f, 0.0f, 0.3f, 1.0f });
 

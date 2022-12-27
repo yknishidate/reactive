@@ -45,7 +45,9 @@ int main()
 
             Context::waitNextFrame();
             vk::CommandBuffer commandBuffer = Context::beginCommandBuffer();
-            pipeline.run(commandBuffer, Window::getWidth(), Window::getHeight(), &pushConstants);
+            pipeline.bind(commandBuffer);
+            pipeline.pushConstants(commandBuffer, &pushConstants);
+            pipeline.traceRays(commandBuffer, Window::getWidth(), Window::getHeight());
             Context::copyToBackImage(commandBuffer, outputImage);
 
             Context::beginRenderPass();
