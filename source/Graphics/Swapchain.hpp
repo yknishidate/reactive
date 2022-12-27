@@ -77,7 +77,6 @@ struct Swapchain
     vk::UniqueImage depthImage;
     vk::UniqueImageView depthImageView;
     vk::UniqueDeviceMemory depthImageMemory;
-    //Image depthImage;
 
     bool swapchainRebuild = false;
     int minImageCount = 3;
