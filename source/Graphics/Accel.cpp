@@ -52,13 +52,7 @@ TopAccel::TopAccel(const ArrayProxy<Object>& objects, vk::GeometryFlagBitsKHR ge
 
     std::vector<vk::AccelerationStructureInstanceKHR> instances;
     for (auto&& object : objects) {
-        const auto instance = vk::AccelerationStructureInstanceKHR()
-            .setTransform(object.transform.getVkMatrix())
-            .setMask(0xFF)
-            .setAccelerationStructureReference(object.getMesh().getAccel().getBufferAddress())
-            .setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);
-
-        instances.push_back(instance);
+        instances.push_back(object.createInstance());
     }
 
     instanceBuffer = DeviceBuffer{ BufferUsage::AccelInput, instances };
@@ -81,13 +75,7 @@ void TopAccel::rebuild(const std::vector<Object>& objects)
 
     std::vector<vk::AccelerationStructureInstanceKHR> instances;
     for (auto&& object : objects) {
-        const auto instance = vk::AccelerationStructureInstanceKHR()
-            .setTransform(object.transform.getVkMatrix())
-            .setMask(0xFF)
-            .setAccelerationStructureReference(object.getMesh().getAccel().getBufferAddress())
-            .setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);
-
-        instances.push_back(instance);
+        instances.push_back(object.createInstance());
     }
 
     instanceBuffer.copy(instances.data());

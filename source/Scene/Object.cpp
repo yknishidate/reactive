@@ -28,13 +28,6 @@ Object::Object(const Mesh& mesh)
 {
 }
 
-
-const Mesh& Object::getMesh() const
-{
-    assert(mesh && "Mesh is nullptr");
-    return *mesh;
-}
-
 Material Object::getMaterial()
 {
     if (material) {

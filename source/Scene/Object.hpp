@@ -32,12 +32,19 @@ public:
     explicit Object(const Mesh& mesh);
     virtual void Update(float dt) {}
 
-    const Mesh& getMesh() const;
-
     Material getMaterial();
     void setMaterial(const Material& material);
 
     Transform transform{};
+
+    auto createInstance() const
+    {
+        return vk::AccelerationStructureInstanceKHR()
+            .setTransform(transform.getVkMatrix())
+            .setMask(0xFF)
+            .setAccelerationStructureReference(mesh->getAccel().getBufferAddress())
+            .setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);
+    }
 
 private:
     const Mesh* mesh;
