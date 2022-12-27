@@ -41,9 +41,9 @@ public:
     GraphicsPipeline() : Pipeline() {}
     GraphicsPipeline(std::shared_ptr<DescriptorSet> descSet) : Pipeline(descSet) {}
 
-    virtual void loadShaders(const std::string& vertPath, const std::string& fragPath);
-    virtual void setup(size_t pushSize = 0);
-    virtual void bind(vk::CommandBuffer commandBuffer, void* pushData = nullptr);
+    void loadShaders(const std::string& vertPath, const std::string& fragPath);
+    void setup(size_t pushSize = 0);
+    void bind(vk::CommandBuffer commandBuffer, void* pushData = nullptr);
 
 private:
     vk::UniqueShaderModule vertModule;
@@ -56,9 +56,9 @@ public:
     ComputePipeline() : Pipeline() {}
     ComputePipeline(std::shared_ptr<DescriptorSet> descSet) : Pipeline(descSet) {}
 
-    virtual void loadShaders(const std::string& path);
-    virtual void setup(size_t pushSize = 0);
-    virtual void run(vk::CommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY, void* pushData = nullptr);
+    void loadShaders(const std::string& path);
+    void setup(size_t pushSize = 0);
+    void run(vk::CommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY, void* pushData = nullptr);
 
 private:
     vk::UniqueShaderModule shaderModule;
@@ -70,10 +70,10 @@ public:
     RayTracingPipeline() : Pipeline() {}
     RayTracingPipeline(std::shared_ptr<DescriptorSet> descSet) : Pipeline(descSet) {}
 
-    virtual void loadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath);
-    virtual void loadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath, const std::string& ahitPath);
-    virtual void setup(size_t pushSize = 0);
-    virtual void run(vk::CommandBuffer commandBuffer, uint32_t countX, uint32_t countY, void* pushData = nullptr);
+    void loadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath);
+    void loadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath, const std::string& ahitPath);
+    void setup(size_t pushSize = 0);
+    void run(vk::CommandBuffer commandBuffer, uint32_t countX, uint32_t countY, void* pushData = nullptr);
 
 private:
     std::vector<vk::UniqueShaderModule> shaderModules;
