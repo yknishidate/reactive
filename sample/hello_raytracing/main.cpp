@@ -9,7 +9,7 @@ struct PushConstants
 int main()
 {
     try {
-        spdlog::set_pattern("[%^%l%$] %v");
+        Log::Init();
         Window::Init(750, 750);
         Context::Init();
         GUI::Init();
@@ -56,6 +56,6 @@ int main()
         GUI::Shutdown();
         Window::Shutdown();
     } catch (const std::exception& e) {
-        spdlog::error(e.what());
+        Log::error(e.what());
     }
 }

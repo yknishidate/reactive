@@ -12,3 +12,13 @@
 #include "Scene/Camera.hpp"
 #include "Scene/Object.hpp"
 #include "GUI/GUI.hpp"
+
+namespace Log
+{
+using namespace spdlog;
+
+void Init()
+{
+    spdlog::set_pattern("[%^%l%$] %v");
+}
+}
