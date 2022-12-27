@@ -151,12 +151,10 @@ void Context::oneTimeSubmit(const std::function<void(vk::CommandBuffer)>& comman
 
 uint32_t Context::findMemoryTypeIndex(vk::MemoryRequirements requirements, vk::MemoryPropertyFlags memoryProp)
 {
-    const vk::PhysicalDeviceMemoryProperties memoryProperties = physicalDevice.getMemoryProperties();
-    for (uint32_t index = 0; index < memoryProperties.memoryTypeCount; ++index) {
-        auto propertyFlags = memoryProperties.memoryTypes[index].propertyFlags;
-        bool match = (propertyFlags & memoryProp) == memoryProp;
-        if (requirements.memoryTypeBits & (1 << index) && match) {
-            return index;
+    vk::PhysicalDeviceMemoryProperties memProperties = physicalDevice.getMemoryProperties();
+    for (uint32_t i = 0; i != memProperties.memoryTypeCount; ++i) {
+        if ((requirements.memoryTypeBits & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & memoryProp) == memoryProp) {
+            return i;
         }
     }
     throw std::runtime_error("Failed to find memory type index.");
