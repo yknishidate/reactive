@@ -94,13 +94,6 @@ vk::UniquePipeline CreateGraphicsPipeline(vk::ShaderModule vertModule, vk::Shade
     colorBlending.setLogicOpEnable(VK_FALSE);
     colorBlending.setAttachments(colorBlendAttachment);
 
-    //vk::Format colorFormat = vk::Format::eB8G8R8A8Unorm;
-    //vk::Format depthFormat = vk::Format::eD32Sfloat;
-    //vk::PipelineRenderingCreateInfo renderingInfo;
-    //renderingInfo.setColorAttachmentCount(1);
-    //renderingInfo.setColorAttachmentFormats(colorFormat);
-    //renderingInfo.setDepthAttachmentFormat(depthFormat);
-
     vk::GraphicsPipelineCreateInfo pipelineInfo;
     pipelineInfo.setStages(shaderStages);
     pipelineInfo.setPVertexInputState(&vertexInputInfo);
@@ -113,7 +106,6 @@ vk::UniquePipeline CreateGraphicsPipeline(vk::ShaderModule vertModule, vk::Shade
     pipelineInfo.setLayout(pipelineLayout);
     pipelineInfo.setSubpass(0);
     pipelineInfo.setRenderPass(Context::getSwapchain().getRenderPass());
-    //pipelineInfo.setPNext(&renderingInfo);
 
     auto result = Context::getDevice().createGraphicsPipelineUnique({}, pipelineInfo);
     if (result.result != vk::Result::eSuccess) {
@@ -210,7 +202,18 @@ void GraphicsPipeline::setup(size_t pushSize)
     if (registered) {
         pipelineLayout = descSet->createPipelineLayout(pushSize, vk::ShaderStageFlagBits::eAllGraphics);
     } else {
-        pipelineLayout = Context::getDevice().createPipelineLayoutUnique(vk::PipelineLayoutCreateInfo{});
+        const auto pushRange = vk::PushConstantRange()
+            .setOffset(0)
+            .setSize(pushSize)
+            .setStageFlags(vk::ShaderStageFlagBits::eAllGraphics);
+
+        auto layoutInfo = vk::PipelineLayoutCreateInfo()
+            .setPushConstantRanges(pushRange);
+
+        //if (pushSize) {
+        //}
+        //pipelineLayout = Context::getDevice().createPipelineLayoutUnique(vk::PipelineLayoutCreateInfo{});
+        pipelineLayout = Context::getDevice().createPipelineLayoutUnique(layoutInfo);
     }
     pipeline = CreateGraphicsPipeline(*vertModule, *fragModule, *pipelineLayout);
 }
@@ -222,7 +225,7 @@ void GraphicsPipeline::begin(vk::CommandBuffer commandBuffer, void* pushData)
         descSet->bind(commandBuffer, vk::PipelineBindPoint::eGraphics, *pipelineLayout);
     }
     if (pushData) {
-        commandBuffer.pushConstants(*pipelineLayout, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, pushSize, pushData);
+        commandBuffer.pushConstants(*pipelineLayout, vk::ShaderStageFlagBits::eAllGraphics, 0, pushSize, pushData);
     }
 
     //vk::RenderingAttachmentInfo colorAttachment = Context::getSwapchain().getColorAttachmentInfo();

@@ -99,8 +99,12 @@ void Swapchain::beginRenderPass() const
     const auto renderArea = vk::Rect2D()
         .setExtent({ Window::getWidth(), Window::getHeight() });
 
+    const auto clearColor = vk::ClearValue()
+        .setColor(std::array{ 0.0f, 0.0f, 0.0f, 1.0f });
+
     const auto beginInfo = vk::RenderPassBeginInfo()
         .setRenderPass(*renderPass)
+        .setClearValues(clearColor)
         .setFramebuffer(*frames[frameIndex].framebuffer)
         .setRenderArea(renderArea);
 

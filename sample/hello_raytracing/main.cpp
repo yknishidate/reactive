@@ -47,7 +47,11 @@ int main()
             vk::CommandBuffer commandBuffer = Context::beginCommandBuffer();
             pipeline.run(commandBuffer, Window::getWidth(), Window::getHeight(), &pushConstants);
             Context::copyToBackImage(commandBuffer, outputImage);
+
+            Context::beginRenderPass();
             GUI::render(commandBuffer);
+            Context::endRenderPass();
+
             Context::submit();
             Context::present();
         }

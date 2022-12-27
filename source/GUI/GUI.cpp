@@ -97,10 +97,8 @@ void GUI::startFrame()
 void GUI::render(vk::CommandBuffer commandBuffer)
 {
     ImGui::Render();
-    Context::beginRenderPass();
     ImDrawData* drawData = ImGui::GetDrawData();
     ImGui_ImplVulkan_RenderDrawData(drawData, commandBuffer);
-    Context::endRenderPass();
 }
 
 bool GUI::checkbox(const std::string& label, bool& value)

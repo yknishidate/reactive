@@ -91,7 +91,10 @@ vk::UniqueSurfaceKHR Window::createSurface(vk::Instance instance)
 bool Window::mousePressed()
 {
     bool pressed = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
-    return  pressed && !ImGui::IsWindowFocused(ImGuiFocusedFlags_AnyWindow);
+    if (ImGui::GetCurrentContext()) {
+        return  pressed && !ImGui::IsWindowFocused(ImGuiFocusedFlags_AnyWindow);
+    }
+    return  pressed;
 }
 
 bool Window::keyPressed(int key)

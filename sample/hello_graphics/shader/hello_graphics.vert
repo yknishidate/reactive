@@ -7,7 +7,13 @@ layout(location = 2) in vec2 inTexCoord;
 
 layout(location = 0) out vec3 fragColor;
 
+layout(push_constant) uniform PushConstants {
+    mat4 model;
+    mat4 view;
+    mat4 proj;
+} pushConstants;
+
 void main() {
-    gl_Position = vec4(inPosition, 1.0);
+    gl_Position = pushConstants.proj * pushConstants.view * pushConstants.model * vec4(inPosition, 1.0);
     fragColor = vec3(1);
 }
