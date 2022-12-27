@@ -28,6 +28,7 @@ struct Context
     static auto getRenderPass() { return swapchain.getRenderPass(); }
     static const auto& getSwapchain() { return swapchain; }
 
+    static void waitIdle() { device->waitIdle(); }
     static void beginRenderPass();
     static void endRenderPass();
     static void copyToBackImage(vk::CommandBuffer commandBuffer, const Image& source);

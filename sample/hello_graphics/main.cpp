@@ -54,7 +54,7 @@ int main()
             Context::present();
             frame++;
         }
-        Context::getDevice().waitIdle();
+        Context::waitIdle();
         GUI::shutdown();
         Window::shutdown();
     } catch (const std::exception& e) {
