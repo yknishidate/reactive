@@ -52,9 +52,9 @@ struct Swapchain
     Swapchain() = default;
     Swapchain(vk::Device device, vk::SurfaceKHR surface, uint32_t queueFamily);
 
-    void beginRenderPass();
+    void beginRenderPass() const;
 
-    void endRenderPass();
+    void endRenderPass() const;
 
     void waitNextFrame(vk::Device device);
 

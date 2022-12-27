@@ -91,9 +91,8 @@ void Context::init()
         vk::PhysicalDeviceBufferDeviceAddressFeatures,
         vk::PhysicalDeviceRayTracingPipelineFeaturesKHR,
         vk::PhysicalDeviceAccelerationStructureFeaturesKHR,
-        vk::PhysicalDeviceDynamicRenderingFeatures,
         vk::PhysicalDeviceDescriptorIndexingFeatures>
-        createInfoChain{ deviceInfo,{ true }, { true }, { true }, { true }, descFeatures };
+        createInfoChain{ deviceInfo,{ true }, { true }, { true }, descFeatures };
 
     device = physicalDevice.createDeviceUnique(createInfoChain.get<vk::DeviceCreateInfo>());
 

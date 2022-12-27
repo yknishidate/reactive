@@ -94,7 +94,7 @@ Swapchain::Swapchain(vk::Device device, vk::SurfaceKHR surface, uint32_t queueFa
     }
 }
 
-void Swapchain::beginRenderPass()
+void Swapchain::beginRenderPass() const
 {
     const auto renderArea = vk::Rect2D()
         .setExtent({ Window::getWidth(), Window::getHeight() });
@@ -107,7 +107,7 @@ void Swapchain::beginRenderPass()
     frames[frameIndex].commandBuffer->beginRenderPass(beginInfo, vk::SubpassContents::eInline);
 }
 
-void Swapchain::endRenderPass()
+void Swapchain::endRenderPass() const
 {
     frames[frameIndex].commandBuffer->endRenderPass();
 }

@@ -36,6 +36,7 @@ vk::UniquePipeline CreateGraphicsPipeline(vk::ShaderModule vertModule, vk::Shade
     bindingDescription.setStride(sizeof(Vertex));
     bindingDescription.setInputRate(vk::VertexInputRate::eVertex);
 
+    // TODO: move to Vertex
     std::array<vk::VertexInputAttributeDescription, 3> attributeDescriptions;
     attributeDescriptions[0].setBinding(0);
     attributeDescriptions[0].setLocation(0);
@@ -93,12 +94,12 @@ vk::UniquePipeline CreateGraphicsPipeline(vk::ShaderModule vertModule, vk::Shade
     colorBlending.setLogicOpEnable(VK_FALSE);
     colorBlending.setAttachments(colorBlendAttachment);
 
-    vk::Format colorFormat = vk::Format::eB8G8R8A8Unorm;
-    vk::Format depthFormat = vk::Format::eD32Sfloat;
-    vk::PipelineRenderingCreateInfo renderingInfo;
-    renderingInfo.setColorAttachmentCount(1);
-    renderingInfo.setColorAttachmentFormats(colorFormat);
-    renderingInfo.setDepthAttachmentFormat(depthFormat);
+    //vk::Format colorFormat = vk::Format::eB8G8R8A8Unorm;
+    //vk::Format depthFormat = vk::Format::eD32Sfloat;
+    //vk::PipelineRenderingCreateInfo renderingInfo;
+    //renderingInfo.setColorAttachmentCount(1);
+    //renderingInfo.setColorAttachmentFormats(colorFormat);
+    //renderingInfo.setDepthAttachmentFormat(depthFormat);
 
     vk::GraphicsPipelineCreateInfo pipelineInfo;
     pipelineInfo.setStages(shaderStages);
@@ -111,7 +112,8 @@ vk::UniquePipeline CreateGraphicsPipeline(vk::ShaderModule vertModule, vk::Shade
     pipelineInfo.setPColorBlendState(&colorBlending);
     pipelineInfo.setLayout(pipelineLayout);
     pipelineInfo.setSubpass(0);
-    pipelineInfo.setPNext(&renderingInfo);
+    pipelineInfo.setRenderPass(Context::getSwapchain().getRenderPass());
+    //pipelineInfo.setPNext(&renderingInfo);
 
     auto result = Context::getDevice().createGraphicsPipelineUnique({}, pipelineInfo);
     if (result.result != vk::Result::eSuccess) {
@@ -223,21 +225,21 @@ void GraphicsPipeline::begin(vk::CommandBuffer commandBuffer, void* pushData)
         commandBuffer.pushConstants(*pipelineLayout, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, pushSize, pushData);
     }
 
-    vk::RenderingAttachmentInfo colorAttachment = Context::getSwapchain().getColorAttachmentInfo();
+    //vk::RenderingAttachmentInfo colorAttachment = Context::getSwapchain().getColorAttachmentInfo();
     //vk::RenderingAttachmentInfo depthStencilAttachment = Context::GetSwapchain().GetDepthAttachmentInfo();
 
-    vk::RenderingInfo renderingInfo;
-    renderingInfo.setRenderArea({ {0, 0}, {Window::getWidth(), Window::getHeight()} });
-    renderingInfo.setLayerCount(1);
-    renderingInfo.setColorAttachments(colorAttachment);
+    //vk::RenderingInfo renderingInfo;
+    //renderingInfo.setRenderArea({ {0, 0}, {Window::getWidth(), Window::getHeight()} });
+    //renderingInfo.setLayerCount(1);
+    //renderingInfo.setColorAttachments(colorAttachment);
     //renderingInfo.setPDepthAttachment(&depthStencilAttachment);
 
-    commandBuffer.beginRendering(renderingInfo);
+    //commandBuffer.beginRendering(renderingInfo);
 }
 
 void GraphicsPipeline::end(vk::CommandBuffer commandBuffer)
 {
-    commandBuffer.endRendering();
+    //commandBuffer.endRendering();
 }
 
 void ComputePipeline::loadShaders(const std::string& path)

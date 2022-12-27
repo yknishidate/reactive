@@ -36,8 +36,8 @@ int main()
         while (!Window::shouldClose()) {
             Window::pollEvents();
             GUI::startFrame();
-            camera.processInput();
             GUI::sliderInt("Test slider", testInt, 0, 100);
+            camera.processInput();
 
             PushConstants pushConstants;
             pushConstants.invProj = camera.getInvProj();
