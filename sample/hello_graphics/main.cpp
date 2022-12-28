@@ -40,22 +40,21 @@ int main()
             pushConstants.proj = camera.getProj();
             pushConstants.view = camera.getView();
 
-            swapchain.waitNextFrame();
-            vk::CommandBuffer commandBuffer = swapchain.beginCommandBuffer();
-            pipeline.bind(commandBuffer);
-            pipeline.pushConstants(commandBuffer, &pushConstants);
-
-            swapchain.clearBackImage(commandBuffer, { 0.0f, 0.0f, 0.3f, 1.0f });
-
-            swapchain.beginRenderPass();
-            mesh.drawIndexed(commandBuffer);
             gui.startFrame();
             gui.sliderInt("Test slider", testInt, 0, 100);
-            gui.render(commandBuffer);
-            swapchain.endRenderPass();
 
-            swapchain.submit();
-            swapchain.present();
+            swapchain.waitNextFrame();
+
+            CommandBuffer commandBuffer = swapchain.beginCommandBuffer();
+            commandBuffer.bindPipeline(pipeline);
+            commandBuffer.pushConstants(&pushConstants);
+            commandBuffer.clearBackImage({ 0.0f, 0.0f, 0.3f, 1.0f });
+            commandBuffer.beginRenderPass();
+            commandBuffer.drawIndexed(mesh);
+            commandBuffer.drawGUI(gui);
+            commandBuffer.endRenderPass();
+            commandBuffer.submit();
+            commandBuffer.present();
             frame++;
         }
         Context::waitIdle();

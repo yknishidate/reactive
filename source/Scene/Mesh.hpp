@@ -63,6 +63,7 @@ public:
     uint64_t getVertexBufferAddress() const { return vertexBuffer.getAddress(); }
     uint64_t getIndexBufferAddress() const { return indexBuffer.getAddress(); }
     const std::vector<Vertex>& getVertices() const { return vertices; }
+    uint32_t getIndicesCount() const { return indices.size(); }
     uint32_t getTriangleCount() const { return indices.size() / 3; }
     vk::AccelerationStructureGeometryTrianglesDataKHR getTriangles() const;
 

@@ -2,6 +2,12 @@
 #include "Context.hpp"
 #include "Window/Window.hpp"
 #include "Graphics/Image.hpp"
+#include "Graphics/Pipeline.hpp"
+#include "Scene/Mesh.hpp"
+#include "GUI/GUI.hpp"
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include "GUI/imgui_impl_vulkan_hpp.h"
 
 Swapchain::Swapchain()
     : width{ Window::getWidth() }
@@ -148,6 +154,22 @@ void Swapchain::beginRenderPass() const
     commandBuffers[frameIndex]->beginRenderPass(beginInfo, vk::SubpassContents::eInline);
 }
 
+auto Swapchain::getRenderPassBeginInfo()
+{
+    const auto renderArea = vk::Rect2D()
+        .setExtent({ Window::getWidth(), Window::getHeight() });
+
+    std::array<vk::ClearValue, 2> clearValues;
+    clearValues[0].color = { std::array{ 0.0f, 0.0f, 0.0f, 1.0f } };
+    clearValues[1].depthStencil = vk::ClearDepthStencilValue{ 1.0f, 0 };
+
+    return vk::RenderPassBeginInfo()
+        .setRenderPass(*renderPass)
+        .setClearValues(clearValues)
+        .setFramebuffer(*framebuffers[frameIndex])
+        .setRenderArea(renderArea);
+}
+
 void Swapchain::endRenderPass() const
 {
     commandBuffers[frameIndex]->endRenderPass();
@@ -169,13 +191,12 @@ void Swapchain::waitNextFrame()
     Context::getDevice().resetFences(*fences[frameIndex]);
 }
 
-vk::CommandBuffer Swapchain::beginCommandBuffer()
+CommandBuffer Swapchain::beginCommandBuffer()
 {
     commandBuffers[frameIndex]->begin(
         vk::CommandBufferBeginInfo()
-        .setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit)
-    );
-    return *commandBuffers[frameIndex];
+        .setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
+    return { this, *commandBuffers[frameIndex] };
 }
 
 void Swapchain::submit()
@@ -235,4 +256,85 @@ void Swapchain::clearBackImage(vk::CommandBuffer commandBuffer, std::array<float
                                   vk::ImageLayout::eTransferDstOptimal,
                                   vk::ClearColorValue{ color },
                                   vk::ImageSubresourceRange{ vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 });
+}
+
+void CommandBuffer::bindPipeline(GraphicsPipeline& pipeline)
+{
+    boundPipeline = &pipeline;
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *pipeline.pipeline);
+    if (pipeline.recorded) {
+        pipeline.descSet->bind(commandBuffer, vk::PipelineBindPoint::eGraphics,
+                               *pipeline.pipelineLayout);
+    }
+}
+
+void CommandBuffer::pushConstants(void* pushData)
+{
+    assert(boundPipeline);
+    commandBuffer.pushConstants(*boundPipeline->pipelineLayout,
+                                vk::ShaderStageFlagBits::eAllGraphics, 0,
+                                boundPipeline->pushSize, pushData);
+}
+
+void CommandBuffer::clearBackImage(std::array<float, 4> color)
+{
+    Image::setImageLayout(commandBuffer, swapchain->getBackImage(),
+                          vk::ImageLayout::eUndefined,
+                          vk::ImageLayout::eTransferDstOptimal);
+    commandBuffer.clearColorImage(swapchain->getBackImage(),
+                                  vk::ImageLayout::eTransferDstOptimal,
+                                  vk::ClearColorValue{ color },
+                                  vk::ImageSubresourceRange{ vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 });
+}
+
+void CommandBuffer::beginRenderPass()
+{
+    commandBuffer.beginRenderPass(swapchain->getRenderPassBeginInfo(),
+                                  vk::SubpassContents::eInline);
+}
+
+void CommandBuffer::endRenderPass()
+{
+    commandBuffer.endRenderPass();
+}
+
+void CommandBuffer::submit()
+{
+    commandBuffer.end();
+    vk::PipelineStageFlags waitStage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    const auto submitInfo = vk::SubmitInfo()
+        .setWaitDstStageMask(waitStage)
+        .setCommandBuffers(commandBuffer)
+        .setWaitSemaphores(*swapchain->imageAcquiredSemaphore)
+        .setSignalSemaphores(*swapchain->renderCompleteSemaphore);
+    Context::getQueue().submit(submitInfo, *swapchain->fences[swapchain->frameIndex]);
+}
+
+void CommandBuffer::present()
+{
+    const auto presentInfo = vk::PresentInfoKHR()
+        .setWaitSemaphores(*swapchain->renderCompleteSemaphore)
+        .setSwapchains(*swapchain->swapchain)
+        .setImageIndices(swapchain->frameIndex);
+
+    if (Context::getQueue().presentKHR(presentInfo) != vk::Result::eSuccess) {
+        swapchain->swapchainRebuild = true;
+        return;
+    }
+    swapchain->semaphoreIndex = (swapchain->semaphoreIndex + 1) % swapchain->swapchainImages.size();
+}
+
+void CommandBuffer::drawIndexed(Mesh& mesh)
+{
+    vk::DeviceSize offsets{ 0 };
+    commandBuffer.bindVertexBuffers(0, mesh.getVertexBuffer(), offsets);
+    commandBuffer.bindIndexBuffer(mesh.getIndexBuffer(), 0, vk::IndexType::eUint32);
+    commandBuffer.drawIndexed(static_cast<uint32_t>(mesh.getIndicesCount()), 1, 0, 0, 0);
+}
+
+void CommandBuffer::drawGUI(GUI& gui)
+{
+    ImGui::Render();
+    ImDrawData* drawData = ImGui::GetDrawData();
+    ImGui_ImplVulkan_RenderDrawData(drawData, commandBuffer);
 }

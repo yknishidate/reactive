@@ -10,6 +10,8 @@ class Scene;
 class Pipeline
 {
 public:
+    friend class CommandBuffer;
+
     Pipeline()
     {
         descSet = std::make_shared<DescriptorSet>();
@@ -40,6 +42,8 @@ protected:
 class GraphicsPipeline : public Pipeline
 {
 public:
+    friend class CommandBuffer;
+
     GraphicsPipeline() : Pipeline() {}
     GraphicsPipeline(std::shared_ptr<DescriptorSet> descSet) : Pipeline(descSet) {}
 
