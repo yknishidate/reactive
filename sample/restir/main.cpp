@@ -258,11 +258,11 @@ int main()
         std::unordered_map<std::string, RayTracingPipeline> pipelines;
         pipelines.insert({ "GBuffer", RayTracingPipeline{ descSet } });
         pipelines.insert({ "Uniform", RayTracingPipeline{ descSet } });
-        //pipelines.insert({ "WRS", RayTracingPipeline{ descSet } });
-        //pipelines.insert({ "InitResev", RayTracingPipeline{ descSet } });
-        //pipelines.insert({ "SpatialReuse", RayTracingPipeline{ descSet } });
-        //pipelines.insert({ "TemporalReuse", RayTracingPipeline{ descSet } });
-        //pipelines.insert({ "Shading", RayTracingPipeline{ descSet } });
+        pipelines.insert({ "WRS", RayTracingPipeline{ descSet } });
+        pipelines.insert({ "InitResev", RayTracingPipeline{ descSet } });
+        pipelines.insert({ "SpatialReuse", RayTracingPipeline{ descSet } });
+        pipelines.insert({ "TemporalReuse", RayTracingPipeline{ descSet } });
+        pipelines.insert({ "Shading", RayTracingPipeline{ descSet } });
 
         pipelines["GBuffer"].loadShaders(SHADER_DIR + "gbuffer/gbuffer.rgen",
                                          SHADER_DIR + "gbuffer/gbuffer.rmiss",
@@ -272,25 +272,25 @@ int main()
                                          SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
                                          SHADER_DIR + "shadow_ray/shadow_ray.rchit");
 
-        //pipelines["WRS"].loadShaders(SHADER_DIR + "wrs/wrs.rgen",
-        //                             SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
-        //                             SHADER_DIR + "shadow_ray/shadow_ray.rchit");
+        pipelines["WRS"].loadShaders(SHADER_DIR + "wrs/wrs.rgen",
+                                     SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
+                                     SHADER_DIR + "shadow_ray/shadow_ray.rchit");
 
-        //pipelines["InitResev"].loadShaders(SHADER_DIR + "restir/init_resev.rgen",
-        //                                   SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
-        //                                   SHADER_DIR + "shadow_ray/shadow_ray.rchit");
+        pipelines["InitResev"].loadShaders(SHADER_DIR + "restir/init_resev.rgen",
+                                           SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
+                                           SHADER_DIR + "shadow_ray/shadow_ray.rchit");
 
-        //pipelines["SpatialReuse"].loadShaders(SHADER_DIR + "restir/spatial_reuse.rgen",
-        //                                      SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
-        //                                      SHADER_DIR + "shadow_ray/shadow_ray.rchit");
+        pipelines["SpatialReuse"].loadShaders(SHADER_DIR + "restir/spatial_reuse.rgen",
+                                              SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
+                                              SHADER_DIR + "shadow_ray/shadow_ray.rchit");
 
-        //pipelines["TemporalReuse"].loadShaders(SHADER_DIR + "restir/temporal_reuse.rgen",
-        //                                       SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
-        //                                       SHADER_DIR + "shadow_ray/shadow_ray.rchit");
+        pipelines["TemporalReuse"].loadShaders(SHADER_DIR + "restir/temporal_reuse.rgen",
+                                               SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
+                                               SHADER_DIR + "shadow_ray/shadow_ray.rchit");
 
-        //pipelines["Shading"].loadShaders(SHADER_DIR + "restir/shading.rgen",
-        //                                 SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
-        //                                 SHADER_DIR + "shadow_ray/shadow_ray.rchit");
+        pipelines["Shading"].loadShaders(SHADER_DIR + "restir/shading.rgen",
+                                         SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
+                                         SHADER_DIR + "shadow_ray/shadow_ray.rchit");
 
         GBuffers gbuffers;
         OutputImage outputImage;
@@ -310,12 +310,12 @@ int main()
 
         descSet->record("outputImage", outputImage.output);
 
-        //descSet->record("resevSampleImage", initedResevImages.sample);
-        //descSet->record("resevWeightImage", initedResevImages.weight);
-        //descSet->record("newResevSampleImage", reusedResevImages.sample);
-        //descSet->record("newResevWeightImage", reusedResevImages.weight);
-        //descSet->record("oldResevSampleImage", storedResevImages.sample);
-        //descSet->record("oldResevWeightImage", storedResevImages.weight);
+        descSet->record("resevSampleImage", initedResevImages.sample);
+        descSet->record("resevWeightImage", initedResevImages.weight);
+        descSet->record("newResevSampleImage", reusedResevImages.sample);
+        descSet->record("newResevWeightImage", reusedResevImages.weight);
+        descSet->record("oldResevSampleImage", storedResevImages.sample);
+        descSet->record("oldResevWeightImage", storedResevImages.weight);
         descSet->setup();
 
         for (auto& [name, pipeline] : pipelines) {
@@ -340,8 +340,10 @@ int main()
             gui.startFrame();
             gui.combo("Method", method, { "Uniform", "WRS", "ReSTIR" });
             gui.sliderInt("Samples", pushConstants.samples, 1, 32);
-            gui.sliderInt("Iteration", iteration, 0, 4);
-            gui.checkbox("Temporal reuse", temporalReuse);
+            if (method == ReSTIR) {
+                gui.sliderInt("Iteration", iteration, 0, 4);
+                gui.checkbox("Temporal reuse", temporalReuse);
+            }
 
             scene.update(0.1);
             pushConstants.invProj = scene.getCamera().getInvProj();
@@ -358,30 +360,40 @@ int main()
             commandBuffer.pushConstants(pipelines["GBuffer"], &pushConstants);
             commandBuffer.traceRays(pipelines["GBuffer"], width, height);
 
-            commandBuffer.bindPipeline(pipelines["Uniform"]);
-            commandBuffer.pushConstants(pipelines["Uniform"], &pushConstants);
-            commandBuffer.traceRays(pipelines["Uniform"], width, height);
+            if (method == Uniform) {
+                commandBuffer.bindPipeline(pipelines["Uniform"]);
+                commandBuffer.pushConstants(pipelines["Uniform"], &pushConstants);
+                commandBuffer.traceRays(pipelines["Uniform"], width, height);
+            } else if (method == WRS) {
+                commandBuffer.bindPipeline(pipelines["WRS"]);
+                commandBuffer.pushConstants(pipelines["WRS"], &pushConstants);
+                commandBuffer.traceRays(pipelines["WRS"], width, height);
+            } else if (method == ReSTIR) {
+                commandBuffer.bindPipeline(pipelines["InitResev"]);
+                commandBuffer.pushConstants(pipelines["InitResev"], &pushConstants);
+                commandBuffer.traceRays(pipelines["InitResev"], width, height);
 
-            //if (method == Uniform) {
-            //    pipelines["Uniform"].run(commandBuffer, width, height, &pushConstants);
-            //} else if (method == WRS) {
-            //    pipelines["WRS"].run(commandBuffer, width, height, &pushConstants);
-            //} else if (method == ReSTIR) {
-            //    pipelines["InitResev"].run(commandBuffer, width, height, &pushConstants);
-            //    if (temporalReuse) {
-            //        pipelines["TemporalReuse"].run(commandBuffer, width, height, &pushConstants);
-            //        reusedResevImages.Copy(commandBuffer, initedResevImages);
-            //    }
-            //    initedResevImages.Copy(commandBuffer, storedResevImages);
-            //    for (int i = 0; i < iteration; i++) {
-            //        pipelines["SpatialReuse"].run(commandBuffer, width, height, &pushConstants);
-            //        reusedResevImages.Copy(commandBuffer, initedResevImages);
-            //    }
-            //    pipelines["Shading"].run(commandBuffer, width, height, &pushConstants);
-            //}
+                if (temporalReuse) {
+                    commandBuffer.bindPipeline(pipelines["TemporalReuse"]);
+                    commandBuffer.pushConstants(pipelines["TemporalReuse"], &pushConstants);
+                    commandBuffer.traceRays(pipelines["TemporalReuse"], width, height);
+                    reusedResevImages.copy(commandBuffer.commandBuffer, initedResevImages);
+                }
+                initedResevImages.copy(commandBuffer.commandBuffer, storedResevImages);
+                for (int i = 0; i < iteration; i++) {
+                    commandBuffer.bindPipeline(pipelines["SpatialReuse"]);
+                    commandBuffer.pushConstants(pipelines["SpatialReuse"], &pushConstants);
+                    commandBuffer.traceRays(pipelines["SpatialReuse"], width, height);
+                    reusedResevImages.copy(commandBuffer.commandBuffer, initedResevImages);
+                }
+                commandBuffer.bindPipeline(pipelines["Shading"]);
+                commandBuffer.pushConstants(pipelines["Shading"], &pushConstants);
+                commandBuffer.traceRays(pipelines["Shading"], width, height);
+            }
 
             commandBuffer.copyToBackImage(outputImage.output);
 
+            // Draw GUI
             commandBuffer.beginRenderPass();
             commandBuffer.drawGUI(gui);
             commandBuffer.endRenderPass();
