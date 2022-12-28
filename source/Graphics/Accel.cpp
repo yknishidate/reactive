@@ -69,7 +69,7 @@ TopAccel::TopAccel(const ArrayProxy<Object>& objects, vk::GeometryFlagBitsKHR ge
     BuildAccel(*accel, size, primitiveCount, geometry.getInfo());
 }
 
-void TopAccel::rebuild(const std::vector<Object>& objects)
+void TopAccel::rebuild(const vk::ArrayProxy<Object>& objects)
 {
     const uint32_t primitiveCount = objects.size();
 

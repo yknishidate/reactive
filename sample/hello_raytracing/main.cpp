@@ -36,11 +36,15 @@ int main()
         pipeline.setup(sizeof(PushConstants));
 
         int testInt = 0;
+        int frame = 0;
         while (!Window::shouldClose()) {
             Window::pollEvents();
             gui.startFrame();
             gui.sliderInt("Test slider", testInt, 0, 100);
             camera.processInput();
+            object.transform.rotation = glm::rotate(glm::mat4(1.0f), 0.01f * frame,
+                                                    glm::vec3(0.0f, 1.0f, 0.0f));
+            topAccel.rebuild(object);
 
             PushConstants pushConstants;
             pushConstants.invProj = camera.getInvProj();
@@ -59,6 +63,7 @@ int main()
             commandBuffer.submit();
 
             swapchin.present();
+            frame++;
         }
         Context::waitIdle();
         Window::shutdown();
