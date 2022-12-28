@@ -195,9 +195,6 @@ void GraphicsPipeline::setup(size_t pushSize)
         auto layoutInfo = vk::PipelineLayoutCreateInfo()
             .setPushConstantRanges(pushRange);
 
-        //if (pushSize) {
-        //}
-        //pipelineLayout = Context::getDevice().createPipelineLayoutUnique(vk::PipelineLayoutCreateInfo{});
         pipelineLayout = Context::getDevice().createPipelineLayoutUnique(layoutInfo);
     }
     pipeline = CreateGraphicsPipeline(*vertModule, *fragModule, *pipelineLayout);
