@@ -3,35 +3,6 @@
 #include "DescriptorSet.hpp"
 #include "Compiler/Compiler.hpp"
 
-namespace
-{
-vk::UniqueDescriptorSetLayout CreateDescSetLayout(const std::vector<vk::DescriptorSetLayoutBinding>& bindings)
-{
-    return Context::getDevice().createDescriptorSetLayoutUnique(
-        vk::DescriptorSetLayoutCreateInfo()
-        .setBindings(bindings)
-    );
-}
-
-vk::UniqueDescriptorSet AllocateDescSet(vk::DescriptorSetLayout descSetLayout)
-{
-    std::vector descSets = Context::getDevice().allocateDescriptorSetsUnique(
-        vk::DescriptorSetAllocateInfo()
-        .setDescriptorPool(Context::getDescriptorPool())
-        .setSetLayouts(descSetLayout)
-    );
-    return std::move(descSets.front());
-}
-
-void UpdateDescSet(vk::DescriptorSet descSet, std::vector<vk::WriteDescriptorSet>& writes)
-{
-    for (auto&& write : writes) {
-        write.setDstSet(descSet);
-    }
-    Context::getDevice().updateDescriptorSets(writes, nullptr);
-}
-} // namespace
-
 WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding, vk::DescriptorBufferInfo bufferInfo)
     : WriteDescriptorSet{ binding }
 {
@@ -76,8 +47,16 @@ WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding)
 
 void DescriptorSet::setup()
 {
-    descSetLayout = CreateDescSetLayout(getBindings());
-    descSet = AllocateDescSet(*descSetLayout);
+    auto bindings = getBindings();
+    descSetLayout = Context::getDevice().createDescriptorSetLayoutUnique(
+        vk::DescriptorSetLayoutCreateInfo()
+        .setBindings(bindings));
+
+    std::vector descSets = Context::getDevice().allocateDescriptorSetsUnique(
+        vk::DescriptorSetAllocateInfo()
+        .setDescriptorPool(Context::getDescriptorPool())
+        .setSetLayouts(*descSetLayout));
+    descSet = std::move(descSets.front());
     update();
 }
 
@@ -87,7 +66,10 @@ void DescriptorSet::update()
     for (auto&& write : writes) {
         _writes.push_back(write.get());
     }
-    UpdateDescSet(*descSet, _writes);
+    for (auto&& write : _writes) {
+        write.setDstSet(*descSet);
+    }
+    Context::getDevice().updateDescriptorSets(_writes, nullptr);
 }
 
 void DescriptorSet::record(const std::string& name, const std::vector<Image>& images)
@@ -99,7 +81,6 @@ void DescriptorSet::record(const std::string& name, const std::vector<Image>& im
     }
 
     bindingMap[name].descriptorCount = images.size();
-
     writes.emplace_back(bindingMap[name], infos);
 }
 
