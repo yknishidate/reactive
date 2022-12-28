@@ -1,4 +1,24 @@
 #include "Engine.hpp"
+#include "Scene/Loader.hpp"
+
+struct SphereLight
+{
+    glm::vec3 intensity{ 1.0 };
+    glm::vec3 position{ 0.0 };
+    float radius{ 1.0 };
+};
+
+struct PointLight
+{
+    glm::vec3 intensity{ 1.0 };
+    glm::vec3 position{ 0.0 };
+};
+
+struct DirectionalLight
+{
+    glm::vec3 intensity{ 1.0 };
+    glm::vec3 direction{ 1.0 };
+};
 
 struct PushConstants
 {
@@ -45,143 +65,334 @@ struct ResevImages
     Image weight{ vk::Format::eR16G16Sfloat };
 };
 
+
+struct BufferAddress
+{
+    vk::DeviceAddress vertices;
+    vk::DeviceAddress indices;
+    vk::DeviceAddress objects;
+    vk::DeviceAddress pointLights;
+    vk::DeviceAddress sphereLights;
+};
+
+struct BoundingBox
+{
+    glm::vec3 min{ std::numeric_limits<float>::max() };
+    glm::vec3 max{ -std::numeric_limits<float>::max() };
+};
+
+class Scene
+{
+public:
+    Scene() = default;
+    explicit Scene(const std::string& filepath,
+                   glm::vec3 position = glm::vec3{ 0.0f },
+                   glm::vec3 scale = glm::vec3{ 1.0f },
+                   glm::vec3 rotation = glm::vec3{ 0.0f })
+    {
+        Loader::loadFromFile(ASSET_DIR + filepath, meshes, textures);
+
+        // If textures is empty, append dummy texture
+        if (textures.empty()) {
+            textures = std::vector<Image>(1);
+            textures[0] = Image{ 1, 1, vk::Format::eR8G8B8A8Unorm };
+        }
+
+        // Create objects
+        objects.reserve(meshes.size());
+        for (int i = 0; i < meshes.size(); i++) {
+            Object object(meshes[i]);
+            object.transform.position = position;
+            object.transform.scale = scale;
+            object.transform.rotation = glm::quat{ rotation };
+            for (const auto& vertex : meshes[i].getVertices()) {
+                glm::vec3 pos = object.transform.getMatrix() * glm::vec4{ vertex.pos, 1.0 };
+                bbox.min = glm::min(bbox.min, pos);
+                bbox.max = glm::max(bbox.max, pos);
+            }
+            objects.push_back(object);
+        }
+    }
+
+    void Setup()
+    {
+        topAccel = TopAccel{ objects };
+
+        // Create object data
+        for (auto&& object : objects) {
+            ObjectData data;
+            data.matrix = object.transform.getMatrix();
+            data.normalMatrix = object.transform.getNormalMatrix();
+            data.diffuse = glm::vec4{ object.getMaterial().diffuse, 1 };
+            data.emission = glm::vec4{ object.getMaterial().emission, 1 };
+            data.specular = glm::vec4{ 0.0f };
+            data.diffuseTexture = object.getMaterial().diffuseTexture;
+            data.alphaTexture = object.getMaterial().alphaTexture;
+            objectData.push_back(data);
+        }
+        objectBuffer = DeviceBuffer{ BufferUsage::Storage, objectData };
+        if (!pointLights.empty()) {
+            pointLightBuffer = DeviceBuffer{ BufferUsage::Storage, pointLights };
+        }
+        if (!sphereLights.empty()) {
+            sphereLightBuffer = DeviceBuffer{ BufferUsage::Storage, sphereLights };
+        }
+
+        // Buffer references
+        std::vector<BufferAddress> addresses(objects.size());
+        for (int i = 0; i < objects.size(); i++) {
+            addresses[i].vertices = objects[i].getMesh().getVertexBufferAddress();
+            addresses[i].indices = objects[i].getMesh().getIndexBufferAddress();
+            addresses[i].objects = objectBuffer.getAddress();
+            if (!pointLights.empty()) {
+                addresses[i].pointLights = pointLightBuffer.getAddress();
+            }
+            if (!sphereLights.empty()) {
+                addresses[i].sphereLights = sphereLightBuffer.getAddress();
+            }
+        }
+        addressBuffer = DeviceBuffer{ BufferUsage::Storage, addresses };
+
+        camera = Camera{ Window::getWidth(), Window::getHeight() };
+    }
+
+    void Update(float dt)
+    {
+        camera.processInput();
+    }
+
+    Mesh& AddMesh(const std::string& filepath)
+    {
+        return meshes.emplace_back(filepath);
+    }
+
+    PointLight& AddPointLight(glm::vec3 intensity, glm::vec3 position)
+    {
+        return pointLights.emplace_back(intensity, position);
+    }
+
+    SphereLight& AddSphereLight(glm::vec3 intensity, glm::vec3 position, float radius)
+    {
+        static bool added = false;
+        static int sphereMeshIndex;
+        if (!added) {
+            Material lightMaterial;
+            lightMaterial.emission = glm::vec3{ 1.0f };
+
+            Mesh& mesh = AddMesh("Sphere.obj");
+            mesh.setMaterial(lightMaterial);
+            sphereMeshIndex = meshes.size() - 1;
+        }
+        added = true;
+
+        Material lightMaterial;
+        lightMaterial.emission = intensity;
+
+        auto& obj = objects.emplace_back(meshes[sphereMeshIndex]);
+        obj.transform.position = position;
+        obj.transform.scale = glm::vec3{ radius };
+        obj.setMaterial(lightMaterial);
+
+        return sphereLights.emplace_back(intensity, position, radius);
+    }
+
+    const auto& GetAccel() const { return topAccel; }
+    const auto& GetTextures() const { return textures; }
+    const auto& GetAddressBuffer() const { return addressBuffer; }
+    auto& GetCamera() { return camera; }
+    auto& GetObjects() { return objects; }
+    auto GetBoundingBox() const { return bbox; }
+    auto GetCenter() const { return (bbox.min + bbox.max) / 2.0f; }
+    auto GetNumSphereLights() const { return sphereLights.size(); }
+
+private:
+    std::vector<Mesh> meshes;
+    std::vector<Image> textures;
+
+    std::vector<Object> objects;
+    std::vector<ObjectData> objectData;
+
+    BoundingBox bbox;
+
+    TopAccel topAccel;
+    Camera camera;
+
+    DeviceBuffer objectBuffer;
+    DeviceBuffer addressBuffer;
+
+    std::vector<PointLight> pointLights;
+    std::vector<SphereLight> sphereLights;
+    DeviceBuffer pointLightBuffer;
+    DeviceBuffer sphereLightBuffer;
+};
+
+
 int main()
 {
-    Engine::Init();
+    try {
+        Log::init();
+        Window::init(750, 750);
+        Context::init();
 
-    Scene scene{ "crytek_sponza/sponza.obj",
-                 glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 0.01f },
-                 glm::vec3{ 0.0f, glm::radians(90.0f), 0.0f } };
+        Swapchain swapchain{};
+        GUI gui{ swapchain };
 
-    BoundingBox bbox = scene.GetBoundingBox();
-    std::mt19937 mt{};
-    std::uniform_real_distribution distX{ bbox.min.x, bbox.max.x };
-    std::uniform_real_distribution distY{ bbox.min.y, bbox.max.y };
-    std::uniform_real_distribution distZ{ bbox.min.z, bbox.max.z };
-    for (int index = 0; index < 100; index++) {
-        const glm::vec3 position = glm::vec3{ distX(mt), distY(mt), distZ(mt) } / 2.5f;
-        const glm::vec3 color{ 1.0f };
-        scene.AddSphereLight(color, position, 0.1f);
-    }
-    scene.Setup();
+        Scene scene{ "crytek_sponza/sponza.obj",
+                     glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 0.01f },
+                     glm::vec3{ 0.0f, glm::radians(90.0f), 0.0f } };
 
-    auto descSet = std::make_shared<DescriptorSet>();
-
-    std::unordered_map<std::string, RayTracingPipeline> pipelines;
-    pipelines.insert({ "GBuffer", RayTracingPipeline{ descSet } });
-    pipelines.insert({ "Uniform", RayTracingPipeline{ descSet } });
-    pipelines.insert({ "WRS", RayTracingPipeline{ descSet } });
-    pipelines.insert({ "InitResev", RayTracingPipeline{ descSet } });
-    pipelines.insert({ "SpatialReuse", RayTracingPipeline{ descSet } });
-    pipelines.insert({ "TemporalReuse", RayTracingPipeline{ descSet } });
-    pipelines.insert({ "Shading", RayTracingPipeline{ descSet } });
-
-    pipelines["GBuffer"].loadShaders(SHADER_DIR + "gbuffer/gbuffer.rgen",
-                                     SHADER_DIR + "gbuffer/gbuffer.rmiss",
-                                     SHADER_DIR + "gbuffer/gbuffer.rchit");
-
-    pipelines["Uniform"].loadShaders(SHADER_DIR + "uniform_light/uniform_light.rgen",
-                                     SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
-                                     SHADER_DIR + "shadow_ray/shadow_ray.rchit");
-
-    pipelines["WRS"].loadShaders(SHADER_DIR + "wrs/wrs.rgen",
-                                 SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
-                                 SHADER_DIR + "shadow_ray/shadow_ray.rchit");
-
-    pipelines["InitResev"].loadShaders(SHADER_DIR + "restir/init_resev.rgen",
-                                       SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
-                                       SHADER_DIR + "shadow_ray/shadow_ray.rchit");
-
-    pipelines["SpatialReuse"].loadShaders(SHADER_DIR + "restir/spatial_reuse.rgen",
-                                          SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
-                                          SHADER_DIR + "shadow_ray/shadow_ray.rchit");
-
-    pipelines["TemporalReuse"].loadShaders(SHADER_DIR + "restir/temporal_reuse.rgen",
-                                           SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
-                                           SHADER_DIR + "shadow_ray/shadow_ray.rchit");
-
-    pipelines["Shading"].loadShaders(SHADER_DIR + "restir/shading.rgen",
-                                     SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
-                                     SHADER_DIR + "shadow_ray/shadow_ray.rchit");
-
-    GBuffers gbuffers;
-    OutputImage outputImage;
-    ResevImages initedResevImages;
-    ResevImages reusedResevImages;
-    ResevImages storedResevImages;
-
-    descSet->Register("topLevelAS", scene.GetAccel());
-    descSet->Register("samplers", scene.GetTextures());
-    descSet->Register("Addresses", scene.GetAddressBuffer());
-
-    descSet->record("positionImage", gbuffers.position);
-    descSet->record("normalImage", gbuffers.normal);
-    descSet->record("diffuseImage", gbuffers.diffuse);
-    descSet->record("emissionImage", gbuffers.emission);
-    descSet->record("instanceIndexImage", gbuffers.instanceIndex);
-
-    descSet->record("outputImage", outputImage.output);
-
-    descSet->record("resevSampleImage", initedResevImages.sample);
-    descSet->record("resevWeightImage", initedResevImages.weight);
-    descSet->record("newResevSampleImage", reusedResevImages.sample);
-    descSet->record("newResevWeightImage", reusedResevImages.weight);
-    descSet->record("oldResevSampleImage", storedResevImages.sample);
-    descSet->record("oldResevWeightImage", storedResevImages.weight);
-    descSet->setup();
-
-    for (auto& [name, pipeline] : pipelines) {
-        pipeline.setup(sizeof(PushConstants));
-    }
-
-    PushConstants pushConstants;
-    pushConstants.numLights = scene.GetNumSphereLights();
-    pushConstants.invProj = scene.GetCamera().GetInvProj();
-    pushConstants.invView = scene.GetCamera().GetInvView();
-    pushConstants.frame = 0;
-
-    int method = 0;
-    int iteration = 0;
-    bool temporalReuse = false;
-    constexpr int Uniform = 0;
-    constexpr int WRS = 1;
-    constexpr int ReSTIR = 2;
-    while (Engine::Update()) {
-        GUI::combo("Method", method, { "Uniform", "WRS", "ReSTIR" });
-        GUI::sliderInt("Samples", pushConstants.samples, 1, 32);
-        GUI::sliderInt("Iteration", iteration, 0, 4);
-        GUI::checkbox("Temporal reuse", temporalReuse);
-
-        scene.Update(0.1);
-        pushConstants.invProj = scene.GetCamera().GetInvProj();
-        pushConstants.invView = scene.GetCamera().GetInvView();
-        pushConstants.frame++;
-
-        Engine::Render(
-            [&](auto commandBuffer) {
-            auto width = Window::getWidth();
-        auto height = Window::getHeight();
-        pipelines["GBuffer"].run(commandBuffer, width, height, &pushConstants);
-
-        if (method == Uniform) {
-            pipelines["Uniform"].run(commandBuffer, width, height, &pushConstants);
-        } else if (method == WRS) {
-            pipelines["WRS"].run(commandBuffer, width, height, &pushConstants);
-        } else if (method == ReSTIR) {
-            pipelines["InitResev"].run(commandBuffer, width, height, &pushConstants);
-            if (temporalReuse) {
-                pipelines["TemporalReuse"].run(commandBuffer, width, height, &pushConstants);
-                reusedResevImages.Copy(commandBuffer, initedResevImages);
-            }
-            initedResevImages.Copy(commandBuffer, storedResevImages);
-            for (int i = 0; i < iteration; i++) {
-                pipelines["SpatialReuse"].run(commandBuffer, width, height, &pushConstants);
-                reusedResevImages.Copy(commandBuffer, initedResevImages);
-            }
-            pipelines["Shading"].run(commandBuffer, width, height, &pushConstants);
+        BoundingBox bbox = scene.GetBoundingBox();
+        std::mt19937 mt{};
+        std::uniform_real_distribution distX{ bbox.min.x, bbox.max.x };
+        std::uniform_real_distribution distY{ bbox.min.y, bbox.max.y };
+        std::uniform_real_distribution distZ{ bbox.min.z, bbox.max.z };
+        for (int index = 0; index < 100; index++) {
+            const glm::vec3 position = glm::vec3{ distX(mt), distY(mt), distZ(mt) } / 2.5f;
+            const glm::vec3 color{ 1.0f };
+            scene.AddSphereLight(color, position, 0.1f);
         }
-        Context::copyToBackImage(commandBuffer, outputImage.output);
-        });
+        scene.Setup();
+
+        auto descSet = std::make_shared<DescriptorSet>();
+
+        std::unordered_map<std::string, RayTracingPipeline> pipelines;
+        pipelines.insert({ "GBuffer", RayTracingPipeline{ descSet } });
+        pipelines.insert({ "Uniform", RayTracingPipeline{ descSet } });
+        //pipelines.insert({ "WRS", RayTracingPipeline{ descSet } });
+        //pipelines.insert({ "InitResev", RayTracingPipeline{ descSet } });
+        //pipelines.insert({ "SpatialReuse", RayTracingPipeline{ descSet } });
+        //pipelines.insert({ "TemporalReuse", RayTracingPipeline{ descSet } });
+        //pipelines.insert({ "Shading", RayTracingPipeline{ descSet } });
+
+        pipelines["GBuffer"].loadShaders(SHADER_DIR + "gbuffer/gbuffer.rgen",
+                                         SHADER_DIR + "gbuffer/gbuffer.rmiss",
+                                         SHADER_DIR + "gbuffer/gbuffer.rchit");
+
+        pipelines["Uniform"].loadShaders(SHADER_DIR + "uniform_light/uniform_light.rgen",
+                                         SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
+                                         SHADER_DIR + "shadow_ray/shadow_ray.rchit");
+
+        //pipelines["WRS"].loadShaders(SHADER_DIR + "wrs/wrs.rgen",
+        //                             SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
+        //                             SHADER_DIR + "shadow_ray/shadow_ray.rchit");
+
+        //pipelines["InitResev"].loadShaders(SHADER_DIR + "restir/init_resev.rgen",
+        //                                   SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
+        //                                   SHADER_DIR + "shadow_ray/shadow_ray.rchit");
+
+        //pipelines["SpatialReuse"].loadShaders(SHADER_DIR + "restir/spatial_reuse.rgen",
+        //                                      SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
+        //                                      SHADER_DIR + "shadow_ray/shadow_ray.rchit");
+
+        //pipelines["TemporalReuse"].loadShaders(SHADER_DIR + "restir/temporal_reuse.rgen",
+        //                                       SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
+        //                                       SHADER_DIR + "shadow_ray/shadow_ray.rchit");
+
+        //pipelines["Shading"].loadShaders(SHADER_DIR + "restir/shading.rgen",
+        //                                 SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
+        //                                 SHADER_DIR + "shadow_ray/shadow_ray.rchit");
+
+        GBuffers gbuffers;
+        OutputImage outputImage;
+        ResevImages initedResevImages;
+        ResevImages reusedResevImages;
+        ResevImages storedResevImages;
+
+        descSet->record("topLevelAS", scene.GetAccel());
+        descSet->record("samplers", scene.GetTextures());
+        descSet->record("Addresses", scene.GetAddressBuffer());
+
+        descSet->record("positionImage", gbuffers.position);
+        descSet->record("normalImage", gbuffers.normal);
+        descSet->record("diffuseImage", gbuffers.diffuse);
+        descSet->record("emissionImage", gbuffers.emission);
+        descSet->record("instanceIndexImage", gbuffers.instanceIndex);
+
+        descSet->record("outputImage", outputImage.output);
+
+        //descSet->record("resevSampleImage", initedResevImages.sample);
+        //descSet->record("resevWeightImage", initedResevImages.weight);
+        //descSet->record("newResevSampleImage", reusedResevImages.sample);
+        //descSet->record("newResevWeightImage", reusedResevImages.weight);
+        //descSet->record("oldResevSampleImage", storedResevImages.sample);
+        //descSet->record("oldResevWeightImage", storedResevImages.weight);
+        descSet->setup();
+
+        for (auto& [name, pipeline] : pipelines) {
+            pipeline.setup(sizeof(PushConstants));
+        }
+
+        PushConstants pushConstants;
+        pushConstants.numLights = scene.GetNumSphereLights();
+        pushConstants.invProj = scene.GetCamera().getInvProj();
+        pushConstants.invView = scene.GetCamera().getInvView();
+        pushConstants.frame = 0;
+
+        int method = 0;
+        int iteration = 0;
+        bool temporalReuse = false;
+        constexpr int Uniform = 0;
+        constexpr int WRS = 1;
+        constexpr int ReSTIR = 2;
+        while (!Window::shouldClose()) {
+            Window::pollEvents();
+
+            gui.startFrame();
+            gui.combo("Method", method, { "Uniform", "WRS", "ReSTIR" });
+            gui.sliderInt("Samples", pushConstants.samples, 1, 32);
+            gui.sliderInt("Iteration", iteration, 0, 4);
+            gui.checkbox("Temporal reuse", temporalReuse);
+
+            scene.Update(0.1);
+            pushConstants.invProj = scene.GetCamera().getInvProj();
+            pushConstants.invView = scene.GetCamera().getInvView();
+            pushConstants.frame++;
+
+            auto width = Window::getWidth();
+            auto height = Window::getHeight();
+
+            swapchain.waitNextFrame();
+            CommandBuffer commandBuffer = swapchain.beginCommandBuffer();
+
+            commandBuffer.bindPipeline(pipelines["GBuffer"]);
+            commandBuffer.pushConstants(pipelines["GBuffer"], &pushConstants);
+            commandBuffer.traceRays(pipelines["GBuffer"], width, height);
+
+            commandBuffer.bindPipeline(pipelines["Uniform"]);
+            commandBuffer.pushConstants(pipelines["Uniform"], &pushConstants);
+            commandBuffer.traceRays(pipelines["Uniform"], width, height);
+
+            //if (method == Uniform) {
+            //    pipelines["Uniform"].run(commandBuffer, width, height, &pushConstants);
+            //} else if (method == WRS) {
+            //    pipelines["WRS"].run(commandBuffer, width, height, &pushConstants);
+            //} else if (method == ReSTIR) {
+            //    pipelines["InitResev"].run(commandBuffer, width, height, &pushConstants);
+            //    if (temporalReuse) {
+            //        pipelines["TemporalReuse"].run(commandBuffer, width, height, &pushConstants);
+            //        reusedResevImages.Copy(commandBuffer, initedResevImages);
+            //    }
+            //    initedResevImages.Copy(commandBuffer, storedResevImages);
+            //    for (int i = 0; i < iteration; i++) {
+            //        pipelines["SpatialReuse"].run(commandBuffer, width, height, &pushConstants);
+            //        reusedResevImages.Copy(commandBuffer, initedResevImages);
+            //    }
+            //    pipelines["Shading"].run(commandBuffer, width, height, &pushConstants);
+            //}
+
+            commandBuffer.copyToBackImage(outputImage.output);
+
+            commandBuffer.beginRenderPass();
+            commandBuffer.drawGUI(gui);
+            commandBuffer.endRenderPass();
+
+            commandBuffer.submit();
+
+            swapchain.present();
+        }
+        Context::waitIdle();
+        Window::shutdown();
+    } catch (const std::exception& e) {
+        Log::error(e.what());
     }
-    Engine::Shutdown();
 }

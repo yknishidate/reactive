@@ -69,7 +69,7 @@ void Loader::loadFromFile(const std::string& filepath,
 }
 
 // Load as multiple mesh
-void Loader::loadFromFile(const std::string& filepath, std::vector<std::shared_ptr<Mesh>>& meshes)
+void Loader::loadFromFile(const std::string& filepath, std::vector<Mesh>& meshes)
 {
     spdlog::info("Load file: {}", filepath);
     tinyobj::attrib_t attrib;
@@ -90,17 +90,18 @@ void Loader::loadFromFile(const std::string& filepath, std::vector<std::shared_p
         mats[i].emission = { materials[i].emission[0], materials[i].emission[1], materials[i].emission[2] };
     }
 
+    meshes.reserve(shapes.size());
     for (const auto& shape : shapes) {
         std::vector<Vertex> vertices{};
         std::vector<uint32_t> indices{};
         LoadShape(attrib, shape, vertices, indices);
         int matIndex = shape.mesh.material_ids[0];
-        meshes.push_back(std::make_shared<Mesh>(vertices, indices, mats[matIndex]));
+        meshes.emplace_back(vertices, indices, mats[matIndex]);
     }
 }
 
 void Loader::loadFromFile(const std::string& filepath,
-                          std::vector<std::shared_ptr<Mesh>>& meshes,
+                          std::vector<Mesh>& meshes,
                           std::vector<Image>& textures)
 {
     spdlog::info("Load file: {}", filepath);
@@ -183,10 +184,11 @@ void Loader::loadFromFile(const std::string& filepath,
         LoadShape(attrib, shape, vertices, indices);
         int matIndex = shape.mesh.material_ids[0];
 
+        meshes.reserve(shapes.size());
         if (matIndex >= 0) {
-            meshes.push_back(std::make_shared<Mesh>(vertices, indices, mats[matIndex]));
+            meshes.emplace_back(vertices, indices, mats[matIndex]);
         } else {
-            meshes.push_back(std::make_shared<Mesh>(vertices, indices));
+            meshes.emplace_back(vertices, indices);
         }
     }
 }

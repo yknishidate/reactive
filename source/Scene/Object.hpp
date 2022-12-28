@@ -35,6 +35,8 @@ public:
     Material getMaterial();
     void setMaterial(const Material& material);
 
+    const Mesh& getMesh() const { return *mesh; }
+
     Transform transform{};
 
     auto createInstance() const

@@ -40,6 +40,7 @@ Buffer::Buffer(BufferUsage usage, vk::MemoryPropertyFlags memoryProp, size_t siz
             usageFlag = vk::BufferUsageFlagBits::eStorageBuffer |
                 vk::BufferUsageFlagBits::eTransferDst |
                 vk::BufferUsageFlagBits::eShaderDeviceAddress;
+            break;
         case BufferUsage::ShaderBindingTable:
             usageFlag = vk::BufferUsageFlagBits::eShaderBindingTableKHR |
                 vk::BufferUsageFlagBits::eShaderDeviceAddress |
