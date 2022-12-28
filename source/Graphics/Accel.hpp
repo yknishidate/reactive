@@ -35,5 +35,5 @@ private:
     vk::UniqueAccelerationStructureKHR accel;
     DeviceBuffer buffer;
     DeviceBuffer instanceBuffer;
-    InstancesGeometry geometry;  // TODO: remove
+    InstancesGeometry geometry;
 };

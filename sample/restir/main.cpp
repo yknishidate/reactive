@@ -95,7 +95,7 @@ public:
         topAccel = TopAccel{objects};
 
         // Create object data
-        for (auto&& object : objects) {
+        for (auto& object : objects) {
             ObjectData data;
             data.matrix = object.transform.getMatrix();
             data.normalMatrix = object.transform.getNormalMatrix();

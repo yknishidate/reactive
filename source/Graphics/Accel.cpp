@@ -3,7 +3,7 @@
 #include "Scene/Object.hpp"
 
 namespace {
-vk::UniqueAccelerationStructureKHR CreateAccel(vk::Buffer buffer,
+vk::UniqueAccelerationStructureKHR createAccel(vk::Buffer buffer,
                                                vk::DeviceSize size,
                                                vk::AccelerationStructureTypeKHR type) {
     vk::AccelerationStructureCreateInfoKHR accelInfo;
@@ -13,11 +13,11 @@ vk::UniqueAccelerationStructureKHR CreateAccel(vk::Buffer buffer,
     return Context::getDevice().createAccelerationStructureKHRUnique(accelInfo);
 }
 
-void BuildAccel(vk::AccelerationStructureKHR accel,
+void buildAccel(vk::AccelerationStructureKHR accel,
                 vk::DeviceSize size,
                 uint32_t primitiveCount,
                 vk::AccelerationStructureBuildGeometryInfoKHR geometryInfo) {
-    const DeviceBuffer scratchBuffer{BufferUsage::Scratch, size};
+    DeviceBuffer scratchBuffer{BufferUsage::Scratch, size};
 
     geometryInfo.setScratchData(scratchBuffer.getAddress());
     geometryInfo.setDstAccelerationStructure(accel);
@@ -36,8 +36,8 @@ BottomAccel::BottomAccel(const Mesh& mesh, vk::GeometryFlagBitsKHR geometryFlag)
     auto type = vk::AccelerationStructureTypeKHR::eBottomLevel;
 
     buffer = geometry.createAccelBuffer();
-    accel = CreateAccel(buffer.getBuffer(), size, type);
-    BuildAccel(*accel, size, primitiveCount, geometry.getInfo());
+    accel = createAccel(buffer.getBuffer(), size, type);
+    buildAccel(*accel, size, primitiveCount, geometry.getInfo());
 }
 
 TopAccel::TopAccel(const ArrayProxy<Object>& objects, vk::GeometryFlagBitsKHR geometryFlag) {
@@ -59,14 +59,14 @@ TopAccel::TopAccel(const ArrayProxy<Object>& objects, vk::GeometryFlagBitsKHR ge
     auto size = geometry.getAccelSize();
 
     buffer = geometry.createAccelBuffer();
-    accel = CreateAccel(buffer.getBuffer(), size, vk::AccelerationStructureTypeKHR::eTopLevel);
-    BuildAccel(*accel, size, primitiveCount, geometry.getInfo());
+    accel = createAccel(buffer.getBuffer(), size, vk::AccelerationStructureTypeKHR::eTopLevel);
+    buildAccel(*accel, size, primitiveCount, geometry.getInfo());
 }
 
 void TopAccel::rebuild(const ArrayProxy<Object>& objects) {
     // Gather instances
     std::vector<vk::AccelerationStructureInstanceKHR> instances;
-    for (auto&& object : objects) {
+    for (auto& object : objects) {
         instances.push_back(object.createInstance());
     }
 
@@ -79,6 +79,6 @@ void TopAccel::rebuild(const ArrayProxy<Object>& objects) {
 
     uint32_t primitiveCount = objects.size();
     geometry.update(instancesData);
-    const auto size = geometry.getAccelSize();
-    BuildAccel(*accel, size, primitiveCount, geometry.getInfo());
+    auto size = geometry.getAccelSize();
+    buildAccel(*accel, size, primitiveCount, geometry.getInfo());
 }

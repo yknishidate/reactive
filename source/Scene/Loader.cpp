@@ -167,7 +167,7 @@ void Loader::loadFromFile(const std::string& filepath,
 
     // load texture
     textures = std::vector<Image>(texCount);
-    for (auto&& [name, index] : textureNames) {
+    for (auto& [name, index] : textureNames) {
         std::string path = name;
         std::replace(path.begin(), path.end(), '\\', '/');
         path = dir + "/" + path;
