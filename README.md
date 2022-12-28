@@ -78,6 +78,7 @@ int main()
     try {
         Log::init();
         Window::init(750, 750);
+        Context::init();
         while (!Window::shouldClose()) {
             Window::pollEvents();
         }
