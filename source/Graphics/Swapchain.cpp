@@ -2,12 +2,6 @@
 #include "Context.hpp"
 #include "Window/Window.hpp"
 #include "Graphics/Image.hpp"
-#include "Graphics/Pipeline.hpp"
-#include "Scene/Mesh.hpp"
-#include "GUI/GUI.hpp"
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include "GUI/imgui_impl_vulkan_hpp.h"
 
 Swapchain::Swapchain()
     : width{ Window::getWidth() }
