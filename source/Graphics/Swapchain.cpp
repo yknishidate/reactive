@@ -24,7 +24,7 @@ Swapchain::Swapchain() : width{Window::getWidth()}, height{Window::getHeight()} 
     swapchainImages = Context::getDevice().getSwapchainImagesKHR(*swapchain);
 
     // Create image views
-    for (auto&& image : swapchainImages) {
+    for (auto& image : swapchainImages) {
         swapchainImageViews.push_back(Context::getDevice().createImageViewUnique(
             vk::ImageViewCreateInfo()
                 .setImage(image)
@@ -64,45 +64,46 @@ Swapchain::Swapchain() : width{Window::getWidth()}, height{Window::getHeight()} 
             .setSubresourceRange({vk::ImageAspectFlagBits::eDepth, 0, 1, 0, 1}));
 
     // Create render pass
-    const auto colorAttachment = vk::AttachmentDescription()
-                                     .setFormat(vk::Format::eB8G8R8A8Unorm)
-                                     .setSamples(vk::SampleCountFlagBits::e1)
-                                     .setLoadOp(vk::AttachmentLoadOp::eDontCare)
-                                     .setStoreOp(vk::AttachmentStoreOp::eStore)
-                                     .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
-                                     .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
-                                     .setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
+    vk::AttachmentDescription colorAttachment;
+    colorAttachment.setFormat(vk::Format::eB8G8R8A8Unorm);
+    colorAttachment.setSamples(vk::SampleCountFlagBits::e1);
+    colorAttachment.setLoadOp(vk::AttachmentLoadOp::eDontCare);
+    colorAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
+    colorAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
+    colorAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
+    colorAttachment.setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
 
-    const auto depthAttachment =
-        vk::AttachmentDescription()
-            .setFormat(vk::Format::eD32Sfloat)
-            .setLoadOp(vk::AttachmentLoadOp::eClear)
-            .setStoreOp(vk::AttachmentStoreOp::eDontCare)
-            .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
-            .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
-            .setInitialLayout(vk::ImageLayout::eUndefined)
-            .setFinalLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
+    vk::AttachmentDescription depthAttachment;
+    depthAttachment.setFormat(vk::Format::eD32Sfloat);
+    depthAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
+    depthAttachment.setStoreOp(vk::AttachmentStoreOp::eDontCare);
+    depthAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
+    depthAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
+    depthAttachment.setInitialLayout(vk::ImageLayout::eUndefined);
+    depthAttachment.setFinalLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
-    const auto colorAttachmentRef = vk::AttachmentReference().setAttachment(0).setLayout(
-        vk::ImageLayout::eColorAttachmentOptimal);
+    vk::AttachmentReference colorAttachmentRef;
+    colorAttachmentRef.setAttachment(0);
+    colorAttachmentRef.setLayout(vk::ImageLayout::eColorAttachmentOptimal);
 
-    const auto depthAttachmentRef = vk::AttachmentReference().setAttachment(1).setLayout(
-        vk::ImageLayout::eDepthStencilAttachmentOptimal);
+    vk::AttachmentReference depthAttachmentRef;
+    depthAttachmentRef.setAttachment(1);
+    depthAttachmentRef.setLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
-    const auto subpass = vk::SubpassDescription()
-                             .setPipelineBindPoint(vk::PipelineBindPoint::eGraphics)
-                             .setColorAttachments(colorAttachmentRef)
-                             .setPDepthStencilAttachment(&depthAttachmentRef);
+    vk::SubpassDescription subpass;
+    subpass.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics);
+    subpass.setColorAttachments(colorAttachmentRef);
+    subpass.setPDepthStencilAttachment(&depthAttachmentRef);
 
-    const auto dependency = vk::SubpassDependency()
-                                .setSrcSubpass(VK_SUBPASS_EXTERNAL)
-                                .setDstSubpass(0)
-                                .setSrcStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput |
-                                                 vk::PipelineStageFlagBits::eEarlyFragmentTests)
-                                .setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput |
-                                                 vk::PipelineStageFlagBits::eEarlyFragmentTests)
-                                .setDstAccessMask(vk::AccessFlagBits::eColorAttachmentWrite |
-                                                  vk::AccessFlagBits::eDepthStencilAttachmentWrite);
+    vk::SubpassDependency dependency;
+    dependency.setSrcSubpass(VK_SUBPASS_EXTERNAL);
+    dependency.setDstSubpass(0);
+    dependency.setSrcStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput |
+                               vk::PipelineStageFlagBits::eEarlyFragmentTests);
+    dependency.setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput |
+                               vk::PipelineStageFlagBits::eEarlyFragmentTests);
+    dependency.setDstAccessMask(vk::AccessFlagBits::eColorAttachmentWrite |
+                                vk::AccessFlagBits::eDepthStencilAttachmentWrite);
 
     std::array attachments{colorAttachment, depthAttachment};
 
@@ -132,18 +133,18 @@ Swapchain::Swapchain() : width{Window::getWidth()}, height{Window::getHeight()} 
 }
 
 void Swapchain::beginRenderPass() const {
-    const auto renderArea = vk::Rect2D().setExtent({Window::getWidth(), Window::getHeight()});
+    vk::Rect2D renderArea;
+    renderArea.setExtent({Window::getWidth(), Window::getHeight()});
 
     std::array<vk::ClearValue, 2> clearValues;
     clearValues[0].color = {std::array{0.0f, 0.0f, 0.0f, 1.0f}};
     clearValues[1].depthStencil = vk::ClearDepthStencilValue{1.0f, 0};
 
-    const auto beginInfo = vk::RenderPassBeginInfo()
-                               .setRenderPass(*renderPass)
-                               .setClearValues(clearValues)
-                               .setFramebuffer(*framebuffers[frameIndex])
-                               .setRenderArea(renderArea);
-
+    vk::RenderPassBeginInfo beginInfo;
+    beginInfo.setRenderPass(*renderPass);
+    beginInfo.setClearValues(clearValues);
+    beginInfo.setFramebuffer(*framebuffers[frameIndex]);
+    beginInfo.setRenderArea(renderArea);
     commandBuffers[frameIndex]->beginRenderPass(beginInfo, vk::SubpassContents::eInline);
 }
 
@@ -178,11 +179,11 @@ CommandBuffer Swapchain::beginCommandBuffer() {
 void Swapchain::submit() {
     commandBuffers[frameIndex]->end();
     vk::PipelineStageFlags waitStage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-    const auto submitInfo = vk::SubmitInfo()
-                                .setWaitDstStageMask(waitStage)
-                                .setCommandBuffers(*commandBuffers[frameIndex])
-                                .setWaitSemaphores(*imageAcquiredSemaphore)
-                                .setSignalSemaphores(*renderCompleteSemaphore);
+    vk::SubmitInfo submitInfo;
+    submitInfo.setWaitDstStageMask(waitStage);
+    submitInfo.setCommandBuffers(*commandBuffers[frameIndex]);
+    submitInfo.setWaitSemaphores(*imageAcquiredSemaphore);
+    submitInfo.setSignalSemaphores(*renderCompleteSemaphore);
     Context::getQueue().submit(submitInfo, *fences[frameIndex]);
 }
 
@@ -190,12 +191,10 @@ void Swapchain::present() {
     if (swapchainRebuild) {
         return;
     }
-
-    const auto presentInfo = vk::PresentInfoKHR()
-                                 .setWaitSemaphores(*renderCompleteSemaphore)
-                                 .setSwapchains(*swapchain)
-                                 .setImageIndices(frameIndex);
-
+    vk::PresentInfoKHR presentInfo;
+    presentInfo.setWaitSemaphores(*renderCompleteSemaphore);
+    presentInfo.setSwapchains(*swapchain);
+    presentInfo.setImageIndices(frameIndex);
     if (Context::getQueue().presentKHR(presentInfo) != vk::Result::eSuccess) {
         swapchainRebuild = true;
         return;
@@ -211,23 +210,16 @@ void Swapchain::copyToBackImage(vk::CommandBuffer commandBuffer, const Image& so
 
     vk::Image backImage = getBackImage();
     vk::Image sourceImage = source.getImage();
-    Image::setImageLayout(commandBuffer, sourceImage, vk::ImageLayout::eGeneral,
-                          vk::ImageLayout::eTransferSrcOptimal);
-    Image::setImageLayout(commandBuffer, backImage, vk::ImageLayout::eUndefined,
-                          vk::ImageLayout::eTransferDstOptimal);
-
+    Image::setImageLayout(commandBuffer, sourceImage, vk::ImageLayout::eTransferSrcOptimal);
+    Image::setImageLayout(commandBuffer, backImage, vk::ImageLayout::eTransferDstOptimal);
     commandBuffer.copyImage(sourceImage, vk::ImageLayout::eTransferSrcOptimal, backImage,
                             vk::ImageLayout::eTransferDstOptimal, copyRegion);
-
-    Image::setImageLayout(commandBuffer, sourceImage, vk::ImageLayout::eTransferSrcOptimal,
-                          vk::ImageLayout::eGeneral);
-    Image::setImageLayout(commandBuffer, backImage, vk::ImageLayout::eTransferDstOptimal,
-                          vk::ImageLayout::ePresentSrcKHR);
+    Image::setImageLayout(commandBuffer, sourceImage, vk::ImageLayout::eGeneral);
+    Image::setImageLayout(commandBuffer, backImage, vk::ImageLayout::ePresentSrcKHR);
 }
 
 void Swapchain::clearBackImage(vk::CommandBuffer commandBuffer, std::array<float, 4> color) {
-    Image::setImageLayout(commandBuffer, getBackImage(), vk::ImageLayout::eUndefined,
-                          vk::ImageLayout::eTransferDstOptimal);
+    Image::setImageLayout(commandBuffer, getBackImage(), vk::ImageLayout::eTransferDstOptimal);
     commandBuffer.clearColorImage(
         getBackImage(), vk::ImageLayout::eTransferDstOptimal, vk::ClearColorValue{color},
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1});

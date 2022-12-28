@@ -53,7 +53,7 @@ private:
     static inline vk::UniqueSurfaceKHR surface;
     static inline vk::UniqueDevice device;
     static inline vk::PhysicalDevice physicalDevice;
-    static inline uint32_t queueFamily = std::numeric_limits<uint32_t>::max();
+    static inline uint32_t queueFamily = ~0u;
     static inline vk::Queue queue;
     static inline vk::UniqueCommandPool commandPool;
     static inline vk::UniqueDescriptorPool descriptorPool;

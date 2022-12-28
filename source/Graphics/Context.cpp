@@ -10,15 +10,16 @@ void Context::init() {
     spdlog::info("Context::Init()");
 
     static const vk::DynamicLoader dl;
-    const auto vkGetInstanceProcAddr =
+    auto vkGetInstanceProcAddr =
         dl.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
     VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
 
     // Create instance
     std::vector instanceExtensions = Window::getExtensions();
     std::vector layers{"VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_monitor"};
-    const auto appInfo = vk::ApplicationInfo().setApiVersion(VK_API_VERSION_1_3);
 
+    vk::ApplicationInfo appInfo;
+    appInfo.setApiVersion(VK_API_VERSION_1_3);
     instance = vk::createInstanceUnique(vk::InstanceCreateInfo()
                                             .setPApplicationInfo(&appInfo)
                                             .setPEnabledExtensionNames(instanceExtensions)
@@ -53,16 +54,16 @@ void Context::init() {
             }
         }
     }
-    if (queueFamily == std::numeric_limits<uint32_t>::max()) {
+    if (queueFamily == ~0u) {
         throw std::runtime_error("Failed to find queue family.");
     }
 
     // Create device
     float queuePriority = 1.0f;
-    auto queueInfo = vk::DeviceQueueCreateInfo()
-                         .setQueueFamilyIndex(queueFamily)
-                         .setQueueCount(1)
-                         .setPQueuePriorities(&queuePriority);
+    vk::DeviceQueueCreateInfo queueInfo;
+    queueInfo.setQueueFamilyIndex(queueFamily);
+    queueInfo.setQueueCount(1);
+    queueInfo.setPQueuePriorities(&queuePriority);
 
     std::vector deviceExtensions{
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
@@ -77,18 +78,18 @@ void Context::init() {
         VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME,
     };
 
-    auto deviceFeatures = vk::PhysicalDeviceFeatures()
-                              .setShaderInt64(true)
-                              .setFragmentStoresAndAtomics(true)
-                              .setVertexPipelineStoresAndAtomics(true);
+    vk::PhysicalDeviceFeatures deviceFeatures;
+    deviceFeatures.setShaderInt64(true);
+    deviceFeatures.setFragmentStoresAndAtomics(true);
+    deviceFeatures.setVertexPipelineStoresAndAtomics(true);
 
-    auto descFeatures =
-        vk::PhysicalDeviceDescriptorIndexingFeatures().setRuntimeDescriptorArray(true);
+    vk::PhysicalDeviceDescriptorIndexingFeatures descFeatures;
+    descFeatures.setRuntimeDescriptorArray(true);
 
-    auto deviceInfo = vk::DeviceCreateInfo()
-                          .setQueueCreateInfos(queueInfo)
-                          .setPEnabledExtensionNames(deviceExtensions)
-                          .setPEnabledFeatures(&deviceFeatures);
+    vk::DeviceCreateInfo deviceInfo;
+    deviceInfo.setQueueCreateInfos(queueInfo);
+    deviceInfo.setPEnabledExtensionNames(deviceExtensions);
+    deviceInfo.setPEnabledFeatures(&deviceFeatures);
 
     vk::StructureChain<vk::DeviceCreateInfo, vk::PhysicalDeviceBufferDeviceAddressFeatures,
                        vk::PhysicalDeviceRayTracingPipelineFeaturesKHR,

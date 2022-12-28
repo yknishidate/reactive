@@ -46,28 +46,26 @@ WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding) {
 
 void DescriptorSet::allocate() {
     std::vector<vk::DescriptorSetLayoutBinding> bindings;
-    for (auto&& [name, binding] : bindingMap) {
+    for (auto& [name, binding] : bindingMap) {
         bindings.push_back(binding);
     }
 
     descSetLayout = Context::getDevice().createDescriptorSetLayoutUnique(
         vk::DescriptorSetLayoutCreateInfo().setBindings(bindings));
 
-    descSet = std::move(
-        Context::getDevice()
-            .allocateDescriptorSetsUnique(vk::DescriptorSetAllocateInfo()
-                                              .setDescriptorPool(Context::getDescriptorPool())
-                                              .setSetLayouts(*descSetLayout))
-            .front());
+    vk::DescriptorSetAllocateInfo descSetInfo;
+    descSetInfo.setDescriptorPool(Context::getDescriptorPool());
+    descSetInfo.setSetLayouts(*descSetLayout);
+    descSet = std::move(Context::getDevice().allocateDescriptorSetsUnique(descSetInfo).front());
     update();
 }
 
 void DescriptorSet::update() {
     std::vector<vk::WriteDescriptorSet> _writes;
-    for (auto&& write : writes) {
+    for (auto& write : writes) {
         _writes.push_back(write.get());
     }
-    for (auto&& write : _writes) {
+    for (auto& write : _writes) {
         write.setDstSet(*descSet);
     }
     Context::getDevice().updateDescriptorSets(_writes, nullptr);
@@ -76,7 +74,7 @@ void DescriptorSet::update() {
 void DescriptorSet::record(const std::string& name, const std::vector<Image>& images) {
     std::vector<vk::DescriptorImageInfo> infos;
     infos.reserve(images.size());
-    for (auto&& image : images) {
+    for (auto& image : images) {
         infos.push_back(image.getInfo());
     }
 
@@ -104,19 +102,19 @@ void DescriptorSet::addResources(const Shader& shader) {
     spirv_cross::CompilerGLSL glsl{shader.getSpvCode()};
     spirv_cross::ShaderResources resources = glsl.get_shader_resources();
 
-    for (auto&& resource : resources.uniform_buffers) {
+    for (auto& resource : resources.uniform_buffers) {
         updateBindingMap(resource, glsl, stage, vk::DescriptorType::eUniformBuffer);
     }
-    for (auto&& resource : resources.acceleration_structures) {
+    for (auto& resource : resources.acceleration_structures) {
         updateBindingMap(resource, glsl, stage, vk::DescriptorType::eAccelerationStructureKHR);
     }
-    for (auto&& resource : resources.storage_buffers) {
+    for (auto& resource : resources.storage_buffers) {
         updateBindingMap(resource, glsl, stage, vk::DescriptorType::eStorageBuffer);
     }
-    for (auto&& resource : resources.storage_images) {
+    for (auto& resource : resources.storage_images) {
         updateBindingMap(resource, glsl, stage, vk::DescriptorType::eStorageImage);
     }
-    for (auto&& resource : resources.sampled_images) {
+    for (auto& resource : resources.sampled_images) {
         updateBindingMap(resource, glsl, stage, vk::DescriptorType::eCombinedImageSampler);
     }
 }
@@ -124,10 +122,12 @@ void DescriptorSet::addResources(const Shader& shader) {
 vk::UniquePipelineLayout DescriptorSet::createPipelineLayout(
     size_t pushSize,
     vk::ShaderStageFlags shaderStage) const {
-    const auto pushRange =
-        vk::PushConstantRange().setOffset(0).setSize(pushSize).setStageFlags(shaderStage);
+    vk::PushConstantRange pushRange;
+    pushRange.setOffset(0);
+    pushRange.setSize(pushSize);
+    pushRange.setStageFlags(shaderStage);
 
-    auto layoutInfo = vk::PipelineLayoutCreateInfo();
+    vk::PipelineLayoutCreateInfo layoutInfo;
     if (!writes.empty()) {
         layoutInfo.setSetLayouts(*descSetLayout);
     }

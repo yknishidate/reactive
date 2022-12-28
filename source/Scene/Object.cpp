@@ -15,11 +15,6 @@ vk::TransformMatrixKHR Transform::getVkMatrix() const {
     return vk::TransformMatrixKHR{data};
 }
 
-// Object::Object(std::shared_ptr<Mesh> mesh)
-//     : mesh{ mesh }
-//{
-// }
-
 Object::Object(const Mesh& mesh) : mesh{&mesh} {}
 
 Material Object::getMaterial() {

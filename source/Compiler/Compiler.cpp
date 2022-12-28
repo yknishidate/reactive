@@ -192,7 +192,7 @@ std::vector<uint32_t> compileToSPV(const std::string& glslCode, EShLanguage stag
                         glslang::EShTargetLanguageVersion::EShTargetSpv_1_4);
     shader.setStrings(&shaderStrings, 1);
 
-    constexpr auto messages = static_cast<EShMessages>(EShMsgSpvRules | EShMsgVulkanRules);
+    auto messages = static_cast<EShMessages>(EShMsgSpvRules | EShMsgVulkanRules);
     if (!shader.parse(&DefaultTBuiltInResource, 100, false, messages)) {
         spdlog::error("Failed to parse:\n" + glslCode + "\n" + shader.getInfoLog());
     }

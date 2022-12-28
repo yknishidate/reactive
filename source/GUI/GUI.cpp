@@ -109,7 +109,7 @@ bool GUI::checkbox(const std::string& label, int& value) {
 
 bool GUI::combo(const std::string& label, int& value, const std::vector<std::string>& items) {
     std::string concated;
-    for (auto&& item : items) {
+    for (auto& item : items) {
         concated += item + '\0';
     }
     return ImGui::Combo(label.c_str(), &value, concated.c_str());

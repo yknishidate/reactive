@@ -85,17 +85,16 @@ Image::Image(uint32_t width, uint32_t height, vk::Format format) : width{width},
 Image::Image(vk::Format format) : Image(Window::getWidth(), Window::getHeight(), format) {}
 
 Image::Image(const std::string& filepath) {
-    int width;
-    int height;
+    int w;
+    int h;
     int channels;
-    unsigned char* data =
-        stbi_load(filepath.c_str(), &width, &height, &channels, sizeof(unsigned char) * 4);
+    unsigned char* data = stbi_load(filepath.c_str(), &w, &h, &channels, sizeof(unsigned char) * 4);
     if (!data) {
         throw std::runtime_error("Failed to load texture: " + filepath);
     }
 
-    this->width = width;
-    this->height = height;
+    width = w;
+    height = h;
     image = CreateImage(width, height, vk::Format::eR8G8B8A8Unorm);
     memory = AllocateMemory(*image);
     Context::getDevice().bindImageMemory(*image, *memory, 0);
@@ -111,8 +110,7 @@ Image::Image(const std::string& filepath) {
         region.imageSubresource.mipLevel = 0;
         region.imageSubresource.baseArrayLayer = 0;
         region.imageSubresource.layerCount = 1;
-        region.imageExtent =
-            vk::Extent3D{static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1};
+        region.imageExtent = vk::Extent3D{width, height, 1};
 
         setImageLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);
         commandBuffer.copyBufferToImage(staging.getBuffer(), *image,
@@ -124,6 +122,7 @@ Image::Image(const std::string& filepath) {
 }
 
 Image::Image(const std::vector<std::string>& filepaths) {
+    // TODO: Don't repeat yourself
     int width;
     int height;
     int channels;
@@ -173,7 +172,7 @@ Image::Image(const std::vector<std::string>& filepaths) {
 }
 
 void Image::setImageLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout newLayout) {
-    setImageLayout(commandBuffer, *image, layout, newLayout);
+    setImageLayout(commandBuffer, *image, newLayout);
     layout = newLayout;
 }
 
@@ -234,7 +233,6 @@ void Image::save(const std::string& filepath) {
 
 void Image::setImageLayout(vk::CommandBuffer commandBuffer,
                            vk::Image image,
-                           vk::ImageLayout oldLayout,
                            vk::ImageLayout newLayout) {
     vk::PipelineStageFlags srcStageMask = vk::PipelineStageFlagBits::eAllCommands;
     vk::PipelineStageFlags dstStageMask = vk::PipelineStageFlagBits::eAllCommands;
@@ -243,23 +241,9 @@ void Image::setImageLayout(vk::CommandBuffer commandBuffer,
     barrier.setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
     barrier.setSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
     barrier.setImage(image);
-    barrier.setOldLayout(oldLayout);
+    barrier.setOldLayout(vk::ImageLayout::eUndefined);
     barrier.setNewLayout(newLayout);
     barrier.setSubresourceRange({vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1});
-
-    switch (oldLayout) {
-        case vk::ImageLayout::eColorAttachmentOptimal:
-            barrier.srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
-            break;
-        case vk::ImageLayout::eTransferSrcOptimal:
-            barrier.srcAccessMask = vk::AccessFlagBits::eTransferRead;
-            break;
-        case vk::ImageLayout::eTransferDstOptimal:
-            barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
-            break;
-        default:
-            break;
-    }
     switch (newLayout) {
         case vk::ImageLayout::eTransferDstOptimal:
             barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;

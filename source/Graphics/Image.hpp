@@ -24,7 +24,6 @@ public:
 
     static void setImageLayout(vk::CommandBuffer commandBuffer,
                                vk::Image image,
-                               vk::ImageLayout oldLayout,
                                vk::ImageLayout newLayout);
 
 private:
