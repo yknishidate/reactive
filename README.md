@@ -59,15 +59,15 @@ cd project_name
 git init
 
 # add Reactive
-git submodule add https://github.com/yknishidate/Reactive
+git submodule add https://github.com/yknishidate/Reactive.git
 ```
 
 2. Add `main.cpp`
 
 ```
 project_name/
-  - main.cpp
   - Reactive/
+  - main.cpp
 ```
 
 ```cpp
@@ -90,6 +90,13 @@ int main()
 ```
 
 3. Add `CMakeLists.txt`
+
+```
+project_name/
+  - Reactive/
+  - main.cpp
+  - CMakeLists.txt
+```
 
 ```cmake
 cmake_minimum_required(VERSION 3.16)
