@@ -1,6 +1,6 @@
 #include "Shader.hpp"
 
-inline Shader::Shader(const std::string& filepath)
+Shader::Shader(const std::string& filepath)
 {
     spvCode = Compiler::compileToSPV(filepath);
 
