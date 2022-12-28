@@ -5,20 +5,19 @@ class Image;
 
 struct Swapchain
 {
-    Swapchain() = default;
-    Swapchain(vk::Device device, vk::SurfaceKHR surface, uint32_t queueFamily);
+    Swapchain();
 
     void beginRenderPass() const;
 
     void endRenderPass() const;
 
-    void waitNextFrame(vk::Device device);
+    void waitNextFrame();
 
     vk::CommandBuffer beginCommandBuffer();
 
-    void submit(vk::Queue queue);
+    void submit();
 
-    void present(vk::Queue queue);
+    void present();
 
     vk::RenderingAttachmentInfo getColorAttachmentInfo() const
     {
@@ -67,6 +66,8 @@ struct Swapchain
     auto getMinImageCount() const { return minImageCount; }
     auto getRenderPass() const { return *renderPass; }
     auto getCurrentCommandBuffer() const { return *commandBuffers[frameIndex]; }
+
+    void clearBackImage(vk::CommandBuffer commandBuffer, std::array<float, 4> color);
 
     vk::UniqueSwapchainKHR swapchain;
     std::vector<vk::Image> swapchainImages;

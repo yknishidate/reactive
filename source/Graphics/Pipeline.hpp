@@ -44,7 +44,7 @@ public:
     GraphicsPipeline(std::shared_ptr<DescriptorSet> descSet) : Pipeline(descSet) {}
 
     void loadShaders(const std::string& vertPath, const std::string& fragPath);
-    void setup(size_t pushSize = 0);
+    void setup(Swapchain& swapchain, size_t pushSize = 0);
     void bind(vk::CommandBuffer commandBuffer) override;
     void pushConstants(vk::CommandBuffer commandBuffer, void* pushData) override;
 

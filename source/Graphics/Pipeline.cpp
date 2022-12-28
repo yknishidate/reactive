@@ -17,7 +17,7 @@ vk::UniqueShaderModule CreateShaderModule(const std::vector<uint32_t>& code)
 }
 
 vk::UniquePipeline CreateGraphicsPipeline(vk::ShaderModule vertModule, vk::ShaderModule fragModule,
-                                          vk::PipelineLayout pipelineLayout)
+                                          vk::PipelineLayout pipelineLayout, vk::RenderPass renderPass)
 {
     vk::PipelineShaderStageCreateInfo vertShaderStageInfo;
     vertShaderStageInfo.setStage(vk::ShaderStageFlagBits::eVertex);
@@ -90,7 +90,7 @@ vk::UniquePipeline CreateGraphicsPipeline(vk::ShaderModule vertModule, vk::Shade
     pipelineInfo.setPColorBlendState(&colorBlending);
     pipelineInfo.setLayout(pipelineLayout);
     pipelineInfo.setSubpass(0);
-    pipelineInfo.setRenderPass(Context::getSwapchain().getRenderPass());
+    pipelineInfo.setRenderPass(renderPass);
 
     auto result = Context::getDevice().createGraphicsPipelineUnique({}, pipelineInfo);
     if (result.result != vk::Result::eSuccess) {
@@ -181,7 +181,7 @@ void GraphicsPipeline::loadShaders(const std::string& vertPath, const std::strin
     fragModule = CreateShaderModule(fragCode);
 }
 
-void GraphicsPipeline::setup(size_t pushSize)
+void GraphicsPipeline::setup(Swapchain& swapchain, size_t pushSize)
 {
     this->pushSize = pushSize;
     if (recorded) {
@@ -197,7 +197,7 @@ void GraphicsPipeline::setup(size_t pushSize)
 
         pipelineLayout = Context::getDevice().createPipelineLayoutUnique(layoutInfo);
     }
-    pipeline = CreateGraphicsPipeline(*vertModule, *fragModule, *pipelineLayout);
+    pipeline = CreateGraphicsPipeline(*vertModule, *fragModule, *pipelineLayout, swapchain.getRenderPass());
 }
 
 void GraphicsPipeline::bind(vk::CommandBuffer commandBuffer)
@@ -306,7 +306,6 @@ void RayTracingPipeline::loadShaders(const std::string& rgenPath, const std::str
     descSet->addBindingMap(missShader, vk::ShaderStageFlagBits::eMissKHR);
     descSet->addBindingMap(chitShader, vk::ShaderStageFlagBits::eClosestHitKHR);
     descSet->addBindingMap(ahitShader, vk::ShaderStageFlagBits::eAnyHitKHR);
-
 
     shaderModules.push_back(CreateShaderModule(rgenShader));
     shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eRaygenKHR, *shaderModules.back(), "main" });

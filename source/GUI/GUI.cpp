@@ -5,10 +5,11 @@
 #include "GUI/GUI.hpp"
 #include "Window/Window.hpp"
 #include "Graphics/Context.hpp"
+#include "Graphics/Swapchain.hpp"
 
-void GUI::init()
+GUI::GUI(Swapchain& swapchain)
 {
-    spdlog::info("GUI::Init()");
+    spdlog::info("GUI::GUI()");
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -58,11 +59,11 @@ void GUI::init()
     initInfo.PipelineCache = nullptr;
     initInfo.DescriptorPool = Context::getDescriptorPool();
     initInfo.Subpass = 0;
-    initInfo.MinImageCount = Context::getMinImageCount();
-    initInfo.ImageCount = Context::getImageCount();
+    initInfo.MinImageCount = swapchain.getMinImageCount();
+    initInfo.ImageCount = swapchain.getImageCount();
     initInfo.MSAASamples = vk::SampleCountFlagBits::e1;
     initInfo.Allocator = nullptr;
-    ImGui_ImplVulkan_Init(&initInfo, Context::getRenderPass());
+    ImGui_ImplVulkan_Init(&initInfo, swapchain.getRenderPass());
 
     // Setup font
     io.Fonts->AddFontFromFileTTF("../../../asset/Roboto-Medium.ttf", 24.0f);
@@ -77,7 +78,7 @@ void GUI::init()
     }
 }
 
-void GUI::shutdown()
+GUI::~GUI()
 {
     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplGlfw_Shutdown();

@@ -13,7 +13,9 @@ int main()
         Log::init();
         Window::init(750, 750);
         Context::init();
-        GUI::init();
+
+        Swapchain swapchain{};
+        GUI gui{ swapchain };
 
         //std::vector<Vertex> vertices{ {{-1, 0, 0}}, {{ 0, -1, 0}}, {{ 1, 0, 0}} };
         //std::vector<Index> indices{ 0, 1, 2 };
@@ -25,7 +27,7 @@ int main()
         GraphicsPipeline pipeline{ };
         pipeline.loadShaders(SHADER_DIR + "hello_graphics.vert",
                              SHADER_DIR + "hello_graphics.frag");
-        pipeline.setup(sizeof(PushConstants));
+        pipeline.setup(swapchain, sizeof(PushConstants));
 
         int testInt = 0;
         int frame = 0;
@@ -38,26 +40,25 @@ int main()
             pushConstants.proj = camera.getProj();
             pushConstants.view = camera.getView();
 
-            Context::waitNextFrame();
-            vk::CommandBuffer commandBuffer = Context::beginCommandBuffer();
+            swapchain.waitNextFrame();
+            vk::CommandBuffer commandBuffer = swapchain.beginCommandBuffer();
             pipeline.bind(commandBuffer);
             pipeline.pushConstants(commandBuffer, &pushConstants);
 
-            Context::clearBackImage(commandBuffer, { 0.0f, 0.0f, 0.3f, 1.0f });
+            swapchain.clearBackImage(commandBuffer, { 0.0f, 0.0f, 0.3f, 1.0f });
 
-            Context::beginRenderPass();
+            swapchain.beginRenderPass();
             mesh.drawIndexed(commandBuffer);
-            GUI::startFrame();
-            GUI::sliderInt("Test slider", testInt, 0, 100);
-            GUI::render(commandBuffer);
-            Context::endRenderPass();
+            gui.startFrame();
+            gui.sliderInt("Test slider", testInt, 0, 100);
+            gui.render(commandBuffer);
+            swapchain.endRenderPass();
 
-            Context::submit();
-            Context::present();
+            swapchain.submit();
+            swapchain.present();
             frame++;
         }
         Context::waitIdle();
-        GUI::shutdown();
         Window::shutdown();
     } catch (const std::exception& e) {
         Log::error(e.what());

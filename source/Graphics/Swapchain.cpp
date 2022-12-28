@@ -3,13 +3,14 @@
 #include "Window/Window.hpp"
 #include "Graphics/Image.hpp"
 
-Swapchain::Swapchain(vk::Device device, vk::SurfaceKHR surface, uint32_t queueFamily)
+Swapchain::Swapchain()
     : width{ Window::getWidth() }
     , height{ Window::getHeight() }
 {
-    swapchain = device.createSwapchainKHRUnique(
+    uint32_t queueFamily = Context::getQueueFamily();
+    swapchain = Context::getDevice().createSwapchainKHRUnique(
         vk::SwapchainCreateInfoKHR()
-        .setSurface(surface)
+        .setSurface(Context::getSurface())
         .setMinImageCount(minImageCount)
         .setImageFormat(vk::Format::eB8G8R8A8Unorm)
         .setImageColorSpace(vk::ColorSpaceKHR::eSrgbNonlinear)
@@ -22,18 +23,17 @@ Swapchain::Swapchain(vk::Device device, vk::SurfaceKHR surface, uint32_t queueFa
         .setQueueFamilyIndices(queueFamily));
 
     // Get images
-    swapchainImages = device.getSwapchainImagesKHR(*swapchain);
+    swapchainImages = Context::getDevice().getSwapchainImagesKHR(*swapchain);
 
     // Create image views
     for (auto&& image : swapchainImages) {
-        swapchainImageViews.push_back(device.createImageViewUnique(
+        swapchainImageViews.push_back(Context::getDevice().createImageViewUnique(
             vk::ImageViewCreateInfo()
             .setImage(image)
             .setViewType(vk::ImageViewType::e2D)
             .setFormat(vk::Format::eB8G8R8A8Unorm)
             .setComponents({ vk::ComponentSwizzle::eR, vk::ComponentSwizzle::eG, vk::ComponentSwizzle::eB, vk::ComponentSwizzle::eA })
-            .setSubresourceRange({ vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 })
-        ));
+            .setSubresourceRange({ vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 })));
     }
 
     // Create depth image
@@ -103,7 +103,7 @@ Swapchain::Swapchain(vk::Device device, vk::SurfaceKHR surface, uint32_t queueFa
 
     std::array attachments{ colorAttachment, depthAttachment };
 
-    renderPass = device.createRenderPassUnique(
+    renderPass = Context::getDevice().createRenderPassUnique(
         vk::RenderPassCreateInfo()
         .setAttachments(attachments)
         .setSubpasses(subpass)
@@ -153,20 +153,20 @@ void Swapchain::endRenderPass() const
     commandBuffers[frameIndex]->endRenderPass();
 }
 
-void Swapchain::waitNextFrame(vk::Device device)
+void Swapchain::waitNextFrame()
 {
     try {
-        frameIndex = device.acquireNextImageKHR(*swapchain, UINT64_MAX, *imageAcquiredSemaphore).value;
+        frameIndex = Context::getDevice().acquireNextImageKHR(*swapchain, UINT64_MAX, *imageAcquiredSemaphore).value;
     } catch (const std::exception& exception) {
         swapchainRebuild = true;
         spdlog::error(exception.what());
         return;
     }
-    vk::Result result = device.waitForFences(*fences[frameIndex], VK_TRUE, UINT64_MAX);
+    vk::Result result = Context::getDevice().waitForFences(*fences[frameIndex], VK_TRUE, UINT64_MAX);
     if (result != vk::Result::eSuccess) {
         throw std::runtime_error("Failed to wait for fence");
     }
-    device.resetFences(*fences[frameIndex]);
+    Context::getDevice().resetFences(*fences[frameIndex]);
 }
 
 vk::CommandBuffer Swapchain::beginCommandBuffer()
@@ -178,7 +178,7 @@ vk::CommandBuffer Swapchain::beginCommandBuffer()
     return *commandBuffers[frameIndex];
 }
 
-void Swapchain::submit(vk::Queue queue)
+void Swapchain::submit()
 {
     commandBuffers[frameIndex]->end();
     vk::PipelineStageFlags waitStage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
@@ -187,10 +187,10 @@ void Swapchain::submit(vk::Queue queue)
         .setCommandBuffers(*commandBuffers[frameIndex])
         .setWaitSemaphores(*imageAcquiredSemaphore)
         .setSignalSemaphores(*renderCompleteSemaphore);
-    queue.submit(submitInfo, *fences[frameIndex]);
+    Context::getQueue().submit(submitInfo, *fences[frameIndex]);
 }
 
-void Swapchain::present(vk::Queue queue)
+void Swapchain::present()
 {
     if (swapchainRebuild) {
         return;
@@ -201,7 +201,7 @@ void Swapchain::present(vk::Queue queue)
         .setSwapchains(*swapchain)
         .setImageIndices(frameIndex);
 
-    if (queue.presentKHR(presentInfo) != vk::Result::eSuccess) {
+    if (Context::getQueue().presentKHR(presentInfo) != vk::Result::eSuccess) {
         swapchainRebuild = true;
         return;
     }
@@ -225,4 +225,14 @@ void Swapchain::copyToBackImage(vk::CommandBuffer commandBuffer, const Image& so
 
     Image::setImageLayout(commandBuffer, sourceImage, vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eGeneral);
     Image::setImageLayout(commandBuffer, backImage, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eColorAttachmentOptimal);
+}
+
+void Swapchain::clearBackImage(vk::CommandBuffer commandBuffer, std::array<float, 4> color)
+{
+    Image::setImageLayout(commandBuffer, getBackImage(),
+                          vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+    commandBuffer.clearColorImage(getBackImage(),
+                                  vk::ImageLayout::eTransferDstOptimal,
+                                  vk::ClearColorValue{ color },
+                                  vk::ImageSubresourceRange{ vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 });
 }

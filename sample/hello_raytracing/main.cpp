@@ -12,12 +12,13 @@ int main()
         Log::init();
         Window::init(750, 750);
         Context::init();
-        GUI::init();
 
         //std::vector<Vertex> vertices{ {{-1, 0, 0}}, {{ 0, -1, 0}}, {{ 1, 0, 0}} };
         //std::vector<Index> indices{ 0, 1, 2 };
         //Mesh mesh{ vertices, indices };
 
+        Swapchain swapchin{};
+        GUI gui{ swapchin };
         Mesh mesh{ "bunny.obj" };
         Object object{ mesh };
         TopAccel topAccel{ object };
@@ -37,31 +38,29 @@ int main()
         int testInt = 0;
         while (!Window::shouldClose()) {
             Window::pollEvents();
-            GUI::startFrame();
-            GUI::sliderInt("Test slider", testInt, 0, 100);
+            gui.startFrame();
+            gui.sliderInt("Test slider", testInt, 0, 100);
             camera.processInput();
 
             PushConstants pushConstants;
             pushConstants.invProj = camera.getInvProj();
             pushConstants.invView = camera.getInvView();
 
-            Context::waitNextFrame();
-            vk::CommandBuffer commandBuffer = Context::beginCommandBuffer();
+            swapchin.waitNextFrame();
+            vk::CommandBuffer commandBuffer = swapchin.beginCommandBuffer();
             pipeline.bind(commandBuffer);
             pipeline.pushConstants(commandBuffer, &pushConstants);
             pipeline.traceRays(commandBuffer, Window::getWidth(), Window::getHeight());
-            Context::copyToBackImage(commandBuffer, outputImage);
+            swapchin.copyToBackImage(commandBuffer, outputImage);
 
-            Context::beginRenderPass();
-            GUI::render(commandBuffer);
-            Context::endRenderPass();
+            swapchin.beginRenderPass();
+            gui.render(commandBuffer);
+            swapchin.endRenderPass();
 
-            Context::submit();
-            Context::present();
+            swapchin.submit();
+            swapchin.present();
         }
-
         Context::waitIdle();
-        GUI::shutdown();
         Window::shutdown();
     } catch (const std::exception& e) {
         Log::error(e.what());

@@ -121,8 +121,6 @@ void Context::init()
         .setPoolSizes(poolSizes)
         .setMaxSets(100)
         .setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet));
-
-    swapchain = Swapchain{ *device, *surface, queueFamily };
 }
 
 std::vector<vk::UniqueCommandBuffer> Context::allocateCommandBuffers(uint32_t count)
@@ -158,29 +156,4 @@ uint32_t Context::findMemoryTypeIndex(vk::MemoryRequirements requirements, vk::M
         }
     }
     throw std::runtime_error("Failed to find memory type index.");
-}
-
-void Context::beginRenderPass()
-{
-    swapchain.beginRenderPass();
-}
-
-void Context::endRenderPass()
-{
-    swapchain.endRenderPass();
-}
-
-void Context::copyToBackImage(vk::CommandBuffer commandBuffer, const Image& source)
-{
-    swapchain.copyToBackImage(commandBuffer, source);
-}
-
-void Context::clearBackImage(vk::CommandBuffer commandBuffer, std::array<float, 4> color)
-{
-    Image::setImageLayout(commandBuffer, swapchain.getBackImage(),
-                          vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
-    commandBuffer.clearColorImage(swapchain.getBackImage(),
-                                  vk::ImageLayout::eTransferDstOptimal,
-                                  vk::ClearColorValue{ color },
-                                  vk::ImageSubresourceRange{ vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 });
 }

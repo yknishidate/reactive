@@ -23,21 +23,12 @@ struct Context
     static auto getQueueFamily() { return queueFamily; }
     static auto getQueue() { return queue; }
     static auto getDescriptorPool() { return *descriptorPool; }
-    static auto getImageCount() { return swapchain.getImageCount(); }
-    static auto getMinImageCount() { return swapchain.getMinImageCount(); }
-    static auto getRenderPass() { return swapchain.getRenderPass(); }
-    static const auto& getSwapchain() { return swapchain; }
+    static auto getSurface() { return *surface; }
 
     static void waitIdle() { device->waitIdle(); }
     static void beginRenderPass();
     static void endRenderPass();
     static void copyToBackImage(vk::CommandBuffer commandBuffer, const Image& source);
-    static void waitNextFrame() { swapchain.waitNextFrame(*device); }
-    static auto beginCommandBuffer() -> vk::CommandBuffer { return swapchain.beginCommandBuffer(); }
-    static void submit() { swapchain.submit(queue); }
-    static void present() { swapchain.present(queue); }
-
-    static void clearBackImage(vk::CommandBuffer commandBuffer, std::array<float, 4> color);
 
 private:
     static VKAPI_ATTR VkBool32 VKAPI_CALL
@@ -65,5 +56,4 @@ private:
     static inline vk::Queue queue;
     static inline vk::UniqueCommandPool commandPool;
     static inline vk::UniqueDescriptorPool descriptorPool;
-    static inline Swapchain swapchain;
 };
