@@ -18,8 +18,8 @@ public:
     {}
 
     void bindPipeline(Pipeline& pipeline);
-    void pushConstants(void* pushData);
-    void traceRays(uint32_t countX, uint32_t countY);
+    void pushConstants(Pipeline& pipeline, void* pushData);
+    void traceRays(RayTracingPipeline& rtPipeline, uint32_t countX, uint32_t countY);
     void clearBackImage(std::array<float, 4> color);
     void beginRenderPass();
     void endRenderPass();
@@ -29,6 +29,5 @@ public:
     void copyToBackImage(const Image& image);
 
     vk::CommandBuffer commandBuffer;
-    Pipeline* boundPipeline = nullptr;
     Swapchain* swapchain = nullptr;
 };

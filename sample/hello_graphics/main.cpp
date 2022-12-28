@@ -47,7 +47,7 @@ int main()
 
             CommandBuffer commandBuffer = swapchain.beginCommandBuffer();
             commandBuffer.bindPipeline(pipeline);
-            commandBuffer.pushConstants(&pushConstants);
+            commandBuffer.pushConstants(pipeline, &pushConstants);
             commandBuffer.clearBackImage({ 0.0f, 0.0f, 0.3f, 1.0f });
             commandBuffer.beginRenderPass();
             commandBuffer.drawIndexed(mesh);

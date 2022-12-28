@@ -12,21 +12,17 @@
 
 void CommandBuffer::bindPipeline(Pipeline& pipeline)
 {
-    boundPipeline = &pipeline;
     pipeline.bind(commandBuffer);
 }
 
-void CommandBuffer::pushConstants(void* pushData)
+void CommandBuffer::pushConstants(Pipeline& pipeline, void* pushData)
 {
-    assert(boundPipeline);
-    boundPipeline->pushConstants(commandBuffer, pushData);
+    pipeline.pushConstants(commandBuffer, pushData);
 }
 
-void CommandBuffer::traceRays(uint32_t countX, uint32_t countY)
+void CommandBuffer::traceRays(RayTracingPipeline& rtPipeline, uint32_t countX, uint32_t countY)
 {
-    RayTracingPipeline* rtPipeline = dynamic_cast<RayTracingPipeline*>(boundPipeline);
-    assert(rtPipeline);
-    rtPipeline->traceRays(commandBuffer, countX, countY);
+    rtPipeline.traceRays(commandBuffer, countX, countY);
 }
 
 void CommandBuffer::clearBackImage(std::array<float, 4> color)

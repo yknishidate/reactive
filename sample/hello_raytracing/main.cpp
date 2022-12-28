@@ -50,8 +50,8 @@ int main()
 
             CommandBuffer commandBuffer = swapchin.beginCommandBuffer();
             commandBuffer.bindPipeline(pipeline);
-            commandBuffer.pushConstants(&pushConstants);
-            commandBuffer.traceRays(Window::getWidth(), Window::getHeight());
+            commandBuffer.pushConstants(pipeline, &pushConstants);
+            commandBuffer.traceRays(pipeline, Window::getWidth(), Window::getHeight());
             commandBuffer.copyToBackImage(outputImage);
             commandBuffer.beginRenderPass();
             commandBuffer.drawGUI(gui);
