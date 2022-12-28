@@ -47,7 +47,7 @@ struct GBuffers
 
 struct ResevImages
 {
-    void Copy(vk::CommandBuffer commandBuffer, ResevImages& dst)
+    void copy(vk::CommandBuffer commandBuffer, ResevImages& dst)
     {
         sample.setImageLayout(commandBuffer, vk::ImageLayout::eTransferSrcOptimal);
         weight.setImageLayout(commandBuffer, vk::ImageLayout::eTransferSrcOptimal);
@@ -114,7 +114,7 @@ public:
         }
     }
 
-    void Setup()
+    void setup()
     {
         topAccel = TopAccel{ objects };
 
@@ -156,22 +156,22 @@ public:
         camera = Camera{ Window::getWidth(), Window::getHeight() };
     }
 
-    void Update(float dt)
+    void update(float dt)
     {
         camera.processInput();
     }
 
-    Mesh& AddMesh(const std::string& filepath)
+    Mesh& addMesh(const std::string& filepath)
     {
         return meshes.emplace_back(filepath);
     }
 
-    PointLight& AddPointLight(glm::vec3 intensity, glm::vec3 position)
+    PointLight& addPointLight(glm::vec3 intensity, glm::vec3 position)
     {
         return pointLights.emplace_back(intensity, position);
     }
 
-    SphereLight& AddSphereLight(glm::vec3 intensity, glm::vec3 position, float radius)
+    SphereLight& addSphereLight(glm::vec3 intensity, glm::vec3 position, float radius)
     {
         static bool added = false;
         static int sphereMeshIndex;
@@ -179,7 +179,7 @@ public:
             Material lightMaterial;
             lightMaterial.emission = glm::vec3{ 1.0f };
 
-            Mesh& mesh = AddMesh("Sphere.obj");
+            Mesh& mesh = addMesh("Sphere.obj");
             mesh.setMaterial(lightMaterial);
             sphereMeshIndex = meshes.size() - 1;
         }
@@ -196,14 +196,14 @@ public:
         return sphereLights.emplace_back(intensity, position, radius);
     }
 
-    const auto& GetAccel() const { return topAccel; }
-    const auto& GetTextures() const { return textures; }
-    const auto& GetAddressBuffer() const { return addressBuffer; }
-    auto& GetCamera() { return camera; }
-    auto& GetObjects() { return objects; }
-    auto GetBoundingBox() const { return bbox; }
-    auto GetCenter() const { return (bbox.min + bbox.max) / 2.0f; }
-    auto GetNumSphereLights() const { return sphereLights.size(); }
+    const auto& getAccel() const { return topAccel; }
+    const auto& getTextures() const { return textures; }
+    const auto& getAddressBuffer() const { return addressBuffer; }
+    auto& getCamera() { return camera; }
+    auto& getObjects() { return objects; }
+    auto getBoundingBox() const { return bbox; }
+    auto getCenter() const { return (bbox.min + bbox.max) / 2.0f; }
+    auto getNumSphereLights() const { return sphereLights.size(); }
 
 private:
     std::vector<Mesh> meshes;
@@ -241,7 +241,7 @@ int main()
                      glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 0.01f },
                      glm::vec3{ 0.0f, glm::radians(90.0f), 0.0f } };
 
-        BoundingBox bbox = scene.GetBoundingBox();
+        BoundingBox bbox = scene.getBoundingBox();
         std::mt19937 mt{};
         std::uniform_real_distribution distX{ bbox.min.x, bbox.max.x };
         std::uniform_real_distribution distY{ bbox.min.y, bbox.max.y };
@@ -249,9 +249,9 @@ int main()
         for (int index = 0; index < 100; index++) {
             const glm::vec3 position = glm::vec3{ distX(mt), distY(mt), distZ(mt) } / 2.5f;
             const glm::vec3 color{ 1.0f };
-            scene.AddSphereLight(color, position, 0.1f);
+            scene.addSphereLight(color, position, 0.1f);
         }
-        scene.Setup();
+        scene.setup();
 
         auto descSet = std::make_shared<DescriptorSet>();
 
@@ -298,9 +298,9 @@ int main()
         ResevImages reusedResevImages;
         ResevImages storedResevImages;
 
-        descSet->record("topLevelAS", scene.GetAccel());
-        descSet->record("samplers", scene.GetTextures());
-        descSet->record("Addresses", scene.GetAddressBuffer());
+        descSet->record("topLevelAS", scene.getAccel());
+        descSet->record("samplers", scene.getTextures());
+        descSet->record("Addresses", scene.getAddressBuffer());
 
         descSet->record("positionImage", gbuffers.position);
         descSet->record("normalImage", gbuffers.normal);
@@ -323,9 +323,9 @@ int main()
         }
 
         PushConstants pushConstants;
-        pushConstants.numLights = scene.GetNumSphereLights();
-        pushConstants.invProj = scene.GetCamera().getInvProj();
-        pushConstants.invView = scene.GetCamera().getInvView();
+        pushConstants.numLights = scene.getNumSphereLights();
+        pushConstants.invProj = scene.getCamera().getInvProj();
+        pushConstants.invView = scene.getCamera().getInvView();
         pushConstants.frame = 0;
 
         int method = 0;
@@ -343,9 +343,9 @@ int main()
             gui.sliderInt("Iteration", iteration, 0, 4);
             gui.checkbox("Temporal reuse", temporalReuse);
 
-            scene.Update(0.1);
-            pushConstants.invProj = scene.GetCamera().getInvProj();
-            pushConstants.invView = scene.GetCamera().getInvView();
+            scene.update(0.1);
+            pushConstants.invProj = scene.getCamera().getInvProj();
+            pushConstants.invView = scene.getCamera().getInvView();
             pushConstants.frame++;
 
             auto width = Window::getWidth();
