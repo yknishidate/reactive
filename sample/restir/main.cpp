@@ -8,18 +8,6 @@ struct SphereLight
     float radius{ 1.0 };
 };
 
-struct PointLight
-{
-    glm::vec3 intensity{ 1.0 };
-    glm::vec3 position{ 0.0 };
-};
-
-struct DirectionalLight
-{
-    glm::vec3 intensity{ 1.0 };
-    glm::vec3 direction{ 1.0 };
-};
-
 struct PushConstants
 {
     glm::mat4 invView{ 1 };
@@ -64,7 +52,6 @@ struct ResevImages
     Image sample{ vk::Format::eR32G32Uint };
     Image weight{ vk::Format::eR16G16Sfloat };
 };
-
 
 struct BufferAddress
 {
@@ -131,9 +118,6 @@ public:
             objectData.push_back(data);
         }
         objectBuffer = DeviceBuffer{ BufferUsage::Storage, objectData };
-        if (!pointLights.empty()) {
-            pointLightBuffer = DeviceBuffer{ BufferUsage::Storage, pointLights };
-        }
         if (!sphereLights.empty()) {
             sphereLightBuffer = DeviceBuffer{ BufferUsage::Storage, sphereLights };
         }
@@ -144,9 +128,6 @@ public:
             addresses[i].vertices = objects[i].getMesh().getVertexBufferAddress();
             addresses[i].indices = objects[i].getMesh().getIndexBufferAddress();
             addresses[i].objects = objectBuffer.getAddress();
-            if (!pointLights.empty()) {
-                addresses[i].pointLights = pointLightBuffer.getAddress();
-            }
             if (!sphereLights.empty()) {
                 addresses[i].sphereLights = sphereLightBuffer.getAddress();
             }
@@ -164,11 +145,6 @@ public:
     Mesh& addMesh(const std::string& filepath)
     {
         return meshes.emplace_back(filepath);
-    }
-
-    PointLight& addPointLight(glm::vec3 intensity, glm::vec3 position)
-    {
-        return pointLights.emplace_back(intensity, position);
     }
 
     SphereLight& addSphereLight(glm::vec3 intensity, glm::vec3 position, float radius)
@@ -220,9 +196,7 @@ private:
     DeviceBuffer objectBuffer;
     DeviceBuffer addressBuffer;
 
-    std::vector<PointLight> pointLights;
     std::vector<SphereLight> sphereLights;
-    DeviceBuffer pointLightBuffer;
     DeviceBuffer sphereLightBuffer;
 };
 
@@ -231,7 +205,7 @@ int main()
 {
     try {
         Log::init();
-        Window::init(750, 750);
+        Window::init(1200, 1000);
         Context::init();
 
         Swapchain swapchain{};
