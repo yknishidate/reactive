@@ -40,9 +40,6 @@ public:
 
     void addResources(const Shader& shader);
 
-    // TODO: remove
-    void addBindingMap(const std::vector<uint32_t>& spvShader, vk::ShaderStageFlags stage);
-
     vk::UniquePipelineLayout createPipelineLayout(size_t pushSize, vk::ShaderStageFlags shaderStage) const;
 
 private:

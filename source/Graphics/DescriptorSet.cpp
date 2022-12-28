@@ -107,12 +107,8 @@ void DescriptorSet::record(const std::string& name, const TopAccel& accel)
 
 void DescriptorSet::addResources(const Shader& shader)
 {
-    addBindingMap(shader.getSpvCode(), shader.getStage());
-}
-
-void DescriptorSet::addBindingMap(const std::vector<uint32_t>& spvShader, vk::ShaderStageFlags stage)
-{
-    spirv_cross::CompilerGLSL glsl{ spvShader };
+    vk::ShaderStageFlags stage = shader.getStage();
+    spirv_cross::CompilerGLSL glsl{ shader.getSpvCode() };
     spirv_cross::ShaderResources resources = glsl.get_shader_resources();
 
     for (auto&& resource : resources.uniform_buffers) {
