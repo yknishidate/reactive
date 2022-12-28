@@ -54,7 +54,8 @@ int main()
             commandBuffer.drawGUI(gui);
             commandBuffer.endRenderPass();
             commandBuffer.submit();
-            commandBuffer.present();
+
+            swapchain.present();
             frame++;
         }
         Context::waitIdle();
