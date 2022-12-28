@@ -1,36 +1,38 @@
 #include "Context.hpp"
-#include <regex>
 #include <spdlog/spdlog.h>
-#include "Window/Window.hpp"
+#include <regex>
 #include "Graphics/Image.hpp"
+#include "Window/Window.hpp"
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
-void Context::init()
-{
+void Context::init() {
     spdlog::info("Context::Init()");
 
     static const vk::DynamicLoader dl;
-    const auto vkGetInstanceProcAddr = dl.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
+    const auto vkGetInstanceProcAddr =
+        dl.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
     VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
 
     // Create instance
     std::vector instanceExtensions = Window::getExtensions();
-    std::vector layers{ "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_monitor" };
+    std::vector layers{"VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_monitor"};
     const auto appInfo = vk::ApplicationInfo().setApiVersion(VK_API_VERSION_1_3);
 
     instance = vk::createInstanceUnique(vk::InstanceCreateInfo()
-                                        .setPApplicationInfo(&appInfo)
-                                        .setPEnabledExtensionNames(instanceExtensions)
-                                        .setPEnabledLayerNames(layers));
+                                            .setPApplicationInfo(&appInfo)
+                                            .setPEnabledExtensionNames(instanceExtensions)
+                                            .setPEnabledLayerNames(layers));
     VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
 
     // Create debug messenger
     debugMessenger = instance->createDebugUtilsMessengerEXTUnique(
         vk::DebugUtilsMessengerCreateInfoEXT()
-        .setMessageSeverity(vk::DebugUtilsMessageSeverityFlagBitsEXT::eError | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning)
-        .setMessageType(vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance)
-        .setPfnUserCallback(&debugCallback));
+            .setMessageSeverity(vk::DebugUtilsMessageSeverityFlagBitsEXT::eError |
+                                vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning)
+            .setMessageType(vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
+                            vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance)
+            .setPfnUserCallback(&debugCallback));
 
     surface = Window::createSurface(*instance);
     physicalDevice = instance->enumeratePhysicalDevices().front();
@@ -58,9 +60,9 @@ void Context::init()
     // Create device
     float queuePriority = 1.0f;
     auto queueInfo = vk::DeviceQueueCreateInfo()
-        .setQueueFamilyIndex(queueFamily)
-        .setQueueCount(1)
-        .setPQueuePriorities(&queuePriority);
+                         .setQueueFamilyIndex(queueFamily)
+                         .setQueueCount(1)
+                         .setPQueuePriorities(&queuePriority);
 
     std::vector deviceExtensions{
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
@@ -76,24 +78,23 @@ void Context::init()
     };
 
     auto deviceFeatures = vk::PhysicalDeviceFeatures()
-        .setShaderInt64(true)
-        .setFragmentStoresAndAtomics(true)
-        .setVertexPipelineStoresAndAtomics(true);
+                              .setShaderInt64(true)
+                              .setFragmentStoresAndAtomics(true)
+                              .setVertexPipelineStoresAndAtomics(true);
 
-    auto descFeatures = vk::PhysicalDeviceDescriptorIndexingFeatures()
-        .setRuntimeDescriptorArray(true);
+    auto descFeatures =
+        vk::PhysicalDeviceDescriptorIndexingFeatures().setRuntimeDescriptorArray(true);
 
     auto deviceInfo = vk::DeviceCreateInfo()
-        .setQueueCreateInfos(queueInfo)
-        .setPEnabledExtensionNames(deviceExtensions)
-        .setPEnabledFeatures(&deviceFeatures);
+                          .setQueueCreateInfos(queueInfo)
+                          .setPEnabledExtensionNames(deviceExtensions)
+                          .setPEnabledFeatures(&deviceFeatures);
 
-    vk::StructureChain<vk::DeviceCreateInfo,
-        vk::PhysicalDeviceBufferDeviceAddressFeatures,
-        vk::PhysicalDeviceRayTracingPipelineFeaturesKHR,
-        vk::PhysicalDeviceAccelerationStructureFeaturesKHR,
-        vk::PhysicalDeviceDescriptorIndexingFeatures>
-        createInfoChain{ deviceInfo,{ true }, { true }, { true }, descFeatures };
+    vk::StructureChain<vk::DeviceCreateInfo, vk::PhysicalDeviceBufferDeviceAddressFeatures,
+                       vk::PhysicalDeviceRayTracingPipelineFeaturesKHR,
+                       vk::PhysicalDeviceAccelerationStructureFeaturesKHR,
+                       vk::PhysicalDeviceDescriptorIndexingFeatures>
+        createInfoChain{deviceInfo, {true}, {true}, {true}, descFeatures};
 
     device = physicalDevice.createDeviceUnique(createInfoChain.get<vk::DeviceCreateInfo>());
 
@@ -102,56 +103,52 @@ void Context::init()
     // Create command pool
     commandPool = device->createCommandPoolUnique(
         vk::CommandPoolCreateInfo()
-        .setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer)
-        .setQueueFamilyIndex(queueFamily));
+            .setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer)
+            .setQueueFamilyIndex(queueFamily));
 
     // Create descriptor pool
     std::vector<vk::DescriptorPoolSize> poolSizes{
-        { vk::DescriptorType::eSampler, 100 },
-        { vk::DescriptorType::eCombinedImageSampler, 100 },
-        { vk::DescriptorType::eSampledImage, 100 },
-        { vk::DescriptorType::eStorageImage, 100 },
-        { vk::DescriptorType::eUniformBuffer, 100 },
-        { vk::DescriptorType::eStorageBuffer, 100 },
-        { vk::DescriptorType::eInputAttachment, 100 },
-        { vk::DescriptorType::eAccelerationStructureKHR, 100 } };
+        {vk::DescriptorType::eSampler, 100},
+        {vk::DescriptorType::eCombinedImageSampler, 100},
+        {vk::DescriptorType::eSampledImage, 100},
+        {vk::DescriptorType::eStorageImage, 100},
+        {vk::DescriptorType::eUniformBuffer, 100},
+        {vk::DescriptorType::eStorageBuffer, 100},
+        {vk::DescriptorType::eInputAttachment, 100},
+        {vk::DescriptorType::eAccelerationStructureKHR, 100}};
 
     descriptorPool = device->createDescriptorPoolUnique(
-        vk::DescriptorPoolCreateInfo()
-        .setPoolSizes(poolSizes)
-        .setMaxSets(100)
-        .setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet));
+        vk::DescriptorPoolCreateInfo().setPoolSizes(poolSizes).setMaxSets(100).setFlags(
+            vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet));
 }
 
-std::vector<vk::UniqueCommandBuffer> Context::allocateCommandBuffers(uint32_t count)
-{
-    return device->allocateCommandBuffersUnique(
-        vk::CommandBufferAllocateInfo()
-        .setCommandPool(*commandPool)
-        .setLevel(vk::CommandBufferLevel::ePrimary)
-        .setCommandBufferCount(count));
+std::vector<vk::UniqueCommandBuffer> Context::allocateCommandBuffers(uint32_t count) {
+    return device->allocateCommandBuffersUnique(vk::CommandBufferAllocateInfo()
+                                                    .setCommandPool(*commandPool)
+                                                    .setLevel(vk::CommandBufferLevel::ePrimary)
+                                                    .setCommandBufferCount(count));
 }
 
-vk::UniqueCommandBuffer Context::allocateCommandBuffer()
-{
+vk::UniqueCommandBuffer Context::allocateCommandBuffer() {
     return std::move(allocateCommandBuffers(1).front());
 }
 
-void Context::oneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command)
-{
+void Context::oneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command) {
     vk::UniqueCommandBuffer commandBuffer = allocateCommandBuffer();
-    commandBuffer->begin(vk::CommandBufferBeginInfo().setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
+    commandBuffer->begin(
+        vk::CommandBufferBeginInfo().setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
     command(*commandBuffer);
     commandBuffer->end();
     queue.submit(vk::SubmitInfo().setCommandBuffers(*commandBuffer));
     queue.waitIdle();
 }
 
-uint32_t Context::findMemoryTypeIndex(vk::MemoryRequirements requirements, vk::MemoryPropertyFlags memoryProp)
-{
+uint32_t Context::findMemoryTypeIndex(vk::MemoryRequirements requirements,
+                                      vk::MemoryPropertyFlags memoryProp) {
     vk::PhysicalDeviceMemoryProperties memProperties = physicalDevice.getMemoryProperties();
     for (uint32_t i = 0; i != memProperties.memoryTypeCount; ++i) {
-        if ((requirements.memoryTypeBits & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & memoryProp) == memoryProp) {
+        if ((requirements.memoryTypeBits & (1 << i)) &&
+            (memProperties.memoryTypes[i].propertyFlags & memoryProp) == memoryProp) {
             return i;
         }
     }

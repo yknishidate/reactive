@@ -3,8 +3,7 @@
 
 class Buffer;
 
-class Image
-{
+class Image {
 public:
     Image() = default;
     Image(uint32_t width, uint32_t height, vk::Format format);
@@ -15,7 +14,7 @@ public:
     vk::Image getImage() const { return *image; }
     vk::ImageView getView() const { return *view; }
     vk::Sampler getSampler() const { return *sampler; }
-    vk::DescriptorImageInfo getInfo() const { return { *sampler, *view, layout }; }
+    vk::DescriptorImageInfo getInfo() const { return {*sampler, *view, layout}; }
 
     void setImageLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout newLayout);
     void copyToImage(vk::CommandBuffer commandBuffer, const Image& dst) const;
@@ -23,7 +22,10 @@ public:
     void copyToBuffer(vk::CommandBuffer commandBuffer, Buffer& dst);
     void save(const std::string& filepath);
 
-    static void setImageLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout);
+    static void setImageLayout(vk::CommandBuffer commandBuffer,
+                               vk::Image image,
+                               vk::ImageLayout oldLayout,
+                               vk::ImageLayout newLayout);
 
 private:
     vk::UniqueImage image{};

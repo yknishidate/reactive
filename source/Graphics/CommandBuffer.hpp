@@ -10,13 +10,10 @@ class Swapchain;
 class Mesh;
 class GUI;
 
-class CommandBuffer
-{
+class CommandBuffer {
 public:
     CommandBuffer(Swapchain* swapchain, vk::CommandBuffer commandBuffer)
-        : swapchain{ swapchain }
-        , commandBuffer{ commandBuffer }
-    {}
+        : swapchain{swapchain}, commandBuffer{commandBuffer} {}
 
     void bindPipeline(Pipeline& pipeline);
     void pushConstants(Pipeline& pipeline, void* pushData);

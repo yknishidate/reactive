@@ -1,12 +1,11 @@
-#include <regex>
-#include <fstream>
-#include <filesystem>
+#include "Compiler/Compiler.hpp"
 #include <GlslangToSpv.h>
 #include <spdlog/spdlog.h>
-#include "Compiler/Compiler.hpp"
+#include <filesystem>
+#include <fstream>
+#include <regex>
 
-namespace Compiler
-{
+namespace Compiler {
 const TBuiltInResource DefaultTBuiltInResource = {
     /* .MaxLights = */ 32,
     /* .MaxClipPlanes = */ 6,
@@ -111,7 +110,8 @@ const TBuiltInResource DefaultTBuiltInResource = {
     /* .maxMeshViewCountEXT = */ 4,
     /* .maxDualSourceDrawBuffersEXT = */ 1,
 
-    /* .limits = */ {
+    /* .limits = */
+    {
         /* .nonInductiveForLoops = */ 1,
         /* .whileLoops = */ 1,
         /* .doWhileLoops = */ 1,
@@ -121,47 +121,57 @@ const TBuiltInResource DefaultTBuiltInResource = {
         /* .generalSamplerIndexing = */ 1,
         /* .generalVariableIndexing = */ 1,
         /* .generalConstantMatrixVectorIndexing = */ 1,
-    } };
+    }};
 
-std::string ReadFile(const std::string& path)
-{
-    std::ifstream input_file{ path };
+std::string ReadFile(const std::string& path) {
+    std::ifstream input_file{path};
     if (!input_file.is_open()) {
         spdlog::error("Failed to open file: " + path);
     }
-    return { (std::istreambuf_iterator<char>{input_file}), std::istreambuf_iterator<char>{} };
+    return {(std::istreambuf_iterator<char>{input_file}), std::istreambuf_iterator<char>{}};
 }
 
-EShLanguage GetShaderStage(const std::string& filepath)
-{
-    if (filepath.ends_with("vert")) return EShLangVertex;
-    if (filepath.ends_with("frag")) return EShLangFragment;
-    if (filepath.ends_with("comp")) return EShLangCompute;
-    if (filepath.ends_with("rgen")) return EShLangRayGenNV;
-    if (filepath.ends_with("rmiss")) return EShLangMissNV;
-    if (filepath.ends_with("rchit")) return EShLangClosestHitNV;
-    if (filepath.ends_with("rahit")) return EShLangAnyHitNV;
+EShLanguage GetShaderStage(const std::string& filepath) {
+    if (filepath.ends_with("vert"))
+        return EShLangVertex;
+    if (filepath.ends_with("frag"))
+        return EShLangFragment;
+    if (filepath.ends_with("comp"))
+        return EShLangCompute;
+    if (filepath.ends_with("rgen"))
+        return EShLangRayGenNV;
+    if (filepath.ends_with("rmiss"))
+        return EShLangMissNV;
+    if (filepath.ends_with("rchit"))
+        return EShLangClosestHitNV;
+    if (filepath.ends_with("rahit"))
+        return EShLangAnyHitNV;
     assert(false && "Unknown shader stage");
 }
 
-EShLanguage GetShaderStage(vk::ShaderStageFlagBits shaderStage)
-{
-    if (shaderStage == vk::ShaderStageFlagBits::eVertex) return EShLangVertex;
-    if (shaderStage == vk::ShaderStageFlagBits::eFragment) return EShLangFragment;
-    if (shaderStage == vk::ShaderStageFlagBits::eCompute) return EShLangCompute;
-    if (shaderStage == vk::ShaderStageFlagBits::eRaygenKHR) return EShLangRayGenNV;
-    if (shaderStage == vk::ShaderStageFlagBits::eMissKHR) return EShLangMissNV;
-    if (shaderStage == vk::ShaderStageFlagBits::eClosestHitKHR) return EShLangClosestHitNV;
-    if (shaderStage == vk::ShaderStageFlagBits::eAnyHitKHR) return EShLangAnyHitNV;
+EShLanguage GetShaderStage(vk::ShaderStageFlagBits shaderStage) {
+    if (shaderStage == vk::ShaderStageFlagBits::eVertex)
+        return EShLangVertex;
+    if (shaderStage == vk::ShaderStageFlagBits::eFragment)
+        return EShLangFragment;
+    if (shaderStage == vk::ShaderStageFlagBits::eCompute)
+        return EShLangCompute;
+    if (shaderStage == vk::ShaderStageFlagBits::eRaygenKHR)
+        return EShLangRayGenNV;
+    if (shaderStage == vk::ShaderStageFlagBits::eMissKHR)
+        return EShLangMissNV;
+    if (shaderStage == vk::ShaderStageFlagBits::eClosestHitKHR)
+        return EShLangClosestHitNV;
+    if (shaderStage == vk::ShaderStageFlagBits::eAnyHitKHR)
+        return EShLangAnyHitNV;
     assert(false && "Unknown shader stage");
 }
 
-std::string Include(const std::string& filepath, const std::string& sourceText)
-{
-    std::filesystem::path dir = std::filesystem::path{ filepath }.parent_path();
+std::string Include(const std::string& filepath, const std::string& sourceText) {
+    std::filesystem::path dir = std::filesystem::path{filepath}.parent_path();
 
     std::string included = sourceText;
-    std::regex regex{ "#include \"(.*)\"" };
+    std::regex regex{"#include \"(.*)\""};
     std::smatch results;
     while (std::regex_search(included, results, regex)) {
         std::string includePath = dir.string() + "/" + results[1].str();
@@ -171,14 +181,15 @@ std::string Include(const std::string& filepath, const std::string& sourceText)
     return included;
 }
 
-std::vector<uint32_t> compileToSPV(const std::string& glslCode, EShLanguage stage)
-{
+std::vector<uint32_t> compileToSPV(const std::string& glslCode, EShLanguage stage) {
     glslang::InitializeProcess();
 
     const char* shaderStrings = glslCode.data();
     glslang::TShader shader(stage);
-    shader.setEnvClient(glslang::EShClient::EShClientVulkan, glslang::EShTargetClientVersion::EShTargetVulkan_1_2);
-    shader.setEnvTarget(glslang::EShTargetLanguage::EShTargetSpv, glslang::EShTargetLanguageVersion::EShTargetSpv_1_4);
+    shader.setEnvClient(glslang::EShClient::EShClientVulkan,
+                        glslang::EShTargetClientVersion::EShTargetVulkan_1_2);
+    shader.setEnvTarget(glslang::EShTargetLanguage::EShTargetSpv,
+                        glslang::EShTargetLanguageVersion::EShTargetSpv_1_4);
     shader.setStrings(&shaderStrings, 1);
 
     constexpr auto messages = static_cast<EShMessages>(EShMsgSpvRules | EShMsgVulkanRules);
@@ -199,17 +210,16 @@ std::vector<uint32_t> compileToSPV(const std::string& glslCode, EShLanguage stag
     return spvShader;
 }
 
-std::vector<uint32_t> compileToSPV(const std::string& filepath)
-{
+std::vector<uint32_t> compileToSPV(const std::string& filepath) {
     spdlog::info("Compile shader: {}", filepath);
     std::string glslCode = ReadFile(filepath);
     EShLanguage stage = GetShaderStage(filepath);
     return compileToSPV(glslCode, stage);
 }
 
-std::vector<uint32_t> compileToSPV(const std::string& glslCode, vk::ShaderStageFlagBits shaderStage)
-{
+std::vector<uint32_t> compileToSPV(const std::string& glslCode,
+                                   vk::ShaderStageFlagBits shaderStage) {
     EShLanguage stage = GetShaderStage(shaderStage);
     return compileToSPV(glslCode, stage);
 }
-} // namespace
+}  // namespace Compiler

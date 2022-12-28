@@ -7,11 +7,10 @@
 class Image;
 class Scene;
 
-class Pipeline
-{
+class Pipeline {
 public:
     Pipeline() = default;
-    Pipeline(DescriptorSet& descSet) : descSet{ &descSet } {}
+    Pipeline(DescriptorSet& descSet) : descSet{&descSet} {}
 
 protected:
     friend class CommandBuffer;
@@ -24,22 +23,19 @@ protected:
     DescriptorSet* descSet;
 };
 
-class GraphicsPipeline : public Pipeline
-{
+class GraphicsPipeline : public Pipeline {
 public:
     GraphicsPipeline() = default;
     GraphicsPipeline(DescriptorSet& descSet) : Pipeline(descSet) {}
 
     void setup(Swapchain& swapchain, size_t pushSize = 0);
 
-    void setVertexShader(const Shader& vertShader)
-    {
+    void setVertexShader(const Shader& vertShader) {
         assert(vertShader.getStage() == vk::ShaderStageFlagBits::eVertex);
         vertModule = vertShader.getModule();
     }
 
-    void setFragmentShader(const Shader& fragShader)
-    {
+    void setFragmentShader(const Shader& fragShader) {
         assert(fragShader.getStage() == vk::ShaderStageFlagBits::eFragment);
         fragModule = fragShader.getModule();
     }
@@ -53,16 +49,14 @@ private:
     vk::ShaderModule fragModule;
 };
 
-class ComputePipeline : public Pipeline
-{
+class ComputePipeline : public Pipeline {
 public:
     ComputePipeline() = default;
     ComputePipeline(DescriptorSet& descSet) : Pipeline(descSet) {}
 
     void setup(size_t pushSize = 0);
 
-    void setComputeShader(const Shader& compShader)
-    {
+    void setComputeShader(const Shader& compShader) {
         assert(compShader.getStage() == vk::ShaderStageFlagBits::eCompute);
         shaderModule = compShader.getModule();
     }
@@ -76,16 +70,14 @@ private:
     vk::ShaderModule shaderModule;
 };
 
-class RayTracingPipeline : public Pipeline
-{
+class RayTracingPipeline : public Pipeline {
 public:
     RayTracingPipeline() = default;
     RayTracingPipeline(DescriptorSet& descSet) : Pipeline(descSet) {}
 
     void setup(size_t pushSize = 0);
 
-    void setShaders(const Shader& rgenShader, const Shader& missShader, const Shader& chitShader)
-    {
+    void setShaders(const Shader& rgenShader, const Shader& missShader, const Shader& chitShader) {
         assert(rgenShader.getStage() == vk::ShaderStageFlagBits::eRaygenKHR);
         assert(missShader.getStage() == vk::ShaderStageFlagBits::eMissKHR);
         assert(chitShader.getStage() == vk::ShaderStageFlagBits::eClosestHitKHR);
@@ -98,23 +90,26 @@ public:
         shaderModules.push_back(missShader.getModule());
         shaderModules.push_back(chitShader.getModule());
 
-        shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eRaygenKHR, shaderModules[0], "main" });
-        shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eMissKHR, shaderModules[1], "main" });
-        shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eClosestHitKHR, shaderModules[2], "main" });
+        shaderStages.push_back({{}, vk::ShaderStageFlagBits::eRaygenKHR, shaderModules[0], "main"});
+        shaderStages.push_back({{}, vk::ShaderStageFlagBits::eMissKHR, shaderModules[1], "main"});
+        shaderStages.push_back(
+            {{}, vk::ShaderStageFlagBits::eClosestHitKHR, shaderModules[2], "main"});
 
-        shaderGroups.push_back({ vk::RayTracingShaderGroupTypeKHR::eGeneral,
-                               0, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR });
+        shaderGroups.push_back({vk::RayTracingShaderGroupTypeKHR::eGeneral, 0, VK_SHADER_UNUSED_KHR,
+                                VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR});
 
-        shaderGroups.push_back({ vk::RayTracingShaderGroupTypeKHR::eGeneral,
-                               1, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR });
+        shaderGroups.push_back({vk::RayTracingShaderGroupTypeKHR::eGeneral, 1, VK_SHADER_UNUSED_KHR,
+                                VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR});
 
-        shaderGroups.push_back({ vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup,
-                               VK_SHADER_UNUSED_KHR, 2, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR });
+        shaderGroups.push_back({vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup,
+                                VK_SHADER_UNUSED_KHR, 2, VK_SHADER_UNUSED_KHR,
+                                VK_SHADER_UNUSED_KHR});
     }
 
-    void setShaders(const Shader& rgenShader, const Shader& missShader,
-                    const Shader& chitShader, const Shader& ahitShader)
-    {
+    void setShaders(const Shader& rgenShader,
+                    const Shader& missShader,
+                    const Shader& chitShader,
+                    const Shader& ahitShader) {
         assert(rgenShader.getStage() == vk::ShaderStageFlagBits::eRaygenKHR);
         assert(missShader.getStage() == vk::ShaderStageFlagBits::eMissKHR);
         assert(chitShader.getStage() == vk::ShaderStageFlagBits::eClosestHitKHR);
@@ -129,19 +124,20 @@ public:
         shaderModules.push_back(chitShader.getModule());
         shaderModules.push_back(ahitShader.getModule());
 
-        shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eRaygenKHR, shaderModules[0], "main" });
-        shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eMissKHR, shaderModules[1], "main" });
-        shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eClosestHitKHR, shaderModules[2], "main" });
-        shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eAnyHitKHR, shaderModules[3], "main" });
+        shaderStages.push_back({{}, vk::ShaderStageFlagBits::eRaygenKHR, shaderModules[0], "main"});
+        shaderStages.push_back({{}, vk::ShaderStageFlagBits::eMissKHR, shaderModules[1], "main"});
+        shaderStages.push_back(
+            {{}, vk::ShaderStageFlagBits::eClosestHitKHR, shaderModules[2], "main"});
+        shaderStages.push_back({{}, vk::ShaderStageFlagBits::eAnyHitKHR, shaderModules[3], "main"});
 
-        shaderGroups.push_back({ vk::RayTracingShaderGroupTypeKHR::eGeneral,
-                               0, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR });
+        shaderGroups.push_back({vk::RayTracingShaderGroupTypeKHR::eGeneral, 0, VK_SHADER_UNUSED_KHR,
+                                VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR});
 
-        shaderGroups.push_back({ vk::RayTracingShaderGroupTypeKHR::eGeneral,
-                               1, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR });
+        shaderGroups.push_back({vk::RayTracingShaderGroupTypeKHR::eGeneral, 1, VK_SHADER_UNUSED_KHR,
+                                VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR});
 
-        shaderGroups.push_back({ vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup,
-                               VK_SHADER_UNUSED_KHR, 2, 3, VK_SHADER_UNUSED_KHR });
+        shaderGroups.push_back({vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup,
+                                VK_SHADER_UNUSED_KHR, 2, 3, VK_SHADER_UNUSED_KHR});
     }
 
 private:

@@ -12,18 +12,17 @@ enum class BufferUsage {
     Storage,
 };
 
-class Buffer
-{
+class Buffer {
 public:
     Buffer() = default;
 
     vk::Buffer getBuffer() const { return *buffer; }
     vk::DeviceSize getSize() const { return size; }
     uint64_t getAddress() const {
-        vk::BufferDeviceAddressInfoKHR bufferDeviceAI{ *buffer };
+        vk::BufferDeviceAddressInfoKHR bufferDeviceAI{*buffer};
         return Context::getDevice().getBufferAddressKHR(&bufferDeviceAI);
     }
-    vk::DescriptorBufferInfo getInfo() const { return { *buffer, 0, size }; }
+    vk::DescriptorBufferInfo getInfo() const { return {*buffer, 0, size}; }
 
 protected:
     Buffer(BufferUsage usage, vk::MemoryPropertyFlags memoryProp, size_t size);
@@ -33,8 +32,7 @@ protected:
     vk::DeviceSize size = 0u;
 };
 
-class HostBuffer : public Buffer
-{
+class HostBuffer : public Buffer {
 public:
     HostBuffer() = default;
     HostBuffer(BufferUsage usage, size_t size);
@@ -46,16 +44,14 @@ private:
     void* mapped = nullptr;
 };
 
-class DeviceBuffer : public Buffer
-{
+class DeviceBuffer : public Buffer {
 public:
     DeviceBuffer() = default;
     DeviceBuffer(BufferUsage usage, size_t size);
 
     template <typename T>
     DeviceBuffer(BufferUsage usage, const std::vector<T>& data)
-        : DeviceBuffer(usage, sizeof(T)* data.size())
-    {
+        : DeviceBuffer(usage, sizeof(T) * data.size()) {
         copy(data.data());
     }
 

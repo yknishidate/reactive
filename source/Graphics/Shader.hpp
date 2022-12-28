@@ -1,16 +1,15 @@
 #pragma once
+#include <filesystem>
+#include <spirv_glsl.hpp>
 #include <string>
 #include <string_view>
-#include <filesystem>
 #include <unordered_map>
-#include <spirv_glsl.hpp>
-#include "Buffer.hpp"
-#include "Image.hpp"
 #include "Accel.hpp"
+#include "Buffer.hpp"
 #include "Compiler/Compiler.hpp"
+#include "Image.hpp"
 
-class Shader
-{
+class Shader {
 public:
     Shader() = default;
     Shader(const std::string& filepath);

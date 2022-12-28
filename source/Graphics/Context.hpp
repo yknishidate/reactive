@@ -1,13 +1,12 @@
 #pragma once
 #define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
-#include <vulkan/vulkan.hpp>
 #include <spdlog/spdlog.h>
-#include <regex>
 #include <functional>
+#include <regex>
+#include <vulkan/vulkan.hpp>
 #include "Swapchain.hpp"
 
-class Context
-{
+class Context {
 public:
     static void init();
 
@@ -16,7 +15,8 @@ public:
 
     static void oneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command);
 
-    static uint32_t findMemoryTypeIndex(vk::MemoryRequirements requirements, vk::MemoryPropertyFlags memoryProp);
+    static uint32_t findMemoryTypeIndex(vk::MemoryRequirements requirements,
+                                        vk::MemoryPropertyFlags memoryProp);
 
     static auto getInstance() { return *instance; }
     static auto getDevice() { return *device; }
@@ -33,12 +33,12 @@ public:
 
 private:
     static VKAPI_ATTR VkBool32 VKAPI_CALL
-        debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-                      VkDebugUtilsMessageTypeFlagsEXT messageTypes,
-                      VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData,
-                      void* pUserData) {
-        const std::string message{ pCallbackData->pMessage };
-        const std::regex regex{ "The Vulkan spec states: " };
+    debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                  VkDebugUtilsMessageTypeFlagsEXT messageTypes,
+                  VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData,
+                  void* pUserData) {
+        const std::string message{pCallbackData->pMessage};
+        const std::regex regex{"The Vulkan spec states: "};
         std::smatch result;
         if (std::regex_search(message, result, regex)) {
             spdlog::error("{}\n", message.substr(0, result.position()));

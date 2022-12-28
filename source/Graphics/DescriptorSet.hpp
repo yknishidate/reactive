@@ -1,19 +1,21 @@
 #pragma once
-#include <unordered_map>
 #include <spirv_glsl.hpp>
+#include <unordered_map>
+#include "Accel.hpp"
 #include "Buffer.hpp"
 #include "Image.hpp"
-#include "Accel.hpp"
 #include "Shader.hpp"
 
-class WriteDescriptorSet
-{
+class WriteDescriptorSet {
 public:
     WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding, vk::DescriptorBufferInfo bufferInfo);
-    WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding, std::vector<vk::DescriptorBufferInfo> infos);
+    WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
+                       std::vector<vk::DescriptorBufferInfo> infos);
     WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding, vk::DescriptorImageInfo imageInfo);
-    WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding, std::vector<vk::DescriptorImageInfo> infos);
-    WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding, vk::WriteDescriptorSetAccelerationStructureKHR accelInfo);
+    WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
+                       std::vector<vk::DescriptorImageInfo> infos);
+    WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
+                       vk::WriteDescriptorSetAccelerationStructureKHR accelInfo);
 
     vk::WriteDescriptorSet get() const { return write; }
 
@@ -26,12 +28,13 @@ private:
     std::vector<vk::WriteDescriptorSetAccelerationStructureKHR> accelInfos;
 };
 
-class DescriptorSet
-{
+class DescriptorSet {
 public:
     void allocate();
     void update();
-    void bind(vk::CommandBuffer commandBuffer, vk::PipelineBindPoint bindPoint, vk::PipelineLayout pipelineLayout);
+    void bind(vk::CommandBuffer commandBuffer,
+              vk::PipelineBindPoint bindPoint,
+              vk::PipelineLayout pipelineLayout);
 
     void record(const std::string& name, const std::vector<Image>& images);
     void record(const std::string& name, const Buffer& buffer);
@@ -40,11 +43,14 @@ public:
 
     void addResources(const Shader& shader);
 
-    vk::UniquePipelineLayout createPipelineLayout(size_t pushSize, vk::ShaderStageFlags shaderStage) const;
+    vk::UniquePipelineLayout createPipelineLayout(size_t pushSize,
+                                                  vk::ShaderStageFlags shaderStage) const;
 
 private:
-    void updateBindingMap(spirv_cross::Resource& resource, spirv_cross::CompilerGLSL& glsl,
-                          vk::ShaderStageFlags stage, vk::DescriptorType type);
+    void updateBindingMap(spirv_cross::Resource& resource,
+                          spirv_cross::CompilerGLSL& glsl,
+                          vk::ShaderStageFlags stage,
+                          vk::DescriptorType type);
 
     vk::UniqueDescriptorSet descSet;
     vk::UniqueDescriptorSetLayout descSetLayout;

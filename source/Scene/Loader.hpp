@@ -3,15 +3,14 @@
 
 class Image;
 
-namespace Loader
-{
+namespace Loader {
 void loadFromFile(const std::string& filepath,
-                  std::vector<Vertex>& vertices, std::vector<uint32_t>& indices);
+                  std::vector<Vertex>& vertices,
+                  std::vector<uint32_t>& indices);
 
-void loadFromFile(const std::string& filepath,
-                  std::vector<Mesh>& meshes);
+void loadFromFile(const std::string& filepath, std::vector<Mesh>& meshes);
 
 void loadFromFile(const std::string& filepath,
                   std::vector<Mesh>& meshes,
                   std::vector<Image>& textures);
-}
+}  // namespace Loader

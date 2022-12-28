@@ -1,14 +1,13 @@
-#include <spdlog/spdlog.h>
+#include "GUI/GUI.hpp"
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
+#include <spdlog/spdlog.h>
 #include "GUI/imgui_impl_vulkan_hpp.h"
-#include "GUI/GUI.hpp"
-#include "Window/Window.hpp"
 #include "Graphics/Context.hpp"
 #include "Graphics/Swapchain.hpp"
+#include "Window/Window.hpp"
 
-GUI::GUI(Swapchain& swapchain)
-{
+GUI::GUI(Swapchain& swapchain) {
     spdlog::info("GUI::GUI()");
 
     // Setup Dear ImGui context
@@ -69,55 +68,46 @@ GUI::GUI(Swapchain& swapchain)
     std::string fontFile = ASSET_DIR + "Roboto-Medium.ttf";
     io.Fonts->AddFontFromFileTTF(fontFile.c_str(), 24.0f);
     {
-        Context::oneTimeSubmit(
-            [&](vk::CommandBuffer commandBuffer)
-        {
+        Context::oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
             ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
-        }
-        );
+        });
         ImGui_ImplVulkan_DestroyFontUploadObjects();
     }
 }
 
-GUI::~GUI()
-{
+GUI::~GUI() {
     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 }
 
-void GUI::startFrame()
-{
-    //if (swapchainRebuild) {
-    //    RebuildSwapchain();
-    //}
+void GUI::startFrame() {
+    // if (swapchainRebuild) {
+    //     RebuildSwapchain();
+    // }
     ImGui_ImplVulkan_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 }
 
-void GUI::render(vk::CommandBuffer commandBuffer)
-{
+void GUI::render(vk::CommandBuffer commandBuffer) {
     ImGui::Render();
     ImDrawData* drawData = ImGui::GetDrawData();
     ImGui_ImplVulkan_RenderDrawData(drawData, commandBuffer);
 }
 
-bool GUI::checkbox(const std::string& label, bool& value)
-{
+bool GUI::checkbox(const std::string& label, bool& value) {
     return ImGui::Checkbox(label.c_str(), &value);
 }
 
-bool GUI::checkbox(const std::string& label, int& value)
-{
+bool GUI::checkbox(const std::string& label, int& value) {
     bool tmp_value;
     bool changed = ImGui::Checkbox(label.c_str(), &tmp_value);
     value = static_cast<int>(tmp_value);
     return changed;
 }
 
-bool GUI::combo(const std::string& label, int& value, const std::vector<std::string>& items)
-{
+bool GUI::combo(const std::string& label, int& value, const std::vector<std::string>& items) {
     std::string concated;
     for (auto&& item : items) {
         concated += item + '\0';
@@ -125,22 +115,18 @@ bool GUI::combo(const std::string& label, int& value, const std::vector<std::str
     return ImGui::Combo(label.c_str(), &value, concated.c_str());
 }
 
-bool GUI::sliderInt(const std::string& label, int& value, int min, int max)
-{
+bool GUI::sliderInt(const std::string& label, int& value, int min, int max) {
     return ImGui::SliderInt(label.c_str(), &value, min, max);
 }
 
-bool GUI::colorPicker4(const std::string& label, glm::vec4& value)
-{
+bool GUI::colorPicker4(const std::string& label, glm::vec4& value) {
     return ImGui::ColorPicker4(label.c_str(), reinterpret_cast<float*>(&value));
 }
 
-bool GUI::sliderFloat(const std::string& label, float& value, float min, float max)
-{
+bool GUI::sliderFloat(const std::string& label, float& value, float min, float max) {
     return ImGui::SliderFloat(label.c_str(), &value, min, max);
 }
 
-bool GUI::button(const std::string& label)
-{
+bool GUI::button(const std::string& label) {
     return ImGui::Button(label.c_str());
 }

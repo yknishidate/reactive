@@ -2,8 +2,7 @@
 #include <vulkan/vulkan.hpp>
 #include "CommandBuffer.hpp"
 
-class Swapchain
-{
+class Swapchain {
 public:
     Swapchain();
 
@@ -13,16 +12,15 @@ public:
 
     void present();
 
-    void rebuildSwapchain()
-    {
-        //int width, height;
-        //glfwGetFramebufferSize(window, &width, &height);
-        //if (width > 0 && height > 0) {
-        //    ImGui_ImplVulkan_SetMinImageCount(minImageCount);
-        //    ImGui_ImplVulkanH_CreateOrResizeWindow(instance, physicalDevice, device, &windowData, Context::queueFamily, nullptr, width, height, minImageCount);
-        //    windowData.FrameIndex = 0;
-        //    swapchainRebuild = false;
-        //}
+    void rebuildSwapchain() {
+        // int width, height;
+        // glfwGetFramebufferSize(window, &width, &height);
+        // if (width > 0 && height > 0) {
+        //     ImGui_ImplVulkan_SetMinImageCount(minImageCount);
+        //     ImGui_ImplVulkanH_CreateOrResizeWindow(instance, physicalDevice, device, &windowData,
+        //     Context::queueFamily, nullptr, width, height, minImageCount); windowData.FrameIndex =
+        //     0; swapchainRebuild = false;
+        // }
     }
 
     auto getBackImage() const { return swapchainImages[frameIndex]; }

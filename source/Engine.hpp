@@ -1,25 +1,23 @@
 #pragma once
-#include <memory>
-#include <spdlog/spdlog.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
+#include <spdlog/spdlog.h>
+#include <memory>
+#include "GUI/GUI.hpp"
 #include "GUI/imgui_impl_vulkan_hpp.h"
+#include "Graphics/DescriptorSet.hpp"
 #include "Graphics/Image.hpp"
 #include "Graphics/Pipeline.hpp"
-#include "Graphics/DescriptorSet.hpp"
 #include "Graphics/Shader.hpp"
-#include "Window/Window.hpp"
-#include "Scene/Mesh.hpp"
 #include "Scene/Camera.hpp"
+#include "Scene/Mesh.hpp"
 #include "Scene/Object.hpp"
-#include "GUI/GUI.hpp"
+#include "Window/Window.hpp"
 
-namespace Log
-{
+namespace Log {
 using namespace spdlog;
 
-void init()
-{
+void init() {
     spdlog::set_pattern("[%^%l%$] %v");
 }
-}
+}  // namespace Log

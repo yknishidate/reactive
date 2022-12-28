@@ -3,8 +3,7 @@
 
 class Swapchain;
 
-class GUI
-{
+class GUI {
 public:
     GUI(Swapchain& swapchain);
     ~GUI();

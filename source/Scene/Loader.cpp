@@ -1,26 +1,26 @@
-#include <set>
-#include <string>
+#include "Loader.hpp"
+#include <spdlog/spdlog.h>
 #include <algorithm>
 #include <filesystem>
+#include <set>
+#include <string>
 #include <unordered_map>
-#include <spdlog/spdlog.h>
-#include "Loader.hpp"
 #include "Graphics/Image.hpp"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
 
-namespace
-{
-void LoadShape(const tinyobj::attrib_t& attrib, const tinyobj::shape_t& shape,
-               std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
-{
+namespace {
+void LoadShape(const tinyobj::attrib_t& attrib,
+               const tinyobj::shape_t& shape,
+               std::vector<Vertex>& vertices,
+               std::vector<uint32_t>& indices) {
     for (const auto& index : shape.mesh.indices) {
         Vertex vertex{};
 
         vertex.pos = {
             attrib.vertices[3 * index.vertex_index + 0],
-           -attrib.vertices[3 * index.vertex_index + 1],
+            -attrib.vertices[3 * index.vertex_index + 1],
             attrib.vertices[3 * index.vertex_index + 2],
         };
 
@@ -29,7 +29,7 @@ void LoadShape(const tinyobj::attrib_t& attrib, const tinyobj::shape_t& shape,
         }
         vertex.normal = {
             attrib.normals[3 * index.normal_index + 0],
-           -attrib.normals[3 * index.normal_index + 1],
+            -attrib.normals[3 * index.normal_index + 1],
             attrib.normals[3 * index.normal_index + 2],
         };
 
@@ -45,21 +45,21 @@ void LoadShape(const tinyobj::attrib_t& attrib, const tinyobj::shape_t& shape,
         indices.push_back(indices.size());
     }
 }
-}
+}  // namespace
 
 // Load as single mesh
 void Loader::loadFromFile(const std::string& filepath,
                           std::vector<Vertex>& vertices,
-                          std::vector<uint32_t>& indices)
-{
+                          std::vector<uint32_t>& indices) {
     spdlog::info("Load file: {}", filepath);
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     std::string warn, err;
 
-    std::string dir = std::filesystem::path{ filepath }.parent_path().string();
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filepath.c_str(), dir.c_str())) {
+    std::string dir = std::filesystem::path{filepath}.parent_path().string();
+    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filepath.c_str(),
+                          dir.c_str())) {
         throw std::runtime_error(warn + err);
     }
 
@@ -69,25 +69,29 @@ void Loader::loadFromFile(const std::string& filepath,
 }
 
 // Load as multiple mesh
-void Loader::loadFromFile(const std::string& filepath, std::vector<Mesh>& meshes)
-{
+void Loader::loadFromFile(const std::string& filepath, std::vector<Mesh>& meshes) {
     spdlog::info("Load file: {}", filepath);
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     std::string warn, err;
 
-    std::string dir = std::filesystem::path{ filepath }.parent_path().string();
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filepath.c_str(), dir.c_str())) {
+    std::string dir = std::filesystem::path{filepath}.parent_path().string();
+    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filepath.c_str(),
+                          dir.c_str())) {
         throw std::runtime_error(warn + err);
     }
 
     std::vector<Material> mats(materials.size());
     for (size_t i = 0; i < materials.size(); i++) {
-        mats[i].ambient = { materials[i].ambient[0], materials[i].ambient[1], materials[i].ambient[2] };
-        mats[i].diffuse = { materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2] };
-        mats[i].specular = { materials[i].specular[0], materials[i].specular[1], materials[i].specular[2] };
-        mats[i].emission = { materials[i].emission[0], materials[i].emission[1], materials[i].emission[2] };
+        mats[i].ambient = {materials[i].ambient[0], materials[i].ambient[1],
+                           materials[i].ambient[2]};
+        mats[i].diffuse = {materials[i].diffuse[0], materials[i].diffuse[1],
+                           materials[i].diffuse[2]};
+        mats[i].specular = {materials[i].specular[0], materials[i].specular[1],
+                            materials[i].specular[2]};
+        mats[i].emission = {materials[i].emission[0], materials[i].emission[1],
+                            materials[i].emission[2]};
     }
 
     meshes.reserve(shapes.size());
@@ -102,16 +106,16 @@ void Loader::loadFromFile(const std::string& filepath, std::vector<Mesh>& meshes
 
 void Loader::loadFromFile(const std::string& filepath,
                           std::vector<Mesh>& meshes,
-                          std::vector<Image>& textures)
-{
+                          std::vector<Image>& textures) {
     spdlog::info("Load file: {}", filepath);
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     std::string warn, err;
 
-    std::string dir = std::filesystem::path{ filepath }.parent_path().string();
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filepath.c_str(), dir.c_str())) {
+    std::string dir = std::filesystem::path{filepath}.parent_path().string();
+    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filepath.c_str(),
+                          dir.c_str())) {
         spdlog::error("Failed to load: {}", warn + err);
     }
 
@@ -120,10 +124,14 @@ void Loader::loadFromFile(const std::string& filepath,
 
     std::vector<Material> mats(materials.size());
     for (size_t i = 0; i < materials.size(); i++) {
-        mats[i].ambient = { materials[i].ambient[0], materials[i].ambient[1], materials[i].ambient[2] };
-        mats[i].diffuse = { materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2] };
-        mats[i].specular = { materials[i].specular[0], materials[i].specular[1], materials[i].specular[2] };
-        mats[i].emission = { materials[i].emission[0], materials[i].emission[1], materials[i].emission[2] };
+        mats[i].ambient = {materials[i].ambient[0], materials[i].ambient[1],
+                           materials[i].ambient[2]};
+        mats[i].diffuse = {materials[i].diffuse[0], materials[i].diffuse[1],
+                           materials[i].diffuse[2]};
+        mats[i].specular = {materials[i].specular[0], materials[i].specular[1],
+                            materials[i].specular[2]};
+        mats[i].emission = {materials[i].emission[0], materials[i].emission[1],
+                            materials[i].emission[2]};
 
         // diffuse
         if (!materials[i].diffuse_texname.empty()) {
@@ -164,7 +172,7 @@ void Loader::loadFromFile(const std::string& filepath,
         std::replace(path.begin(), path.end(), '\\', '/');
         path = dir + "/" + path;
         spdlog::info("  texture {}: {}", index, path);
-        textures[index] = Image{ path };
+        textures[index] = Image{path};
     }
 
     for (const auto& shape : shapes) {

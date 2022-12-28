@@ -1,34 +1,32 @@
 #include "Engine.hpp"
 
-struct PushConstants
-{
-    glm::mat4 invView{ 1 };
-    glm::mat4 invProj{ 1 };
+struct PushConstants {
+    glm::mat4 invView{1};
+    glm::mat4 invProj{1};
 };
 
-int main()
-{
+int main() {
     try {
         Log::init();
         Window::init(750, 750);
         Context::init();
 
-        //std::vector<Vertex> vertices{ {{-1, 0, 0}}, {{ 0, -1, 0}}, {{ 1, 0, 0}} };
-        //std::vector<Index> indices{ 0, 1, 2 };
-        //Mesh mesh{ vertices, indices };
+        // std::vector<Vertex> vertices{ {{-1, 0, 0}}, {{ 0, -1, 0}}, {{ 1, 0, 0}} };
+        // std::vector<Index> indices{ 0, 1, 2 };
+        // Mesh mesh{ vertices, indices };
 
         Swapchain swapchin{};
-        GUI gui{ swapchin };
-        Mesh mesh{ "bunny.obj" };
-        Object object{ mesh };
-        TopAccel topAccel{ object };
-        Camera camera{ Window::getWidth(), Window::getHeight() };
+        GUI gui{swapchin};
+        Mesh mesh{"bunny.obj"};
+        Object object{mesh};
+        TopAccel topAccel{object};
+        Camera camera{Window::getWidth(), Window::getHeight()};
 
-        Image outputImage{ vk::Format::eB8G8R8A8Unorm };
+        Image outputImage{vk::Format::eB8G8R8A8Unorm};
 
-        Shader rgenShader{ SHADER_DIR + "hello_raytracing.rgen" };
-        Shader missShader{ SHADER_DIR + "hello_raytracing.rmiss" };
-        Shader chitShader{ SHADER_DIR + "hello_raytracing.rchit" };
+        Shader rgenShader{SHADER_DIR + "hello_raytracing.rgen"};
+        Shader missShader{SHADER_DIR + "hello_raytracing.rmiss"};
+        Shader chitShader{SHADER_DIR + "hello_raytracing.rchit"};
 
         DescriptorSet descSet{};
         descSet.addResources(rgenShader);
@@ -38,7 +36,7 @@ int main()
         descSet.record("outputImage", outputImage);
         descSet.allocate();
 
-        RayTracingPipeline pipeline{ descSet };
+        RayTracingPipeline pipeline{descSet};
         pipeline.setShaders(rgenShader, missShader, chitShader);
         pipeline.setup(sizeof(PushConstants));
 
@@ -49,8 +47,8 @@ int main()
             gui.startFrame();
             gui.sliderInt("Test slider", testInt, 0, 100);
             camera.processInput();
-            object.transform.rotation = glm::rotate(glm::mat4(1.0f), 0.01f * frame,
-                                                    glm::vec3(0.0f, 1.0f, 0.0f));
+            object.transform.rotation =
+                glm::rotate(glm::mat4(1), 0.01f * frame, glm::vec3(0, 1, 0));
             topAccel.rebuild(object);
 
             PushConstants pushConstants;

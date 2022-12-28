@@ -10,63 +10,66 @@
 namespace {
 vk::UniqueImage CreateImage(uint32_t width, uint32_t height, vk::Format format) {
     using Usage = vk::ImageUsageFlagBits;
-    return Context::getDevice().createImageUnique(
-        vk::ImageCreateInfo()
-        .setImageType(vk::ImageType::e2D)
-        .setFormat(format)
-        .setExtent({ width, height, 1 })
-        .setMipLevels(1)
-        .setArrayLayers(1)
-        .setUsage(Usage::eStorage | Usage::eSampled | Usage::eTransferSrc | Usage::eTransferDst));
+    return Context::getDevice().createImageUnique(vk::ImageCreateInfo()
+                                                      .setImageType(vk::ImageType::e2D)
+                                                      .setFormat(format)
+                                                      .setExtent({width, height, 1})
+                                                      .setMipLevels(1)
+                                                      .setArrayLayers(1)
+                                                      .setUsage(Usage::eStorage | Usage::eSampled |
+                                                                Usage::eTransferSrc |
+                                                                Usage::eTransferDst));
 }
 
 vk::UniqueImage CreateImage(uint32_t width, uint32_t height, uint32_t depth, vk::Format format) {
     using Usage = vk::ImageUsageFlagBits;
-    return Context::getDevice().createImageUnique(
-        vk::ImageCreateInfo()
-        .setImageType(vk::ImageType::e3D)
-        .setFormat(format)
-        .setExtent({ width, height, depth })
-        .setMipLevels(1)
-        .setArrayLayers(1)
-        .setUsage(Usage::eStorage | Usage::eSampled | Usage::eTransferSrc | Usage::eTransferDst));
+    return Context::getDevice().createImageUnique(vk::ImageCreateInfo()
+                                                      .setImageType(vk::ImageType::e3D)
+                                                      .setFormat(format)
+                                                      .setExtent({width, height, depth})
+                                                      .setMipLevels(1)
+                                                      .setArrayLayers(1)
+                                                      .setUsage(Usage::eStorage | Usage::eSampled |
+                                                                Usage::eTransferSrc |
+                                                                Usage::eTransferDst));
 }
 
 vk::UniqueDeviceMemory AllocateMemory(vk::Image image) {
     vk::MemoryRequirements requirements = Context::getDevice().getImageMemoryRequirements(image);
-    uint32_t memoryTypeIndex = Context::findMemoryTypeIndex(requirements, vk::MemoryPropertyFlagBits::eDeviceLocal);
-    return Context::getDevice().allocateMemoryUnique(
-        vk::MemoryAllocateInfo()
-        .setAllocationSize(requirements.size)
-        .setMemoryTypeIndex(memoryTypeIndex));
+    uint32_t memoryTypeIndex =
+        Context::findMemoryTypeIndex(requirements, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    return Context::getDevice().allocateMemoryUnique(vk::MemoryAllocateInfo()
+                                                         .setAllocationSize(requirements.size)
+                                                         .setMemoryTypeIndex(memoryTypeIndex));
 }
 
-vk::UniqueImageView CreateImageView(vk::Image image, vk::Format format, vk::ImageViewType type = vk::ImageViewType::e2D) {
+vk::UniqueImageView CreateImageView(vk::Image image,
+                                    vk::Format format,
+                                    vk::ImageViewType type = vk::ImageViewType::e2D) {
     return Context::getDevice().createImageViewUnique(
         vk::ImageViewCreateInfo()
-        .setImage(image)
-        .setViewType(type)
-        .setFormat(format)
-        .setSubresourceRange({ vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 }));
+            .setImage(image)
+            .setViewType(type)
+            .setFormat(format)
+            .setSubresourceRange({vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1}));
 }
 
 vk::UniqueSampler CreateSampler() {
     return Context::getDevice().createSamplerUnique(
         vk::SamplerCreateInfo()
-        .setMagFilter(vk::Filter::eLinear)
-        .setMinFilter(vk::Filter::eLinear)
-        .setAnisotropyEnable(VK_FALSE)
-        .setMaxLod(0.0f)
-        .setMinLod(0.0f)
-        .setMipmapMode(vk::SamplerMipmapMode::eLinear)
-        .setAddressModeU(vk::SamplerAddressMode::eRepeat)
-        .setAddressModeV(vk::SamplerAddressMode::eRepeat)
-        .setAddressModeW(vk::SamplerAddressMode::eRepeat));
+            .setMagFilter(vk::Filter::eLinear)
+            .setMinFilter(vk::Filter::eLinear)
+            .setAnisotropyEnable(VK_FALSE)
+            .setMaxLod(0.0f)
+            .setMinLod(0.0f)
+            .setMipmapMode(vk::SamplerMipmapMode::eLinear)
+            .setAddressModeU(vk::SamplerAddressMode::eRepeat)
+            .setAddressModeV(vk::SamplerAddressMode::eRepeat)
+            .setAddressModeW(vk::SamplerAddressMode::eRepeat));
 }
 }  // namespace
 
-Image::Image(uint32_t width, uint32_t height, vk::Format format)
-    : width{ width }, height{ height } {
+Image::Image(uint32_t width, uint32_t height, vk::Format format) : width{width}, height{height} {
     image = CreateImage(width, height, format);
     memory = AllocateMemory(*image);
     Context::getDevice().bindImageMemory(*image, *memory, 0);
@@ -74,21 +77,19 @@ Image::Image(uint32_t width, uint32_t height, vk::Format format)
     view = CreateImageView(*image, format);
     sampler = CreateSampler();
 
-    Context::oneTimeSubmit(
-        [&](vk::CommandBuffer commandBuffer) {
+    Context::oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
         setImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
     });
 }
 
-Image::Image(vk::Format format)
-    : Image(Window::getWidth(), Window::getHeight(), format) {
-}
+Image::Image(vk::Format format) : Image(Window::getWidth(), Window::getHeight(), format) {}
 
 Image::Image(const std::string& filepath) {
     int width;
     int height;
     int channels;
-    unsigned char* data = stbi_load(filepath.c_str(), &width, &height, &channels, sizeof(unsigned char) * 4);
+    unsigned char* data =
+        stbi_load(filepath.c_str(), &width, &height, &channels, sizeof(unsigned char) * 4);
     if (!data) {
         throw std::runtime_error("Failed to load texture: " + filepath);
     }
@@ -102,20 +103,21 @@ Image::Image(const std::string& filepath) {
     view = CreateImageView(*image, vk::Format::eR8G8B8A8Unorm);
     sampler = CreateSampler();
 
-    HostBuffer staging{ BufferUsage::Staging, static_cast<size_t>(width * height * 4) };
+    HostBuffer staging{BufferUsage::Staging, static_cast<size_t>(width * height * 4)};
     staging.copy(data);
-    Context::oneTimeSubmit(
-        [&](vk::CommandBuffer commandBuffer) {
+    Context::oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
         vk::BufferImageCopy region{};
-    region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
-    region.imageSubresource.mipLevel = 0;
-    region.imageSubresource.baseArrayLayer = 0;
-    region.imageSubresource.layerCount = 1;
-    region.imageExtent = vk::Extent3D{ static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1 };
+        region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+        region.imageSubresource.mipLevel = 0;
+        region.imageSubresource.baseArrayLayer = 0;
+        region.imageSubresource.layerCount = 1;
+        region.imageExtent =
+            vk::Extent3D{static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1};
 
-    setImageLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);
-    commandBuffer.copyBufferToImage(staging.getBuffer(), *image, vk::ImageLayout::eTransferDstOptimal, region);
-    setImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
+        setImageLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);
+        commandBuffer.copyBufferToImage(staging.getBuffer(), *image,
+                                        vk::ImageLayout::eTransferDstOptimal, region);
+        setImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
     });
 
     stbi_image_free(data);
@@ -125,7 +127,8 @@ Image::Image(const std::vector<std::string>& filepaths) {
     int width;
     int height;
     int channels;
-    unsigned char* data = stbi_load(filepaths[0].c_str(), &width, &height, &channels, sizeof(unsigned char) * 4);
+    unsigned char* data =
+        stbi_load(filepaths[0].c_str(), &width, &height, &channels, sizeof(unsigned char) * 4);
     if (!data) {
         throw std::runtime_error("Failed to load texture: " + filepaths[0]);
     }
@@ -152,19 +155,20 @@ Image::Image(const std::vector<std::string>& filepaths) {
     view = CreateImageView(*image, vk::Format::eR8G8B8A8Unorm, vk::ImageViewType::e3D);
     sampler = CreateSampler();
 
-    HostBuffer staging{ BufferUsage::Staging, static_cast<size_t>(width * height * depth * 4) };
+    HostBuffer staging{BufferUsage::Staging, static_cast<size_t>(width * height * depth * 4)};
     staging.copy(allData.data());
-    Context::oneTimeSubmit(
-        [&](vk::CommandBuffer commandBuffer) {
+    Context::oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
         vk::BufferImageCopy region{};
-    region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
-    region.imageSubresource.mipLevel = 0;
-    region.imageSubresource.baseArrayLayer = 0;
-    region.imageSubresource.layerCount = 1;
-    region.imageExtent = vk::Extent3D{ static_cast<uint32_t>(width), static_cast<uint32_t>(height), depth };
-    setImageLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);
-    commandBuffer.copyBufferToImage(staging.getBuffer(), *image, vk::ImageLayout::eTransferDstOptimal, region);
-    setImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
+        region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+        region.imageSubresource.mipLevel = 0;
+        region.imageSubresource.baseArrayLayer = 0;
+        region.imageSubresource.layerCount = 1;
+        region.imageExtent =
+            vk::Extent3D{static_cast<uint32_t>(width), static_cast<uint32_t>(height), depth};
+        setImageLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);
+        commandBuffer.copyBufferToImage(staging.getBuffer(), *image,
+                                        vk::ImageLayout::eTransferDstOptimal, region);
+        setImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
     });
 }
 
@@ -175,15 +179,15 @@ void Image::setImageLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout newL
 
 void Image::copyToImage(vk::CommandBuffer commandBuffer, const Image& dst) const {
     vk::ImageCopy copyRegion;
-    copyRegion.setSrcSubresource({ vk::ImageAspectFlagBits::eColor, 0, 0, 1 });
-    copyRegion.setDstSubresource({ vk::ImageAspectFlagBits::eColor, 0, 0, 1 });
-    copyRegion.setExtent({ width, height, 1 });
+    copyRegion.setSrcSubresource({vk::ImageAspectFlagBits::eColor, 0, 0, 1});
+    copyRegion.setDstSubresource({vk::ImageAspectFlagBits::eColor, 0, 0, 1});
+    copyRegion.setExtent({width, height, 1});
 
     vk::Image srcImage = *image;
     vk::Image dstImage = dst.getImage();
 
-    commandBuffer.copyImage(srcImage, vk::ImageLayout::eTransferSrcOptimal,
-                            dstImage, vk::ImageLayout::eTransferDstOptimal, copyRegion);
+    commandBuffer.copyImage(srcImage, vk::ImageLayout::eTransferSrcOptimal, dstImage,
+                            vk::ImageLayout::eTransferDstOptimal, copyRegion);
 }
 
 void Image::copyToBuffer(vk::CommandBuffer commandBuffer, Buffer& dst) {
@@ -197,25 +201,23 @@ void Image::copyToBuffer(vk::CommandBuffer commandBuffer, Buffer& dst) {
     copyInfo.setBufferOffset(0);
     copyInfo.setBufferRowLength(width);
     copyInfo.setBufferImageHeight(height);
-    copyInfo.setImageExtent({ width, height, 1 });
+    copyInfo.setImageExtent({width, height, 1});
     copyInfo.setImageSubresource(subresource);
 
     auto oldLayout = layout;
     setImageLayout(commandBuffer, vk::ImageLayout::eTransferSrcOptimal);
-    commandBuffer.copyImageToBuffer(*image, vk::ImageLayout::eTransferSrcOptimal,
-                                    dst.getBuffer(), copyInfo);
+    commandBuffer.copyImageToBuffer(*image, vk::ImageLayout::eTransferSrcOptimal, dst.getBuffer(),
+                                    copyInfo);
     setImageLayout(commandBuffer, oldLayout);
 }
 
 void Image::save(const std::string& filepath) {
     static vk::DeviceSize size = Window::getWidth() * Window::getWidth() * 4;
-    static HostBuffer buffer{ BufferUsage::Staging, size };
+    static HostBuffer buffer{BufferUsage::Staging, size};
     static uint8_t* pixels = static_cast<uint8_t*>(buffer.map());
 
     Context::oneTimeSubmit(
-        [&](vk::CommandBuffer commandBuffer) {
-        copyToBuffer(commandBuffer, buffer);
-    });
+        [&](vk::CommandBuffer commandBuffer) { copyToBuffer(commandBuffer, buffer); });
 
     std::vector<uint8_t> output(width * height * 3);
     for (int h = 0; h < height; h++) {
@@ -230,7 +232,10 @@ void Image::save(const std::string& filepath) {
     stbi_write_png(filepath.c_str(), width, height, 3, output.data(), width * 3);
 }
 
-void Image::setImageLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout) {
+void Image::setImageLayout(vk::CommandBuffer commandBuffer,
+                           vk::Image image,
+                           vk::ImageLayout oldLayout,
+                           vk::ImageLayout newLayout) {
     vk::PipelineStageFlags srcStageMask = vk::PipelineStageFlagBits::eAllCommands;
     vk::PipelineStageFlags dstStageMask = vk::PipelineStageFlagBits::eAllCommands;
 
@@ -240,7 +245,7 @@ void Image::setImageLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk:
     barrier.setImage(image);
     barrier.setOldLayout(oldLayout);
     barrier.setNewLayout(newLayout);
-    barrier.setSubresourceRange({ vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 });
+    barrier.setSubresourceRange({vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1});
 
     switch (oldLayout) {
         case vk::ImageLayout::eColorAttachmentOptimal:

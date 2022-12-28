@@ -1,70 +1,68 @@
-#include <regex>
-#include "Context.hpp"
 #include "DescriptorSet.hpp"
+#include <regex>
 #include "Compiler/Compiler.hpp"
+#include "Context.hpp"
 
-WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding, vk::DescriptorBufferInfo bufferInfo)
-    : WriteDescriptorSet{ binding }
-{
-    bufferInfos = { bufferInfo };
+WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
+                                       vk::DescriptorBufferInfo bufferInfo)
+    : WriteDescriptorSet{binding} {
+    bufferInfos = {bufferInfo};
     write.setBufferInfo(bufferInfos);
 }
 
-WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding, std::vector<vk::DescriptorBufferInfo> infos)
-    : WriteDescriptorSet{ binding }
-{
-    bufferInfos = { infos };
+WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
+                                       std::vector<vk::DescriptorBufferInfo> infos)
+    : WriteDescriptorSet{binding} {
+    bufferInfos = {infos};
     write.setBufferInfo(bufferInfos);
 }
 
-WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding, vk::DescriptorImageInfo imageInfo)
-    : WriteDescriptorSet{ binding }
-{
-    imageInfos = { imageInfo };
+WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
+                                       vk::DescriptorImageInfo imageInfo)
+    : WriteDescriptorSet{binding} {
+    imageInfos = {imageInfo};
     write.setImageInfo(imageInfos);
 }
 
-WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding, std::vector<vk::DescriptorImageInfo> infos)
-    : WriteDescriptorSet{ binding }
-{
-    imageInfos = { infos };
+WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
+                                       std::vector<vk::DescriptorImageInfo> infos)
+    : WriteDescriptorSet{binding} {
+    imageInfos = {infos};
     write.setImageInfo(imageInfos);
 }
 
-WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding, vk::WriteDescriptorSetAccelerationStructureKHR accelInfo)
-    : WriteDescriptorSet(binding)
-{
-    accelInfos = { accelInfo };
+WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
+                                       vk::WriteDescriptorSetAccelerationStructureKHR accelInfo)
+    : WriteDescriptorSet(binding) {
+    accelInfos = {accelInfo};
     write.setPNext(&accelInfos.front());
 }
 
-WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding)
-{
+WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding) {
     write.setDescriptorType(binding.descriptorType);
     write.setDescriptorCount(binding.descriptorCount);
     write.setDstBinding(binding.binding);
 }
 
-void DescriptorSet::allocate()
-{
+void DescriptorSet::allocate() {
     std::vector<vk::DescriptorSetLayoutBinding> bindings;
     for (auto&& [name, binding] : bindingMap) {
         bindings.push_back(binding);
     }
 
     descSetLayout = Context::getDevice().createDescriptorSetLayoutUnique(
-        vk::DescriptorSetLayoutCreateInfo()
-        .setBindings(bindings));
+        vk::DescriptorSetLayoutCreateInfo().setBindings(bindings));
 
-    descSet = std::move(Context::getDevice().allocateDescriptorSetsUnique(
-        vk::DescriptorSetAllocateInfo()
-        .setDescriptorPool(Context::getDescriptorPool())
-        .setSetLayouts(*descSetLayout)).front());
+    descSet = std::move(
+        Context::getDevice()
+            .allocateDescriptorSetsUnique(vk::DescriptorSetAllocateInfo()
+                                              .setDescriptorPool(Context::getDescriptorPool())
+                                              .setSetLayouts(*descSetLayout))
+            .front());
     update();
 }
 
-void DescriptorSet::update()
-{
+void DescriptorSet::update() {
     std::vector<vk::WriteDescriptorSet> _writes;
     for (auto&& write : writes) {
         _writes.push_back(write.get());
@@ -75,8 +73,7 @@ void DescriptorSet::update()
     Context::getDevice().updateDescriptorSets(_writes, nullptr);
 }
 
-void DescriptorSet::record(const std::string& name, const std::vector<Image>& images)
-{
+void DescriptorSet::record(const std::string& name, const std::vector<Image>& images) {
     std::vector<vk::DescriptorImageInfo> infos;
     infos.reserve(images.size());
     for (auto&& image : images) {
@@ -87,28 +84,24 @@ void DescriptorSet::record(const std::string& name, const std::vector<Image>& im
     writes.emplace_back(bindingMap[name], infos);
 }
 
-void DescriptorSet::record(const std::string& name, const Buffer& buffer)
-{
+void DescriptorSet::record(const std::string& name, const Buffer& buffer) {
     bindingMap[name].descriptorCount = 1;
     writes.emplace_back(bindingMap[name], buffer.getInfo());
 }
 
-void DescriptorSet::record(const std::string& name, const Image& image)
-{
+void DescriptorSet::record(const std::string& name, const Image& image) {
     bindingMap[name].descriptorCount = 1;
     writes.emplace_back(bindingMap[name], image.getInfo());
 }
 
-void DescriptorSet::record(const std::string& name, const TopAccel& accel)
-{
+void DescriptorSet::record(const std::string& name, const TopAccel& accel) {
     bindingMap[name].descriptorCount = 1;
     writes.emplace_back(bindingMap[name], accel.getInfo());
 }
 
-void DescriptorSet::addResources(const Shader& shader)
-{
+void DescriptorSet::addResources(const Shader& shader) {
     vk::ShaderStageFlags stage = shader.getStage();
-    spirv_cross::CompilerGLSL glsl{ shader.getSpvCode() };
+    spirv_cross::CompilerGLSL glsl{shader.getSpvCode()};
     spirv_cross::ShaderResources resources = glsl.get_shader_resources();
 
     for (auto&& resource : resources.uniform_buffers) {
@@ -128,12 +121,11 @@ void DescriptorSet::addResources(const Shader& shader)
     }
 }
 
-vk::UniquePipelineLayout DescriptorSet::createPipelineLayout(size_t pushSize, vk::ShaderStageFlags shaderStage) const
-{
-    const auto pushRange = vk::PushConstantRange()
-        .setOffset(0)
-        .setSize(pushSize)
-        .setStageFlags(shaderStage);
+vk::UniquePipelineLayout DescriptorSet::createPipelineLayout(
+    size_t pushSize,
+    vk::ShaderStageFlags shaderStage) const {
+    const auto pushRange =
+        vk::PushConstantRange().setOffset(0).setSize(pushSize).setStageFlags(shaderStage);
 
     auto layoutInfo = vk::PipelineLayoutCreateInfo();
     if (!writes.empty()) {
@@ -145,16 +137,18 @@ vk::UniquePipelineLayout DescriptorSet::createPipelineLayout(size_t pushSize, vk
     return Context::getDevice().createPipelineLayoutUnique(layoutInfo);
 }
 
-void DescriptorSet::bind(vk::CommandBuffer commandBuffer, vk::PipelineBindPoint bindPoint, vk::PipelineLayout pipelineLayout)
-{
+void DescriptorSet::bind(vk::CommandBuffer commandBuffer,
+                         vk::PipelineBindPoint bindPoint,
+                         vk::PipelineLayout pipelineLayout) {
     if (!writes.empty()) {
         commandBuffer.bindDescriptorSets(bindPoint, pipelineLayout, 0, *descSet, nullptr);
     }
 }
 
-void DescriptorSet::updateBindingMap(spirv_cross::Resource& resource, spirv_cross::CompilerGLSL& glsl,
-                                     vk::ShaderStageFlags stage, vk::DescriptorType type)
-{
+void DescriptorSet::updateBindingMap(spirv_cross::Resource& resource,
+                                     spirv_cross::CompilerGLSL& glsl,
+                                     vk::ShaderStageFlags stage,
+                                     vk::DescriptorType type) {
     if (bindingMap.contains(resource.name)) {
         auto& binding = bindingMap[resource.name];
         if (binding.binding != glsl.get_decoration(resource.id, spv::DecorationBinding)) {
@@ -162,10 +156,11 @@ void DescriptorSet::updateBindingMap(spirv_cross::Resource& resource, spirv_cros
         }
         binding.stageFlags |= stage;
     } else {
-        bindingMap[resource.name] = vk::DescriptorSetLayoutBinding()
-            .setBinding(glsl.get_decoration(resource.id, spv::DecorationBinding))
-            .setDescriptorType(type)
-            .setDescriptorCount(1)
-            .setStageFlags(stage);
+        bindingMap[resource.name] =
+            vk::DescriptorSetLayoutBinding()
+                .setBinding(glsl.get_decoration(resource.id, spv::DecorationBinding))
+                .setDescriptorType(type)
+                .setDescriptorCount(1)
+                .setStageFlags(stage);
     }
 }
