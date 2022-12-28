@@ -47,17 +47,17 @@ int main()
             pushConstants.invView = camera.getInvView();
 
             swapchin.waitNextFrame();
-            vk::CommandBuffer commandBuffer = swapchin.beginCommandBuffer();
-            pipeline.bind(commandBuffer);
-            pipeline.pushConstants(commandBuffer, &pushConstants);
-            pipeline.traceRays(commandBuffer, Window::getWidth(), Window::getHeight());
-            swapchin.copyToBackImage(commandBuffer, outputImage);
 
-            swapchin.beginRenderPass();
-            gui.render(commandBuffer);
-            swapchin.endRenderPass();
+            CommandBuffer commandBuffer = swapchin.beginCommandBuffer();
+            commandBuffer.bindPipeline(pipeline);
+            commandBuffer.pushConstants(&pushConstants);
+            commandBuffer.traceRays(Window::getWidth(), Window::getHeight());
+            commandBuffer.copyToBackImage(outputImage);
+            commandBuffer.beginRenderPass();
+            commandBuffer.drawGUI(gui);
+            commandBuffer.endRenderPass();
+            commandBuffer.submit();
 
-            swapchin.submit();
             swapchin.present();
         }
         Context::waitIdle();

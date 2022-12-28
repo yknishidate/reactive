@@ -4,6 +4,7 @@
 class Image;
 class Pipeline;
 class GraphicsPipeline;
+class RayTracingPipeline;
 class Swapchain;
 class Mesh;
 class GUI;
@@ -16,14 +17,16 @@ public:
         , commandBuffer{ commandBuffer }
     {}
 
-    void bindPipeline(GraphicsPipeline& pipeline);
+    void bindPipeline(Pipeline& pipeline);
     void pushConstants(void* pushData);
+    void traceRays(uint32_t countX, uint32_t countY);
     void clearBackImage(std::array<float, 4> color);
     void beginRenderPass();
     void endRenderPass();
     void submit();
     void drawIndexed(Mesh& mesh);
     void drawGUI(GUI& gui);
+    void copyToBackImage(const Image& image);
 
     vk::CommandBuffer commandBuffer;
     Pipeline* boundPipeline = nullptr;
