@@ -71,7 +71,10 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     "ASSET_DIR=std::string{\"${PROJECT_SOURCE_DIR}/asset/\"}")
 
-add_subdirectory(sample/restir)
-add_subdirectory(sample/hello_raytracing)
-add_subdirectory(sample/light_field)
-add_subdirectory(sample/hello_graphics)
+option(REACTIVE_BUILD_SAMPLES "Build the Reactive samples" ON)
+if (REACTIVE_BUILD_SAMPLES)
+    add_subdirectory(sample/restir)
+    add_subdirectory(sample/hello_raytracing)
+    add_subdirectory(sample/light_field)
+    add_subdirectory(sample/hello_graphics)
+endif()
