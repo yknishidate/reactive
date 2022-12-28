@@ -10,22 +10,8 @@ class Scene;
 class Pipeline
 {
 public:
-    Pipeline()
-    {
-        descSet = std::make_shared<DescriptorSet>();
-    }
-
-    Pipeline(std::shared_ptr<DescriptorSet> descSet)
-    {
-        this->descSet = descSet;
-    }
-
-    void record(const std::string& name, const std::vector<Image>& images);
-    void record(const std::string& name, const Buffer& buffer);
-    void record(const std::string& name, const Image& image);
-    void record(const std::string& name, const TopAccel& accel);
-
-    DescriptorSet& getDescSet() { return *descSet; }
+    Pipeline() = default;
+    Pipeline(DescriptorSet& descSet) : descSet{ &descSet } {}
 
 protected:
     friend class CommandBuffer;
@@ -35,36 +21,51 @@ protected:
     vk::UniquePipelineLayout pipelineLayout;
     vk::UniquePipeline pipeline;
     size_t pushSize{};
-    std::shared_ptr<DescriptorSet> descSet;
-    bool recorded = false;
+    DescriptorSet* descSet;
 };
 
 class GraphicsPipeline : public Pipeline
 {
 public:
-    GraphicsPipeline() : Pipeline() {}
-    GraphicsPipeline(std::shared_ptr<DescriptorSet> descSet) : Pipeline(descSet) {}
+    GraphicsPipeline() = default;
+    GraphicsPipeline(DescriptorSet& descSet) : Pipeline(descSet) {}
 
-    void loadShaders(const std::string& vertPath, const std::string& fragPath);
     void setup(Swapchain& swapchain, size_t pushSize = 0);
+
+    void setVertexShader(const Shader& vertShader)
+    {
+        assert(vertShader.getStage() == vk::ShaderStageFlagBits::eVertex);
+        vertModule = vertShader.getModule();
+    }
+
+    void setFragmentShader(const Shader& fragShader)
+    {
+        assert(fragShader.getStage() == vk::ShaderStageFlagBits::eFragment);
+        fragModule = fragShader.getModule();
+    }
 
 private:
     friend class CommandBuffer;
     void bind(vk::CommandBuffer commandBuffer) override;
     void pushConstants(vk::CommandBuffer commandBuffer, void* pushData) override;
 
-    vk::UniqueShaderModule vertModule;
-    vk::UniqueShaderModule fragModule;
+    vk::ShaderModule vertModule;
+    vk::ShaderModule fragModule;
 };
 
 class ComputePipeline : public Pipeline
 {
 public:
-    ComputePipeline() : Pipeline() {}
-    ComputePipeline(std::shared_ptr<DescriptorSet> descSet) : Pipeline(descSet) {}
+    ComputePipeline() = default;
+    ComputePipeline(DescriptorSet& descSet) : Pipeline(descSet) {}
 
-    void loadShaders(const std::string& path);
     void setup(size_t pushSize = 0);
+
+    void setComputeShader(const Shader& compShader)
+    {
+        assert(compShader.getStage() == vk::ShaderStageFlagBits::eCompute);
+        shaderModule = compShader.getModule();
+    }
 
 private:
     friend class CommandBuffer;
@@ -72,18 +73,76 @@ private:
     void pushConstants(vk::CommandBuffer commandBuffer, void* pushData) override;
     void dispatch(vk::CommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY);
 
-    vk::UniqueShaderModule shaderModule;
+    vk::ShaderModule shaderModule;
 };
 
 class RayTracingPipeline : public Pipeline
 {
 public:
-    RayTracingPipeline() : Pipeline() {}
-    RayTracingPipeline(std::shared_ptr<DescriptorSet> descSet) : Pipeline(descSet) {}
+    RayTracingPipeline() = default;
+    RayTracingPipeline(DescriptorSet& descSet) : Pipeline(descSet) {}
 
-    void loadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath);
-    void loadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath, const std::string& ahitPath);
     void setup(size_t pushSize = 0);
+
+    void setShaders(const Shader& rgenShader, const Shader& missShader, const Shader& chitShader)
+    {
+        assert(rgenShader.getStage() == vk::ShaderStageFlagBits::eRaygenKHR);
+        assert(missShader.getStage() == vk::ShaderStageFlagBits::eMissKHR);
+        assert(chitShader.getStage() == vk::ShaderStageFlagBits::eClosestHitKHR);
+
+        rgenCount = 1;
+        missCount = 1;
+        hitCount = 1;
+
+        shaderModules.push_back(rgenShader.getModule());
+        shaderModules.push_back(missShader.getModule());
+        shaderModules.push_back(chitShader.getModule());
+
+        shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eRaygenKHR, shaderModules[0], "main" });
+        shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eMissKHR, shaderModules[1], "main" });
+        shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eClosestHitKHR, shaderModules[2], "main" });
+
+        shaderGroups.push_back({ vk::RayTracingShaderGroupTypeKHR::eGeneral,
+                               0, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR });
+
+        shaderGroups.push_back({ vk::RayTracingShaderGroupTypeKHR::eGeneral,
+                               1, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR });
+
+        shaderGroups.push_back({ vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup,
+                               VK_SHADER_UNUSED_KHR, 2, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR });
+    }
+
+    void setShaders(const Shader& rgenShader, const Shader& missShader,
+                    const Shader& chitShader, const Shader& ahitShader)
+    {
+        assert(rgenShader.getStage() == vk::ShaderStageFlagBits::eRaygenKHR);
+        assert(missShader.getStage() == vk::ShaderStageFlagBits::eMissKHR);
+        assert(chitShader.getStage() == vk::ShaderStageFlagBits::eClosestHitKHR);
+        assert(ahitShader.getStage() == vk::ShaderStageFlagBits::eAnyHitKHR);
+
+        rgenCount = 1;
+        missCount = 1;
+        hitCount = 2;
+
+        shaderModules.push_back(rgenShader.getModule());
+        shaderModules.push_back(missShader.getModule());
+        shaderModules.push_back(chitShader.getModule());
+        shaderModules.push_back(ahitShader.getModule());
+
+        shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eRaygenKHR, shaderModules[0], "main" });
+        shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eMissKHR, shaderModules[1], "main" });
+        shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eClosestHitKHR, shaderModules[2], "main" });
+        shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eAnyHitKHR, shaderModules[3], "main" });
+
+        shaderGroups.push_back({ vk::RayTracingShaderGroupTypeKHR::eGeneral,
+                               0, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR });
+
+        shaderGroups.push_back({ vk::RayTracingShaderGroupTypeKHR::eGeneral,
+                               1, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR });
+
+        shaderGroups.push_back({ vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup,
+                               VK_SHADER_UNUSED_KHR, 2, 3, VK_SHADER_UNUSED_KHR });
+    }
 
 private:
     friend class CommandBuffer;
@@ -91,7 +150,7 @@ private:
     void pushConstants(vk::CommandBuffer commandBuffer, void* pushData) override;
     void traceRays(vk::CommandBuffer commandBuffer, uint32_t countX, uint32_t countY);
 
-    std::vector<vk::UniqueShaderModule> shaderModules;
+    std::vector<vk::ShaderModule> shaderModules;
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
     std::vector<vk::RayTracingShaderGroupCreateInfoKHR> shaderGroups;
 

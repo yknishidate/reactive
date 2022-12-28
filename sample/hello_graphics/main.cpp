@@ -24,9 +24,17 @@ int main()
         Mesh mesh{ "bunny.obj" };
         Camera camera{ Window::getWidth(), Window::getHeight() };
 
-        GraphicsPipeline pipeline{ };
-        pipeline.loadShaders(SHADER_DIR + "hello_graphics.vert",
-                             SHADER_DIR + "hello_graphics.frag");
+        Shader vertShader{ SHADER_DIR + "hello_graphics.vert" };
+        Shader fragShader{ SHADER_DIR + "hello_graphics.frag" };
+
+        DescriptorSet descSet;
+        descSet.addResources(vertShader);
+        descSet.addResources(fragShader);
+        descSet.allocate();
+
+        GraphicsPipeline pipeline{ descSet };
+        pipeline.setVertexShader(vertShader);
+        pipeline.setFragmentShader(fragShader);
         pipeline.setup(swapchain, sizeof(PushConstants));
 
         int testInt = 0;

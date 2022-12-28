@@ -7,6 +7,7 @@
 #include "Graphics/Image.hpp"
 #include "Graphics/Pipeline.hpp"
 #include "Graphics/DescriptorSet.hpp"
+#include "Graphics/Shader.hpp"
 #include "Window/Window.hpp"
 #include "Scene/Mesh.hpp"
 #include "Scene/Camera.hpp"

@@ -145,67 +145,19 @@ vk::StridedDeviceAddressRegionKHR CreateAddressRegion(
 }
 } // namespace
 
-void Pipeline::record(const std::string& name, const std::vector<Image>& images)
-{
-    recorded = true;
-    descSet->record(name, images);
-}
-
-void Pipeline::record(const std::string& name, const Buffer& buffer)
-{
-    recorded = true;
-    descSet->record(name, buffer);
-}
-
-void Pipeline::record(const std::string& name, const Image& image)
-{
-    recorded = true;
-    descSet->record(name, image);
-}
-
-void Pipeline::record(const std::string& name, const TopAccel& accel)
-{
-    recorded = true;
-    descSet->record(name, accel);
-}
-
-void GraphicsPipeline::loadShaders(const std::string& vertPath, const std::string& fragPath)
-{
-    spdlog::info("ComputePipeline::LoadShaders()");
-
-    std::vector vertCode = Compiler::compileToSPV(vertPath);
-    std::vector fragCode = Compiler::compileToSPV(fragPath);
-    descSet->addBindingMap(vertCode, vk::ShaderStageFlagBits::eVertex);
-    descSet->addBindingMap(fragCode, vk::ShaderStageFlagBits::eFragment);
-    vertModule = CreateShaderModule(vertCode);
-    fragModule = CreateShaderModule(fragCode);
-}
-
 void GraphicsPipeline::setup(Swapchain& swapchain, size_t pushSize)
 {
+    assert(vertModule);
+    assert(fragModule);
     this->pushSize = pushSize;
-    if (recorded) {
-        pipelineLayout = descSet->createPipelineLayout(pushSize, vk::ShaderStageFlagBits::eAllGraphics);
-    } else {
-        const auto pushRange = vk::PushConstantRange()
-            .setOffset(0)
-            .setSize(pushSize)
-            .setStageFlags(vk::ShaderStageFlagBits::eAllGraphics);
-
-        auto layoutInfo = vk::PipelineLayoutCreateInfo()
-            .setPushConstantRanges(pushRange);
-
-        pipelineLayout = Context::getDevice().createPipelineLayoutUnique(layoutInfo);
-    }
-    pipeline = CreateGraphicsPipeline(*vertModule, *fragModule, *pipelineLayout, swapchain.getRenderPass());
+    pipelineLayout = descSet->createPipelineLayout(pushSize, vk::ShaderStageFlagBits::eAllGraphics);
+    pipeline = CreateGraphicsPipeline(vertModule, fragModule, *pipelineLayout, swapchain.getRenderPass());
 }
 
 void GraphicsPipeline::bind(vk::CommandBuffer commandBuffer)
 {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *pipeline);
-    if (recorded) {
-        descSet->bind(commandBuffer, vk::PipelineBindPoint::eGraphics, *pipelineLayout);
-    }
+    descSet->bind(commandBuffer, vk::PipelineBindPoint::eGraphics, *pipelineLayout);
 }
 
 void GraphicsPipeline::pushConstants(vk::CommandBuffer commandBuffer, void* pushData)
@@ -213,20 +165,11 @@ void GraphicsPipeline::pushConstants(vk::CommandBuffer commandBuffer, void* push
     commandBuffer.pushConstants(*pipelineLayout, vk::ShaderStageFlagBits::eAllGraphics, 0, pushSize, pushData);
 }
 
-void ComputePipeline::loadShaders(const std::string& path)
-{
-    spdlog::info("ComputePipeline::LoadShaders()");
-
-    std::vector spirvCode = Compiler::compileToSPV(path);
-    descSet->addBindingMap(spirvCode, vk::ShaderStageFlagBits::eCompute);
-    shaderModule = CreateShaderModule(spirvCode);
-}
-
 void ComputePipeline::setup(size_t pushSize)
 {
     this->pushSize = pushSize;
     pipelineLayout = descSet->createPipelineLayout(pushSize, vk::ShaderStageFlagBits::eCompute);
-    pipeline = CreateComputePipeline(*shaderModule, vk::ShaderStageFlagBits::eCompute, *pipelineLayout);
+    pipeline = CreateComputePipeline(shaderModule, vk::ShaderStageFlagBits::eCompute, *pipelineLayout);
 }
 
 void ComputePipeline::bind(vk::CommandBuffer commandBuffer)
@@ -243,86 +186,6 @@ void ComputePipeline::pushConstants(vk::CommandBuffer commandBuffer, void* pushD
 void ComputePipeline::dispatch(vk::CommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY)
 {
     commandBuffer.dispatch(groupCountX, groupCountY, 1);
-}
-
-void RayTracingPipeline::loadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath)
-{
-    spdlog::info("RayTracingPipeline::LoadShaders()");
-    rgenCount = 1;
-    missCount = 1;
-    hitCount = 1;
-
-    const uint32_t rgenIndex = 0;
-    const uint32_t missIndex = 1;
-    const uint32_t chitIndex = 2;
-
-    // Compile shaders
-    std::vector rgenShader = Compiler::compileToSPV(rgenPath);
-    std::vector missShader = Compiler::compileToSPV(missPath);
-    std::vector chitShader = Compiler::compileToSPV(chitPath);
-
-    // Get bindings
-    descSet->addBindingMap(rgenShader, vk::ShaderStageFlagBits::eRaygenKHR);
-    descSet->addBindingMap(missShader, vk::ShaderStageFlagBits::eMissKHR);
-    descSet->addBindingMap(chitShader, vk::ShaderStageFlagBits::eClosestHitKHR);
-
-    shaderModules.push_back(CreateShaderModule(rgenShader));
-    shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eRaygenKHR, *shaderModules.back(), "main" });
-    shaderGroups.push_back({ vk::RayTracingShaderGroupTypeKHR::eGeneral,
-                           rgenIndex, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR });
-
-    shaderModules.push_back(CreateShaderModule(missShader));
-    shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eMissKHR, *shaderModules.back(), "main" });
-    shaderGroups.push_back({ vk::RayTracingShaderGroupTypeKHR::eGeneral,
-                           missIndex, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR });
-
-    shaderModules.push_back(CreateShaderModule(chitShader));
-    shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eClosestHitKHR, *shaderModules.back(), "main" });
-    shaderGroups.push_back({ vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup,
-                           VK_SHADER_UNUSED_KHR, chitIndex, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR });
-
-}
-
-void RayTracingPipeline::loadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath, const std::string& ahitPath)
-{
-    spdlog::info("RayTracingPipeline::LoadShaders()");
-    rgenCount = 1;
-    missCount = 1;
-    hitCount = 2;
-
-    const uint32_t rgenIndex = 0;
-    const uint32_t missIndex = 1;
-    const uint32_t chitIndex = 2;
-    const uint32_t ahitIndex = 3;
-
-    // Compile shaders
-    std::vector rgenShader = Compiler::compileToSPV(rgenPath);
-    std::vector missShader = Compiler::compileToSPV(missPath);
-    std::vector chitShader = Compiler::compileToSPV(chitPath);
-    std::vector ahitShader = Compiler::compileToSPV(ahitPath);
-
-    // Get bindings
-    descSet->addBindingMap(rgenShader, vk::ShaderStageFlagBits::eRaygenKHR);
-    descSet->addBindingMap(missShader, vk::ShaderStageFlagBits::eMissKHR);
-    descSet->addBindingMap(chitShader, vk::ShaderStageFlagBits::eClosestHitKHR);
-    descSet->addBindingMap(ahitShader, vk::ShaderStageFlagBits::eAnyHitKHR);
-
-    shaderModules.push_back(CreateShaderModule(rgenShader));
-    shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eRaygenKHR, *shaderModules.back(), "main" });
-    shaderGroups.push_back({ vk::RayTracingShaderGroupTypeKHR::eGeneral,
-                           rgenIndex, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR });
-
-    shaderModules.push_back(CreateShaderModule(missShader));
-    shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eMissKHR, *shaderModules.back(), "main" });
-    shaderGroups.push_back({ vk::RayTracingShaderGroupTypeKHR::eGeneral,
-                           missIndex, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR });
-
-    shaderModules.push_back(CreateShaderModule(chitShader));
-    shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eClosestHitKHR, *shaderModules.back(), "main" });
-    shaderModules.push_back(CreateShaderModule(ahitShader));
-    shaderStages.push_back({ {}, vk::ShaderStageFlagBits::eAnyHitKHR, *shaderModules.back(), "main" });
-    shaderGroups.push_back({ vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup,
-                           VK_SHADER_UNUSED_KHR, chitIndex, ahitIndex, VK_SHADER_UNUSED_KHR });
 }
 
 void RayTracingPipeline::setup(size_t pushSize)

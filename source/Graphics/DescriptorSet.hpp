@@ -4,6 +4,7 @@
 #include "Buffer.hpp"
 #include "Image.hpp"
 #include "Accel.hpp"
+#include "Shader.hpp"
 
 class WriteDescriptorSet
 {
@@ -28,7 +29,7 @@ private:
 class DescriptorSet
 {
 public:
-    void setup();
+    void allocate();
     void update();
     void bind(vk::CommandBuffer commandBuffer, vk::PipelineBindPoint bindPoint, vk::PipelineLayout pipelineLayout);
 
@@ -37,9 +38,10 @@ public:
     void record(const std::string& name, const Image& image);
     void record(const std::string& name, const TopAccel& accel);
 
-    void addBindingMap(const std::vector<uint32_t>& spvShader, vk::ShaderStageFlags stage);
+    void addResources(const Shader& shader);
 
-    std::vector<vk::DescriptorSetLayoutBinding> getBindings() const;
+    // TODO: remove
+    void addBindingMap(const std::vector<uint32_t>& spvShader, vk::ShaderStageFlags stage);
 
     vk::UniquePipelineLayout createPipelineLayout(size_t pushSize, vk::ShaderStageFlags shaderStage) const;
 

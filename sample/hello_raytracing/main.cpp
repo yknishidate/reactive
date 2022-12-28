@@ -26,13 +26,20 @@ int main()
 
         Image outputImage{ vk::Format::eB8G8R8A8Unorm };
 
-        RayTracingPipeline pipeline{ };
-        pipeline.loadShaders(SHADER_DIR + "hello_raytracing.rgen",
-                             SHADER_DIR + "hello_raytracing.rmiss",
-                             SHADER_DIR + "hello_raytracing.rchit");
-        pipeline.getDescSet().record("topLevelAS", topAccel);
-        pipeline.getDescSet().record("outputImage", outputImage);
-        pipeline.getDescSet().setup();
+        Shader rgenShader{ SHADER_DIR + "hello_raytracing.rgen" };
+        Shader missShader{ SHADER_DIR + "hello_raytracing.rmiss" };
+        Shader chitShader{ SHADER_DIR + "hello_raytracing.rchit" };
+
+        DescriptorSet descSet{};
+        descSet.addResources(rgenShader);
+        descSet.addResources(missShader);
+        descSet.addResources(chitShader);
+        descSet.record("topLevelAS", topAccel);
+        descSet.record("outputImage", outputImage);
+        descSet.allocate();
+
+        RayTracingPipeline pipeline{ descSet };
+        pipeline.setShaders(rgenShader, missShader, chitShader);
         pipeline.setup(sizeof(PushConstants));
 
         int testInt = 0;

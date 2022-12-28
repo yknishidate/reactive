@@ -227,7 +227,52 @@ int main()
         }
         scene.setup();
 
-        auto descSet = std::make_shared<DescriptorSet>();
+        GBuffers gbuffers;
+        OutputImage outputImage;
+        ResevImages initedResevImages;
+        ResevImages reusedResevImages;
+        ResevImages storedResevImages;
+
+        Shader gbufferRgen{ SHADER_DIR + "gbuffer/gbuffer.rgen" };
+        Shader gbufferMiss{ SHADER_DIR + "gbuffer/gbuffer.rmiss" };
+        Shader gbufferChit{ SHADER_DIR + "gbuffer/gbuffer.rchit" };
+        Shader shadowRayMiss{ SHADER_DIR + "shadow_ray/shadow_ray.rmiss" };
+        Shader shadowRayChit{ SHADER_DIR + "shadow_ray/shadow_ray.rchit" };
+        Shader uniformRgen{ SHADER_DIR + "uniform_light/uniform_light.rgen" };
+        Shader wrsRgen{ SHADER_DIR + "wrs/wrs.rgen" };
+        Shader initResevRgen{ SHADER_DIR + "restir/init_resev.rgen" };
+        Shader spatialReuseRgen{ SHADER_DIR + "restir/spatial_reuse.rgen" };
+        Shader tempReuseRgen{ SHADER_DIR + "restir/temporal_reuse.rgen" };
+        Shader shadingRgen{ SHADER_DIR + "restir/shading.rgen" };
+
+        DescriptorSet descSet{};
+        descSet.addResources(gbufferRgen);
+        descSet.addResources(gbufferMiss);
+        descSet.addResources(gbufferChit);
+        descSet.addResources(shadowRayMiss);
+        descSet.addResources(shadowRayChit);
+        descSet.addResources(uniformRgen);
+        descSet.addResources(wrsRgen);
+        descSet.addResources(initResevRgen);
+        descSet.addResources(spatialReuseRgen);
+        descSet.addResources(tempReuseRgen);
+        descSet.addResources(shadingRgen);
+        descSet.record("topLevelAS", scene.getAccel());
+        descSet.record("samplers", scene.getTextures());
+        descSet.record("Addresses", scene.getAddressBuffer());
+        descSet.record("positionImage", gbuffers.position);
+        descSet.record("normalImage", gbuffers.normal);
+        descSet.record("diffuseImage", gbuffers.diffuse);
+        descSet.record("emissionImage", gbuffers.emission);
+        descSet.record("instanceIndexImage", gbuffers.instanceIndex);
+        descSet.record("outputImage", outputImage.output);
+        descSet.record("resevSampleImage", initedResevImages.sample);
+        descSet.record("resevWeightImage", initedResevImages.weight);
+        descSet.record("newResevSampleImage", reusedResevImages.sample);
+        descSet.record("newResevWeightImage", reusedResevImages.weight);
+        descSet.record("oldResevSampleImage", storedResevImages.sample);
+        descSet.record("oldResevWeightImage", storedResevImages.weight);
+        descSet.allocate();
 
         std::unordered_map<std::string, RayTracingPipeline> pipelines;
         pipelines.insert({ "GBuffer", RayTracingPipeline{ descSet } });
@@ -238,60 +283,13 @@ int main()
         pipelines.insert({ "TemporalReuse", RayTracingPipeline{ descSet } });
         pipelines.insert({ "Shading", RayTracingPipeline{ descSet } });
 
-        pipelines["GBuffer"].loadShaders(SHADER_DIR + "gbuffer/gbuffer.rgen",
-                                         SHADER_DIR + "gbuffer/gbuffer.rmiss",
-                                         SHADER_DIR + "gbuffer/gbuffer.rchit");
-
-        pipelines["Uniform"].loadShaders(SHADER_DIR + "uniform_light/uniform_light.rgen",
-                                         SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
-                                         SHADER_DIR + "shadow_ray/shadow_ray.rchit");
-
-        pipelines["WRS"].loadShaders(SHADER_DIR + "wrs/wrs.rgen",
-                                     SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
-                                     SHADER_DIR + "shadow_ray/shadow_ray.rchit");
-
-        pipelines["InitResev"].loadShaders(SHADER_DIR + "restir/init_resev.rgen",
-                                           SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
-                                           SHADER_DIR + "shadow_ray/shadow_ray.rchit");
-
-        pipelines["SpatialReuse"].loadShaders(SHADER_DIR + "restir/spatial_reuse.rgen",
-                                              SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
-                                              SHADER_DIR + "shadow_ray/shadow_ray.rchit");
-
-        pipelines["TemporalReuse"].loadShaders(SHADER_DIR + "restir/temporal_reuse.rgen",
-                                               SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
-                                               SHADER_DIR + "shadow_ray/shadow_ray.rchit");
-
-        pipelines["Shading"].loadShaders(SHADER_DIR + "restir/shading.rgen",
-                                         SHADER_DIR + "shadow_ray/shadow_ray.rmiss",
-                                         SHADER_DIR + "shadow_ray/shadow_ray.rchit");
-
-        GBuffers gbuffers;
-        OutputImage outputImage;
-        ResevImages initedResevImages;
-        ResevImages reusedResevImages;
-        ResevImages storedResevImages;
-
-        descSet->record("topLevelAS", scene.getAccel());
-        descSet->record("samplers", scene.getTextures());
-        descSet->record("Addresses", scene.getAddressBuffer());
-
-        descSet->record("positionImage", gbuffers.position);
-        descSet->record("normalImage", gbuffers.normal);
-        descSet->record("diffuseImage", gbuffers.diffuse);
-        descSet->record("emissionImage", gbuffers.emission);
-        descSet->record("instanceIndexImage", gbuffers.instanceIndex);
-
-        descSet->record("outputImage", outputImage.output);
-
-        descSet->record("resevSampleImage", initedResevImages.sample);
-        descSet->record("resevWeightImage", initedResevImages.weight);
-        descSet->record("newResevSampleImage", reusedResevImages.sample);
-        descSet->record("newResevWeightImage", reusedResevImages.weight);
-        descSet->record("oldResevSampleImage", storedResevImages.sample);
-        descSet->record("oldResevWeightImage", storedResevImages.weight);
-        descSet->setup();
-
+        pipelines["GBuffer"].setShaders(gbufferRgen, gbufferMiss, gbufferChit);
+        pipelines["Uniform"].setShaders(uniformRgen, shadowRayMiss, shadowRayChit);
+        pipelines["WRS"].setShaders(wrsRgen, shadowRayMiss, shadowRayChit);
+        pipelines["InitResev"].setShaders(initResevRgen, shadowRayMiss, shadowRayChit);
+        pipelines["SpatialReuse"].setShaders(spatialReuseRgen, shadowRayMiss, shadowRayChit);
+        pipelines["TemporalReuse"].setShaders(tempReuseRgen, shadowRayMiss, shadowRayChit);
+        pipelines["Shading"].setShaders(shadingRgen, shadowRayMiss, shadowRayChit);
         for (auto& [name, pipeline] : pipelines) {
             pipeline.setup(sizeof(PushConstants));
         }
@@ -311,6 +309,7 @@ int main()
         while (!Window::shouldClose()) {
             Window::pollEvents();
 
+            // Add GUI
             gui.startFrame();
             gui.combo("Method", method, { "Uniform", "WRS", "ReSTIR" });
             gui.sliderInt("Samples", pushConstants.samples, 1, 32);
@@ -319,17 +318,18 @@ int main()
                 gui.checkbox("Temporal reuse", temporalReuse);
             }
 
+            // Update scene and push constants
             scene.update(0.1);
             pushConstants.invProj = scene.getCamera().getInvProj();
             pushConstants.invView = scene.getCamera().getInvView();
             pushConstants.frame++;
 
+            swapchain.waitNextFrame();
+
+            // Record commands
             auto width = Window::getWidth();
             auto height = Window::getHeight();
-
-            swapchain.waitNextFrame();
             CommandBuffer commandBuffer = swapchain.beginCommandBuffer();
-
             commandBuffer.bindPipeline(pipelines["GBuffer"]);
             commandBuffer.pushConstants(pipelines["GBuffer"], &pushConstants);
             commandBuffer.traceRays(pipelines["GBuffer"], width, height);

@@ -37,7 +37,7 @@ int main()
 {
     try {
         Log::init();
-        Window::init(1280, 1280);
+        Window::init(1024, 1024);
         Context::init();
 
         Swapchain swapchain{};
@@ -47,11 +47,16 @@ int main()
         Image images{ imagePaths };
         Image outputImage{ vk::Format::eB8G8R8A8Unorm };
 
-        ComputePipeline pipeline{};
-        pipeline.loadShaders(SHADER_DIR + "light_field.comp");
-        pipeline.getDescSet().record("outputImage", outputImage);
-        pipeline.getDescSet().record("images", images);
-        pipeline.getDescSet().setup();
+        Shader compShader{ SHADER_DIR + "light_field.comp" };
+
+        DescriptorSet descSet;
+        descSet.addResources(compShader);
+        descSet.record("outputImage", outputImage);
+        descSet.record("images", images);
+        descSet.allocate();
+
+        ComputePipeline pipeline{ descSet };
+        pipeline.setComputeShader(compShader);
         pipeline.setup(sizeof(PushConstants));
 
         PushConstants pushConstants;

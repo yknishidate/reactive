@@ -161,14 +161,7 @@ std::string Include(const std::string& filepath, const std::string& sourceText)
 
 std::vector<uint32_t> compileToSPV(const std::string& filepath)
 {
-    static std::unordered_map<std::string, std::vector<uint32_t>> cache;
-
-    if (cache.contains(filepath)) {
-        spdlog::info("  Find shader: {}", filepath);
-        return cache[filepath];
-    }
-
-    spdlog::info("  Compile shader: {}", filepath);
+    spdlog::info("Compile shader: {}", filepath);
     std::string glslShader = ReadFile(filepath);
     EShLanguage stage = GetShaderStage(filepath);
     std::string included = Include(filepath, glslShader);
@@ -195,8 +188,6 @@ std::vector<uint32_t> compileToSPV(const std::string& filepath)
     std::vector<uint32_t> spvShader;
     glslang::GlslangToSpv(*program.getIntermediate(stage), spvShader);
     glslang::FinalizeProcess();
-
-    cache.insert({ filepath, spvShader });
 
     return spvShader;
 }

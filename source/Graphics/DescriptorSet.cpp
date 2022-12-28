@@ -45,18 +45,21 @@ WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding)
     write.setDstBinding(binding.binding);
 }
 
-void DescriptorSet::setup()
+void DescriptorSet::allocate()
 {
-    auto bindings = getBindings();
+    std::vector<vk::DescriptorSetLayoutBinding> bindings;
+    for (auto&& [name, binding] : bindingMap) {
+        bindings.push_back(binding);
+    }
+
     descSetLayout = Context::getDevice().createDescriptorSetLayoutUnique(
         vk::DescriptorSetLayoutCreateInfo()
         .setBindings(bindings));
 
-    std::vector descSets = Context::getDevice().allocateDescriptorSetsUnique(
+    descSet = std::move(Context::getDevice().allocateDescriptorSetsUnique(
         vk::DescriptorSetAllocateInfo()
         .setDescriptorPool(Context::getDescriptorPool())
-        .setSetLayouts(*descSetLayout));
-    descSet = std::move(descSets.front());
+        .setSetLayouts(*descSetLayout)).front());
     update();
 }
 
@@ -102,6 +105,11 @@ void DescriptorSet::record(const std::string& name, const TopAccel& accel)
     writes.emplace_back(bindingMap[name], accel.getInfo());
 }
 
+void DescriptorSet::addResources(const Shader& shader)
+{
+    addBindingMap(shader.getSpvCode(), shader.getStage());
+}
+
 void DescriptorSet::addBindingMap(const std::vector<uint32_t>& spvShader, vk::ShaderStageFlags stage)
 {
     spirv_cross::CompilerGLSL glsl{ spvShader };
@@ -124,15 +132,6 @@ void DescriptorSet::addBindingMap(const std::vector<uint32_t>& spvShader, vk::Sh
     }
 }
 
-std::vector<vk::DescriptorSetLayoutBinding> DescriptorSet::getBindings() const
-{
-    std::vector<vk::DescriptorSetLayoutBinding> bindings;
-    for (auto&& [name, binding] : bindingMap) {
-        bindings.push_back(binding);
-    }
-    return bindings;
-}
-
 vk::UniquePipelineLayout DescriptorSet::createPipelineLayout(size_t pushSize, vk::ShaderStageFlags shaderStage) const
 {
     const auto pushRange = vk::PushConstantRange()
@@ -140,19 +139,21 @@ vk::UniquePipelineLayout DescriptorSet::createPipelineLayout(size_t pushSize, vk
         .setSize(pushSize)
         .setStageFlags(shaderStage);
 
-    auto layoutInfo = vk::PipelineLayoutCreateInfo()
-        .setSetLayouts(*descSetLayout);
-
+    auto layoutInfo = vk::PipelineLayoutCreateInfo();
+    if (!writes.empty()) {
+        layoutInfo.setSetLayouts(*descSetLayout);
+    }
     if (pushSize) {
         layoutInfo.setPushConstantRanges(pushRange);
     }
-
     return Context::getDevice().createPipelineLayoutUnique(layoutInfo);
 }
 
 void DescriptorSet::bind(vk::CommandBuffer commandBuffer, vk::PipelineBindPoint bindPoint, vk::PipelineLayout pipelineLayout)
 {
-    commandBuffer.bindDescriptorSets(bindPoint, pipelineLayout, 0, *descSet, nullptr);
+    if (!writes.empty()) {
+        commandBuffer.bindDescriptorSets(bindPoint, pipelineLayout, 0, *descSet, nullptr);
+    }
 }
 
 void DescriptorSet::updateBindingMap(spirv_cross::Resource& resource, spirv_cross::CompilerGLSL& glsl,
