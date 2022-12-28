@@ -144,6 +144,18 @@ EShLanguage GetShaderStage(const std::string& filepath)
     assert(false && "Unknown shader stage");
 }
 
+EShLanguage GetShaderStage(vk::ShaderStageFlagBits shaderStage)
+{
+    if (shaderStage == vk::ShaderStageFlagBits::eVertex) return EShLangVertex;
+    if (shaderStage == vk::ShaderStageFlagBits::eFragment) return EShLangFragment;
+    if (shaderStage == vk::ShaderStageFlagBits::eCompute) return EShLangCompute;
+    if (shaderStage == vk::ShaderStageFlagBits::eRaygenKHR) return EShLangRayGenNV;
+    if (shaderStage == vk::ShaderStageFlagBits::eMissKHR) return EShLangMissNV;
+    if (shaderStage == vk::ShaderStageFlagBits::eClosestHitKHR) return EShLangClosestHitNV;
+    if (shaderStage == vk::ShaderStageFlagBits::eAnyHitKHR) return EShLangAnyHitNV;
+    assert(false && "Unknown shader stage");
+}
+
 std::string Include(const std::string& filepath, const std::string& sourceText)
 {
     std::filesystem::path dir = std::filesystem::path{ filepath }.parent_path();
@@ -159,16 +171,11 @@ std::string Include(const std::string& filepath, const std::string& sourceText)
     return included;
 }
 
-std::vector<uint32_t> compileToSPV(const std::string& filepath)
+std::vector<uint32_t> compileToSPV(const std::string& glslCode, EShLanguage stage)
 {
-    spdlog::info("Compile shader: {}", filepath);
-    std::string glslShader = ReadFile(filepath);
-    EShLanguage stage = GetShaderStage(filepath);
-    std::string included = Include(filepath, glslShader);
-
     glslang::InitializeProcess();
 
-    const char* shaderStrings = included.data();
+    const char* shaderStrings = glslCode.data();
     glslang::TShader shader(stage);
     shader.setEnvClient(glslang::EShClient::EShClientVulkan, glslang::EShTargetClientVersion::EShTargetVulkan_1_2);
     shader.setEnvTarget(glslang::EShTargetLanguage::EShTargetSpv, glslang::EShTargetLanguageVersion::EShTargetSpv_1_4);
@@ -176,13 +183,13 @@ std::vector<uint32_t> compileToSPV(const std::string& filepath)
 
     constexpr auto messages = static_cast<EShMessages>(EShMsgSpvRules | EShMsgVulkanRules);
     if (!shader.parse(&DefaultTBuiltInResource, 100, false, messages)) {
-        spdlog::error("Failed to parse:\n" + included + "\n" + shader.getInfoLog());
+        spdlog::error("Failed to parse:\n" + glslCode + "\n" + shader.getInfoLog());
     }
 
     glslang::TProgram program;
     program.addShader(&shader);
     if (!program.link(messages)) {
-        spdlog::error("Failed to link:\n" + included + "\n" + shader.getInfoLog());
+        spdlog::error("Failed to link:\n" + glslCode + "\n" + shader.getInfoLog());
     }
 
     std::vector<uint32_t> spvShader;
@@ -190,5 +197,19 @@ std::vector<uint32_t> compileToSPV(const std::string& filepath)
     glslang::FinalizeProcess();
 
     return spvShader;
+}
+
+std::vector<uint32_t> compileToSPV(const std::string& filepath)
+{
+    spdlog::info("Compile shader: {}", filepath);
+    std::string glslCode = ReadFile(filepath);
+    EShLanguage stage = GetShaderStage(filepath);
+    return compileToSPV(glslCode, stage);
+}
+
+std::vector<uint32_t> compileToSPV(const std::string& glslCode, vk::ShaderStageFlagBits shaderStage)
+{
+    EShLanguage stage = GetShaderStage(shaderStage);
+    return compileToSPV(glslCode, stage);
 }
 } // namespace

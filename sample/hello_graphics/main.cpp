@@ -7,6 +7,37 @@ struct PushConstants
     glm::mat4 proj{ 1 };
 };
 
+std::string vertCode = R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+layout(location = 0) in vec3 inPosition;
+layout(location = 1) in vec3 inNormal;
+layout(location = 2) in vec2 inTexCoord;
+layout(location = 0) out vec3 fragColor;
+layout(location = 1) out vec3 fragNormal;
+layout(push_constant) uniform PushConstants {
+    mat4 model;
+    mat4 view;
+    mat4 proj;
+} pushConstants;
+
+void main() {
+    gl_Position = pushConstants.proj * pushConstants.view * pushConstants.model * vec4(inPosition, 1.0);
+    fragColor = vec3(1);
+    fragNormal = inNormal;
+})";
+
+std::string fragCode = R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+layout(location = 0) in vec3 fragColor;
+layout(location = 1) in vec3 fragNormal;
+layout(location = 0) out vec4 outColor;
+
+void main() {
+    outColor = vec4(fragColor, 1.0) * dot(fragNormal, vec3(1.0));
+})";
+
 int main()
 {
     try {
@@ -24,8 +55,8 @@ int main()
         Mesh mesh{ "bunny.obj" };
         Camera camera{ Window::getWidth(), Window::getHeight() };
 
-        Shader vertShader{ SHADER_DIR + "hello_graphics.vert" };
-        Shader fragShader{ SHADER_DIR + "hello_graphics.frag" };
+        Shader vertShader{ vertCode, vk::ShaderStageFlagBits::eVertex };
+        Shader fragShader{ fragCode, vk::ShaderStageFlagBits::eFragment };
 
         DescriptorSet descSet;
         descSet.addResources(vertShader);

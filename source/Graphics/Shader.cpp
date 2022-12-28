@@ -17,3 +17,12 @@ Shader::Shader(const std::string& filepath)
     else if (filepath.ends_with("rahit")) shaderStage = vk::ShaderStageFlagBits::eAnyHitKHR;
     else assert(false && "Unknown shader stage");
 }
+
+Shader::Shader(const std::string& glslCode, vk::ShaderStageFlagBits shaderStage)
+{
+    this->shaderStage = shaderStage;
+    spvCode = Compiler::compileToSPV(glslCode, shaderStage);
+    shaderModule = Context::getDevice().createShaderModuleUnique(
+        vk::ShaderModuleCreateInfo()
+        .setCode(spvCode));
+}

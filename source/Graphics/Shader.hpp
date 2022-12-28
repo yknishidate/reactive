@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <string_view>
 #include <filesystem>
 #include <unordered_map>
 #include <spirv_glsl.hpp>
@@ -13,6 +14,7 @@ class Shader
 public:
     Shader() = default;
     Shader(const std::string& filepath);
+    Shader(const std::string& glslCode, vk::ShaderStageFlagBits shaderStage);
 
     auto getSpvCode() const { return spvCode; }
     auto getModule() const { return *shaderModule; }
