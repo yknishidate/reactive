@@ -229,7 +229,7 @@ void Swapchain::copyToBackImage(vk::CommandBuffer commandBuffer, const Image& so
                             backImage, vk::ImageLayout::eTransferDstOptimal, copyRegion);
 
     Image::setImageLayout(commandBuffer, sourceImage, vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eGeneral);
-    Image::setImageLayout(commandBuffer, backImage, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eColorAttachmentOptimal);
+    Image::setImageLayout(commandBuffer, backImage, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::ePresentSrcKHR);
 }
 
 void Swapchain::clearBackImage(vk::CommandBuffer commandBuffer, std::array<float, 4> color)
