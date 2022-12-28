@@ -6,8 +6,9 @@
 #include <functional>
 #include "Swapchain.hpp"
 
-struct Context
+class Context
 {
+public:
     static void init();
 
     static std::vector<vk::UniqueCommandBuffer> allocateCommandBuffers(uint32_t count);

@@ -2,8 +2,9 @@
 #include <vulkan/vulkan.hpp>
 #include "CommandBuffer.hpp"
 
-struct Swapchain
+class Swapchain
 {
+public:
     Swapchain();
 
     void beginRenderPass() const;
