@@ -105,7 +105,7 @@ public:
     explicit TopAccel(const ArrayProxy<Object>& objects,
                       vk::GeometryFlagBitsKHR geometryFlag = vk::GeometryFlagBitsKHR::eOpaque);
 
-    void rebuild(const vk::ArrayProxy<Object>& objects);
+    void rebuild(const ArrayProxy<Object>& objects);
 
     vk::AccelerationStructureKHR getAccel() const { return *accel; }
     vk::WriteDescriptorSetAccelerationStructureKHR getInfo() const { return { *accel }; }
