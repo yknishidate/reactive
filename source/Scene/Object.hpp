@@ -30,7 +30,7 @@ class Object
 {
 public:
     explicit Object(const Mesh& mesh);
-    virtual void Update(float dt) {}
+    virtual void update(float dt) {}
 
     Material getMaterial();
     void setMaterial(const Material& material);
