@@ -154,22 +154,6 @@ void Swapchain::beginRenderPass() const
     commandBuffers[frameIndex]->beginRenderPass(beginInfo, vk::SubpassContents::eInline);
 }
 
-auto Swapchain::getRenderPassBeginInfo()
-{
-    const auto renderArea = vk::Rect2D()
-        .setExtent({ Window::getWidth(), Window::getHeight() });
-
-    std::array<vk::ClearValue, 2> clearValues;
-    clearValues[0].color = { std::array{ 0.0f, 0.0f, 0.0f, 1.0f } };
-    clearValues[1].depthStencil = vk::ClearDepthStencilValue{ 1.0f, 0 };
-
-    return vk::RenderPassBeginInfo()
-        .setRenderPass(*renderPass)
-        .setClearValues(clearValues)
-        .setFramebuffer(*framebuffers[frameIndex])
-        .setRenderArea(renderArea);
-}
-
 void Swapchain::endRenderPass() const
 {
     commandBuffers[frameIndex]->endRenderPass();

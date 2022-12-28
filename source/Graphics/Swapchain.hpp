@@ -7,47 +7,11 @@ class Swapchain
 public:
     Swapchain();
 
-    void beginRenderPass() const;
-
-    auto getRenderPassBeginInfo();
-
-    void endRenderPass() const;
-
     void waitNextFrame();
 
     CommandBuffer beginCommandBuffer();
 
-    void submit();
-
     void present();
-
-    vk::RenderingAttachmentInfo getColorAttachmentInfo() const
-    {
-        vk::ClearValue clearColorValue;
-        clearColorValue.setColor(vk::ClearColorValue{ std::array{0.0f, 0.0f, 0.0f, 1.0f} });
-
-        vk::RenderingAttachmentInfo colorAttachment;
-        colorAttachment.setImageView(*swapchainImageViews[frameIndex]);
-        colorAttachment.setImageLayout(vk::ImageLayout::eAttachmentOptimal);
-        colorAttachment.setClearValue(clearColorValue);
-        colorAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
-        colorAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
-        return colorAttachment;
-    }
-
-    vk::RenderingAttachmentInfo getDepthAttachmentInfo() const
-    {
-        vk::ClearValue clearDepthStencilValue;
-        clearDepthStencilValue.setDepthStencil(vk::ClearDepthStencilValue{ 1.0f, 0 });
-
-        vk::RenderingAttachmentInfo depthStencilAttachment;
-        depthStencilAttachment.setImageView(*depthImageView);
-        depthStencilAttachment.setImageLayout(vk::ImageLayout::eAttachmentOptimal);
-        depthStencilAttachment.setClearValue(clearDepthStencilValue);
-        depthStencilAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
-        depthStencilAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
-        return depthStencilAttachment;
-    }
 
     void rebuildSwapchain()
     {
@@ -61,14 +25,18 @@ public:
         //}
     }
 
-    void copyToBackImage(vk::CommandBuffer commandBuffer, const Image& source);
-
     auto getBackImage() const { return swapchainImages[frameIndex]; }
     auto getImageCount() const { return swapchainImages.size(); }
     auto getMinImageCount() const { return minImageCount; }
     auto getRenderPass() const { return *renderPass; }
     auto getCurrentCommandBuffer() const { return *commandBuffers[frameIndex]; }
 
+private:
+    friend class CommandBuffer;
+    void beginRenderPass() const;
+    void endRenderPass() const;
+    void submit();
+    void copyToBackImage(vk::CommandBuffer commandBuffer, const Image& source);
     void clearBackImage(vk::CommandBuffer commandBuffer, std::array<float, 4> color);
 
     vk::UniqueSwapchainKHR swapchain;
