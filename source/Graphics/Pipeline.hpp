@@ -10,8 +10,6 @@ class Scene;
 class Pipeline
 {
 public:
-    friend class CommandBuffer;
-
     Pipeline()
     {
         descSet = std::make_shared<DescriptorSet>();
@@ -26,12 +24,14 @@ public:
     void record(const std::string& name, const Buffer& buffer);
     void record(const std::string& name, const Image& image);
     void record(const std::string& name, const TopAccel& accel);
-    virtual void bind(vk::CommandBuffer commandBuffer) = 0;
-    virtual void pushConstants(vk::CommandBuffer commandBuffer, void* pushData) = 0;
 
     DescriptorSet& getDescSet() { return *descSet; }
 
 protected:
+    friend class CommandBuffer;
+    virtual void bind(vk::CommandBuffer commandBuffer) = 0;
+    virtual void pushConstants(vk::CommandBuffer commandBuffer, void* pushData) = 0;
+
     vk::UniquePipelineLayout pipelineLayout;
     vk::UniquePipeline pipeline;
     size_t pushSize{};
@@ -42,17 +42,17 @@ protected:
 class GraphicsPipeline : public Pipeline
 {
 public:
-    friend class CommandBuffer;
-
     GraphicsPipeline() : Pipeline() {}
     GraphicsPipeline(std::shared_ptr<DescriptorSet> descSet) : Pipeline(descSet) {}
 
     void loadShaders(const std::string& vertPath, const std::string& fragPath);
     void setup(Swapchain& swapchain, size_t pushSize = 0);
+
+private:
+    friend class CommandBuffer;
     void bind(vk::CommandBuffer commandBuffer) override;
     void pushConstants(vk::CommandBuffer commandBuffer, void* pushData) override;
 
-private:
     vk::UniqueShaderModule vertModule;
     vk::UniqueShaderModule fragModule;
 };
@@ -65,11 +65,13 @@ public:
 
     void loadShaders(const std::string& path);
     void setup(size_t pushSize = 0);
+
+private:
+    friend class CommandBuffer;
     void bind(vk::CommandBuffer commandBuffer) override;
     void pushConstants(vk::CommandBuffer commandBuffer, void* pushData) override;
     void dispatch(vk::CommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY);
 
-private:
     vk::UniqueShaderModule shaderModule;
 };
 
@@ -82,11 +84,13 @@ public:
     void loadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath);
     void loadShaders(const std::string& rgenPath, const std::string& missPath, const std::string& chitPath, const std::string& ahitPath);
     void setup(size_t pushSize = 0);
+
+private:
+    friend class CommandBuffer;
     void bind(vk::CommandBuffer commandBuffer) override;
     void pushConstants(vk::CommandBuffer commandBuffer, void* pushData) override;
     void traceRays(vk::CommandBuffer commandBuffer, uint32_t countX, uint32_t countY);
 
-private:
     std::vector<vk::UniqueShaderModule> shaderModules;
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
     std::vector<vk::RayTracingShaderGroupCreateInfoKHR> shaderGroups;
