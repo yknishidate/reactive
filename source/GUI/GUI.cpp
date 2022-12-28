@@ -66,7 +66,8 @@ GUI::GUI(Swapchain& swapchain)
     ImGui_ImplVulkan_Init(&initInfo, swapchain.getRenderPass());
 
     // Setup font
-    io.Fonts->AddFontFromFileTTF("../../../asset/Roboto-Medium.ttf", 24.0f);
+    std::string fontFile = ASSET_DIR + "Roboto-Medium.ttf";
+    io.Fonts->AddFontFromFileTTF(fontFile.c_str(), 24.0f);
     {
         Context::oneTimeSubmit(
             [&](vk::CommandBuffer commandBuffer)
