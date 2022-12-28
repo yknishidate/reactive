@@ -25,6 +25,11 @@ void CommandBuffer::traceRays(RayTracingPipeline& rtPipeline, uint32_t countX, u
     rtPipeline.traceRays(commandBuffer, countX, countY);
 }
 
+void CommandBuffer::dispatch(ComputePipeline& compPipeline, uint32_t countX, uint32_t countY)
+{
+    compPipeline.dispatch(commandBuffer, countX, countY);
+}
+
 void CommandBuffer::clearBackImage(std::array<float, 4> color)
 {
     swapchain->clearBackImage(commandBuffer, color);

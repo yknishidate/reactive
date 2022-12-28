@@ -3,6 +3,7 @@
 
 class Image;
 class Pipeline;
+class ComputePipeline;
 class GraphicsPipeline;
 class RayTracingPipeline;
 class Swapchain;
@@ -19,7 +20,10 @@ public:
 
     void bindPipeline(Pipeline& pipeline);
     void pushConstants(Pipeline& pipeline, void* pushData);
+
     void traceRays(RayTracingPipeline& rtPipeline, uint32_t countX, uint32_t countY);
+    void dispatch(ComputePipeline& compPipeline, uint32_t countX, uint32_t countY);
+
     void clearBackImage(std::array<float, 4> color);
     void beginRenderPass();
     void endRenderPass();
