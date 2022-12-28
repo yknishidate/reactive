@@ -34,7 +34,7 @@ protected:
     vk::UniquePipeline pipeline;
     size_t pushSize{};
     std::shared_ptr<DescriptorSet> descSet;
-    bool registered = false;
+    bool recorded = false;
 };
 
 class GraphicsPipeline : public Pipeline

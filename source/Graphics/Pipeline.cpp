@@ -147,25 +147,25 @@ vk::StridedDeviceAddressRegionKHR CreateAddressRegion(
 
 void Pipeline::record(const std::string& name, const std::vector<Image>& images)
 {
-    registered = true;
+    recorded = true;
     descSet->record(name, images);
 }
 
 void Pipeline::record(const std::string& name, const Buffer& buffer)
 {
-    registered = true;
+    recorded = true;
     descSet->record(name, buffer);
 }
 
 void Pipeline::record(const std::string& name, const Image& image)
 {
-    registered = true;
+    recorded = true;
     descSet->record(name, image);
 }
 
 void Pipeline::record(const std::string& name, const TopAccel& accel)
 {
-    registered = true;
+    recorded = true;
     descSet->record(name, accel);
 }
 
@@ -184,7 +184,7 @@ void GraphicsPipeline::loadShaders(const std::string& vertPath, const std::strin
 void GraphicsPipeline::setup(size_t pushSize)
 {
     this->pushSize = pushSize;
-    if (registered) {
+    if (recorded) {
         pipelineLayout = descSet->createPipelineLayout(pushSize, vk::ShaderStageFlagBits::eAllGraphics);
     } else {
         const auto pushRange = vk::PushConstantRange()
@@ -203,7 +203,7 @@ void GraphicsPipeline::setup(size_t pushSize)
 void GraphicsPipeline::bind(vk::CommandBuffer commandBuffer)
 {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *pipeline);
-    if (registered) {
+    if (recorded) {
         descSet->bind(commandBuffer, vk::PipelineBindPoint::eGraphics, *pipelineLayout);
     }
 }
