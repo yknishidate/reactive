@@ -8,42 +8,17 @@
 #include "Window/Window.hpp"
 
 namespace {
-vk::UniqueShaderModule CreateShaderModule(const std::vector<uint32_t>& code) {
+vk::UniqueShaderModule createShaderModule(const std::vector<uint32_t>& code) {
     vk::ShaderModuleCreateInfo createInfo;
     createInfo.setCode(code);
     return Context::getDevice().createShaderModuleUnique(createInfo);
 }
 
-vk::UniquePipeline CreateGraphicsPipeline(vk::ShaderModule vertModule,
-                                          vk::ShaderModule fragModule,
-                                          vk::PipelineLayout pipelineLayout,
-                                          vk::RenderPass renderPass) {
-    vk::PipelineShaderStageCreateInfo vertShaderStageInfo;
-    vertShaderStageInfo.setStage(vk::ShaderStageFlagBits::eVertex);
-    vertShaderStageInfo.setModule(vertModule);
-    vertShaderStageInfo.setPName("main");
-
-    vk::PipelineShaderStageCreateInfo fragShaderStageInfo;
-    fragShaderStageInfo.setStage(vk::ShaderStageFlagBits::eFragment);
-    fragShaderStageInfo.setModule(fragModule);
-    fragShaderStageInfo.setPName("main");
-
-    std::array shaderStages{vertShaderStageInfo, fragShaderStageInfo};
-
-    vk::VertexInputBindingDescription bindingDescription;
-    bindingDescription.setBinding(0);
-    bindingDescription.setStride(sizeof(Vertex));
-    bindingDescription.setInputRate(vk::VertexInputRate::eVertex);
-
-    std::array attributeDescriptions = Vertex::getAttributeDescriptions();
-
-    vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
-    vertexInputInfo.setVertexBindingDescriptions(bindingDescription);
-    vertexInputInfo.setVertexAttributeDescriptions(attributeDescriptions);
-
-    vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
-    inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
-
+vk::UniquePipeline createGraphicsPipeline(
+    ArrayProxy<vk::PipelineShaderStageCreateInfo> shaderStages,
+    vk::PipelineLayout pipelineLayout,
+    vk::RenderPass renderPass,
+    bool useMeshShader) {
     auto width = static_cast<float>(Window::getWidth());
     auto height = static_cast<float>(Window::getHeight());
     vk::Viewport viewport{0.0f, 0.0f, width, height, 0.0f, 1.0f};
@@ -80,8 +55,6 @@ vk::UniquePipeline CreateGraphicsPipeline(vk::ShaderModule vertModule,
 
     vk::GraphicsPipelineCreateInfo pipelineInfo;
     pipelineInfo.setStages(shaderStages);
-    pipelineInfo.setPVertexInputState(&vertexInputInfo);
-    pipelineInfo.setPInputAssemblyState(&inputAssembly);
     pipelineInfo.setPViewportState(&viewportState);
     pipelineInfo.setPRasterizationState(&rasterization);
     pipelineInfo.setPMultisampleState(&multisampling);
@@ -91,6 +64,21 @@ vk::UniquePipeline CreateGraphicsPipeline(vk::ShaderModule vertModule,
     pipelineInfo.setSubpass(0);
     pipelineInfo.setRenderPass(renderPass);
 
+    vk::VertexInputBindingDescription bindingDescription;
+    std::array attributeDescriptions = Vertex::getAttributeDescriptions();
+    vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
+    vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
+    if (!useMeshShader) {
+        bindingDescription.setBinding(0);
+        bindingDescription.setStride(sizeof(Vertex));
+        bindingDescription.setInputRate(vk::VertexInputRate::eVertex);
+        vertexInputInfo.setVertexBindingDescriptions(bindingDescription);
+        vertexInputInfo.setVertexAttributeDescriptions(attributeDescriptions);
+        inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
+        pipelineInfo.setPInputAssemblyState(&inputAssembly);
+        pipelineInfo.setPVertexInputState(&vertexInputInfo);
+    }
+
     auto result = Context::getDevice().createGraphicsPipelineUnique({}, pipelineInfo);
     if (result.result != vk::Result::eSuccess) {
         throw std::runtime_error("failed to create a pipeline!");
@@ -98,7 +86,7 @@ vk::UniquePipeline CreateGraphicsPipeline(vk::ShaderModule vertModule,
     return std::move(result.value);
 }
 
-vk::UniquePipeline CreateComputePipeline(vk::ShaderModule shaderModule,
+vk::UniquePipeline createComputePipeline(vk::ShaderModule shaderModule,
                                          vk::ShaderStageFlagBits shaderStage,
                                          vk::PipelineLayout pipelineLayout) {
     vk::PipelineShaderStageCreateInfo stage;
@@ -116,7 +104,7 @@ vk::UniquePipeline CreateComputePipeline(vk::ShaderModule shaderModule,
     return std::move(res.value.front());
 }
 
-vk::UniquePipeline CreateRayTracingPipeline(
+vk::UniquePipeline createRayTracingPipeline(
     const std::vector<vk::PipelineShaderStageCreateInfo>& shaderStages,
     const std::vector<vk::RayTracingShaderGroupCreateInfoKHR>& shaderGroups,
     vk::PipelineLayout pipelineLayout) {
@@ -132,7 +120,7 @@ vk::UniquePipeline CreateRayTracingPipeline(
     return std::move(res.value);
 }
 
-vk::StridedDeviceAddressRegionKHR CreateAddressRegion(
+vk::StridedDeviceAddressRegionKHR createAddressRegion(
     vk::PhysicalDeviceRayTracingPipelinePropertiesKHR rtProperties,
     vk::DeviceAddress deviceAddress) {
     vk::StridedDeviceAddressRegionKHR region{};
@@ -144,12 +132,22 @@ vk::StridedDeviceAddressRegionKHR CreateAddressRegion(
 }  // namespace
 
 void GraphicsPipeline::setup(Swapchain& swapchain, size_t pushSize) {
-    assert(vertModule);
-    assert(fragModule);
     this->pushSize = pushSize;
-    pipelineLayout = descSet->createPipelineLayout(pushSize, vk::ShaderStageFlagBits::eAllGraphics);
-    pipeline =
-        CreateGraphicsPipeline(vertModule, fragModule, *pipelineLayout, swapchain.getRenderPass());
+    pipelineLayout = descSet->createPipelineLayout(pushSize, vk::ShaderStageFlagBits::eAllGraphics |
+                                                                 vk::ShaderStageFlagBits::eMeshEXT |
+                                                                 vk::ShaderStageFlagBits::eTaskEXT);
+
+    std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
+    bool useMeshShader = false;
+    for (auto& shader : shaders) {
+        useMeshShader |= shader->getStage() == vk::ShaderStageFlagBits::eMeshEXT;
+        shaderStages.push_back(vk::PipelineShaderStageCreateInfo()
+                                   .setModule(shader->getModule())
+                                   .setStage(shader->getStage())
+                                   .setPName("main"));
+    }
+    pipeline = createGraphicsPipeline(shaderStages, *pipelineLayout, swapchain.getRenderPass(),
+                                      useMeshShader);
 }
 
 void GraphicsPipeline::bind(vk::CommandBuffer commandBuffer) {
@@ -158,15 +156,18 @@ void GraphicsPipeline::bind(vk::CommandBuffer commandBuffer) {
 }
 
 void GraphicsPipeline::pushConstants(vk::CommandBuffer commandBuffer, void* pushData) {
-    commandBuffer.pushConstants(*pipelineLayout, vk::ShaderStageFlagBits::eAllGraphics, 0, pushSize,
-                                pushData);
+    commandBuffer.pushConstants(*pipelineLayout,
+                                vk::ShaderStageFlagBits::eAllGraphics |
+                                    vk::ShaderStageFlagBits::eMeshEXT |
+                                    vk::ShaderStageFlagBits::eTaskEXT,
+                                0, pushSize, pushData);
 }
 
 void ComputePipeline::setup(size_t pushSize) {
     this->pushSize = pushSize;
     pipelineLayout = descSet->createPipelineLayout(pushSize, vk::ShaderStageFlagBits::eCompute);
     pipeline =
-        CreateComputePipeline(shaderModule, vk::ShaderStageFlagBits::eCompute, *pipelineLayout);
+        createComputePipeline(shaderModule, vk::ShaderStageFlagBits::eCompute, *pipelineLayout);
 }
 
 void ComputePipeline::bind(vk::CommandBuffer commandBuffer) {
@@ -192,7 +193,7 @@ void RayTracingPipeline::setup(size_t pushSize) {
         pushSize, vk::ShaderStageFlagBits::eRaygenKHR | vk::ShaderStageFlagBits::eMissKHR |
                       vk::ShaderStageFlagBits::eClosestHitKHR |
                       vk::ShaderStageFlagBits::eAnyHitKHR);
-    pipeline = CreateRayTracingPipeline(shaderStages, shaderGroups, *pipelineLayout);
+    pipeline = createRayTracingPipeline(shaderStages, shaderGroups, *pipelineLayout);
 
     // Get Ray Tracing Properties
     using vkRTP = vk::PhysicalDeviceRayTracingPipelinePropertiesKHR;
@@ -219,9 +220,9 @@ void RayTracingPipeline::setup(size_t pushSize) {
     missSBT = DeviceBuffer{BufferUsage::ShaderBindingTable, handleSize * missCount};
     hitSBT = DeviceBuffer{BufferUsage::ShaderBindingTable, handleSize * hitCount};
 
-    raygenRegion = CreateAddressRegion(rtProperties, raygenSBT.getAddress());
-    missRegion = CreateAddressRegion(rtProperties, missSBT.getAddress());
-    hitRegion = CreateAddressRegion(rtProperties, hitSBT.getAddress());
+    raygenRegion = createAddressRegion(rtProperties, raygenSBT.getAddress());
+    missRegion = createAddressRegion(rtProperties, missSBT.getAddress());
+    hitRegion = createAddressRegion(rtProperties, hitSBT.getAddress());
 
     raygenSBT.copy(shaderHandleStorage.data() + 0 * handleSizeAligned);
     missSBT.copy(shaderHandleStorage.data() + 1 * handleSizeAligned);

@@ -20,6 +20,10 @@ Shader::Shader(const std::string& filepath) {
         shaderStage = vk::ShaderStageFlagBits::eClosestHitKHR;
     else if (filepath.ends_with("rahit"))
         shaderStage = vk::ShaderStageFlagBits::eAnyHitKHR;
+    else if (filepath.ends_with("mesh"))
+        shaderStage = vk::ShaderStageFlagBits::eMeshEXT;
+    else if (filepath.ends_with("task"))
+        shaderStage = vk::ShaderStageFlagBits::eTaskEXT;
     else
         assert(false && "Unknown shader stage");
 }

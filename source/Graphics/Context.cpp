@@ -16,6 +16,7 @@ void Context::init() {
 
     // Create instance
     std::vector instanceExtensions = Window::getExtensions();
+    instanceExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
     std::vector layers{"VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_monitor"};
 
     vk::ApplicationInfo appInfo;
@@ -76,6 +77,9 @@ void Context::init() {
         VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
         VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
         VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME,
+        VK_EXT_MESH_SHADER_EXTENSION_NAME,
+        VK_KHR_SPIRV_1_4_EXTENSION_NAME,
+        VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME,
     };
 
     vk::PhysicalDeviceFeatures deviceFeatures;
@@ -94,8 +98,9 @@ void Context::init() {
     vk::StructureChain<vk::DeviceCreateInfo, vk::PhysicalDeviceBufferDeviceAddressFeatures,
                        vk::PhysicalDeviceRayTracingPipelineFeaturesKHR,
                        vk::PhysicalDeviceAccelerationStructureFeaturesKHR,
+                       vk::PhysicalDeviceMeshShaderFeaturesEXT,
                        vk::PhysicalDeviceDescriptorIndexingFeatures>
-        createInfoChain{deviceInfo, {true}, {true}, {true}, descFeatures};
+        createInfoChain{deviceInfo, {true}, {true}, {true}, {true, true}, descFeatures};
 
     device = physicalDevice.createDeviceUnique(createInfoChain.get<vk::DeviceCreateInfo>());
 

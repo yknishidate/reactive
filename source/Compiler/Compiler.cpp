@@ -123,7 +123,7 @@ const TBuiltInResource DefaultTBuiltInResource = {
         /* .generalConstantMatrixVectorIndexing = */ 1,
     }};
 
-std::string ReadFile(const std::string& path) {
+std::string readFile(const std::string& path) {
     std::ifstream input_file{path};
     if (!input_file.is_open()) {
         spdlog::error("Failed to open file: " + path);
@@ -131,7 +131,7 @@ std::string ReadFile(const std::string& path) {
     return {(std::istreambuf_iterator<char>{input_file}), std::istreambuf_iterator<char>{}};
 }
 
-EShLanguage GetShaderStage(const std::string& filepath) {
+EShLanguage getShaderStage(const std::string& filepath) {
     if (filepath.ends_with("vert"))
         return EShLangVertex;
     if (filepath.ends_with("frag"))
@@ -146,10 +146,14 @@ EShLanguage GetShaderStage(const std::string& filepath) {
         return EShLangClosestHitNV;
     if (filepath.ends_with("rahit"))
         return EShLangAnyHitNV;
+    if (filepath.ends_with("mesh"))
+        return EShLangMesh;
+    if (filepath.ends_with("task"))
+        return EShLangTask;
     assert(false && "Unknown shader stage");
 }
 
-EShLanguage GetShaderStage(vk::ShaderStageFlagBits shaderStage) {
+EShLanguage getShaderStage(vk::ShaderStageFlagBits shaderStage) {
     if (shaderStage == vk::ShaderStageFlagBits::eVertex)
         return EShLangVertex;
     if (shaderStage == vk::ShaderStageFlagBits::eFragment)
@@ -164,10 +168,14 @@ EShLanguage GetShaderStage(vk::ShaderStageFlagBits shaderStage) {
         return EShLangClosestHitNV;
     if (shaderStage == vk::ShaderStageFlagBits::eAnyHitKHR)
         return EShLangAnyHitNV;
+    if (shaderStage == vk::ShaderStageFlagBits::eMeshNV)
+        return EShLangMesh;
+    if (shaderStage == vk::ShaderStageFlagBits::eTaskEXT)
+        return EShLangTask;
     assert(false && "Unknown shader stage");
 }
 
-std::string Include(const std::string& filepath, const std::string& sourceText) {
+std::string include(const std::string& filepath, const std::string& sourceText) {
     std::filesystem::path dir = std::filesystem::path{filepath}.parent_path();
 
     std::string included = sourceText;
@@ -175,7 +183,7 @@ std::string Include(const std::string& filepath, const std::string& sourceText) 
     std::smatch results;
     while (std::regex_search(included, results, regex)) {
         std::string includePath = dir.string() + "/" + results[1].str();
-        std::string includeText = ReadFile(includePath);
+        std::string includeText = readFile(includePath);
         included.replace(results.position(), results.length(), includeText);
     }
     return included;
@@ -212,14 +220,14 @@ std::vector<uint32_t> compileToSPV(const std::string& glslCode, EShLanguage stag
 
 std::vector<uint32_t> compileToSPV(const std::string& filepath) {
     spdlog::info("Compile shader: {}", filepath);
-    std::string glslCode = ReadFile(filepath);
-    EShLanguage stage = GetShaderStage(filepath);
+    std::string glslCode = readFile(filepath);
+    EShLanguage stage = getShaderStage(filepath);
     return compileToSPV(glslCode, stage);
 }
 
 std::vector<uint32_t> compileToSPV(const std::string& glslCode,
                                    vk::ShaderStageFlagBits shaderStage) {
-    EShLanguage stage = GetShaderStage(shaderStage);
+    EShLanguage stage = getShaderStage(shaderStage);
     return compileToSPV(glslCode, stage);
 }
 }  // namespace Compiler

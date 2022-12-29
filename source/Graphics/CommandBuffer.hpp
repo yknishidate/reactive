@@ -27,6 +27,7 @@ public:
     void submit();
     void drawIndexed(Mesh& mesh);
     void drawGUI(GUI& gui);
+    void drawMeshTasks(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
     void copyToBackImage(const Image& image);
 
     vk::CommandBuffer commandBuffer;

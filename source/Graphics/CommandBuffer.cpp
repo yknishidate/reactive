@@ -50,6 +50,12 @@ void CommandBuffer::drawGUI(GUI& gui) {
     gui.render(commandBuffer);
 }
 
+void CommandBuffer::drawMeshTasks(uint32_t groupCountX,
+                                  uint32_t groupCountY,
+                                  uint32_t groupCountZ) {
+    commandBuffer.drawMeshTasksEXT(groupCountX, groupCountY, groupCountZ);
+}
+
 void CommandBuffer::copyToBackImage(const Image& source) {
     swapchain->copyToBackImage(commandBuffer, source);
 }

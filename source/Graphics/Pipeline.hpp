@@ -30,23 +30,14 @@ public:
 
     void setup(Swapchain& swapchain, size_t pushSize = 0);
 
-    void setVertexShader(const Shader& vertShader) {
-        assert(vertShader.getStage() == vk::ShaderStageFlagBits::eVertex);
-        vertModule = vertShader.getModule();
-    }
-
-    void setFragmentShader(const Shader& fragShader) {
-        assert(fragShader.getStage() == vk::ShaderStageFlagBits::eFragment);
-        fragModule = fragShader.getModule();
-    }
+    void addShader(const Shader& shader) { shaders.push_back(&shader); }
 
 private:
     friend class CommandBuffer;
     void bind(vk::CommandBuffer commandBuffer) override;
     void pushConstants(vk::CommandBuffer commandBuffer, void* pushData) override;
 
-    vk::ShaderModule vertModule;
-    vk::ShaderModule fragModule;
+    std::vector<const Shader*> shaders;
 };
 
 class ComputePipeline : public Pipeline {

@@ -22,5 +22,5 @@ public:
 private:
     vk::UniqueShaderModule shaderModule;
     std::vector<uint32_t> spvCode;
-    vk::ShaderStageFlags shaderStage;
+    vk::ShaderStageFlagBits shaderStage;
 };
