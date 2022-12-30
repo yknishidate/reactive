@@ -211,6 +211,7 @@ void Image::copyToBuffer(vk::CommandBuffer commandBuffer, Buffer& dst) {
 }
 
 void Image::save(const std::string& filepath) {
+    // TODO: remove Window
     static vk::DeviceSize size = Window::getWidth() * Window::getWidth() * 4;
     static HostBuffer buffer{BufferUsage::Staging, size};
     static uint8_t* pixels = static_cast<uint8_t*>(buffer.map());

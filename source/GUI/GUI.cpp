@@ -101,7 +101,7 @@ bool GUI::checkbox(const std::string& label, bool& value) {
 }
 
 bool GUI::checkbox(const std::string& label, int& value) {
-    bool tmp_value;
+    bool tmp_value = value;
     bool changed = ImGui::Checkbox(label.c_str(), &tmp_value);
     value = static_cast<int>(tmp_value);
     return changed;
