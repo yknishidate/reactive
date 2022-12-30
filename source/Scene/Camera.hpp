@@ -14,6 +14,7 @@ public:
     glm::mat4 getProj() const;
     glm::mat4 getInvView() const { return glm::inverse(getView()); }
     glm::mat4 getInvProj() const { return glm::inverse(getProj()); }
+    void setPosition(float x, float y, float z) { position = {x, y, z}; }
 
 private:
     glm::vec3 position = {0.0f, 0.0f, 5.0f};
