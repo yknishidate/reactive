@@ -56,8 +56,8 @@ public:
 
     const BottomAccel& getAccel() const { return bottomAccel; }
 
-    auto getVertexBuffer() const { return vertexBuffer.getBuffer(); }
-    auto getIndexBuffer() const { return indexBuffer.getBuffer(); }
+    const auto& getVertexBuffer() const { return vertexBuffer; }
+    const auto& getIndexBuffer() const { return indexBuffer; }
     uint64_t getVertexBufferAddress() const { return vertexBuffer.getAddress(); }
     uint64_t getIndexBufferAddress() const { return indexBuffer.getAddress(); }
     const std::vector<Vertex>& getVertices() const { return vertices; }
@@ -67,8 +67,8 @@ public:
 
     void drawIndexed(vk::CommandBuffer commandBuffer) const {
         vk::DeviceSize offsets{0};
-        commandBuffer.bindVertexBuffers(0, getVertexBuffer(), offsets);
-        commandBuffer.bindIndexBuffer(getIndexBuffer(), 0, vk::IndexType::eUint32);
+        commandBuffer.bindVertexBuffers(0, vertexBuffer.getBuffer(), offsets);
+        commandBuffer.bindIndexBuffer(indexBuffer.getBuffer(), 0, vk::IndexType::eUint32);
         commandBuffer.drawIndexed(static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
     }
 

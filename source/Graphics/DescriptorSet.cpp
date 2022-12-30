@@ -72,6 +72,7 @@ void DescriptorSet::update() {
 }
 
 void DescriptorSet::record(const std::string& name, const std::vector<Image>& images) {
+    assert(bindingMap.contains(name));
     std::vector<vk::DescriptorImageInfo> infos;
     infos.reserve(images.size());
     for (auto& image : images) {
@@ -83,16 +84,19 @@ void DescriptorSet::record(const std::string& name, const std::vector<Image>& im
 }
 
 void DescriptorSet::record(const std::string& name, const Buffer& buffer) {
+    assert(bindingMap.contains(name));
     bindingMap[name].descriptorCount = 1;
     writes.emplace_back(bindingMap[name], buffer.getInfo());
 }
 
 void DescriptorSet::record(const std::string& name, const Image& image) {
+    assert(bindingMap.contains(name));
     bindingMap[name].descriptorCount = 1;
     writes.emplace_back(bindingMap[name], image.getInfo());
 }
 
 void DescriptorSet::record(const std::string& name, const TopAccel& accel) {
+    assert(bindingMap.contains(name));
     bindingMap[name].descriptorCount = 1;
     writes.emplace_back(bindingMap[name], accel.getInfo());
 }
