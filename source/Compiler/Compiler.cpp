@@ -218,13 +218,16 @@ std::vector<uint32_t> compileToSPV(const std::string& glslCode, EShLanguage stag
     return spvShader;
 }
 
+// Support include directive
 std::vector<uint32_t> compileToSPV(const std::string& filepath) {
     spdlog::info("Compile shader: {}", filepath);
     std::string glslCode = readFile(filepath);
     EShLanguage stage = getShaderStage(filepath);
-    return compileToSPV(glslCode, stage);
+    std::string included = include(filepath, glslCode);
+    return compileToSPV(included, stage);
 }
 
+// Don't support include directive
 std::vector<uint32_t> compileToSPV(const std::string& glslCode,
                                    vk::ShaderStageFlagBits shaderStage) {
     EShLanguage stage = getShaderStage(shaderStage);
