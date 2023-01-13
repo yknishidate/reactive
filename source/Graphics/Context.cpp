@@ -80,6 +80,7 @@ void Context::init() {
         VK_EXT_MESH_SHADER_EXTENSION_NAME,
         VK_KHR_SPIRV_1_4_EXTENSION_NAME,
         VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME,
+        VK_KHR_RAY_QUERY_EXTENSION_NAME,
     };
 
     vk::PhysicalDeviceFeatures deviceFeatures;
@@ -95,12 +96,13 @@ void Context::init() {
     deviceInfo.setPEnabledExtensionNames(deviceExtensions);
     deviceInfo.setPEnabledFeatures(&deviceFeatures);
 
-    vk::StructureChain<vk::DeviceCreateInfo, vk::PhysicalDeviceBufferDeviceAddressFeatures,
-                       vk::PhysicalDeviceRayTracingPipelineFeaturesKHR,
-                       vk::PhysicalDeviceAccelerationStructureFeaturesKHR,
-                       vk::PhysicalDeviceMeshShaderFeaturesEXT,
-                       vk::PhysicalDeviceDescriptorIndexingFeatures>
-        createInfoChain{deviceInfo, {true}, {true}, {true}, {true, true}, descFeatures};
+    vk::StructureChain createInfoChain{deviceInfo,
+                                       vk::PhysicalDeviceBufferDeviceAddressFeatures{true},
+                                       vk::PhysicalDeviceRayTracingPipelineFeaturesKHR{true},
+                                       vk::PhysicalDeviceAccelerationStructureFeaturesKHR{true},
+                                       vk::PhysicalDeviceMeshShaderFeaturesEXT{true, true},
+                                       vk::PhysicalDeviceRayQueryFeaturesKHR{true},
+                                       descFeatures};
 
     device = physicalDevice.createDeviceUnique(createInfoChain.get<vk::DeviceCreateInfo>());
 
