@@ -1,11 +1,9 @@
 #pragma once
+#include "ArrayProxy.hpp"
 #include "Geometry.hpp"
 
 class Mesh;
 class Object;
-
-template <typename T>
-using ArrayProxy = vk::ArrayProxy<T>;
 
 class BottomAccel {
 public:
