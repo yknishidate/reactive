@@ -206,19 +206,18 @@ void Swapchain::present() {
     semaphoreIndex = (semaphoreIndex + 1) % swapchainImages.size();
 }
 
-void Swapchain::copyToBackImage(vk::CommandBuffer commandBuffer, const Image& source) {
+void Swapchain::copyToBackImage(vk::CommandBuffer commandBuffer, Image& source) {
     vk::ImageCopy copyRegion;
     copyRegion.setSrcSubresource({vk::ImageAspectFlagBits::eColor, 0, 0, 1});
     copyRegion.setDstSubresource({vk::ImageAspectFlagBits::eColor, 0, 0, 1});
     copyRegion.setExtent({width, height, 1});
 
     vk::Image backImage = getBackImage();
-    vk::Image sourceImage = source.getImage();
-    Image::setImageLayout(commandBuffer, sourceImage, vk::ImageLayout::eTransferSrcOptimal);
+    source.setImageLayout(commandBuffer, vk::ImageLayout::eTransferSrcOptimal);
     Image::setImageLayout(commandBuffer, backImage, vk::ImageLayout::eTransferDstOptimal);
-    commandBuffer.copyImage(sourceImage, vk::ImageLayout::eTransferSrcOptimal, backImage,
+    commandBuffer.copyImage(source.getImage(), vk::ImageLayout::eTransferSrcOptimal, backImage,
                             vk::ImageLayout::eTransferDstOptimal, copyRegion);
-    Image::setImageLayout(commandBuffer, sourceImage, vk::ImageLayout::eGeneral);
+    source.setImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
     Image::setImageLayout(commandBuffer, backImage, vk::ImageLayout::ePresentSrcKHR);
 }
 

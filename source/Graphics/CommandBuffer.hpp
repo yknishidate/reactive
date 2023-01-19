@@ -24,6 +24,7 @@ public:
 
     void clearBackImage(std::array<float, 4> color);
     void clearColorImage(Image& image, std::array<float, 4> color);
+    void clearDepthStencil(Image& image, float depth, uint32_t stencil);
     void beginRenderPass();
     void beginRenderPass(RenderPass& renderPass);
     void endRenderPass();
@@ -32,7 +33,7 @@ public:
     void drawIndexed(Mesh& mesh);
     void drawGUI(GUI& gui);
     void drawMeshTasks(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
-    void copyToBackImage(const Image& image);
+    void copyToBackImage(Image& image);
     void setBackImageLayout(vk::ImageLayout layout);
 
     vk::CommandBuffer commandBuffer;

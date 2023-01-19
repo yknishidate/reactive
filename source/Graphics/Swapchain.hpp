@@ -34,7 +34,7 @@ private:
     void endRenderPass() const;
     void submit();
     void setBackImageLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout layout);
-    void copyToBackImage(vk::CommandBuffer commandBuffer, const Image& source);
+    void copyToBackImage(vk::CommandBuffer commandBuffer, Image& source);
     void clearBackImage(vk::CommandBuffer commandBuffer, std::array<float, 4> color);
 
     vk::UniqueSwapchainKHR swapchain;

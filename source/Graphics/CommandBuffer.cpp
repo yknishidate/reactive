@@ -31,6 +31,10 @@ void CommandBuffer::clearColorImage(Image& image, std::array<float, 4> color) {
     image.clearColor(commandBuffer, color);
 }
 
+void CommandBuffer::clearDepthStencil(Image& image, float depth, uint32_t stencil) {
+    image.clearDepthStencil(commandBuffer, depth, stencil);
+}
+
 void CommandBuffer::clearBackImage(std::array<float, 4> color) {
     swapchain->clearBackImage(commandBuffer, color);
 }
@@ -69,7 +73,7 @@ void CommandBuffer::drawMeshTasks(uint32_t groupCountX,
     commandBuffer.drawMeshTasksEXT(groupCountX, groupCountY, groupCountZ);
 }
 
-void CommandBuffer::copyToBackImage(const Image& source) {
+void CommandBuffer::copyToBackImage(Image& source) {
     swapchain->copyToBackImage(commandBuffer, source);
 }
 
