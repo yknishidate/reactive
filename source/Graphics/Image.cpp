@@ -43,9 +43,6 @@ Image::Image(uint32_t width, uint32_t height, vk::Format format, ImageUsage _usa
         [&](vk::CommandBuffer commandBuffer) { setImageLayout(commandBuffer, newLayout); });
 }
 
-Image::Image(vk::Format format, ImageUsage usage)
-    : Image(Window::getWidth(), Window::getHeight(), format, usage) {}
-
 Image::Image(const std::string& filepath) {
     int w;
     int h;

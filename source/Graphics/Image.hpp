@@ -13,7 +13,6 @@ class Image {
 public:
     Image() = default;
     Image(uint32_t width, uint32_t height, vk::Format format, ImageUsage usage);
-    Image(vk::Format format, ImageUsage usage = ImageUsage::GeneralStorage);
     Image(const std::string& filepath);
     Image(const std::vector<std::string>& filepaths);
 
