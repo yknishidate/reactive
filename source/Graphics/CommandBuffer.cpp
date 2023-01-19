@@ -27,6 +27,10 @@ void CommandBuffer::dispatch(ComputePipeline& compPipeline, uint32_t countX, uin
     compPipeline.dispatch(commandBuffer, countX, countY);
 }
 
+void CommandBuffer::clearColorImage(Image& image, std::array<float, 4> color) {
+    image.clearColor(commandBuffer, color);
+}
+
 void CommandBuffer::clearBackImage(std::array<float, 4> color) {
     swapchain->clearBackImage(commandBuffer, color);
 }

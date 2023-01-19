@@ -85,14 +85,16 @@ Image::Image(uint32_t width, uint32_t height, vk::Format format, ImageUsage usag
             aspect = vk::ImageAspectFlagBits::eColor;
             break;
         case ImageUsage::ColorAttachment:
-            usageFlags =
-                vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc;
+            usageFlags = vk::ImageUsageFlagBits::eColorAttachment |
+                         vk::ImageUsageFlagBits::eTransferSrc |
+                         vk::ImageUsageFlagBits::eTransferDst;
             newLayout = vk::ImageLayout::eColorAttachmentOptimal;
             aspect = vk::ImageAspectFlagBits::eColor;
             break;
         case ImageUsage::DepthStencilAttachment:
             usageFlags = vk::ImageUsageFlagBits::eDepthStencilAttachment |
-                         vk::ImageUsageFlagBits::eTransferSrc;
+                         vk::ImageUsageFlagBits::eTransferSrc |
+                         vk::ImageUsageFlagBits::eTransferDst;
             newLayout = vk::ImageLayout::eDepthAttachmentOptimal;
             aspect = vk::ImageAspectFlagBits::eDepth;
             break;

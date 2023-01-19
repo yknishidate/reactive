@@ -24,6 +24,12 @@ public:
 
     void setImageLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout newLayout);
     void copyToImage(vk::CommandBuffer commandBuffer, const Image& dst) const;
+    void clearColor(vk::CommandBuffer commandBuffer, std::array<float, 4> color) {
+        setImageLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);
+        commandBuffer.clearColorImage(
+            *image, layout, vk::ClearColorValue{color},
+            vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1});
+    }
 
     void copyToBuffer(vk::CommandBuffer commandBuffer, Buffer& dst);
     void save(const std::string& filepath);

@@ -23,6 +23,7 @@ public:
     void dispatch(ComputePipeline& compPipeline, uint32_t countX, uint32_t countY);
 
     void clearBackImage(std::array<float, 4> color);
+    void clearColorImage(Image& image, std::array<float, 4> color);
     void beginRenderPass();
     void beginRenderPass(RenderPass& renderPass);
     void endRenderPass();
