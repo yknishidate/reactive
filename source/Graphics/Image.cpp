@@ -8,34 +8,6 @@
 #include <stb_image_write.h>
 
 namespace {
-vk::UniqueImage CreateImage(uint32_t width,
-                            uint32_t height,
-                            vk::Format format,
-                            vk::ImageUsageFlags usage) {
-    return Context::getDevice().createImageUnique(vk::ImageCreateInfo()
-                                                      .setImageType(vk::ImageType::e2D)
-                                                      .setFormat(format)
-                                                      .setExtent({width, height, 1})
-                                                      .setMipLevels(1)
-                                                      .setArrayLayers(1)
-                                                      .setSamples(vk::SampleCountFlagBits::e1)
-                                                      .setUsage(usage));
-}
-
-vk::UniqueImage CreateImage(uint32_t width,
-                            uint32_t height,
-                            uint32_t depth,
-                            vk::Format format,
-                            vk::ImageUsageFlags usage) {
-    return Context::getDevice().createImageUnique(vk::ImageCreateInfo()
-                                                      .setImageType(vk::ImageType::e3D)
-                                                      .setFormat(format)
-                                                      .setExtent({width, height, depth})
-                                                      .setMipLevels(1)
-                                                      .setArrayLayers(1)
-                                                      .setUsage(usage));
-}
-
 vk::UniqueDeviceMemory AllocateMemory(vk::Image image) {
     vk::MemoryRequirements requirements = Context::getDevice().getImageMemoryRequirements(image);
     uint32_t memoryTypeIndex =
@@ -72,29 +44,25 @@ vk::UniqueSampler CreateSampler() {
 }
 }  // namespace
 
-Image::Image(uint32_t width, uint32_t height, vk::Format format, ImageUsage usage)
-    : width{width}, height{height} {
-    vk::ImageUsageFlags usageFlags;
+Image::Image(uint32_t width, uint32_t height, vk::Format format, ImageUsage _usage)
+    : width{width}, height{height}, format{format}, type{vk::ImageType::e2D} {
     vk::ImageLayout newLayout;
-    switch (usage) {
+    switch (_usage) {
         case ImageUsage::GeneralStorage:
-            usageFlags = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled |
-                         vk::ImageUsageFlagBits::eTransferSrc |
-                         vk::ImageUsageFlagBits::eTransferDst;
+            usage = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled |
+                    vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst;
             newLayout = vk::ImageLayout::eGeneral;
             aspect = vk::ImageAspectFlagBits::eColor;
             break;
         case ImageUsage::ColorAttachment:
-            usageFlags = vk::ImageUsageFlagBits::eColorAttachment |
-                         vk::ImageUsageFlagBits::eTransferSrc |
-                         vk::ImageUsageFlagBits::eTransferDst;
+            usage = vk::ImageUsageFlagBits::eColorAttachment |
+                    vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst;
             newLayout = vk::ImageLayout::eColorAttachmentOptimal;
             aspect = vk::ImageAspectFlagBits::eColor;
             break;
         case ImageUsage::DepthStencilAttachment:
-            usageFlags = vk::ImageUsageFlagBits::eDepthStencilAttachment |
-                         vk::ImageUsageFlagBits::eTransferSrc |
-                         vk::ImageUsageFlagBits::eTransferDst;
+            usage = vk::ImageUsageFlagBits::eDepthStencilAttachment |
+                    vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst;
             newLayout = vk::ImageLayout::eDepthAttachmentOptimal;
             aspect = vk::ImageAspectFlagBits::eDepth;
             break;
@@ -102,7 +70,7 @@ Image::Image(uint32_t width, uint32_t height, vk::Format format, ImageUsage usag
             assert(false);
     }
 
-    image = CreateImage(width, height, format, usageFlags);
+    createImage();
     memory = AllocateMemory(*image);
     Context::getDevice().bindImageMemory(*image, *memory, 0);
 
@@ -127,13 +95,14 @@ Image::Image(const std::string& filepath) {
 
     width = w;
     height = h;
-    image = CreateImage(width, height, vk::Format::eR8G8B8A8Unorm,
-                        vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled |
-                            vk::ImageUsageFlagBits::eTransferDst);
+    format = vk::Format::eR8G8B8A8Unorm;
+    usage = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled |
+            vk::ImageUsageFlagBits::eTransferDst;
+    createImage();
     memory = AllocateMemory(*image);
     Context::getDevice().bindImageMemory(*image, *memory, 0);
 
-    view = CreateImageView(*image, vk::Format::eR8G8B8A8Unorm, vk::ImageAspectFlagBits::eColor);
+    view = CreateImageView(*image, format, vk::ImageAspectFlagBits::eColor);
     sampler = CreateSampler();
 
     HostBuffer staging{BufferUsage::Staging, static_cast<size_t>(width * height * 4)};
@@ -169,6 +138,7 @@ Image::Image(const std::vector<std::string>& filepaths) {
     this->width = width;
     this->height = height;
     this->depth = filepaths.size();
+    this->type = vk::ImageType::e3D;
 
     std::vector<uint8_t> allData(width * height * depth * 4);
     size_t offset = 0;
@@ -181,14 +151,14 @@ Image::Image(const std::vector<std::string>& filepaths) {
         stbi_image_free(data);
     }
 
-    image = CreateImage(width, height, depth, vk::Format::eR8G8B8A8Unorm,
-                        vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled |
-                            vk::ImageUsageFlagBits::eTransferDst);
+    format = vk::Format::eR8G8B8A8Unorm;
+    usage = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled |
+            vk::ImageUsageFlagBits::eTransferDst;
+    createImage();
     memory = AllocateMemory(*image);
     Context::getDevice().bindImageMemory(*image, *memory, 0);
 
-    view = CreateImageView(*image, vk::Format::eR8G8B8A8Unorm, vk::ImageAspectFlagBits::eColor,
-                           vk::ImageViewType::e3D);
+    view = CreateImageView(*image, format, vk::ImageAspectFlagBits::eColor, vk::ImageViewType::e3D);
     sampler = CreateSampler();
 
     HostBuffer staging{BufferUsage::Staging, static_cast<size_t>(width * height * depth * 4)};
