@@ -8,30 +8,32 @@
 #include <stb_image_write.h>
 
 namespace {
-vk::UniqueImage CreateImage(uint32_t width, uint32_t height, vk::Format format) {
-    using Usage = vk::ImageUsageFlagBits;
+vk::UniqueImage CreateImage(uint32_t width,
+                            uint32_t height,
+                            vk::Format format,
+                            vk::ImageUsageFlags usage) {
     return Context::getDevice().createImageUnique(vk::ImageCreateInfo()
                                                       .setImageType(vk::ImageType::e2D)
                                                       .setFormat(format)
                                                       .setExtent({width, height, 1})
                                                       .setMipLevels(1)
                                                       .setArrayLayers(1)
-                                                      .setUsage(Usage::eStorage | Usage::eSampled |
-                                                                Usage::eTransferSrc |
-                                                                Usage::eTransferDst));
+                                                      .setSamples(vk::SampleCountFlagBits::e1)
+                                                      .setUsage(usage));
 }
 
-vk::UniqueImage CreateImage(uint32_t width, uint32_t height, uint32_t depth, vk::Format format) {
-    using Usage = vk::ImageUsageFlagBits;
+vk::UniqueImage CreateImage(uint32_t width,
+                            uint32_t height,
+                            uint32_t depth,
+                            vk::Format format,
+                            vk::ImageUsageFlags usage) {
     return Context::getDevice().createImageUnique(vk::ImageCreateInfo()
                                                       .setImageType(vk::ImageType::e3D)
                                                       .setFormat(format)
                                                       .setExtent({width, height, depth})
                                                       .setMipLevels(1)
                                                       .setArrayLayers(1)
-                                                      .setUsage(Usage::eStorage | Usage::eSampled |
-                                                                Usage::eTransferSrc |
-                                                                Usage::eTransferDst));
+                                                      .setUsage(usage));
 }
 
 vk::UniqueDeviceMemory AllocateMemory(vk::Image image) {
@@ -45,13 +47,14 @@ vk::UniqueDeviceMemory AllocateMemory(vk::Image image) {
 
 vk::UniqueImageView CreateImageView(vk::Image image,
                                     vk::Format format,
+                                    vk::ImageAspectFlags aspect,
                                     vk::ImageViewType type = vk::ImageViewType::e2D) {
     return Context::getDevice().createImageViewUnique(
         vk::ImageViewCreateInfo()
             .setImage(image)
             .setViewType(type)
             .setFormat(format)
-            .setSubresourceRange({vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1}));
+            .setSubresourceRange({aspect, 0, 1, 0, 1}));
 }
 
 vk::UniqueSampler CreateSampler() {
@@ -69,20 +72,44 @@ vk::UniqueSampler CreateSampler() {
 }
 }  // namespace
 
-Image::Image(uint32_t width, uint32_t height, vk::Format format) : width{width}, height{height} {
-    image = CreateImage(width, height, format);
+Image::Image(uint32_t width, uint32_t height, vk::Format format, ImageUsage usage)
+    : width{width}, height{height} {
+    vk::ImageUsageFlags usageFlags;
+    switch (usage) {
+        case ImageUsage::GeneralStorage:
+            usageFlags = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled |
+                         vk::ImageUsageFlagBits::eTransferSrc |
+                         vk::ImageUsageFlagBits::eTransferDst;
+            aspect = vk::ImageAspectFlagBits::eColor;
+            layout = vk::ImageLayout::eGeneral;
+            break;
+        case ImageUsage::ColorAttachment:
+            usageFlags = vk::ImageUsageFlagBits::eColorAttachment;
+            aspect = vk::ImageAspectFlagBits::eColor;
+            layout = vk::ImageLayout::eColorAttachmentOptimal;
+            break;
+        case ImageUsage::DepthStencilAttachment:
+            usageFlags = vk::ImageUsageFlagBits::eDepthStencilAttachment;
+            aspect = vk::ImageAspectFlagBits::eDepth;
+            layout = vk::ImageLayout::eDepthAttachmentOptimal;
+            break;
+        default:
+            assert(false);
+    }
+
+    image = CreateImage(width, height, format, usageFlags);
     memory = AllocateMemory(*image);
     Context::getDevice().bindImageMemory(*image, *memory, 0);
 
-    view = CreateImageView(*image, format);
+    view = CreateImageView(*image, format, aspect);
     sampler = CreateSampler();
 
-    Context::oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
-        setImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
-    });
+    Context::oneTimeSubmit(
+        [&](vk::CommandBuffer commandBuffer) { setImageLayout(commandBuffer, layout); });
 }
 
-Image::Image(vk::Format format) : Image(Window::getWidth(), Window::getHeight(), format) {}
+Image::Image(vk::Format format, ImageUsage usage)
+    : Image(Window::getWidth(), Window::getHeight(), format, usage) {}
 
 Image::Image(const std::string& filepath) {
     int w;
@@ -95,11 +122,13 @@ Image::Image(const std::string& filepath) {
 
     width = w;
     height = h;
-    image = CreateImage(width, height, vk::Format::eR8G8B8A8Unorm);
+    image = CreateImage(width, height, vk::Format::eR8G8B8A8Unorm,
+                        vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled |
+                            vk::ImageUsageFlagBits::eTransferDst);
     memory = AllocateMemory(*image);
     Context::getDevice().bindImageMemory(*image, *memory, 0);
 
-    view = CreateImageView(*image, vk::Format::eR8G8B8A8Unorm);
+    view = CreateImageView(*image, vk::Format::eR8G8B8A8Unorm, vk::ImageAspectFlagBits::eColor);
     sampler = CreateSampler();
 
     HostBuffer staging{BufferUsage::Staging, static_cast<size_t>(width * height * 4)};
@@ -147,11 +176,14 @@ Image::Image(const std::vector<std::string>& filepaths) {
         stbi_image_free(data);
     }
 
-    image = CreateImage(width, height, depth, vk::Format::eR8G8B8A8Unorm);
+    image = CreateImage(width, height, depth, vk::Format::eR8G8B8A8Unorm,
+                        vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled |
+                            vk::ImageUsageFlagBits::eTransferDst);
     memory = AllocateMemory(*image);
     Context::getDevice().bindImageMemory(*image, *memory, 0);
 
-    view = CreateImageView(*image, vk::Format::eR8G8B8A8Unorm, vk::ImageViewType::e3D);
+    view = CreateImageView(*image, vk::Format::eR8G8B8A8Unorm, vk::ImageAspectFlagBits::eColor,
+                           vk::ImageViewType::e3D);
     sampler = CreateSampler();
 
     HostBuffer staging{BufferUsage::Staging, static_cast<size_t>(width * height * depth * 4)};
@@ -172,7 +204,7 @@ Image::Image(const std::vector<std::string>& filepaths) {
 }
 
 void Image::setImageLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout newLayout) {
-    setImageLayout(commandBuffer, *image, newLayout);
+    setImageLayout(commandBuffer, *image, newLayout, aspect);
     layout = newLayout;
 }
 
@@ -234,7 +266,8 @@ void Image::save(const std::string& filepath) {
 
 void Image::setImageLayout(vk::CommandBuffer commandBuffer,
                            vk::Image image,
-                           vk::ImageLayout newLayout) {
+                           vk::ImageLayout newLayout,
+                           vk::ImageAspectFlags aspect) {
     vk::PipelineStageFlags srcStageMask = vk::PipelineStageFlagBits::eAllCommands;
     vk::PipelineStageFlags dstStageMask = vk::PipelineStageFlagBits::eAllCommands;
 
@@ -244,7 +277,7 @@ void Image::setImageLayout(vk::CommandBuffer commandBuffer,
     barrier.setImage(image);
     barrier.setOldLayout(vk::ImageLayout::eUndefined);
     barrier.setNewLayout(newLayout);
-    barrier.setSubresourceRange({vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1});
+    barrier.setSubresourceRange({aspect, 0, 1, 0, 1});
     switch (newLayout) {
         case vk::ImageLayout::eTransferDstOptimal:
             barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;

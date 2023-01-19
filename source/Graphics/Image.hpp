@@ -3,11 +3,17 @@
 
 class Buffer;
 
+enum class ImageUsage {
+    GeneralStorage,
+    ColorAttachment,
+    DepthStencilAttachment,
+};
+
 class Image {
 public:
     Image() = default;
-    Image(uint32_t width, uint32_t height, vk::Format format);
-    Image(vk::Format format);
+    Image(uint32_t width, uint32_t height, vk::Format format, ImageUsage usage);
+    Image(vk::Format format, ImageUsage usage = ImageUsage::GeneralStorage);
     Image(const std::string& filepath);
     Image(const std::vector<std::string>& filepaths);
 
@@ -24,14 +30,17 @@ public:
 
     static void setImageLayout(vk::CommandBuffer commandBuffer,
                                vk::Image image,
-                               vk::ImageLayout newLayout);
+                               vk::ImageLayout newLayout,
+                               vk::ImageAspectFlags aspect = vk::ImageAspectFlagBits::eColor);
 
 private:
+    // TODO: add format
     vk::UniqueImage image{};
     vk::UniqueDeviceMemory memory{};
     vk::UniqueImageView view{};
     vk::UniqueSampler sampler{};
     vk::ImageLayout layout = vk::ImageLayout::eUndefined;
+    vk::ImageAspectFlags aspect;
     uint32_t width;
     uint32_t height;
     uint32_t depth = 1;
