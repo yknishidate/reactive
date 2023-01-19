@@ -50,6 +50,7 @@ private:
     void allocateMemory();
     void createImageView();
     void bindImageMemory();
+    void createSampler();
 
     vk::UniqueImage image;
     vk::UniqueDeviceMemory memory;

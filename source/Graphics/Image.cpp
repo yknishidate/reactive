@@ -7,23 +7,6 @@
 #include <stb_image.h>
 #include <stb_image_write.h>
 
-namespace {
-
-vk::UniqueSampler CreateSampler() {
-    return Context::getDevice().createSamplerUnique(
-        vk::SamplerCreateInfo()
-            .setMagFilter(vk::Filter::eLinear)
-            .setMinFilter(vk::Filter::eLinear)
-            .setAnisotropyEnable(VK_FALSE)
-            .setMaxLod(0.0f)
-            .setMinLod(0.0f)
-            .setMipmapMode(vk::SamplerMipmapMode::eLinear)
-            .setAddressModeU(vk::SamplerAddressMode::eRepeat)
-            .setAddressModeV(vk::SamplerAddressMode::eRepeat)
-            .setAddressModeW(vk::SamplerAddressMode::eRepeat));
-}
-}  // namespace
-
 Image::Image(uint32_t width, uint32_t height, vk::Format format, ImageUsage _usage)
     : width{width}, height{height}, format{format}, type{vk::ImageType::e2D} {
     vk::ImageLayout newLayout;
@@ -54,7 +37,7 @@ Image::Image(uint32_t width, uint32_t height, vk::Format format, ImageUsage _usa
     allocateMemory();
     bindImageMemory();
     createImageView();
-    sampler = CreateSampler();
+    createSampler();
 
     Context::oneTimeSubmit(
         [&](vk::CommandBuffer commandBuffer) { setImageLayout(commandBuffer, newLayout); });
@@ -82,7 +65,7 @@ Image::Image(const std::string& filepath) {
     allocateMemory();
     bindImageMemory();
     createImageView();
-    sampler = CreateSampler();
+    createSampler();
 
     HostBuffer staging{BufferUsage::Staging, static_cast<size_t>(width * height * 4)};
     staging.copy(data);
@@ -138,7 +121,7 @@ Image::Image(const std::vector<std::string>& filepaths) {
     allocateMemory();
     bindImageMemory();
     createImageView();
-    sampler = CreateSampler();
+    createSampler();
 
     HostBuffer staging{BufferUsage::Staging, static_cast<size_t>(width * height * depth * 4)};
     staging.copy(allData.data());
@@ -287,4 +270,18 @@ void Image::createImageView() {
 
 void Image::bindImageMemory() {
     Context::getDevice().bindImageMemory(*image, *memory, 0);
+}
+
+void Image::createSampler() {
+    sampler = Context::getDevice().createSamplerUnique(
+        vk::SamplerCreateInfo()
+            .setMagFilter(vk::Filter::eLinear)
+            .setMinFilter(vk::Filter::eLinear)
+            .setAnisotropyEnable(VK_FALSE)
+            .setMaxLod(0.0f)
+            .setMinLod(0.0f)
+            .setMipmapMode(vk::SamplerMipmapMode::eLinear)
+            .setAddressModeU(vk::SamplerAddressMode::eRepeat)
+            .setAddressModeV(vk::SamplerAddressMode::eRepeat)
+            .setAddressModeW(vk::SamplerAddressMode::eRepeat));
 }
