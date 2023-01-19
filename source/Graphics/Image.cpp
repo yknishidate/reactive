@@ -26,7 +26,7 @@ Image::Image(uint32_t width, uint32_t height, vk::Format format, ImageUsage _usa
         case ImageUsage::DepthStencilAttachment:
             usage = vk::ImageUsageFlagBits::eDepthStencilAttachment |
                     vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst;
-            newLayout = vk::ImageLayout::eDepthAttachmentOptimal;
+            newLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
             aspect = vk::ImageAspectFlagBits::eDepth;
             break;
         default:
@@ -177,6 +177,37 @@ void Image::save(const std::string& filepath) {
     stbi_write_png(filepath.c_str(), width, height, 3, output.data(), width * 3);
 }
 
+vk::AttachmentDescription Image::createAttachmentDesc(vk::ImageLayout finalLayout) const {
+    vk::AttachmentDescription attachDesc;
+    attachDesc.setFormat(format);
+    attachDesc.setSamples(vk::SampleCountFlagBits::e1);
+
+    if (usage & vk::ImageUsageFlagBits::eColorAttachment) {
+        // Store on end (color image)
+        // so, explicit clear command is required. (off course you can use any clear color)
+        attachDesc.setLoadOp(vk::AttachmentLoadOp::eDontCare);
+        attachDesc.setStoreOp(vk::AttachmentStoreOp::eStore);
+    } else if (usage & vk::ImageUsageFlagBits::eDepthStencilAttachment) {
+        // Clear on begin (depth image)
+        // so, there is no need to clear explicitly.
+        attachDesc.setLoadOp(vk::AttachmentLoadOp::eClear);
+        attachDesc.setStoreOp(vk::AttachmentStoreOp::eDontCare);
+    }
+    attachDesc.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
+    attachDesc.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
+
+    attachDesc.setFinalLayout(finalLayout);
+    return attachDesc;
+}
+
+vk::AttachmentReference Image::createAttachmentRef(uint32_t attachment) const {
+    vk::AttachmentReference attachRef;
+    attachRef.setAttachment(attachment);
+    attachRef.setLayout(layout);
+    return attachRef;
+}
+
+// static functions
 void Image::setImageLayout(vk::CommandBuffer commandBuffer,
                            vk::Image image,
                            vk::ImageLayout newLayout,
@@ -207,6 +238,7 @@ void Image::setImageLayout(vk::CommandBuffer commandBuffer,
     commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, {}, {}, {}, barrier);
 }
 
+// private member functions
 void Image::createImage() {
     vk::ImageCreateInfo imageInfo;
     imageInfo.setImageType(type);

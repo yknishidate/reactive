@@ -24,7 +24,6 @@ public:
 
     void clearBackImage(std::array<float, 4> color);
     void clearColorImage(Image& image, std::array<float, 4> color);
-    void clearDepthStencil(Image& image, float depth, uint32_t stencil);
     void beginDefaultRenderPass();
     void beginRenderPass(RenderPass& renderPass);
     void endDefaultRenderPass();

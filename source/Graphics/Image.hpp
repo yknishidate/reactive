@@ -29,38 +29,13 @@ public:
             *image, layout, vk::ClearColorValue{color},
             vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1});
     }
-    void clearDepthStencil(vk::CommandBuffer commandBuffer, float depth, uint32_t stencil) {
-        setImageLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);
-        commandBuffer.clearDepthStencilImage(
-            *image, layout, vk::ClearDepthStencilValue{depth, stencil},
-            vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eDepth, 0, 1, 0, 1});
-    }
 
     void copyToBuffer(vk::CommandBuffer commandBuffer, Buffer& dst);
     void save(const std::string& filepath);
 
-    vk::AttachmentDescription createAttachmentDesc(vk::ImageLayout finalLayout) const {
-        vk::AttachmentDescription attachDesc;
-        attachDesc.setFormat(format);
-        attachDesc.setSamples(vk::SampleCountFlagBits::e1);
+    vk::AttachmentDescription createAttachmentDesc(vk::ImageLayout finalLayout) const;
 
-        if (usage & vk::ImageUsageFlagBits::eColorAttachment) {
-            // Store on end (color image)
-            // so, explicit clear command is required. (off course you can use any clear color)
-            attachDesc.setLoadOp(vk::AttachmentLoadOp::eDontCare);
-            attachDesc.setStoreOp(vk::AttachmentStoreOp::eStore);
-        } else if (usage & vk::ImageUsageFlagBits::eDepthStencilAttachment) {
-            // Clear on begin (depth image)
-            // so, there is no need to clear explicitly.
-            attachDesc.setLoadOp(vk::AttachmentLoadOp::eClear);
-            attachDesc.setStoreOp(vk::AttachmentStoreOp::eDontCare);
-        }
-        attachDesc.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
-        attachDesc.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
-
-        attachDesc.setFinalLayout(finalLayout);
-        return attachDesc;
-    }
+    vk::AttachmentReference createAttachmentRef(uint32_t attachment) const;
 
     static void setImageLayout(vk::CommandBuffer commandBuffer,
                                vk::Image image,
