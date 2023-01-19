@@ -39,6 +39,29 @@ public:
     void copyToBuffer(vk::CommandBuffer commandBuffer, Buffer& dst);
     void save(const std::string& filepath);
 
+    vk::AttachmentDescription createAttachmentDesc(vk::ImageLayout finalLayout) const {
+        vk::AttachmentDescription attachDesc;
+        attachDesc.setFormat(format);
+        attachDesc.setSamples(vk::SampleCountFlagBits::e1);
+
+        if (usage & vk::ImageUsageFlagBits::eColorAttachment) {
+            // Store on end (color image)
+            // so, explicit clear command is required. (off course you can use any clear color)
+            attachDesc.setLoadOp(vk::AttachmentLoadOp::eDontCare);
+            attachDesc.setStoreOp(vk::AttachmentStoreOp::eStore);
+        } else if (usage & vk::ImageUsageFlagBits::eDepthStencilAttachment) {
+            // Clear on begin (depth image)
+            // so, there is no need to clear explicitly.
+            attachDesc.setLoadOp(vk::AttachmentLoadOp::eClear);
+            attachDesc.setStoreOp(vk::AttachmentStoreOp::eDontCare);
+        }
+        attachDesc.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
+        attachDesc.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
+
+        attachDesc.setFinalLayout(finalLayout);
+        return attachDesc;
+    }
+
     static void setImageLayout(vk::CommandBuffer commandBuffer,
                                vk::Image image,
                                vk::ImageLayout newLayout,
