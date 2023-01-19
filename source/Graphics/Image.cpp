@@ -75,23 +75,26 @@ vk::UniqueSampler CreateSampler() {
 Image::Image(uint32_t width, uint32_t height, vk::Format format, ImageUsage usage)
     : width{width}, height{height} {
     vk::ImageUsageFlags usageFlags;
+    vk::ImageLayout newLayout;
     switch (usage) {
         case ImageUsage::GeneralStorage:
             usageFlags = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled |
                          vk::ImageUsageFlagBits::eTransferSrc |
                          vk::ImageUsageFlagBits::eTransferDst;
+            newLayout = vk::ImageLayout::eGeneral;
             aspect = vk::ImageAspectFlagBits::eColor;
-            layout = vk::ImageLayout::eGeneral;
             break;
         case ImageUsage::ColorAttachment:
-            usageFlags = vk::ImageUsageFlagBits::eColorAttachment;
+            usageFlags =
+                vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc;
+            newLayout = vk::ImageLayout::eColorAttachmentOptimal;
             aspect = vk::ImageAspectFlagBits::eColor;
-            layout = vk::ImageLayout::eColorAttachmentOptimal;
             break;
         case ImageUsage::DepthStencilAttachment:
-            usageFlags = vk::ImageUsageFlagBits::eDepthStencilAttachment;
+            usageFlags = vk::ImageUsageFlagBits::eDepthStencilAttachment |
+                         vk::ImageUsageFlagBits::eTransferSrc;
+            newLayout = vk::ImageLayout::eDepthAttachmentOptimal;
             aspect = vk::ImageAspectFlagBits::eDepth;
-            layout = vk::ImageLayout::eDepthAttachmentOptimal;
             break;
         default:
             assert(false);
@@ -105,7 +108,7 @@ Image::Image(uint32_t width, uint32_t height, vk::Format format, ImageUsage usag
     sampler = CreateSampler();
 
     Context::oneTimeSubmit(
-        [&](vk::CommandBuffer commandBuffer) { setImageLayout(commandBuffer, layout); });
+        [&](vk::CommandBuffer commandBuffer) { setImageLayout(commandBuffer, newLayout); });
 }
 
 Image::Image(vk::Format format, ImageUsage usage)

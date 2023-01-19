@@ -132,6 +132,10 @@ Swapchain::Swapchain() : width{Window::getWidth()}, height{Window::getHeight()} 
     }
 }
 
+void Swapchain::setBackImageLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout layout) {
+    Image::setImageLayout(commandBuffer, swapchainImages[frameIndex], layout);
+}
+
 void Swapchain::beginRenderPass() const {
     vk::Rect2D renderArea;
     renderArea.setExtent({Window::getWidth(), Window::getHeight()});

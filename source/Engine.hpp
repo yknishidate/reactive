@@ -8,6 +8,7 @@
 #include "Graphics/DescriptorSet.hpp"
 #include "Graphics/Image.hpp"
 #include "Graphics/Pipeline.hpp"
+#include "Graphics/RenderPass.hpp"
 #include "Graphics/Shader.hpp"
 #include "Scene/Camera.hpp"
 #include "Scene/Loader.hpp"

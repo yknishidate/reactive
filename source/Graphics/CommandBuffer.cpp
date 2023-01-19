@@ -6,6 +6,7 @@
 #include "GUI/imgui_impl_vulkan_hpp.h"
 #include "Graphics/Image.hpp"
 #include "Graphics/Pipeline.hpp"
+#include "Graphics/RenderPass.hpp"
 #include "Scene/Mesh.hpp"
 #include "Swapchain.hpp"
 #include "Window/Window.hpp"
@@ -34,8 +35,16 @@ void CommandBuffer::beginRenderPass() {
     swapchain->beginRenderPass();
 }
 
+void CommandBuffer::beginRenderPass(RenderPass& renderPass) {
+    renderPass.beginRenderPass(commandBuffer);
+}
+
 void CommandBuffer::endRenderPass() {
     swapchain->endRenderPass();
+}
+
+void CommandBuffer::endRenderPass(RenderPass& renderPass) {
+    renderPass.endRenderPass(commandBuffer);
 }
 
 void CommandBuffer::submit() {
@@ -58,4 +67,8 @@ void CommandBuffer::drawMeshTasks(uint32_t groupCountX,
 
 void CommandBuffer::copyToBackImage(const Image& source) {
     swapchain->copyToBackImage(commandBuffer, source);
+}
+
+void CommandBuffer::setBackImageLayout(vk::ImageLayout layout) {
+    swapchain->setBackImageLayout(commandBuffer, layout);
 }

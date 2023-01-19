@@ -9,6 +9,7 @@ class RayTracingPipeline;
 class Swapchain;
 class Mesh;
 class GUI;
+class RenderPass;
 
 class CommandBuffer {
 public:
@@ -23,12 +24,15 @@ public:
 
     void clearBackImage(std::array<float, 4> color);
     void beginRenderPass();
+    void beginRenderPass(RenderPass& renderPass);
     void endRenderPass();
+    void endRenderPass(RenderPass& renderPass);
     void submit();
     void drawIndexed(Mesh& mesh);
     void drawGUI(GUI& gui);
     void drawMeshTasks(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
     void copyToBackImage(const Image& image);
+    void setBackImageLayout(vk::ImageLayout layout);
 
     vk::CommandBuffer commandBuffer;
     Swapchain* swapchain = nullptr;
