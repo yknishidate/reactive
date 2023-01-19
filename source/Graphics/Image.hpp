@@ -46,17 +46,10 @@ public:
                                vk::ImageAspectFlags aspect = vk::ImageAspectFlagBits::eColor);
 
 private:
-    void createImage() {
-        vk::ImageCreateInfo imageInfo;
-        imageInfo.setImageType(type);
-        imageInfo.setFormat(format);
-        imageInfo.setExtent({width, height, depth});
-        imageInfo.setMipLevels(1);
-        imageInfo.setArrayLayers(1);
-        imageInfo.setSamples(vk::SampleCountFlagBits::e1);
-        imageInfo.setUsage(usage);
-        image = Context::getDevice().createImageUnique(imageInfo);
-    }
+    void createImage();
+    void allocateMemory();
+    void createImageView();
+    void bindImageMemory();
 
     vk::UniqueImage image;
     vk::UniqueDeviceMemory memory;

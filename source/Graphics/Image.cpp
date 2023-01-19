@@ -8,26 +8,6 @@
 #include <stb_image_write.h>
 
 namespace {
-vk::UniqueDeviceMemory AllocateMemory(vk::Image image) {
-    vk::MemoryRequirements requirements = Context::getDevice().getImageMemoryRequirements(image);
-    uint32_t memoryTypeIndex =
-        Context::findMemoryTypeIndex(requirements, vk::MemoryPropertyFlagBits::eDeviceLocal);
-    return Context::getDevice().allocateMemoryUnique(vk::MemoryAllocateInfo()
-                                                         .setAllocationSize(requirements.size)
-                                                         .setMemoryTypeIndex(memoryTypeIndex));
-}
-
-vk::UniqueImageView CreateImageView(vk::Image image,
-                                    vk::Format format,
-                                    vk::ImageAspectFlags aspect,
-                                    vk::ImageViewType type = vk::ImageViewType::e2D) {
-    return Context::getDevice().createImageViewUnique(
-        vk::ImageViewCreateInfo()
-            .setImage(image)
-            .setViewType(type)
-            .setFormat(format)
-            .setSubresourceRange({aspect, 0, 1, 0, 1}));
-}
 
 vk::UniqueSampler CreateSampler() {
     return Context::getDevice().createSamplerUnique(
@@ -71,10 +51,9 @@ Image::Image(uint32_t width, uint32_t height, vk::Format format, ImageUsage _usa
     }
 
     createImage();
-    memory = AllocateMemory(*image);
-    Context::getDevice().bindImageMemory(*image, *memory, 0);
-
-    view = CreateImageView(*image, format, aspect);
+    allocateMemory();
+    bindImageMemory();
+    createImageView();
     sampler = CreateSampler();
 
     Context::oneTimeSubmit(
@@ -98,11 +77,11 @@ Image::Image(const std::string& filepath) {
     format = vk::Format::eR8G8B8A8Unorm;
     usage = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled |
             vk::ImageUsageFlagBits::eTransferDst;
+    aspect = vk::ImageAspectFlagBits::eColor;
     createImage();
-    memory = AllocateMemory(*image);
-    Context::getDevice().bindImageMemory(*image, *memory, 0);
-
-    view = CreateImageView(*image, format, vk::ImageAspectFlagBits::eColor);
+    allocateMemory();
+    bindImageMemory();
+    createImageView();
     sampler = CreateSampler();
 
     HostBuffer staging{BufferUsage::Staging, static_cast<size_t>(width * height * 4)};
@@ -154,11 +133,11 @@ Image::Image(const std::vector<std::string>& filepaths) {
     format = vk::Format::eR8G8B8A8Unorm;
     usage = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled |
             vk::ImageUsageFlagBits::eTransferDst;
+    aspect = vk::ImageAspectFlagBits::eColor;
     createImage();
-    memory = AllocateMemory(*image);
-    Context::getDevice().bindImageMemory(*image, *memory, 0);
-
-    view = CreateImageView(*image, format, vk::ImageAspectFlagBits::eColor, vk::ImageViewType::e3D);
+    allocateMemory();
+    bindImageMemory();
+    createImageView();
     sampler = CreateSampler();
 
     HostBuffer staging{BufferUsage::Staging, static_cast<size_t>(width * height * depth * 4)};
@@ -267,4 +246,45 @@ void Image::setImageLayout(vk::CommandBuffer commandBuffer,
             break;
     }
     commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, {}, {}, {}, barrier);
+}
+
+void Image::createImage() {
+    vk::ImageCreateInfo imageInfo;
+    imageInfo.setImageType(type);
+    imageInfo.setFormat(format);
+    imageInfo.setExtent({width, height, depth});
+    imageInfo.setMipLevels(1);
+    imageInfo.setArrayLayers(1);
+    imageInfo.setSamples(vk::SampleCountFlagBits::e1);
+    imageInfo.setUsage(usage);
+    image = Context::getDevice().createImageUnique(imageInfo);
+}
+
+void Image::allocateMemory() {
+    vk::MemoryRequirements requirements = Context::getDevice().getImageMemoryRequirements(*image);
+    uint32_t memoryTypeIndex =
+        Context::findMemoryTypeIndex(requirements, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    vk::MemoryAllocateInfo memoryInfo;
+    memoryInfo.setAllocationSize(requirements.size);
+    memoryInfo.setMemoryTypeIndex(memoryTypeIndex);
+    memory = Context::getDevice().allocateMemoryUnique(memoryInfo);
+}
+
+void Image::createImageView() {
+    vk::ImageViewCreateInfo viewInfo;
+    viewInfo.setImage(*image);
+    viewInfo.setFormat(format);
+    viewInfo.setSubresourceRange({aspect, 0, 1, 0, 1});
+    if (type == vk::ImageType::e2D) {
+        viewInfo.setViewType(vk::ImageViewType::e2D);
+    } else if (type == vk::ImageType::e3D) {
+        viewInfo.setViewType(vk::ImageViewType::e3D);
+    } else {
+        assert(false);
+    }
+    view = Context::getDevice().createImageViewUnique(viewInfo);
+}
+
+void Image::bindImageMemory() {
+    Context::getDevice().bindImageMemory(*image, *memory, 0);
 }
