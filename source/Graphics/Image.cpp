@@ -44,16 +44,8 @@ Image::Image(uint32_t width, uint32_t height, vk::Format format, ImageUsage _usa
 }
 
 Image::Image(const std::string& filepath) {
-    int w;
-    int h;
-    int channels;
-    unsigned char* data = stbi_load(filepath.c_str(), &w, &h, &channels, sizeof(unsigned char) * 4);
-    if (!data) {
-        throw std::runtime_error("Failed to load texture: " + filepath);
-    }
+    unsigned char* data = loadFile(filepath);
 
-    width = w;
-    height = h;
     format = vk::Format::eR8G8B8A8Unorm;
     usage = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled |
             vk::ImageUsageFlagBits::eTransferDst;
@@ -64,15 +56,13 @@ Image::Image(const std::string& filepath) {
     createImageView();
     createSampler();
 
-    HostBuffer staging{BufferUsage::Staging, static_cast<size_t>(width * height * 4)};
+    HostBuffer staging{BufferUsage::Staging, static_cast<size_t>(width * height * depth * 4)};
     staging.copy(data);
     Context::oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
-        vk::BufferImageCopy region{};
-        region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
-        region.imageSubresource.mipLevel = 0;
-        region.imageSubresource.baseArrayLayer = 0;
-        region.imageSubresource.layerCount = 1;
-        region.imageExtent = vk::Extent3D{width, height, 1};
+        vk::BufferImageCopy region;
+        region.setImageExtent({width, height, depth});
+        region.setImageSubresource({aspect, 0, 0, 1});
+        region.imageSubresource.aspectMask = aspect;
 
         setImageLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);
         commandBuffer.copyBufferToImage(staging.getBuffer(), *image,
@@ -84,26 +74,18 @@ Image::Image(const std::string& filepath) {
 }
 
 Image::Image(const std::vector<std::string>& filepaths) {
-    // TODO: Don't repeat yourself
-    int width;
-    int height;
-    int channels;
-    unsigned char* data =
-        stbi_load(filepaths[0].c_str(), &width, &height, &channels, sizeof(unsigned char) * 4);
-    if (!data) {
-        throw std::runtime_error("Failed to load texture: " + filepaths[0]);
-    }
+    unsigned char* data = loadFile(filepaths[0]);
     stbi_image_free(data);
-    this->width = width;
-    this->height = height;
-    this->depth = filepaths.size();
-    this->type = vk::ImageType::e3D;
+
+    depth = filepaths.size();
+    type = vk::ImageType::e3D;
 
     std::vector<uint8_t> allData(width * height * depth * 4);
     size_t offset = 0;
     for (const auto& filepath : filepaths) {
         spdlog::info("Load image: {}", filepath);
-        data = stbi_load(filepath.c_str(), &width, &height, &channels, sizeof(unsigned char) * 4);
+        int w, h, channels;
+        data = stbi_load(filepath.c_str(), &w, &h, &channels, sizeof(unsigned char) * 4);
         auto size = width * height * 4;
         std::copy_n(data, size, allData.begin() + offset);
         offset += size;
@@ -123,13 +105,11 @@ Image::Image(const std::vector<std::string>& filepaths) {
     HostBuffer staging{BufferUsage::Staging, static_cast<size_t>(width * height * depth * 4)};
     staging.copy(allData.data());
     Context::oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
-        vk::BufferImageCopy region{};
-        region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
-        region.imageSubresource.mipLevel = 0;
-        region.imageSubresource.baseArrayLayer = 0;
-        region.imageSubresource.layerCount = 1;
-        region.imageExtent =
-            vk::Extent3D{static_cast<uint32_t>(width), static_cast<uint32_t>(height), depth};
+        vk::BufferImageCopy region;
+        region.setImageExtent({width, height, depth});
+        region.setImageSubresource({aspect, 0, 0, 1});
+        region.imageSubresource.aspectMask = aspect;
+
         setImageLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);
         commandBuffer.copyBufferToImage(staging.getBuffer(), *image,
                                         vk::ImageLayout::eTransferDstOptimal, region);
@@ -177,8 +157,7 @@ void Image::copyToBuffer(vk::CommandBuffer commandBuffer, Buffer& dst) {
 }
 
 void Image::save(const std::string& filepath) {
-    // TODO: remove Window
-    static vk::DeviceSize size = Window::getWidth() * Window::getWidth() * 4;
+    static vk::DeviceSize size = width * height * 4;
     static HostBuffer buffer{BufferUsage::Staging, size};
     static uint8_t* pixels = static_cast<uint8_t*>(buffer.map());
 
@@ -281,4 +260,14 @@ void Image::createSampler() {
             .setAddressModeU(vk::SamplerAddressMode::eRepeat)
             .setAddressModeV(vk::SamplerAddressMode::eRepeat)
             .setAddressModeW(vk::SamplerAddressMode::eRepeat));
+}
+
+unsigned char* Image::loadFile(const std::string& filepath) {
+    int w, h, channels;
+    unsigned char* data = stbi_load(filepath.c_str(), &w, &h, &channels, sizeof(unsigned char) * 4);
+    if (!data) {
+        throw std::runtime_error("Failed to load texture: " + filepath);
+    }
+    width = w;
+    height = h;
 }

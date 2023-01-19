@@ -50,6 +50,7 @@ private:
     void createImageView();
     void bindImageMemory();
     void createSampler();
+    unsigned char* loadFile(const std::string& filepath);
 
     vk::UniqueImage image;
     vk::UniqueDeviceMemory memory;
