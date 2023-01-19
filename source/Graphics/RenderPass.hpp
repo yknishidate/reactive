@@ -43,16 +43,15 @@ public:
         framebuffer = Context::getDevice().createFramebufferUnique(framebufferInfo);
     }
 
+    void setClearValues(const std::vector<vk::ClearValue>& values) { clearValues = values; }
+
     auto getRenderPass() const { return *renderPass; }
 
 private:
     friend class CommandBuffer;
 
     void beginRenderPass(vk::CommandBuffer commandBuffer) const {
-        std::array<vk::ClearValue, 2> clearValues;
-        clearValues[0].color = {std::array{0.0f, 0.0f, 0.0f, 1.0f}};
-        clearValues[1].depthStencil = vk::ClearDepthStencilValue{1.0f, 0};
-
+        assert(!clearValues.empty());
         vk::RenderPassBeginInfo beginInfo;
         beginInfo.setRenderPass(*renderPass);
         beginInfo.setClearValues(clearValues);
@@ -66,4 +65,5 @@ private:
     vk::UniqueRenderPass renderPass;
     vk::UniqueFramebuffer framebuffer;
     vk::Rect2D renderArea;
+    std::vector<vk::ClearValue> clearValues;
 };
