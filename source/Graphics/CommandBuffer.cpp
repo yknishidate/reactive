@@ -39,7 +39,7 @@ void CommandBuffer::clearBackImage(std::array<float, 4> color) {
     swapchain->clearBackImage(commandBuffer, color);
 }
 
-void CommandBuffer::beginRenderPass() {
+void CommandBuffer::beginDefaultRenderPass() {
     swapchain->beginRenderPass();
 }
 
@@ -47,7 +47,7 @@ void CommandBuffer::beginRenderPass(RenderPass& renderPass) {
     renderPass.beginRenderPass(commandBuffer);
 }
 
-void CommandBuffer::endRenderPass() {
+void CommandBuffer::endDefaultRenderPass() {
     swapchain->endRenderPass();
 }
 
