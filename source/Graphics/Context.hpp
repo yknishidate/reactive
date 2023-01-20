@@ -8,7 +8,7 @@
 
 class Context {
 public:
-    static void init();
+    static void init(bool enableValidation);
 
     static std::vector<vk::UniqueCommandBuffer> allocateCommandBuffers(uint32_t count);
     static vk::UniqueCommandBuffer allocateCommandBuffer();

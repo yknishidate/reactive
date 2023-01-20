@@ -6,7 +6,7 @@
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
-void Context::init() {
+void Context::init(bool enableValidation) {
     spdlog::info("Context::Init()");
 
     static const vk::DynamicLoader dl;
@@ -18,7 +18,10 @@ void Context::init() {
     // Create instance
     std::vector instanceExtensions = Window::getExtensions();
     instanceExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
-    std::vector layers{"VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_monitor"};
+    std::vector layers{"VK_LAYER_LUNARG_monitor"};
+    if (enableValidation) {
+        layers.push_back("VK_LAYER_KHRONOS_validation");
+    }
 
     vk::ApplicationInfo appInfo;
     appInfo.setApiVersion(VK_API_VERSION_1_3);
@@ -29,13 +32,15 @@ void Context::init() {
     VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
 
     // Create debug messenger
-    debugMessenger = instance->createDebugUtilsMessengerEXTUnique(
-        vk::DebugUtilsMessengerCreateInfoEXT()
-            .setMessageSeverity(vk::DebugUtilsMessageSeverityFlagBitsEXT::eError |
-                                vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning)
-            .setMessageType(vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
-                            vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance)
-            .setPfnUserCallback(&debugCallback));
+    if (enableValidation) {
+        debugMessenger = instance->createDebugUtilsMessengerEXTUnique(
+            vk::DebugUtilsMessengerCreateInfoEXT()
+                .setMessageSeverity(vk::DebugUtilsMessageSeverityFlagBitsEXT::eError |
+                                    vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning)
+                .setMessageType(vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
+                                vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance)
+                .setPfnUserCallback(&debugCallback));
+    }
 
     surface = Window::createSurface(*instance);
     physicalDevice = instance->enumeratePhysicalDevices().front();
