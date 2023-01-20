@@ -4,6 +4,7 @@
 #include "Compiler/Compiler.hpp"
 #include "Context.hpp"
 #include "Image.hpp"
+#include "RenderPass.hpp"
 #include "Scene/Object.hpp"
 #include "Window/Window.hpp"
 
@@ -18,6 +19,7 @@ vk::UniquePipeline createGraphicsPipeline(
     ArrayProxy<vk::PipelineShaderStageCreateInfo> shaderStages,
     vk::PipelineLayout pipelineLayout,
     vk::RenderPass renderPass,
+    vk::PipelineColorBlendStateCreateInfo colorBlending,
     bool useMeshShader) {
     auto width = static_cast<float>(Window::getWidth());
     auto height = static_cast<float>(Window::getHeight());
@@ -44,14 +46,14 @@ vk::UniquePipeline createGraphicsPipeline(
     depthStencil.setDepthBoundsTestEnable(VK_FALSE);
     depthStencil.setStencilTestEnable(VK_FALSE);
 
-    using vkCC = vk::ColorComponentFlagBits;
-    vk::PipelineColorBlendAttachmentState colorBlendAttachment;
-    colorBlendAttachment.setBlendEnable(VK_FALSE);
-    colorBlendAttachment.setColorWriteMask(vkCC::eR | vkCC::eG | vkCC::eB | vkCC::eA);
+    // using vkCC = vk::ColorComponentFlagBits;
+    // vk::PipelineColorBlendAttachmentState colorBlendAttachment;
+    // colorBlendAttachment.setBlendEnable(VK_FALSE);
+    // colorBlendAttachment.setColorWriteMask(vkCC::eR | vkCC::eG | vkCC::eB | vkCC::eA);
 
-    vk::PipelineColorBlendStateCreateInfo colorBlending;
-    colorBlending.setLogicOpEnable(VK_FALSE);
-    colorBlending.setAttachments(colorBlendAttachment);
+    // vk::PipelineColorBlendStateCreateInfo colorBlending;
+    // colorBlending.setLogicOpEnable(VK_FALSE);
+    // colorBlending.setAttachments(colorBlendAttachment);
 
     vk::GraphicsPipelineCreateInfo pipelineInfo;
     pipelineInfo.setStages(shaderStages);
@@ -131,7 +133,7 @@ vk::StridedDeviceAddressRegionKHR createAddressRegion(
 }
 }  // namespace
 
-void GraphicsPipeline::setup(Swapchain& swapchain, size_t pushSize) {
+void GraphicsPipeline::setup(RenderPass& renderPass, size_t pushSize) {
     this->pushSize = pushSize;
     pipelineLayout = descSet->createPipelineLayout(pushSize, vk::ShaderStageFlagBits::eAllGraphics |
                                                                  vk::ShaderStageFlagBits::eMeshEXT |
@@ -146,8 +148,8 @@ void GraphicsPipeline::setup(Swapchain& swapchain, size_t pushSize) {
                                    .setStage(shader->getStage())
                                    .setPName("main"));
     }
-    pipeline = createGraphicsPipeline(shaderStages, *pipelineLayout, swapchain.getRenderPass(),
-                                      useMeshShader);
+    pipeline = createGraphicsPipeline(shaderStages, *pipelineLayout, renderPass.getRenderPass(),
+                                      renderPass.createColorBlending(), useMeshShader);
 }
 
 void GraphicsPipeline::bind(vk::CommandBuffer commandBuffer) {

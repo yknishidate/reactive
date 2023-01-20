@@ -41,11 +41,25 @@ public:
         framebufferInfo.setHeight(height);
         framebufferInfo.setLayers(1);
         framebuffer = Context::getDevice().createFramebufferUnique(framebufferInfo);
+
+        colorBlendStates.resize(colorAttachmentRefs.size());
+        for (auto& state : colorBlendStates) {
+            state.setColorWriteMask(
+                vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+                vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
+        }
     }
 
     void setClearValues(const std::vector<vk::ClearValue>& values) { clearValues = values; }
 
     auto getRenderPass() const { return *renderPass; }
+
+    vk::PipelineColorBlendStateCreateInfo createColorBlending() const {
+        vk::PipelineColorBlendStateCreateInfo colorBlending;
+        colorBlending.setAttachments(colorBlendStates);
+        colorBlending.setLogicOpEnable(VK_FALSE);
+        return colorBlending;
+    }
 
 private:
     friend class CommandBuffer;
@@ -66,4 +80,5 @@ private:
     vk::UniqueFramebuffer framebuffer;
     vk::Rect2D renderArea;
     std::vector<vk::ClearValue> clearValues;
+    std::vector<vk::PipelineColorBlendAttachmentState> colorBlendStates;
 };

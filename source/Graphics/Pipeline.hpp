@@ -6,6 +6,7 @@
 
 class Image;
 class Scene;
+class RenderPass;
 
 class Pipeline {
 public:
@@ -28,8 +29,7 @@ public:
     GraphicsPipeline() = default;
     GraphicsPipeline(DescriptorSet& descSet) : Pipeline(descSet) {}
 
-    void setup(Swapchain& swapchain, size_t pushSize = 0);
-
+    void setup(RenderPass& renderPass, size_t pushSize);
     void addShader(const Shader& shader) { shaders.push_back(&shader); }
 
 private:
