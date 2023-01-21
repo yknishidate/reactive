@@ -46,15 +46,6 @@ vk::UniquePipeline createGraphicsPipeline(
     depthStencil.setDepthBoundsTestEnable(VK_FALSE);
     depthStencil.setStencilTestEnable(VK_FALSE);
 
-    // using vkCC = vk::ColorComponentFlagBits;
-    // vk::PipelineColorBlendAttachmentState colorBlendAttachment;
-    // colorBlendAttachment.setBlendEnable(VK_FALSE);
-    // colorBlendAttachment.setColorWriteMask(vkCC::eR | vkCC::eG | vkCC::eB | vkCC::eA);
-
-    // vk::PipelineColorBlendStateCreateInfo colorBlending;
-    // colorBlending.setLogicOpEnable(VK_FALSE);
-    // colorBlending.setAttachments(colorBlendAttachment);
-
     vk::GraphicsPipelineCreateInfo pipelineInfo;
     pipelineInfo.setStages(shaderStages);
     pipelineInfo.setPViewportState(&viewportState);
