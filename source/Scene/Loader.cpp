@@ -11,7 +11,7 @@
 #include <tiny_obj_loader.h>
 
 namespace {
-void LoadShape(const tinyobj::attrib_t& attrib,
+void loadShape(const tinyobj::attrib_t& attrib,
                const tinyobj::shape_t& shape,
                std::vector<Vertex>& vertices,
                std::vector<uint32_t>& indices) {
@@ -47,6 +47,54 @@ void LoadShape(const tinyobj::attrib_t& attrib,
         indices.push_back(indices.size());
     }
 }
+
+void loadShapes(const tinyobj::attrib_t& attrib,
+                const std::vector<tinyobj::shape_t>& shapes,
+                const std::vector<Material>& mats,
+                std::vector<Mesh>& meshes) {
+    for (const auto& shape : shapes) {
+        assert(!shapes.empty());
+        assert(!mats.empty());
+        spdlog::info("  Shape {}", shape.name);
+
+        // remove object which has multiple materials
+        std::set<int> indexSet;
+        for (auto& i : shape.mesh.material_ids) {
+            indexSet.insert(i);
+        }
+        if (indexSet.size() != 1) {
+            spdlog::info("Removed an object which has multiple materials");
+            continue;
+        }
+
+        std::vector<Vertex> vertices{};
+        std::vector<uint32_t> indices{};
+        loadShape(attrib, shape, vertices, indices);
+        int matIndex = shape.mesh.material_ids[0];
+
+        meshes.reserve(shapes.size());
+        if (matIndex >= 0) {
+            meshes.emplace_back(vertices, indices, mats[matIndex]);
+        } else {
+            meshes.emplace_back(vertices, indices);
+        }
+    }
+}
+
+void loadTextures(std::string directory,
+                  int texCount,
+                  const std::unordered_map<std::string, int>& textureNames,
+                  std::vector<Image>& textures) {
+    // textures = std::vector<Image>(texCount);
+    textures.resize(texCount);
+    for (auto& [name, index] : textureNames) {
+        std::string path = name;
+        std::ranges::replace(path, '\\', '/');
+        path = directory + "/" + path;
+        spdlog::info("  Texture {}: {}", index, path);
+        textures[index] = Image{path};
+    }
+}
 }  // namespace
 
 // Load as single mesh
@@ -66,7 +114,7 @@ void Loader::loadFromFile(const std::string& filepath,
     }
 
     for (const auto& shape : shapes) {
-        LoadShape(attrib, shape, vertices, indices);
+        loadShape(attrib, shape, vertices, indices);
     }
 }
 
@@ -93,16 +141,10 @@ void Loader::loadFromFile(const std::string& filepath, std::vector<Mesh>& meshes
         mats[i].emission = {mat.emission[0], mat.emission[1], mat.emission[2]};
     }
 
-    meshes.reserve(shapes.size());
-    for (const auto& shape : shapes) {
-        std::vector<Vertex> vertices{};
-        std::vector<uint32_t> indices{};
-        LoadShape(attrib, shape, vertices, indices);
-        int matIndex = shape.mesh.material_ids[0];
-        meshes.emplace_back(vertices, indices, mats[matIndex]);
-    }
+    loadShapes(attrib, shapes, mats, meshes);
 }
 
+// with texture
 void Loader::loadFromFile(const std::string& filepath,
                           std::vector<Mesh>& meshes,
                           std::vector<Image>& textures) {
@@ -163,38 +205,6 @@ void Loader::loadFromFile(const std::string& filepath,
         }
     }
 
-    // load texture
-    textures = std::vector<Image>(texCount);
-    for (auto& [name, index] : textureNames) {
-        std::string path = name;
-        std::replace(path.begin(), path.end(), '\\', '/');
-        path = dir + "/" + path;
-        spdlog::info("  Texture {}: {}", index, path);
-        textures[index] = Image{path};
-    }
-
-    for (const auto& shape : shapes) {
-        spdlog::info("  Shape {}", shape.name);
-
-        // remove object which has multiple materials
-        std::set<int> indexSet;
-        for (auto& i : shape.mesh.material_ids) {
-            indexSet.insert(i);
-        }
-        if (indexSet.size() != 1) {
-            continue;
-        }
-
-        std::vector<Vertex> vertices{};
-        std::vector<uint32_t> indices{};
-        LoadShape(attrib, shape, vertices, indices);
-        int matIndex = shape.mesh.material_ids[0];
-
-        meshes.reserve(shapes.size());
-        if (matIndex >= 0) {
-            meshes.emplace_back(vertices, indices, mats[matIndex]);
-        } else {
-            meshes.emplace_back(vertices, indices);
-        }
-    }
+    loadTextures(dir, texCount, textureNames, textures);
+    loadShapes(attrib, shapes, mats, meshes);
 }

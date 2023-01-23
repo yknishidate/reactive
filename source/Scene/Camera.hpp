@@ -10,6 +10,7 @@ public:
     Camera(uint32_t width, uint32_t height);
     void processInput();
     bool checkDirtyAndClean();
+    glm::vec3 getPosition() const { return position; }
     glm::mat4 getView() const;
     glm::mat4 getProj() const;
     glm::mat4 getInvView() const { return glm::inverse(getView()); }
