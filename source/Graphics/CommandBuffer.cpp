@@ -55,7 +55,7 @@ void CommandBuffer::submit() {
     swapchain->submit();
 }
 
-void CommandBuffer::drawIndexed(Mesh& mesh) {
+void CommandBuffer::drawIndexed(const Mesh& mesh) {
     mesh.drawIndexed(commandBuffer);
 }
 
