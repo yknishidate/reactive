@@ -57,15 +57,11 @@ void loadShapes(const tinyobj::attrib_t& attrib,
         assert(!mats.empty());
         spdlog::info("  Shape {}", shape.name);
 
-        // remove object which has multiple materials
-        std::set<int> indexSet;
+        std::set<int> unique_material_ids;
         for (auto& i : shape.mesh.material_ids) {
-            indexSet.insert(i);
+            unique_material_ids.insert(i);
         }
-        if (indexSet.size() != 1) {
-            spdlog::info("Removed an object which has multiple materials");
-            continue;
-        }
+        spdlog::info("  Materials {}", fmt::join(unique_material_ids, ", "));
 
         std::vector<Vertex> vertices{};
         std::vector<uint32_t> indices{};
