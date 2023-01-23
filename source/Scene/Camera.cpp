@@ -25,23 +25,23 @@ void Camera::processInput() {
     glm::vec3 right = glm::normalize(glm::cross(-glm::vec3{0, 1, 0}, forward));
 
     if (Window::keyPressed(Key::W)) {
-        position += forward * 0.15f;
+        position += forward * 0.15f * speed;
         dirty = true;
     }
     if (Window::keyPressed(Key::S)) {
-        position -= forward * 0.15f;
+        position -= forward * 0.15f * speed;
         dirty = true;
     }
     if (Window::keyPressed(Key::D)) {
-        position += right * 0.1f;
+        position += right * 0.1f * speed;
         dirty = true;
     }
     if (Window::keyPressed(Key::A)) {
-        position -= right * 0.1f;
+        position -= right * 0.1f * speed;
         dirty = true;
     }
     if (Window::keyPressed(Key::Space)) {
-        position.y -= 0.05f;
+        position.y -= 0.05f * speed;
         dirty = true;
     }
 }

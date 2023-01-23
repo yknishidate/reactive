@@ -15,8 +15,10 @@ public:
     glm::mat4 getInvView() const { return glm::inverse(getView()); }
     glm::mat4 getInvProj() const { return glm::inverse(getProj()); }
     void setPosition(float x, float y, float z) { position = {x, y, z}; }
+    void setSpeed(float s) { speed = s; }
 
 private:
+    float speed = 1.0f;
     glm::vec3 position = {0.0f, 0.0f, 5.0f};
     glm::vec3 front = {0.0f, 0.0f, -1.0f};
     float aspect = 1.0f;
