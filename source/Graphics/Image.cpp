@@ -302,4 +302,5 @@ unsigned char* Image::loadFile(const std::string& filepath) {
     }
     width = w;
     height = h;
+    return data;
 }

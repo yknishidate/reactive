@@ -84,14 +84,11 @@ void Loader::loadFromFile(const std::string& filepath, std::vector<Mesh>& meshes
 
     std::vector<Material> mats(materials.size());
     for (size_t i = 0; i < materials.size(); i++) {
-        mats[i].ambient = {materials[i].ambient[0], materials[i].ambient[1],
-                           materials[i].ambient[2]};
-        mats[i].diffuse = {materials[i].diffuse[0], materials[i].diffuse[1],
-                           materials[i].diffuse[2]};
-        mats[i].specular = {materials[i].specular[0], materials[i].specular[1],
-                            materials[i].specular[2]};
-        mats[i].emission = {materials[i].emission[0], materials[i].emission[1],
-                            materials[i].emission[2]};
+        auto& mat = materials[i];
+        mats[i].ambient = {mat.ambient[0], mat.ambient[1], mat.ambient[2]};
+        mats[i].diffuse = {mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]};
+        mats[i].specular = {mat.specular[0], mat.specular[1], mat.specular[2]};
+        mats[i].emission = {mat.emission[0], mat.emission[1], mat.emission[2]};
     }
 
     meshes.reserve(shapes.size());
@@ -118,48 +115,47 @@ void Loader::loadFromFile(const std::string& filepath,
                           dir.c_str())) {
         spdlog::error("Failed to load: {}", warn + err);
     }
+    spdlog::info("Shapes: {}", shapes.size());
+    spdlog::info("Materials: {}", materials.size());
 
     int texCount = 0;
     std::unordered_map<std::string, int> textureNames{};
 
     std::vector<Material> mats(materials.size());
     for (size_t i = 0; i < materials.size(); i++) {
-        mats[i].ambient = {materials[i].ambient[0], materials[i].ambient[1],
-                           materials[i].ambient[2]};
-        mats[i].diffuse = {materials[i].diffuse[0], materials[i].diffuse[1],
-                           materials[i].diffuse[2]};
-        mats[i].specular = {materials[i].specular[0], materials[i].specular[1],
-                            materials[i].specular[2]};
-        mats[i].emission = {materials[i].emission[0], materials[i].emission[1],
-                            materials[i].emission[2]};
+        auto& mat = materials[i];
+        mats[i].ambient = {mat.ambient[0], mat.ambient[1], mat.ambient[2]};
+        mats[i].diffuse = {mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]};
+        mats[i].specular = {mat.specular[0], mat.specular[1], mat.specular[2]};
+        mats[i].emission = {mat.emission[0], mat.emission[1], mat.emission[2]};
 
         // diffuse
-        if (!materials[i].diffuse_texname.empty()) {
-            if (textureNames.contains(materials[i].diffuse_texname)) {
-                mats[i].diffuseTexture = textureNames[materials[i].diffuse_texname];
+        if (!mat.diffuse_texname.empty()) {
+            if (textureNames.contains(mat.diffuse_texname)) {
+                mats[i].diffuseTexture = textureNames[mat.diffuse_texname];
             } else {
                 mats[i].diffuseTexture = texCount;
-                textureNames[materials[i].diffuse_texname] = texCount;
+                textureNames[mat.diffuse_texname] = texCount;
                 texCount++;
             }
         }
         // specular
-        if (!materials[i].specular_texname.empty()) {
-            if (textureNames.contains(materials[i].specular_texname)) {
-                mats[i].specularTexture = textureNames[materials[i].specular_texname];
+        if (!mat.specular_texname.empty()) {
+            if (textureNames.contains(mat.specular_texname)) {
+                mats[i].specularTexture = textureNames[mat.specular_texname];
             } else {
                 mats[i].specularTexture = texCount;
-                textureNames[materials[i].specular_texname] = texCount;
+                textureNames[mat.specular_texname] = texCount;
                 texCount++;
             }
         }
         // alpha
-        if (!materials[i].alpha_texname.empty()) {
-            if (textureNames.contains(materials[i].alpha_texname)) {
-                mats[i].alphaTexture = textureNames[materials[i].alpha_texname];
+        if (!mat.alpha_texname.empty()) {
+            if (textureNames.contains(mat.alpha_texname)) {
+                mats[i].alphaTexture = textureNames[mat.alpha_texname];
             } else {
                 mats[i].alphaTexture = texCount;
-                textureNames[materials[i].alpha_texname] = texCount;
+                textureNames[mat.alpha_texname] = texCount;
                 texCount++;
             }
         }
@@ -171,12 +167,12 @@ void Loader::loadFromFile(const std::string& filepath,
         std::string path = name;
         std::replace(path.begin(), path.end(), '\\', '/');
         path = dir + "/" + path;
-        spdlog::info("  texture {}: {}", index, path);
+        spdlog::info("  Texture {}: {}", index, path);
         textures[index] = Image{path};
     }
 
     for (const auto& shape : shapes) {
-        spdlog::info("  shape {}", shape.name);
+        spdlog::info("  Shape {}", shape.name);
 
         // remove object which has multiple materials
         std::set<int> indexSet;
