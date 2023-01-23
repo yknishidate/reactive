@@ -3,10 +3,10 @@
 
 Mesh::Mesh(const std::vector<Vertex>& vertices,
            const std::vector<uint32_t>& indices,
-           Material material) {
-    this->material = material;
+           int materialID) {
     this->vertices = vertices;
     this->indices = indices;
+    this->materialID = materialID;
     vertexBuffer = DeviceBuffer{BufferUsage::Vertex, vertices};
     indexBuffer = DeviceBuffer{BufferUsage::Index, indices};
     bottomAccel = BottomAccel{*this, vk::GeometryFlagBitsKHR::eNoDuplicateAnyHitInvocation};
@@ -28,8 +28,4 @@ vk::AccelerationStructureGeometryTrianglesDataKHR Mesh::getTriangles() const {
         .setMaxVertex(vertices.size())
         .setIndexType(vk::IndexType::eUint32)
         .setIndexData(indexBuffer.getAddress());
-}
-
-void Mesh::setMaterial(const Material& material) {
-    this->material = material;
 }

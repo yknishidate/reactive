@@ -16,14 +16,3 @@ vk::TransformMatrixKHR Transform::getVkMatrix() const {
 }
 
 Object::Object(const Mesh& mesh) : mesh{&mesh} {}
-
-Material Object::getMaterial() {
-    if (material) {
-        return material.value();
-    }
-    return mesh->getMaterial();
-}
-
-void Object::setMaterial(const Material& material) {
-    this->material = material;
-}

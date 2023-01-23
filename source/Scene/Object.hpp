@@ -29,9 +29,6 @@ public:
     explicit Object(const Mesh& mesh);
     virtual void update(float dt) {}
 
-    Material getMaterial();
-    void setMaterial(const Material& material);
-
     const Mesh& getMesh() const { return *mesh; }
 
     Transform transform{};
@@ -46,5 +43,4 @@ public:
 
 private:
     const Mesh* mesh;
-    std::optional<Material> material;
 };

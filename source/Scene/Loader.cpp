@@ -52,6 +52,7 @@ void loadShapes(const tinyobj::attrib_t& attrib,
                 const std::vector<tinyobj::shape_t>& shapes,
                 const std::vector<Material>& mats,
                 std::vector<Mesh>& meshes) {
+    meshes.reserve(shapes.size());
     for (const auto& shape : shapes) {
         assert(!shapes.empty());
         assert(!mats.empty());
@@ -66,22 +67,14 @@ void loadShapes(const tinyobj::attrib_t& attrib,
         std::vector<Vertex> vertices{};
         std::vector<uint32_t> indices{};
         loadShape(attrib, shape, vertices, indices);
-        int matIndex = shape.mesh.material_ids[0];
-
-        meshes.reserve(shapes.size());
-        if (matIndex >= 0) {
-            meshes.emplace_back(vertices, indices, mats[matIndex]);
-        } else {
-            meshes.emplace_back(vertices, indices);
-        }
+        meshes.emplace_back(vertices, indices, shape.mesh.material_ids[0]);
     }
 }
 
-void loadTextures(std::string directory,
+void loadTextures(const std::string& directory,
                   int texCount,
                   const std::unordered_map<std::string, int>& textureNames,
                   std::vector<Image>& textures) {
-    // textures = std::vector<Image>(texCount);
     textures.resize(texCount);
     for (auto& [name, index] : textureNames) {
         std::string path = name;
@@ -115,7 +108,9 @@ void Loader::loadFromFile(const std::string& filepath,
 }
 
 // Load as multiple mesh
-void Loader::loadFromFile(const std::string& filepath, std::vector<Mesh>& meshes) {
+void Loader::loadFromFile(const std::string& filepath,
+                          std::vector<Mesh>& outMeshes,
+                          std::vector<Material>& outMaterials) {
     spdlog::info("Load file: {}", filepath);
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
@@ -128,16 +123,16 @@ void Loader::loadFromFile(const std::string& filepath, std::vector<Mesh>& meshes
         throw std::runtime_error(warn + err);
     }
 
-    std::vector<Material> mats(materials.size());
+    outMaterials.resize(materials.size());
     for (size_t i = 0; i < materials.size(); i++) {
         auto& mat = materials[i];
-        mats[i].ambient = {mat.ambient[0], mat.ambient[1], mat.ambient[2]};
-        mats[i].diffuse = {mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]};
-        mats[i].specular = {mat.specular[0], mat.specular[1], mat.specular[2]};
-        mats[i].emission = {mat.emission[0], mat.emission[1], mat.emission[2]};
+        outMaterials[i].ambient = {mat.ambient[0], mat.ambient[1], mat.ambient[2]};
+        outMaterials[i].diffuse = {mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]};
+        outMaterials[i].specular = {mat.specular[0], mat.specular[1], mat.specular[2]};
+        outMaterials[i].emission = {mat.emission[0], mat.emission[1], mat.emission[2]};
     }
 
-    loadShapes(attrib, shapes, mats, meshes);
+    loadShapes(attrib, shapes, outMaterials, outMeshes);
 }
 
 // with texture

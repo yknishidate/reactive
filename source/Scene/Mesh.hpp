@@ -49,9 +49,7 @@ struct Material {
 
 class Mesh {
 public:
-    Mesh(const std::vector<Vertex>& vertices,
-         const std::vector<uint32_t>& indices,
-         Material material = {});
+    Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, int materialID);
     Mesh(const std::string& filepath);
 
     const BottomAccel& getAccel() const { return bottomAccel; }
@@ -72,14 +70,11 @@ public:
         commandBuffer.drawIndexed(static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
     }
 
-    Material getMaterial() const { return material; }
-    void setMaterial(const Material& material);
-
 private:
     DeviceBuffer vertexBuffer;
     DeviceBuffer indexBuffer;
     BottomAccel bottomAccel;
-    Material material{};
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
+    int materialID = -1;
 };
