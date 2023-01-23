@@ -24,8 +24,8 @@ void LoadShape(const tinyobj::attrib_t& attrib,
             attrib.vertices[3 * index.vertex_index + 2],
         };
 
-        if (attrib.normals.size() < 1) {
-            throw std::runtime_error("This shape dosen't have normals.");
+        if (attrib.normals.empty()) {
+            throw std::runtime_error("This shape doesn't have normals.");
         }
         vertex.normal = {
             attrib.normals[3 * index.normal_index + 0],
@@ -33,13 +33,15 @@ void LoadShape(const tinyobj::attrib_t& attrib,
             attrib.normals[3 * index.normal_index + 2],
         };
 
-        if (attrib.texcoords.size() < 1) {
-            throw std::runtime_error("This shape dosen't have texcoords.");
+        if (attrib.texcoords.empty()) {
+            throw std::runtime_error("This shape doesn't have texcoords.");
         }
-        vertex.texCoord = {
-            attrib.texcoords[2 * index.texcoord_index + 0],
-            1.0f - attrib.texcoords[2 * index.texcoord_index + 1],
-        };
+        if (index.texcoord_index != -1) {  // this mesh doesn't have texcoords
+            vertex.texCoord = {
+                attrib.texcoords[2 * index.texcoord_index + 0],
+                1.0f - attrib.texcoords[2 * index.texcoord_index + 1],
+            };
+        }
 
         vertices.push_back(vertex);
         indices.push_back(indices.size());

@@ -46,6 +46,7 @@ WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding) {
 
 void DescriptorSet::allocate() {
     std::vector<vk::DescriptorSetLayoutBinding> bindings;
+    bindings.reserve(bindingMap.size());
     for (auto& [name, binding] : bindingMap) {
         bindings.push_back(binding);
     }
@@ -62,6 +63,7 @@ void DescriptorSet::allocate() {
 
 void DescriptorSet::update() {
     std::vector<vk::WriteDescriptorSet> _writes;
+    _writes.reserve(writes.size());
     for (auto& write : writes) {
         _writes.push_back(write.get());
     }
