@@ -18,7 +18,7 @@ void Camera::processInput() {
         rotation *= glm::rotate(glm::radians(pitch), glm::vec3{1, 0, 0});
         front = {rotation * glm::vec4{0, 0, -1, 1}};
 
-        moved = true;
+        dirty = true;
     }
 
     glm::vec3 forward = glm::normalize(front);
@@ -26,23 +26,23 @@ void Camera::processInput() {
 
     if (Window::keyPressed(Key::W)) {
         position += forward * 0.15f * speed;
-        moved = true;
+        dirty = true;
     }
     if (Window::keyPressed(Key::S)) {
         position -= forward * 0.15f * speed;
-        moved = true;
+        dirty = true;
     }
     if (Window::keyPressed(Key::D)) {
         position += right * 0.1f * speed;
-        moved = true;
+        dirty = true;
     }
     if (Window::keyPressed(Key::A)) {
         position -= right * 0.1f * speed;
-        moved = true;
+        dirty = true;
     }
     if (Window::keyPressed(Key::Space)) {
         position.y -= 0.05f * speed;
-        moved = true;
+        dirty = true;
     }
 }
 
@@ -55,8 +55,8 @@ glm::mat4 Camera::getProj() const {
 }
 
 bool Camera::checkDirtyAndClean() {
-    if (moved) {
-        moved = false;
+    if (dirty) {
+        dirty = false;
         return true;
     }
     return false;
