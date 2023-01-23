@@ -70,6 +70,8 @@ public:
         commandBuffer.drawIndexed(static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
     }
 
+    int getMaterialID() const { return materialID; }
+
 private:
     DeviceBuffer vertexBuffer;
     DeviceBuffer indexBuffer;
