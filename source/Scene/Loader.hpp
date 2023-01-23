@@ -13,6 +13,7 @@ void loadFromFile(const std::string& filepath,
                   std::vector<Material>& outMaterials);
 
 void loadFromFile(const std::string& filepath,
-                  std::vector<Mesh>& meshes,
-                  std::vector<Image>& textures);
+                  std::vector<Mesh>& outMeshes,
+                  std::vector<Material>& outMaterials,
+                  std::vector<Image>& outTextures);
 }  // namespace Loader

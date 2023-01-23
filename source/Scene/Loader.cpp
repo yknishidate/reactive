@@ -138,6 +138,7 @@ void Loader::loadFromFile(const std::string& filepath,
 // with texture
 void Loader::loadFromFile(const std::string& filepath,
                           std::vector<Mesh>& meshes,
+                          std::vector<Material>& outMaterials,
                           std::vector<Image>& textures) {
     spdlog::info("Load file: {}", filepath);
     tinyobj::attrib_t attrib;
@@ -156,20 +157,20 @@ void Loader::loadFromFile(const std::string& filepath,
     int texCount = 0;
     std::unordered_map<std::string, int> textureNames{};
 
-    std::vector<Material> mats(materials.size());
+    outMaterials.resize(materials.size());
     for (size_t i = 0; i < materials.size(); i++) {
         auto& mat = materials[i];
-        mats[i].ambient = {mat.ambient[0], mat.ambient[1], mat.ambient[2]};
-        mats[i].diffuse = {mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]};
-        mats[i].specular = {mat.specular[0], mat.specular[1], mat.specular[2]};
-        mats[i].emission = {mat.emission[0], mat.emission[1], mat.emission[2]};
+        outMaterials[i].ambient = {mat.ambient[0], mat.ambient[1], mat.ambient[2]};
+        outMaterials[i].diffuse = {mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]};
+        outMaterials[i].specular = {mat.specular[0], mat.specular[1], mat.specular[2]};
+        outMaterials[i].emission = {mat.emission[0], mat.emission[1], mat.emission[2]};
 
         // diffuse
         if (!mat.diffuse_texname.empty()) {
             if (textureNames.contains(mat.diffuse_texname)) {
-                mats[i].diffuseTexture = textureNames[mat.diffuse_texname];
+                outMaterials[i].diffuseTexture = textureNames[mat.diffuse_texname];
             } else {
-                mats[i].diffuseTexture = texCount;
+                outMaterials[i].diffuseTexture = texCount;
                 textureNames[mat.diffuse_texname] = texCount;
                 texCount++;
             }
@@ -177,9 +178,9 @@ void Loader::loadFromFile(const std::string& filepath,
         // specular
         if (!mat.specular_texname.empty()) {
             if (textureNames.contains(mat.specular_texname)) {
-                mats[i].specularTexture = textureNames[mat.specular_texname];
+                outMaterials[i].specularTexture = textureNames[mat.specular_texname];
             } else {
-                mats[i].specularTexture = texCount;
+                outMaterials[i].specularTexture = texCount;
                 textureNames[mat.specular_texname] = texCount;
                 texCount++;
             }
@@ -187,9 +188,9 @@ void Loader::loadFromFile(const std::string& filepath,
         // alpha
         if (!mat.alpha_texname.empty()) {
             if (textureNames.contains(mat.alpha_texname)) {
-                mats[i].alphaTexture = textureNames[mat.alpha_texname];
+                outMaterials[i].alphaTexture = textureNames[mat.alpha_texname];
             } else {
-                mats[i].alphaTexture = texCount;
+                outMaterials[i].alphaTexture = texCount;
                 textureNames[mat.alpha_texname] = texCount;
                 texCount++;
             }
@@ -197,5 +198,5 @@ void Loader::loadFromFile(const std::string& filepath,
     }
 
     loadTextures(dir, texCount, textureNames, textures);
-    loadShapes(attrib, shapes, mats, meshes);
+    loadShapes(attrib, shapes, outMaterials, meshes);
 }
