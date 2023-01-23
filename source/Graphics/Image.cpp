@@ -8,7 +8,7 @@
 #include <stb_image_write.h>
 
 Image::Image(uint32_t width, uint32_t height, vk::Format format, ImageUsage _usage)
-    : width{width}, height{height}, format{format}, type{vk::ImageType::e2D} {
+    : format{format}, type{vk::ImageType::e2D}, width{width}, height{height} {
     vk::ImageLayout newLayout;
     switch (_usage) {
         case ImageUsage::GeneralStorage:
@@ -24,8 +24,7 @@ Image::Image(uint32_t width, uint32_t height, vk::Format format, ImageUsage _usa
             aspect = vk::ImageAspectFlagBits::eColor;
             break;
         case ImageUsage::DepthStencilAttachment:
-            usage = vk::ImageUsageFlagBits::eDepthStencilAttachment |
-                    vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst;
+            usage = vk::ImageUsageFlagBits::eDepthStencilAttachment;
             newLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
             aspect = vk::ImageAspectFlagBits::eDepth;
             break;
