@@ -12,14 +12,6 @@ Mesh::Mesh(const std::vector<Vertex>& vertices,
     bottomAccel = BottomAccel{*this, vk::GeometryFlagBitsKHR::eNoDuplicateAnyHitInvocation};
 }
 
-Mesh::Mesh(const std::string& filepath) {
-    Loader::loadFromFile(ASSET_DIR + filepath, vertices, indices);
-
-    vertexBuffer = DeviceBuffer{BufferUsage::Vertex, vertices};
-    indexBuffer = DeviceBuffer{BufferUsage::Index, indices};
-    bottomAccel = BottomAccel{*this, vk::GeometryFlagBitsKHR::eNoDuplicateAnyHitInvocation};
-}
-
 vk::AccelerationStructureGeometryTrianglesDataKHR Mesh::getTriangles() const {
     return vk::AccelerationStructureGeometryTrianglesDataKHR()
         .setVertexFormat(vk::Format::eR32G32B32Sfloat)
