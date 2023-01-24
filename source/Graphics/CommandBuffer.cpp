@@ -4,6 +4,7 @@
 #include "Context.hpp"
 #include "GUI/GUI.hpp"
 #include "GUI/imgui_impl_vulkan_hpp.h"
+#include "Graphics/Buffer.hpp"
 #include "Graphics/Image.hpp"
 #include "Graphics/Pipeline.hpp"
 #include "Graphics/RenderPass.hpp"
@@ -57,6 +58,15 @@ void CommandBuffer::submit() {
 
 void CommandBuffer::drawIndexed(const Mesh& mesh) {
     mesh.drawIndexed(commandBuffer);
+}
+
+void CommandBuffer::drawIndexed(const DeviceBuffer& vertexBuffer,
+                                const DeviceBuffer& indexBuffer,
+                                uint32_t indexCount) const {
+    vk::DeviceSize offsets{0};
+    commandBuffer.bindVertexBuffers(0, vertexBuffer.getBuffer(), offsets);
+    commandBuffer.bindIndexBuffer(indexBuffer.getBuffer(), 0, vk::IndexType::eUint32);
+    commandBuffer.drawIndexed(indexCount, 1, 0, 0, 0);
 }
 
 void CommandBuffer::drawGUI(GUI& gui) {

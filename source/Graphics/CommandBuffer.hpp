@@ -10,6 +10,7 @@ class Swapchain;
 class Mesh;
 class GUI;
 class RenderPass;
+class DeviceBuffer;
 
 class CommandBuffer {
 public:
@@ -30,6 +31,9 @@ public:
     void endRenderPass(RenderPass& renderPass);
     void submit();
     void drawIndexed(const Mesh& mesh);
+    void drawIndexed(const DeviceBuffer& vertexBuffer,
+                     const DeviceBuffer& indexBuffer,
+                     uint32_t indexCount) const;
     void drawGUI(GUI& gui);
     void drawMeshTasks(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
     void copyToBackImage(Image& image);
