@@ -21,5 +21,6 @@ void loadFromFile(const std::string& filepath,
                   std::vector<Vertex>& outVertices,
                   std::vector<std::vector<uint32_t>>& outIndices,
                   std::vector<Material>& outMaterials,
-                  std::vector<Image>& outTextures);
+                  std::vector<Image>& outTextures,
+                  std::vector<int>& outMatIndices);
 }  // namespace Loader

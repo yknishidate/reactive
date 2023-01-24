@@ -205,7 +205,8 @@ void Loader::loadFromFile(const std::string& filepath,
                           std::vector<Vertex>& outVertices,
                           std::vector<std::vector<uint32_t>>& outIndices,
                           std::vector<Material>& outMaterials,
-                          std::vector<Image>& outTextures) {
+                          std::vector<Image>& outTextures,
+                          std::vector<int>& outMatIndices) {
     spdlog::info("Load file: {}", filepath);
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
@@ -225,11 +226,16 @@ void Loader::loadFromFile(const std::string& filepath,
 
     outMaterials.resize(materials.size());
     for (size_t i = 0; i < materials.size(); i++) {
+        spdlog::info("material: {}", materials[i].name);
         auto& mat = materials[i];
         outMaterials[i].ambient = {mat.ambient[0], mat.ambient[1], mat.ambient[2]};
         outMaterials[i].diffuse = {mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]};
         outMaterials[i].specular = {mat.specular[0], mat.specular[1], mat.specular[2]};
         outMaterials[i].emission = {mat.emission[0], mat.emission[1], mat.emission[2]};
+        // spdlog::info("  ambient: {}", glm::to_string(outMaterials[i].ambient));
+        spdlog::info("  diffuse: {}", glm::to_string(outMaterials[i].diffuse));
+        // spdlog::info("  specular: {}", glm::to_string(outMaterials[i].specular));
+        spdlog::info("  emission: {}", glm::to_string(outMaterials[i].emission));
 
         // diffuse
         if (!mat.diffuse_texname.empty()) {
@@ -261,15 +267,32 @@ void Loader::loadFromFile(const std::string& filepath,
                 texCount++;
             }
         }
+        // emission
+        if (!mat.emissive_texname.empty()) {
+            if (textureNames.contains(mat.emissive_texname)) {
+                outMaterials[i].emissionTexture = textureNames[mat.emissive_texname];
+            } else {
+                outMaterials[i].emissionTexture = texCount;
+                textureNames[mat.emissive_texname] = texCount;
+                texCount++;
+            }
+        }
     }
 
-    // loadTextures(dir, texCount, textureNames, outTextures);
+    loadTextures(dir, texCount, textureNames, outTextures);
 
     std::unordered_map<Vertex, uint32_t> uniqueVertices;
     outIndices.resize(shapes.size());
+    outMatIndices.resize(shapes.size());
     for (int shapeID = 0; shapeID < shapes.size(); shapeID++) {
         auto& shape = shapes[shapeID];
         spdlog::info("  Shape {}", shape.name);
+        outMatIndices[shapeID] = shape.mesh.material_ids[0];
+        // std::set<int> uniqueMaterialIDs;
+        // for (auto id : shape.mesh.material_ids) {
+        //     uniqueMaterialIDs.insert(id);
+        // }
+        // outMatIndices[shapeID] = *uniqueMaterialIDs.begin();
 
         for (const auto& index : shape.mesh.indices) {
             Vertex vertex;
@@ -283,7 +306,7 @@ void Loader::loadFromFile(const std::string& filepath,
             }
             if (index.texcoord_index != -1) {
                 vertex.texCoord = {attrib.texcoords[2 * index.texcoord_index + 0],
-                                   1.0f - attrib.texcoords[2 * index.texcoord_index + 1]};
+                                   attrib.texcoords[2 * index.texcoord_index + 1]};
             }
             if (!uniqueVertices.contains(vertex)) {
                 outVertices.push_back(vertex);

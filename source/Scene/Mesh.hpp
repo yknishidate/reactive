@@ -60,6 +60,7 @@ struct Material {
     int diffuseTexture = -1;
     int specularTexture = -1;
     int alphaTexture = -1;
+    int emissionTexture = -1;
 };
 
 class Mesh {
