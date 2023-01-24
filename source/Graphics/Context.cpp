@@ -93,6 +93,7 @@ void Context::init(bool enableValidation) {
     deviceFeatures.setShaderInt64(true);
     deviceFeatures.setFragmentStoresAndAtomics(true);
     deviceFeatures.setVertexPipelineStoresAndAtomics(true);
+    deviceFeatures.setGeometryShader(true);
 
     vk::PhysicalDeviceDescriptorIndexingFeatures descFeatures;
     descFeatures.setRuntimeDescriptorArray(true);
