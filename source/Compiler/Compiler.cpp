@@ -202,13 +202,13 @@ std::vector<uint32_t> compileToSPV(const std::string& glslCode, EShLanguage stag
 
     auto messages = static_cast<EShMessages>(EShMsgSpvRules | EShMsgVulkanRules);
     if (!shader.parse(&DefaultTBuiltInResource, 100, false, messages)) {
-        spdlog::error("Failed to parse:\n" + glslCode + "\n" + shader.getInfoLog());
+        throw std::runtime_error("Failed to parse:\n" + glslCode + "\n" + shader.getInfoLog());
     }
 
     glslang::TProgram program;
     program.addShader(&shader);
     if (!program.link(messages)) {
-        spdlog::error("Failed to link:\n" + glslCode + "\n" + shader.getInfoLog());
+        throw std::runtime_error("Failed to link:\n" + glslCode + "\n" + shader.getInfoLog());
     }
 
     std::vector<uint32_t> spvShader;
