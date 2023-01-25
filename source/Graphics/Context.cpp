@@ -135,6 +135,13 @@ void Context::init(bool enableValidation) {
     descriptorPool = device->createDescriptorPoolUnique(
         vk::DescriptorPoolCreateInfo().setPoolSizes(poolSizes).setMaxSets(100).setFlags(
             vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet));
+
+    // Create query pool
+    vk::QueryPoolCreateInfo queryPoolInfo;
+    queryPoolInfo.setQueryType(vk::QueryType::eTimestamp);
+    queryPoolInfo.setQueryCount(6);  // 3 framebuffers * 2(start/end)
+    queryPool = device->createQueryPoolUnique(queryPoolInfo);
+    timestampPeriod = physicalDevice.getProperties().limits.timestampPeriod;
 }
 
 std::vector<vk::UniqueCommandBuffer> Context::allocateCommandBuffers(uint32_t count) {
@@ -168,4 +175,26 @@ uint32_t Context::findMemoryTypeIndex(vk::MemoryRequirements requirements,
         }
     }
     throw std::runtime_error("Failed to find memory type index.");
+}
+
+void Context::beginTimestamp(vk::CommandBuffer commandBuffer, uint32_t queryIndex) {
+    commandBuffer.resetQueryPool(*queryPool, queryIndex, 1);
+    commandBuffer.writeTimestamp(vk::PipelineStageFlagBits::eBottomOfPipe, *queryPool, queryIndex);
+}
+
+void Context::endTimestamp(vk::CommandBuffer commandBuffer, uint32_t queryIndex) {
+    commandBuffer.resetQueryPool(*queryPool, queryIndex, 1);
+    commandBuffer.writeTimestamp(vk::PipelineStageFlagBits::eBottomOfPipe, *queryPool, queryIndex);
+}
+
+float Context::getElapsedTimeNS(uint32_t queryIndex) {
+    std::array<uint64_t, 2> timestamps{};
+    vk::resultCheck(
+        device->getQueryPoolResults(*queryPool, queryIndex, 2,
+                                    timestamps.size() * sizeof(uint64_t),  // dataSize
+                                    timestamps.data(),                     // pData
+                                    sizeof(uint64_t),                      // stride
+                                    vk::QueryResultFlagBits::e64 | vk::QueryResultFlagBits::eWait),
+        "Failed to get query pool results.");
+    return timestampPeriod * static_cast<float>(timestamps[1] - timestamps[0]);
 }

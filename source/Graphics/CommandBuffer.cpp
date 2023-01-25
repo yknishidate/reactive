@@ -86,3 +86,11 @@ void CommandBuffer::copyToBackImage(Image& source) {
 void CommandBuffer::setBackImageLayout(vk::ImageLayout layout) {
     swapchain->setBackImageLayout(commandBuffer, layout);
 }
+
+void CommandBuffer::beginTimestamp(uint32_t queryIndex) const {
+    Context::beginTimestamp(commandBuffer, queryIndex);
+}
+
+void CommandBuffer::endTimestamp(uint32_t queryIndex) const {
+    Context::endTimestamp(commandBuffer, queryIndex);
+}

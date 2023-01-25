@@ -39,6 +39,10 @@ public:
     void copyToBackImage(Image& image);
     void setBackImageLayout(vk::ImageLayout layout);
 
+    // timestamp
+    void beginTimestamp(uint32_t queryIndex) const;
+    void endTimestamp(uint32_t queryIndex) const;
+
     vk::CommandBuffer commandBuffer;
     Swapchain* swapchain = nullptr;
 };

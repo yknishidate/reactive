@@ -26,10 +26,12 @@ public:
     static auto getDescriptorPool() { return *descriptorPool; }
     static auto getSurface() { return *surface; }
 
+    // timestamp
+    static void beginTimestamp(vk::CommandBuffer commandBuffer, uint32_t queryIndex);
+    static void endTimestamp(vk::CommandBuffer commandBuffer, uint32_t queryIndex);
+    static float getElapsedTimeNS(uint32_t queryIndex);
+
     static void waitIdle() { device->waitIdle(); }
-    static void beginRenderPass();
-    static void endRenderPass();
-    static void copyToBackImage(vk::CommandBuffer commandBuffer, const Image& source);
 
 private:
     static VKAPI_ATTR VkBool32 VKAPI_CALL
@@ -57,4 +59,6 @@ private:
     static inline vk::Queue queue;
     static inline vk::UniqueCommandPool commandPool;
     static inline vk::UniqueDescriptorPool descriptorPool;
+    static inline vk::UniqueQueryPool queryPool;
+    static inline float timestampPeriod;
 };
