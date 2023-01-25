@@ -62,11 +62,12 @@ void CommandBuffer::drawIndexed(const Mesh& mesh) {
 
 void CommandBuffer::drawIndexed(const DeviceBuffer& vertexBuffer,
                                 const DeviceBuffer& indexBuffer,
-                                uint32_t indexCount) const {
+                                uint32_t indexCount,
+                                uint32_t firstIndex) const {
     vk::DeviceSize offsets{0};
     commandBuffer.bindVertexBuffers(0, vertexBuffer.getBuffer(), offsets);
     commandBuffer.bindIndexBuffer(indexBuffer.getBuffer(), 0, vk::IndexType::eUint32);
-    commandBuffer.drawIndexed(indexCount, 1, 0, 0, 0);
+    commandBuffer.drawIndexed(indexCount, 1, firstIndex, 0, 0);
 }
 
 void CommandBuffer::drawGUI(GUI& gui) {
