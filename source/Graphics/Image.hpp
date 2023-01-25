@@ -2,6 +2,7 @@
 #include "Context.hpp"
 
 class Buffer;
+class HostBuffer;
 
 enum class ImageUsage {
     GeneralStorage,
@@ -14,6 +15,7 @@ public:
     Image() = default;
     Image(uint32_t width, uint32_t height, vk::Format format, ImageUsage usage);
     Image(const std::string& filepath);
+    Image(uint32_t width, uint32_t height, HostBuffer& buffer, size_t offset);
     Image(const std::vector<std::string>& filepaths);
 
     vk::Image getImage() const { return *image; }

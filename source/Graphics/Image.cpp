@@ -72,6 +72,31 @@ Image::Image(const std::string& filepath) {
     stbi_image_free(data);
 }
 
+Image::Image(uint32_t width, uint32_t height, HostBuffer& buffer, size_t offset)
+    : width{width}, height{height} {
+    format = vk::Format::eR8G8B8A8Unorm;
+    usage = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled |
+            vk::ImageUsageFlagBits::eTransferDst;
+    aspect = vk::ImageAspectFlagBits::eColor;
+    createImage();
+    allocateMemory();
+    bindImageMemory();
+    createImageView();
+    createSampler();
+
+    Context::oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
+        vk::BufferImageCopy region;
+        region.setBufferOffset(offset);
+        region.setImageExtent({width, height, 1});
+        region.setImageSubresource({aspect, 0, 0, 1});
+
+        setImageLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);
+        commandBuffer.copyBufferToImage(buffer.getBuffer(), *image,
+                                        vk::ImageLayout::eTransferDstOptimal, region);
+        setImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
+    });
+}
+
 Image::Image(const std::vector<std::string>& filepaths) {
     unsigned char* data = loadFile(filepaths[0]);
     stbi_image_free(data);
