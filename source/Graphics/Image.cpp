@@ -201,7 +201,7 @@ void Image::save(const std::string& filepath) {
     stbi_write_png(filepath.c_str(), width, height, 3, output.data(), width * 3);
 }
 
-vk::AttachmentDescription Image::createAttachmentDesc(vk::ImageLayout finalLayout) const {
+vk::AttachmentDescription Image::createAttachmentDesc() const {
     vk::AttachmentDescription attachDesc;
     attachDesc.setFormat(format);
     attachDesc.setSamples(vk::SampleCountFlagBits::e1);
@@ -211,16 +211,16 @@ vk::AttachmentDescription Image::createAttachmentDesc(vk::ImageLayout finalLayou
         // so, explicit clear command is required. (off course you can use any clear color)
         attachDesc.setLoadOp(vk::AttachmentLoadOp::eDontCare);
         attachDesc.setStoreOp(vk::AttachmentStoreOp::eStore);
+        attachDesc.setFinalLayout(vk::ImageLayout::eColorAttachmentOptimal);
     } else if (usage & vk::ImageUsageFlagBits::eDepthStencilAttachment) {
         // Clear on begin (depth image)
         // so, there is no need to clear explicitly.
         attachDesc.setLoadOp(vk::AttachmentLoadOp::eClear);
         attachDesc.setStoreOp(vk::AttachmentStoreOp::eDontCare);
+        attachDesc.setFinalLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
     }
     attachDesc.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
     attachDesc.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
-
-    attachDesc.setFinalLayout(finalLayout);
     return attachDesc;
 }
 

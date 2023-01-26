@@ -35,7 +35,7 @@ public:
     void copyToBuffer(vk::CommandBuffer commandBuffer, Buffer& dst);
     void save(const std::string& filepath);
 
-    vk::AttachmentDescription createAttachmentDesc(vk::ImageLayout finalLayout) const;
+    vk::AttachmentDescription createAttachmentDesc() const;
 
     vk::AttachmentReference createAttachmentRef(uint32_t attachment) const;
 
@@ -43,6 +43,17 @@ public:
                                vk::Image image,
                                vk::ImageLayout newLayout,
                                vk::ImageAspectFlags aspect = vk::ImageAspectFlagBits::eColor);
+
+    vk::ClearValue getDefaultClearValue() const {
+        if (usage & vk::ImageUsageFlagBits::eColorAttachment) {
+            return vk::ClearValue().setColor(std::array{0.0f, 0.0f, 0.0f, 1.0f});
+        }
+        if (usage & vk::ImageUsageFlagBits::eDepthStencilAttachment) {
+            return vk::ClearValue().setDepthStencil({1.0f, 0});
+        }
+        assert(false);
+        return {};
+    }
 
 private:
     void createImage();
