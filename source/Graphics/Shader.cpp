@@ -28,9 +28,15 @@ Shader::Shader(const std::string& filepath) {
         assert(false && "Unknown shader stage");
 }
 
-Shader::Shader(const std::string& glslCode, vk::ShaderStageFlagBits shaderStage) {
-    this->shaderStage = shaderStage;
+Shader::Shader(const std::string& glslCode, vk::ShaderStageFlagBits shaderStage)
+    : shaderStage{shaderStage} {
     spvCode = Compiler::compileToSPV(glslCode, shaderStage);
+    shaderModule = Context::getDevice().createShaderModuleUnique(
+        vk::ShaderModuleCreateInfo().setCode(spvCode));
+}
+
+Shader::Shader(const std::vector<uint32_t>& spvCode, vk::ShaderStageFlagBits shaderStage)
+    : spvCode{spvCode}, shaderStage{shaderStage} {
     shaderModule = Context::getDevice().createShaderModuleUnique(
         vk::ShaderModuleCreateInfo().setCode(spvCode));
 }

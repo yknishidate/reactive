@@ -14,6 +14,7 @@ public:
     Shader() = default;
     Shader(const std::string& filepath);
     Shader(const std::string& glslCode, vk::ShaderStageFlagBits shaderStage);
+    Shader(const std::vector<uint32_t>& spvCode, vk::ShaderStageFlagBits shaderStage);
 
     auto getSpvCode() const { return spvCode; }
     auto getModule() const { return *shaderModule; }
