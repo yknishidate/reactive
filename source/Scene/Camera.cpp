@@ -21,9 +21,8 @@ void Camera::processInput() {
         dirty = true;
     }
 
-    glm::vec3 forward = glm::normalize(front);
-    glm::vec3 right = glm::normalize(glm::cross(-glm::vec3{0, 1, 0}, forward));
-
+    glm::vec3 forward = getFront();
+    glm::vec3 right = getRight();
     if (Window::keyPressed(Key::W)) {
         position += forward * 0.15f * speed;
         dirty = true;
@@ -47,11 +46,11 @@ void Camera::processInput() {
 }
 
 glm::mat4 Camera::getView() const {
-    return glm::lookAt(position, position + front, {0.0f, 1.0f, 0.0f});
+    return glm::lookAt(position, position + front, getUp());
 }
 
 glm::mat4 Camera::getProj() const {
-    return glm::perspective(glm::radians(45.0f), aspect, 0.01f, 10000.0f);
+    return glm::perspective(glm::radians(45.0f), aspect, zNear, zFar);
 }
 
 bool Camera::checkDirtyAndClean() {
