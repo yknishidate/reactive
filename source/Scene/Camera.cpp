@@ -50,7 +50,7 @@ glm::mat4 Camera::getView() const {
 }
 
 glm::mat4 Camera::getProj() const {
-    return glm::perspective(glm::radians(45.0f), aspect, zNear, zFar);
+    return glm::perspective(getFovY(), aspect, zNear, zFar);
 }
 
 bool Camera::checkDirtyAndClean() {

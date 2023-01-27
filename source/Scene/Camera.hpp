@@ -18,6 +18,7 @@ public:
     glm::mat4 getProj() const;
     glm::mat4 getInvView() const { return glm::inverse(getView()); }
     glm::mat4 getInvProj() const { return glm::inverse(getProj()); }
+    float getFovY() const { return glm::radians(45.0f); }
 
     float getAspect() const { return aspect; }
     float getNear() const { return zNear; }
