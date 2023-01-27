@@ -11,8 +11,8 @@ public:
     void processInput();
     bool checkDirtyAndClean();
     glm::vec3 getFront() const { return glm::normalize(front); }
-    glm::vec3 getUp() const { return -glm::vec3{0, 1, 0}; }
-    glm::vec3 getRight() const { return glm::normalize(glm::cross(getUp(), getFront())); }
+    glm::vec3 getUp() const { return glm::vec3{0, 1, 0}; }
+    glm::vec3 getRight() const { return glm::normalize(glm::cross(-getUp(), getFront())); }
     glm::vec3 getPosition() const { return position; }
     glm::mat4 getView() const;
     glm::mat4 getProj() const;
