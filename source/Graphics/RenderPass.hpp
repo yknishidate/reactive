@@ -18,13 +18,13 @@ public:
         for (auto& image : colorImages) {
             attachmentDescs.push_back(image.createAttachmentDesc());
             attachments.push_back(image.getView());
-            clearValues.push_back(image.getDefaultClearValue());
+            clearValues.push_back({std::array{0.0f, 0.0f, 0.0f, 1.0f}});
             colorAttachmentRefs.push_back(image.createAttachmentRef(index));
             index++;
         }
         attachmentDescs.push_back(depthImage.createAttachmentDesc());
         attachments.push_back(depthImage.getView());
-        clearValues.push_back(depthImage.getDefaultClearValue());
+        clearValues.push_back({{1.0f, 0}});
 
         vk::AttachmentReference depthAttachmentRef = depthImage.createAttachmentRef(index);
 

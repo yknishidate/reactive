@@ -44,17 +44,6 @@ public:
                                vk::ImageLayout newLayout,
                                vk::ImageAspectFlags aspect = vk::ImageAspectFlagBits::eColor);
 
-    vk::ClearValue getDefaultClearValue() const {
-        if (usage & vk::ImageUsageFlagBits::eColorAttachment) {
-            return vk::ClearValue().setColor(std::array{0.0f, 0.0f, 0.0f, 1.0f});
-        }
-        if (usage & vk::ImageUsageFlagBits::eDepthStencilAttachment) {
-            return vk::ClearValue().setDepthStencil({1.0f, 0});
-        }
-        assert(false);
-        return {};
-    }
-
 private:
     void createImage();
     void allocateMemory();
