@@ -10,6 +10,7 @@
 #include "Graphics/Pipeline.hpp"
 #include "Graphics/RenderPass.hpp"
 #include "Graphics/Shader.hpp"
+#include "Scene/AABB.hpp"
 #include "Scene/Camera.hpp"
 #include "Scene/Loader.hpp"
 #include "Scene/Mesh.hpp"
