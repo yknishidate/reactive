@@ -7,18 +7,26 @@ class RenderPass {
 public:
     RenderPass(uint32_t width,
                uint32_t height,
-               ArrayProxy<Image> images,
-               ArrayProxy<vk::AttachmentReference> colorAttachmentRefs,
-               vk::AttachmentReference depthAttachmentRef) {
+               ArrayProxy<Image> colorImages,
+               const Image& depthImage) {
         renderArea.setExtent({width, height});
 
         std::vector<vk::AttachmentDescription> attachmentDescs{};
         std::vector<vk::ImageView> attachments;
-        for (auto& image : images) {
+        std::vector<vk::AttachmentReference> colorAttachmentRefs;
+        int index = 0;
+        for (auto& image : colorImages) {
             attachmentDescs.push_back(image.createAttachmentDesc());
             attachments.push_back(image.getView());
             clearValues.push_back(image.getDefaultClearValue());
+            colorAttachmentRefs.push_back(image.createAttachmentRef(index));
+            index++;
         }
+        attachmentDescs.push_back(depthImage.createAttachmentDesc());
+        attachments.push_back(depthImage.getView());
+        clearValues.push_back(depthImage.getDefaultClearValue());
+
+        vk::AttachmentReference depthAttachmentRef = depthImage.createAttachmentRef(index);
 
         vk::SubpassDescription subpass;
         subpass.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics);
