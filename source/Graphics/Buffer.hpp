@@ -10,6 +10,7 @@ enum class BufferUsage {
     ShaderBindingTable,
     Staging,
     Storage,
+    Uniform,
 };
 
 class Buffer {

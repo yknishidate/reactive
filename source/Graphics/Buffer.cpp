@@ -45,6 +45,11 @@ Buffer::Buffer(BufferUsage usage, vk::MemoryPropertyFlags memoryProp, size_t siz
                         vk::BufferUsageFlagBits::eShaderDeviceAddress |
                         vk::BufferUsageFlagBits::eTransferDst;
             break;
+        case BufferUsage::Uniform:
+            usageFlag = vk::BufferUsageFlagBits::eUniformBuffer |
+                        vk::BufferUsageFlagBits::eTransferDst |
+                        vk::BufferUsageFlagBits::eShaderDeviceAddress;
+            break;
         default:
             assert(false);
     }
