@@ -139,7 +139,7 @@ void Context::init(bool enableValidation) {
     // Create query pool
     vk::QueryPoolCreateInfo queryPoolInfo;
     queryPoolInfo.setQueryType(vk::QueryType::eTimestamp);
-    queryPoolInfo.setQueryCount(6);  // 3 framebuffers * 2(start/end)
+    queryPoolInfo.setQueryCount(static_cast<uint32_t>(timestamps.size()));
     queryPool = device->createQueryPoolUnique(queryPoolInfo);
     timestampPeriod = physicalDevice.getProperties().limits.timestampPeriod;
 }
@@ -178,17 +178,15 @@ uint32_t Context::findMemoryTypeIndex(vk::MemoryRequirements requirements,
 }
 
 void Context::beginTimestamp(vk::CommandBuffer commandBuffer, uint32_t queryIndex) {
-    commandBuffer.resetQueryPool(*queryPool, queryIndex, 1);
-    commandBuffer.writeTimestamp(vk::PipelineStageFlagBits::eBottomOfPipe, *queryPool, queryIndex);
+    commandBuffer.resetQueryPool(*queryPool, queryIndex, 2);
+    commandBuffer.writeTimestamp(vk::PipelineStageFlagBits::eTopOfPipe, *queryPool, queryIndex);
 }
 
 void Context::endTimestamp(vk::CommandBuffer commandBuffer, uint32_t queryIndex) {
-    commandBuffer.resetQueryPool(*queryPool, queryIndex, 1);
     commandBuffer.writeTimestamp(vk::PipelineStageFlagBits::eBottomOfPipe, *queryPool, queryIndex);
 }
 
 float Context::getElapsedTimeNS(uint32_t queryIndex) {
-    std::array<uint64_t, 2> timestamps{};
     vk::resultCheck(
         device->getQueryPoolResults(*queryPool, queryIndex, 2,
                                     timestamps.size() * sizeof(uint64_t),  // dataSize
@@ -196,5 +194,6 @@ float Context::getElapsedTimeNS(uint32_t queryIndex) {
                                     sizeof(uint64_t),                      // stride
                                     vk::QueryResultFlagBits::e64 | vk::QueryResultFlagBits::eWait),
         "Failed to get query pool results.");
-    return timestampPeriod * static_cast<float>(timestamps[1] - timestamps[0]);
+    return timestampPeriod *
+           static_cast<float>(timestamps[queryIndex + 1] - timestamps[queryIndex]);
 }

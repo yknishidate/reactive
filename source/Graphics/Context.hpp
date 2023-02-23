@@ -61,4 +61,5 @@ private:
     static inline vk::UniqueDescriptorPool descriptorPool;
     static inline vk::UniqueQueryPool queryPool;
     static inline float timestampPeriod;
+    static inline std::array<uint64_t, 6> timestamps{};  // 3 framebuffers * 2(start/end)
 };
