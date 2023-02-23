@@ -139,7 +139,7 @@ void Context::init(bool enableValidation) {
     // Create query pool
     vk::QueryPoolCreateInfo queryPoolInfo;
     queryPoolInfo.setQueryType(vk::QueryType::eTimestamp);
-    queryPoolInfo.setQueryCount(static_cast<uint32_t>(timestamps.size()));
+    queryPoolInfo.setQueryCount(6);
     queryPool = device->createQueryPoolUnique(queryPoolInfo);
     timestampPeriod = physicalDevice.getProperties().limits.timestampPeriod;
 }
@@ -187,6 +187,7 @@ void Context::endTimestamp(vk::CommandBuffer commandBuffer, uint32_t queryIndex)
 }
 
 float Context::getElapsedTimeNS(uint32_t queryIndex) {
+    std::array<uint64_t, 2> timestamps{};
     vk::resultCheck(
         device->getQueryPoolResults(*queryPool, queryIndex, 2,
                                     timestamps.size() * sizeof(uint64_t),  // dataSize
@@ -194,6 +195,5 @@ float Context::getElapsedTimeNS(uint32_t queryIndex) {
                                     sizeof(uint64_t),                      // stride
                                     vk::QueryResultFlagBits::e64 | vk::QueryResultFlagBits::eWait),
         "Failed to get query pool results.");
-    return timestampPeriod *
-           static_cast<float>(timestamps[queryIndex + 1] - timestamps[queryIndex]);
+    return timestampPeriod * static_cast<float>(timestamps[1] - timestamps[0]);
 }
