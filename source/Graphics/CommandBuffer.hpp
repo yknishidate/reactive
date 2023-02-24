@@ -11,6 +11,7 @@ class Mesh;
 class GUI;
 class RenderPass;
 class DeviceBuffer;
+class GPUTimer;
 
 class CommandBuffer {
 public:
@@ -41,8 +42,8 @@ public:
     void setBackImageLayout(vk::ImageLayout layout);
 
     // timestamp
-    void beginTimestamp(uint32_t queryIndex) const;
-    void endTimestamp(uint32_t queryIndex) const;
+    void beginTimestamp(const GPUTimer& gpuTimer) const;
+    void endTimestamp(const GPUTimer& gpuTimer) const;
 
     vk::CommandBuffer commandBuffer;
     Swapchain* swapchain = nullptr;

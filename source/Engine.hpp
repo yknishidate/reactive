@@ -15,7 +15,8 @@
 #include "Scene/Loader.hpp"
 #include "Scene/Mesh.hpp"
 #include "Scene/Object.hpp"
-#include "Timer.hpp"
+#include "Timer/CPUTimer.hpp"
+#include "Timer/GPUTimer.hpp"
 #include "Window/Window.hpp"
 
 namespace Log {

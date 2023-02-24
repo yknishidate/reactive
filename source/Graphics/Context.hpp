@@ -26,11 +26,6 @@ public:
     static auto getDescriptorPool() { return *descriptorPool; }
     static auto getSurface() { return *surface; }
 
-    // timestamp
-    static void beginTimestamp(vk::CommandBuffer commandBuffer, uint32_t queryIndex);
-    static void endTimestamp(vk::CommandBuffer commandBuffer, uint32_t queryIndex);
-    static float getElapsedTimeNS(uint32_t queryIndex);
-
     static void waitIdle() { device->waitIdle(); }
 
 private:
@@ -59,6 +54,4 @@ private:
     static inline vk::Queue queue;
     static inline vk::UniqueCommandPool commandPool;
     static inline vk::UniqueDescriptorPool descriptorPool;
-    static inline vk::UniqueQueryPool queryPool;
-    static inline float timestampPeriod;
 };

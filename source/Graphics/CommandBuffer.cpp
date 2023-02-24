@@ -10,6 +10,7 @@
 #include "Graphics/RenderPass.hpp"
 #include "Scene/Mesh.hpp"
 #include "Swapchain.hpp"
+#include "Timer/GPUTimer.hpp"
 #include "Window/Window.hpp"
 
 void CommandBuffer::bindPipeline(Pipeline& pipeline) {
@@ -88,10 +89,10 @@ void CommandBuffer::setBackImageLayout(vk::ImageLayout layout) {
     swapchain->setBackImageLayout(commandBuffer, layout);
 }
 
-void CommandBuffer::beginTimestamp(uint32_t queryIndex) const {
-    Context::beginTimestamp(commandBuffer, queryIndex);
+void CommandBuffer::beginTimestamp(const GPUTimer& gpuTimer) const {
+    gpuTimer.beginTimestamp(commandBuffer);
 }
 
-void CommandBuffer::endTimestamp(uint32_t queryIndex) const {
-    Context::endTimestamp(commandBuffer, queryIndex);
+void CommandBuffer::endTimestamp(const GPUTimer& gpuTimer) const {
+    gpuTimer.endTimestamp(commandBuffer);
 }
