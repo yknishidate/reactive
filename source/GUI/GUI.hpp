@@ -1,4 +1,5 @@
 #pragma once
+#include <imgui.h>
 #include <glm/glm.hpp>
 
 class Swapchain;
@@ -18,4 +19,9 @@ public:
     bool colorPicker4(const std::string& label, glm::vec4& value);
     bool sliderFloat(const std::string& label, float& value, float min, float max);
     bool button(const std::string& label);
+
+    template <typename... Args>
+    void text(const char* fmt, const Args&... args) {
+        ImGui::Text(fmt, args...);
+    }
 };
