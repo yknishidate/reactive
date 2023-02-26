@@ -97,6 +97,12 @@ void Context::init(bool enableValidation) {
     vk::PhysicalDeviceDescriptorIndexingFeatures descFeatures;
     descFeatures.setRuntimeDescriptorArray(true);
 
+    vk::PhysicalDevice8BitStorageFeatures storage8BitFeatures;
+    storage8BitFeatures.setStorageBuffer8BitAccess(true);
+
+    vk::PhysicalDeviceShaderFloat16Int8Features shaderFloat16Int8Features;
+    shaderFloat16Int8Features.setShaderInt8(true);
+
     vk::DeviceCreateInfo deviceInfo;
     deviceInfo.setQueueCreateInfos(queueInfo);
     deviceInfo.setPEnabledExtensionNames(deviceExtensions);
@@ -108,7 +114,9 @@ void Context::init(bool enableValidation) {
                                        vk::PhysicalDeviceAccelerationStructureFeaturesKHR{true},
                                        vk::PhysicalDeviceMeshShaderFeaturesEXT{true, true},
                                        vk::PhysicalDeviceRayQueryFeaturesKHR{true},
-                                       descFeatures};
+                                       descFeatures,
+                                       shaderFloat16Int8Features,
+                                       storage8BitFeatures};
 
     device = physicalDevice.createDeviceUnique(createInfoChain.get<vk::DeviceCreateInfo>());
 
