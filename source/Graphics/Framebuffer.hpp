@@ -6,6 +6,7 @@
 
 class Framebuffer {
 public:
+    Framebuffer() = default;
     Framebuffer(uint32_t width,
                 uint32_t height,
                 const RenderPass& renderPass,

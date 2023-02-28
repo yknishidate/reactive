@@ -1,7 +1,9 @@
 #pragma once
 #include <vulkan/vulkan.hpp>
 #include "CommandBuffer.hpp"
+#include "Framebuffer.hpp"
 #include "Image.hpp"
+#include "RenderPass.hpp"
 
 class Swapchain {
 public:
@@ -27,7 +29,7 @@ public:
     auto getBackImage() const { return swapchainImages[frameIndex]; }
     auto getImageCount() const { return swapchainImages.size(); }
     auto getMinImageCount() const { return minImageCount; }
-    auto getRenderPass() const { return *renderPass; }
+    auto& getRenderPass() const { return renderPass; }
     auto getCurrentFrameIndex() const { return frameIndex; }
 
 private:
@@ -46,9 +48,6 @@ private:
     uint32_t height = 0;
 
     Image depthImage;
-    // vk::UniqueImage depthImage;
-    // vk::UniqueImageView depthImageView;
-    // vk::UniqueDeviceMemory depthImageMemory;
 
     bool swapchainRebuild = false;
     int minImageCount = 3;
@@ -57,10 +56,12 @@ private:
     uint32_t semaphoreIndex = 0;
 
     // TODO: move to GUI
-    vk::UniqueRenderPass renderPass;
+    RenderPass renderPass;
+    // vk::UniqueRenderPass renderPass;
     vk::UniqueSemaphore imageAcquiredSemaphore;
     vk::UniqueSemaphore renderCompleteSemaphore;
     std::vector<vk::UniqueCommandBuffer> commandBuffers{};
-    std::vector<vk::UniqueFramebuffer> framebuffers{};
+    // std::vector<vk::UniqueFramebuffer> framebuffers{};
+    std::vector<Framebuffer> framebuffers{};
     std::vector<vk::UniqueFence> fences{};
 };

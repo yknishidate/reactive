@@ -62,7 +62,7 @@ GUI::GUI(Swapchain& swapchain) {
     initInfo.ImageCount = swapchain.getImageCount();
     initInfo.MSAASamples = vk::SampleCountFlagBits::e1;
     initInfo.Allocator = nullptr;
-    ImGui_ImplVulkan_Init(&initInfo, swapchain.getRenderPass());
+    ImGui_ImplVulkan_Init(&initInfo, swapchain.getRenderPass().getRenderPass());
 
     // Setup font
     std::string fontFile = ASSET_DIR + "Roboto-Medium.ttf";

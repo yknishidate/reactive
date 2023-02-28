@@ -6,12 +6,11 @@
 
 class RenderPass {
 public:
+    RenderPass() = default;
     RenderPass(uint32_t width,
                uint32_t height,
                ArrayProxy<Image> colorImages,
                const Image& depthImage) {
-        renderArea.setExtent({width, height});
-
         std::vector<vk::AttachmentDescription> attachmentDescs{};
         std::vector<vk::AttachmentReference> colorAttachmentRefs;
         int index = 0;
@@ -26,6 +25,34 @@ public:
 
         vk::AttachmentReference depthAttachmentRef = depthImage.createAttachmentRef(index);
 
+        renderArea.setExtent({width, height});
+        createRenderPass(attachmentDescs, colorAttachmentRefs, depthAttachmentRef);
+    }
+
+    RenderPass(uint32_t width,
+               uint32_t height,
+               ArrayProxy<vk::AttachmentDescription> attachmentDescs,
+               ArrayProxy<vk::AttachmentReference> colorAttachmentRefs,
+               vk::AttachmentReference depthAttachmentRef) {
+        renderArea.setExtent({width, height});
+        createRenderPass(attachmentDescs, colorAttachmentRefs, depthAttachmentRef);
+    }
+
+    auto getRenderPass() const { return *renderPass; }
+
+    vk::PipelineColorBlendStateCreateInfo createColorBlending() const {
+        vk::PipelineColorBlendStateCreateInfo colorBlending;
+        colorBlending.setAttachments(colorBlendStates);
+        colorBlending.setLogicOpEnable(VK_FALSE);
+        return colorBlending;
+    }
+
+private:
+    friend class CommandBuffer;
+
+    void createRenderPass(ArrayProxy<vk::AttachmentDescription> attachmentDescs,
+                          ArrayProxy<vk::AttachmentReference> colorAttachmentRefs,
+                          vk::AttachmentReference depthAttachmentRef) {
         vk::SubpassDescription subpass;
         subpass.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics);
         subpass.setColorAttachments(colorAttachmentRefs);
@@ -54,18 +81,6 @@ public:
                 vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
         }
     }
-
-    auto getRenderPass() const { return *renderPass; }
-
-    vk::PipelineColorBlendStateCreateInfo createColorBlending() const {
-        vk::PipelineColorBlendStateCreateInfo colorBlending;
-        colorBlending.setAttachments(colorBlendStates);
-        colorBlending.setLogicOpEnable(VK_FALSE);
-        return colorBlending;
-    }
-
-private:
-    friend class CommandBuffer;
 
     void beginRenderPass(vk::CommandBuffer commandBuffer, vk::Framebuffer framebuffer) const {
         assert(!clearValues.empty());
