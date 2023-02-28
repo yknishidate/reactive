@@ -12,12 +12,7 @@ void Camera::processInput() {
         glm::vec2 motion = Window::getMouseMotion();
         yaw = glm::mod(yaw - motion.x * 0.1f, 360.0f);
         pitch = glm::clamp(pitch + motion.y * 0.1f, -89.9f, 89.9f);
-
-        glm::mat4 rotation{1.0};
-        rotation *= glm::rotate(glm::radians(yaw), glm::vec3{0, 1, 0});
-        rotation *= glm::rotate(glm::radians(pitch), glm::vec3{1, 0, 0});
-        front = {rotation * glm::vec4{0, 0, -1, 1}};
-
+        updateFront();
         dirty = true;
     }
 
@@ -59,4 +54,11 @@ bool Camera::checkDirtyAndClean() {
         return true;
     }
     return false;
+}
+
+void Camera::updateFront() {
+    glm::mat4 rotation{1.0};
+    rotation *= glm::rotate(glm::radians(yaw), glm::vec3{0, 1, 0});
+    rotation *= glm::rotate(glm::radians(pitch), glm::vec3{1, 0, 0});
+    front = {rotation * glm::vec4{0, 0, -1, 1}};
 }

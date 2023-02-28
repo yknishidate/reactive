@@ -26,8 +26,17 @@ public:
 
     void setPosition(float x, float y, float z) { position = {x, y, z}; }
     void setSpeed(float s) { speed = s; }
+    void setPitch(float p) {
+        pitch = p;
+        updateFront();
+    }
+    void setYaw(float y) {
+        yaw = y;
+        updateFront();
+    }
 
 private:
+    void updateFront();
     float speed = 1.0f;
     glm::vec3 position = {0.0f, 0.0f, 5.0f};
     glm::vec3 front = {0.0f, 0.0f, -1.0f};
