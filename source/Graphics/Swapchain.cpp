@@ -36,32 +36,7 @@ Swapchain::Swapchain() : width{Window::getWidth()}, height{Window::getHeight()} 
     }
 
     // Create depth image
-    depthImage = Context::getDevice().createImageUnique(
-        vk::ImageCreateInfo()
-            .setImageType(vk::ImageType::e2D)
-            .setFormat(vk::Format::eD32Sfloat)
-            .setExtent({width, height, 1})
-            .setMipLevels(1)
-            .setArrayLayers(1)
-            .setUsage(vk::ImageUsageFlagBits::eDepthStencilAttachment));
-
-    vk::MemoryRequirements requirements =
-        Context::getDevice().getImageMemoryRequirements(*depthImage);
-    uint32_t memoryTypeIndex =
-        Context::findMemoryTypeIndex(requirements, vk::MemoryPropertyFlagBits::eDeviceLocal);
-    depthImageMemory =
-        Context::getDevice().allocateMemoryUnique(vk::MemoryAllocateInfo()
-                                                      .setAllocationSize(requirements.size)
-                                                      .setMemoryTypeIndex(memoryTypeIndex));
-
-    Context::getDevice().bindImageMemory(*depthImage, *depthImageMemory, 0);
-
-    depthImageView = Context::getDevice().createImageViewUnique(
-        vk::ImageViewCreateInfo()
-            .setImage(*depthImage)
-            .setViewType(vk::ImageViewType::e2D)
-            .setFormat(vk::Format::eD32Sfloat)
-            .setSubresourceRange({vk::ImageAspectFlagBits::eDepth, 0, 1, 0, 1}));
+    depthImage = {width, height, vk::Format::eD32Sfloat, ImageUsage::DepthStencilAttachment};
 
     // Create render pass
     vk::AttachmentDescription colorAttachment;
@@ -119,7 +94,7 @@ Swapchain::Swapchain() : width{Window::getWidth()}, height{Window::getHeight()} 
     imageAcquiredSemaphore = Context::getDevice().createSemaphoreUnique({});
     renderCompleteSemaphore = Context::getDevice().createSemaphoreUnique({});
     for (uint32_t i = 0; i < imageCount; i++) {
-        std::array attachments{*swapchainImageViews[i], *depthImageView};
+        std::array attachments{*swapchainImageViews[i], depthImage.getView()};
         framebuffers[i] =
             Context::getDevice().createFramebufferUnique(vk::FramebufferCreateInfo()
                                                              .setRenderPass(*renderPass)

@@ -12,6 +12,7 @@ class GUI;
 class RenderPass;
 class DeviceBuffer;
 class GPUTimer;
+class Framebuffer;
 
 class CommandBuffer {
 public:
@@ -27,7 +28,7 @@ public:
     void clearBackImage(std::array<float, 4> color);
     void clearColorImage(Image& image, std::array<float, 4> color);
     void beginDefaultRenderPass();
-    void beginRenderPass(RenderPass& renderPass);
+    void beginRenderPass(RenderPass& renderPass, const Framebuffer& framebuffer);
     void endDefaultRenderPass();
     void endRenderPass(RenderPass& renderPass);
     void submit();

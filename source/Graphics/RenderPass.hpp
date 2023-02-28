@@ -2,6 +2,7 @@
 #include <vulkan/vulkan.hpp>
 #include "ArrayProxy.hpp"
 #include "Context.hpp"
+#include "Image.hpp"
 
 class RenderPass {
 public:
@@ -12,18 +13,15 @@ public:
         renderArea.setExtent({width, height});
 
         std::vector<vk::AttachmentDescription> attachmentDescs{};
-        std::vector<vk::ImageView> attachments;
         std::vector<vk::AttachmentReference> colorAttachmentRefs;
         int index = 0;
         for (auto& image : colorImages) {
             attachmentDescs.push_back(image.createAttachmentDesc());
-            attachments.push_back(image.getView());
             clearValues.push_back({std::array{0.0f, 0.0f, 0.0f, 1.0f}});
             colorAttachmentRefs.push_back(image.createAttachmentRef(index));
             index++;
         }
         attachmentDescs.push_back(depthImage.createAttachmentDesc());
-        attachments.push_back(depthImage.getView());
         clearValues.push_back({{1.0f, 0}});
 
         vk::AttachmentReference depthAttachmentRef = depthImage.createAttachmentRef(index);
@@ -49,14 +47,6 @@ public:
         renderPassInfo.setDependencies(dependency);
         renderPass = Context::getDevice().createRenderPassUnique(renderPassInfo);
 
-        vk::FramebufferCreateInfo framebufferInfo;
-        framebufferInfo.setRenderPass(*renderPass);
-        framebufferInfo.setAttachments(attachments);
-        framebufferInfo.setWidth(width);
-        framebufferInfo.setHeight(height);
-        framebufferInfo.setLayers(1);
-        framebuffer = Context::getDevice().createFramebufferUnique(framebufferInfo);
-
         colorBlendStates.resize(colorAttachmentRefs.size());
         for (auto& state : colorBlendStates) {
             state.setColorWriteMask(
@@ -77,12 +67,12 @@ public:
 private:
     friend class CommandBuffer;
 
-    void beginRenderPass(vk::CommandBuffer commandBuffer) const {
+    void beginRenderPass(vk::CommandBuffer commandBuffer, vk::Framebuffer framebuffer) const {
         assert(!clearValues.empty());
         vk::RenderPassBeginInfo beginInfo;
         beginInfo.setRenderPass(*renderPass);
         beginInfo.setClearValues(clearValues);
-        beginInfo.setFramebuffer(*framebuffer);
+        beginInfo.setFramebuffer(framebuffer);
         beginInfo.setRenderArea(renderArea);
         commandBuffer.beginRenderPass(beginInfo, vk::SubpassContents::eInline);
     }
@@ -90,7 +80,6 @@ private:
     void endRenderPass(vk::CommandBuffer commandBuffer) const { commandBuffer.endRenderPass(); }
 
     vk::UniqueRenderPass renderPass;
-    vk::UniqueFramebuffer framebuffer;
     vk::Rect2D renderArea;
     std::vector<vk::ClearValue> clearValues;
     std::vector<vk::PipelineColorBlendAttachmentState> colorBlendStates;

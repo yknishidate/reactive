@@ -2,9 +2,11 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include "Context.hpp"
+#include "Framebuffer.hpp"
 #include "GUI/GUI.hpp"
 #include "GUI/imgui_impl_vulkan_hpp.h"
 #include "Graphics/Buffer.hpp"
+#include "Graphics/Framebuffer.hpp"
 #include "Graphics/Image.hpp"
 #include "Graphics/Pipeline.hpp"
 #include "Graphics/RenderPass.hpp"
@@ -41,8 +43,8 @@ void CommandBuffer::beginDefaultRenderPass() {
     swapchain->beginRenderPass();
 }
 
-void CommandBuffer::beginRenderPass(RenderPass& renderPass) {
-    renderPass.beginRenderPass(commandBuffer);
+void CommandBuffer::beginRenderPass(RenderPass& renderPass, const Framebuffer& framebuffer) {
+    renderPass.beginRenderPass(commandBuffer, framebuffer.getFramebuffer());
 }
 
 void CommandBuffer::endDefaultRenderPass() {

@@ -1,6 +1,7 @@
 #pragma once
 #include <vulkan/vulkan.hpp>
 #include "CommandBuffer.hpp"
+#include "Image.hpp"
 
 class Swapchain {
 public:
@@ -44,9 +45,10 @@ private:
     uint32_t width = 0;
     uint32_t height = 0;
 
-    vk::UniqueImage depthImage;
-    vk::UniqueImageView depthImageView;
-    vk::UniqueDeviceMemory depthImageMemory;
+    Image depthImage;
+    // vk::UniqueImage depthImage;
+    // vk::UniqueImageView depthImageView;
+    // vk::UniqueDeviceMemory depthImageMemory;
 
     bool swapchainRebuild = false;
     int minImageCount = 3;

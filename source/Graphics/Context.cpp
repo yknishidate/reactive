@@ -1,7 +1,6 @@
 #include "Context.hpp"
 #include <spdlog/spdlog.h>
 #include <regex>
-#include "Graphics/Image.hpp"
 #include "Window/Window.hpp"
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
