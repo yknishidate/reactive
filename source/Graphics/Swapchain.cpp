@@ -48,24 +48,14 @@ Swapchain::Swapchain() : width{Window::getWidth()}, height{Window::getHeight()} 
     colorAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
     colorAttachment.setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
 
-    vk::AttachmentDescription depthAttachment;
-    depthAttachment.setFormat(vk::Format::eD32Sfloat);
-    depthAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
-    depthAttachment.setStoreOp(vk::AttachmentStoreOp::eDontCare);
-    depthAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
-    depthAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
-    depthAttachment.setInitialLayout(vk::ImageLayout::eUndefined);
-    depthAttachment.setFinalLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
-
+    vk::AttachmentDescription depthAttachment = depthImage.createAttachmentDesc();
     std::array attachmentDescs = {colorAttachment, depthAttachment};
 
     vk::AttachmentReference colorAttachmentRef;
     colorAttachmentRef.setAttachment(0);
     colorAttachmentRef.setLayout(vk::ImageLayout::eColorAttachmentOptimal);
 
-    vk::AttachmentReference depthAttachmentRef;
-    depthAttachmentRef.setAttachment(1);
-    depthAttachmentRef.setLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
+    vk::AttachmentReference depthAttachmentRef = depthImage.createAttachmentRef(1);
     renderPass = RenderPass{width, height, attachmentDescs, colorAttachmentRef, depthAttachmentRef};
 
     size_t imageCount = swapchainImages.size();
