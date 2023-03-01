@@ -57,11 +57,9 @@ private:
 
     // TODO: move to GUI
     RenderPass renderPass;
-    // vk::UniqueRenderPass renderPass;
     vk::UniqueSemaphore imageAcquiredSemaphore;
     vk::UniqueSemaphore renderCompleteSemaphore;
     std::vector<vk::UniqueCommandBuffer> commandBuffers{};
-    // std::vector<vk::UniqueFramebuffer> framebuffers{};
     std::vector<Framebuffer> framebuffers{};
     std::vector<vk::UniqueFence> fences{};
 };

@@ -35,6 +35,10 @@ public:
                ArrayProxy<vk::AttachmentReference> colorAttachmentRefs,
                vk::AttachmentReference depthAttachmentRef) {
         renderArea.setExtent({width, height});
+        for (size_t i = 0; i < attachmentDescs.size(); i++) {
+            clearValues.push_back({std::array{0.0f, 0.0f, 0.0f, 1.0f}});
+        }
+        clearValues.push_back({{1.0f, 0}});
         createRenderPass(attachmentDescs, colorAttachmentRefs, depthAttachmentRef);
     }
 
@@ -49,6 +53,7 @@ public:
 
 private:
     friend class CommandBuffer;
+    friend class Swapchain;
 
     void createRenderPass(ArrayProxy<vk::AttachmentDescription> attachmentDescs,
                           ArrayProxy<vk::AttachmentReference> colorAttachmentRefs,

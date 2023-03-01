@@ -87,23 +87,12 @@ void Swapchain::setBackImageLayout(vk::CommandBuffer commandBuffer, vk::ImageLay
 }
 
 void Swapchain::beginRenderPass() const {
-    vk::Rect2D renderArea;
-    renderArea.setExtent({Window::getWidth(), Window::getHeight()});
-
-    std::array<vk::ClearValue, 2> clearValues;
-    clearValues[0].color = {std::array{0.0f, 0.0f, 0.0f, 1.0f}};
-    clearValues[1].depthStencil = vk::ClearDepthStencilValue{1.0f, 0};
-
-    vk::RenderPassBeginInfo beginInfo;
-    beginInfo.setRenderPass(renderPass.getRenderPass());
-    beginInfo.setClearValues(clearValues);
-    beginInfo.setFramebuffer(framebuffers[frameIndex].getFramebuffer());
-    beginInfo.setRenderArea(renderArea);
-    commandBuffers[frameIndex]->beginRenderPass(beginInfo, vk::SubpassContents::eInline);
+    renderPass.beginRenderPass(*commandBuffers[frameIndex],
+                               framebuffers[frameIndex].getFramebuffer());
 }
 
 void Swapchain::endRenderPass() const {
-    commandBuffers[frameIndex]->endRenderPass();
+    renderPass.endRenderPass(*commandBuffers[frameIndex]);
 }
 
 void Swapchain::waitNextFrame() {
