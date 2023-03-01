@@ -29,15 +29,12 @@ public:
     GraphicsPipeline() = default;
     GraphicsPipeline(DescriptorSet& descSet) : Pipeline(descSet) {}
 
-    void setup(RenderPass& renderPass,
-               vk::PrimitiveTopology topology,
-               vk::PolygonMode polygonMode,
-               size_t pushSize);
-    void setup(vk::RenderPass renderPass,
-               vk::PrimitiveTopology topology,
-               vk::PolygonMode polygonMode,
-               size_t pushSize);
+    void setup(RenderPass& renderPass, size_t pushSize);
+    void setup(vk::RenderPass renderPass, size_t pushSize);
     void addShader(const Shader& shader) { shaders.push_back(&shader); }
+
+    void setTopology(vk::PrimitiveTopology topology) { this->topology = topology; }
+    void setPolygonMode(vk::PolygonMode polygonMode) { this->polygonMode = polygonMode; }
 
 private:
     friend class CommandBuffer;
@@ -45,6 +42,8 @@ private:
     void pushConstants(vk::CommandBuffer commandBuffer, void* pushData) override;
 
     std::vector<const Shader*> shaders;
+    vk::PrimitiveTopology topology = vk::PrimitiveTopology::eTriangleList;
+    vk::PolygonMode polygonMode = vk::PolygonMode::eFill;
 };
 
 class ComputePipeline : public Pipeline {

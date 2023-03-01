@@ -126,10 +126,7 @@ vk::StridedDeviceAddressRegionKHR createAddressRegion(
 }
 }  // namespace
 
-void GraphicsPipeline::setup(RenderPass& renderPass,
-                             vk::PrimitiveTopology topology,
-                             vk::PolygonMode polygonMode,
-                             size_t pushSize) {
+void GraphicsPipeline::setup(RenderPass& renderPass, size_t pushSize) {
     this->pushSize = pushSize;
     pipelineLayout = descSet->createPipelineLayout(pushSize, vk::ShaderStageFlagBits::eAllGraphics |
                                                                  vk::ShaderStageFlagBits::eMeshEXT |
@@ -149,10 +146,7 @@ void GraphicsPipeline::setup(RenderPass& renderPass,
                                       useMeshShader);
 }
 
-void GraphicsPipeline::setup(vk::RenderPass renderPass,
-                             vk::PrimitiveTopology topology,
-                             vk::PolygonMode polygonMode,
-                             size_t pushSize) {
+void GraphicsPipeline::setup(vk::RenderPass renderPass, size_t pushSize) {
     this->pushSize = pushSize;
     pipelineLayout = descSet->createPipelineLayout(pushSize, vk::ShaderStageFlagBits::eAllGraphics |
                                                                  vk::ShaderStageFlagBits::eMeshEXT |
