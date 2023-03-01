@@ -29,8 +29,8 @@ public:
     auto getBackImage() const { return swapchainImages[frameIndex]; }
     auto getImageCount() const { return swapchainImages.size(); }
     auto getMinImageCount() const { return minImageCount; }
-    auto& getRenderPass() const { return renderPass; }
     auto getCurrentFrameIndex() const { return frameIndex; }
+    RenderPass& getRenderPass() { return renderPass; }
 
 private:
     friend class CommandBuffer;

@@ -29,7 +29,10 @@ public:
     GraphicsPipeline() = default;
     GraphicsPipeline(DescriptorSet& descSet) : Pipeline(descSet) {}
 
-    void setup(RenderPass& renderPass, size_t pushSize);
+    void setup(RenderPass& renderPass,
+               vk::PrimitiveTopology topology,
+               vk::PolygonMode polygonMode,
+               size_t pushSize);
     void addShader(const Shader& shader) { shaders.push_back(&shader); }
 
 private:

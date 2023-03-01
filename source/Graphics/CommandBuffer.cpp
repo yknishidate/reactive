@@ -59,6 +59,13 @@ void CommandBuffer::submit() {
     swapchain->submit();
 }
 
+void CommandBuffer::draw(uint32_t vertexCount,
+                         uint32_t instanceCount,
+                         uint32_t firstVertex,
+                         uint32_t firstInstance) const {
+    commandBuffer.draw(vertexCount, instanceCount, firstVertex, firstInstance);
+}
+
 void CommandBuffer::drawIndexed(const Mesh& mesh) {
     mesh.drawIndexed(commandBuffer);
 }

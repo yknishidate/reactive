@@ -20,6 +20,8 @@ vk::UniquePipeline createGraphicsPipeline(
     vk::PipelineLayout pipelineLayout,
     vk::RenderPass renderPass,
     vk::PipelineColorBlendStateCreateInfo colorBlending,
+    vk::PrimitiveTopology topology,
+    vk::PolygonMode polygonMode,
     bool useMeshShader) {
     auto width = static_cast<float>(Window::getWidth());
     auto height = static_cast<float>(Window::getHeight());
@@ -30,7 +32,7 @@ vk::UniquePipeline createGraphicsPipeline(
     vk::PipelineRasterizationStateCreateInfo rasterization;
     rasterization.setDepthClampEnable(VK_FALSE);
     rasterization.setRasterizerDiscardEnable(VK_FALSE);
-    rasterization.setPolygonMode(vk::PolygonMode::eFill);
+    rasterization.setPolygonMode(polygonMode);
     rasterization.setCullMode(vk::CullModeFlagBits::eNone);
     rasterization.setFrontFace(vk::FrontFace::eCounterClockwise);
     rasterization.setDepthBiasEnable(VK_FALSE);
@@ -67,7 +69,7 @@ vk::UniquePipeline createGraphicsPipeline(
         bindingDescription.setInputRate(vk::VertexInputRate::eVertex);
         vertexInputInfo.setVertexBindingDescriptions(bindingDescription);
         vertexInputInfo.setVertexAttributeDescriptions(attributeDescriptions);
-        inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
+        inputAssembly.setTopology(topology);
         pipelineInfo.setPInputAssemblyState(&inputAssembly);
         pipelineInfo.setPVertexInputState(&vertexInputInfo);
     }
@@ -124,7 +126,10 @@ vk::StridedDeviceAddressRegionKHR createAddressRegion(
 }
 }  // namespace
 
-void GraphicsPipeline::setup(RenderPass& renderPass, size_t pushSize) {
+void GraphicsPipeline::setup(RenderPass& renderPass,
+                             vk::PrimitiveTopology topology,
+                             vk::PolygonMode polygonMode,
+                             size_t pushSize) {
     this->pushSize = pushSize;
     pipelineLayout = descSet->createPipelineLayout(pushSize, vk::ShaderStageFlagBits::eAllGraphics |
                                                                  vk::ShaderStageFlagBits::eMeshEXT |
@@ -140,7 +145,8 @@ void GraphicsPipeline::setup(RenderPass& renderPass, size_t pushSize) {
                                    .setPName("main"));
     }
     pipeline = createGraphicsPipeline(shaderStages, *pipelineLayout, renderPass.getRenderPass(),
-                                      renderPass.createColorBlending(), useMeshShader);
+                                      renderPass.createColorBlending(), topology, polygonMode,
+                                      useMeshShader);
 }
 
 void GraphicsPipeline::bind(vk::CommandBuffer commandBuffer) {
