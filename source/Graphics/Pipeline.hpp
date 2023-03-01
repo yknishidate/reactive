@@ -33,6 +33,10 @@ public:
                vk::PrimitiveTopology topology,
                vk::PolygonMode polygonMode,
                size_t pushSize);
+    void setup(vk::RenderPass renderPass,
+               vk::PrimitiveTopology topology,
+               vk::PolygonMode polygonMode,
+               size_t pushSize);
     void addShader(const Shader& shader) { shaders.push_back(&shader); }
 
 private:

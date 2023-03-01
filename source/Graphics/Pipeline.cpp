@@ -149,6 +149,36 @@ void GraphicsPipeline::setup(RenderPass& renderPass,
                                       useMeshShader);
 }
 
+void GraphicsPipeline::setup(vk::RenderPass renderPass,
+                             vk::PrimitiveTopology topology,
+                             vk::PolygonMode polygonMode,
+                             size_t pushSize) {
+    this->pushSize = pushSize;
+    pipelineLayout = descSet->createPipelineLayout(pushSize, vk::ShaderStageFlagBits::eAllGraphics |
+                                                                 vk::ShaderStageFlagBits::eMeshEXT |
+                                                                 vk::ShaderStageFlagBits::eTaskEXT);
+
+    std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
+    bool useMeshShader = false;
+    for (auto& shader : shaders) {
+        useMeshShader |= shader->getStage() == vk::ShaderStageFlagBits::eMeshEXT;
+        shaderStages.push_back(vk::PipelineShaderStageCreateInfo()
+                                   .setModule(shader->getModule())
+                                   .setStage(shader->getStage())
+                                   .setPName("main"));
+    }
+    vk::PipelineColorBlendAttachmentState colorBlendState;
+    colorBlendState.setColorWriteMask(
+        vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+        vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
+
+    vk::PipelineColorBlendStateCreateInfo colorBlending;
+    colorBlending.setAttachments(colorBlendState);
+    colorBlending.setLogicOpEnable(VK_FALSE);
+    pipeline = createGraphicsPipeline(shaderStages, *pipelineLayout, renderPass, colorBlending,
+                                      topology, polygonMode, useMeshShader);
+}
+
 void GraphicsPipeline::bind(vk::CommandBuffer commandBuffer) {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *pipeline);
     descSet->bind(commandBuffer, vk::PipelineBindPoint::eGraphics, *pipelineLayout);

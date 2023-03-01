@@ -6,7 +6,6 @@
 #include "GUI/GUI.hpp"
 #include "GUI/imgui_impl_vulkan_hpp.h"
 #include "Graphics/DescriptorSet.hpp"
-#include "Graphics/Framebuffer.hpp"
 #include "Graphics/Image.hpp"
 #include "Graphics/Pipeline.hpp"
 #include "Graphics/RenderPass.hpp"

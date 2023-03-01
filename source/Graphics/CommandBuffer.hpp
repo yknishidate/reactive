@@ -12,7 +12,6 @@ class GUI;
 class RenderPass;
 class DeviceBuffer;
 class GPUTimer;
-class Framebuffer;
 
 class CommandBuffer {
 public:
@@ -28,14 +27,10 @@ public:
     void clearBackImage(std::array<float, 4> color);
     void clearColorImage(Image& image, std::array<float, 4> color);
     void beginDefaultRenderPass();
-    void beginRenderPass(RenderPass& renderPass, const Framebuffer& framebuffer);
+    void beginRenderPass(RenderPass& renderPass);
     void endDefaultRenderPass();
     void endRenderPass(RenderPass& renderPass);
     void submit();
-    void draw(uint32_t vertexCount,
-              uint32_t instanceCount,
-              uint32_t firstVertex,
-              uint32_t firstInstance) const;
     void drawIndexed(const Mesh& mesh);
     void drawIndexed(const DeviceBuffer& vertexBuffer,
                      const DeviceBuffer& indexBuffer,

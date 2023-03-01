@@ -2,11 +2,9 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include "Context.hpp"
-#include "Framebuffer.hpp"
 #include "GUI/GUI.hpp"
 #include "GUI/imgui_impl_vulkan_hpp.h"
 #include "Graphics/Buffer.hpp"
-#include "Graphics/Framebuffer.hpp"
 #include "Graphics/Image.hpp"
 #include "Graphics/Pipeline.hpp"
 #include "Graphics/RenderPass.hpp"
@@ -43,8 +41,8 @@ void CommandBuffer::beginDefaultRenderPass() {
     swapchain->beginRenderPass();
 }
 
-void CommandBuffer::beginRenderPass(RenderPass& renderPass, const Framebuffer& framebuffer) {
-    renderPass.beginRenderPass(commandBuffer, framebuffer.getFramebuffer());
+void CommandBuffer::beginRenderPass(RenderPass& renderPass) {
+    renderPass.beginRenderPass(commandBuffer);
 }
 
 void CommandBuffer::endDefaultRenderPass() {
@@ -57,13 +55,6 @@ void CommandBuffer::endRenderPass(RenderPass& renderPass) {
 
 void CommandBuffer::submit() {
     swapchain->submit();
-}
-
-void CommandBuffer::draw(uint32_t vertexCount,
-                         uint32_t instanceCount,
-                         uint32_t firstVertex,
-                         uint32_t firstInstance) const {
-    commandBuffer.draw(vertexCount, instanceCount, firstVertex, firstInstance);
 }
 
 void CommandBuffer::drawIndexed(const Mesh& mesh) {
