@@ -87,6 +87,18 @@ public:
 
     int getMaterialID() const { return materialID; }
 
+    static Mesh createFrustumLines() {
+        std::vector<Vertex> vertices{
+            {glm::vec3(-1.0, -1.0, -1.0)}, {glm::vec3(1.0, -1.0, -1.0)},
+            {glm::vec3(1.0, -1.0, 1.0)},   {glm::vec3(-1.0, -1.0, 1.0)},
+            {glm::vec3(-1.0, 1.0, -1.0)},  {glm::vec3(1.0, 1.0, -1.0)},
+            {glm::vec3(1.0, 1.0, 1.0)},    {glm::vec3(-1.0, 1.0, 1.0)},
+        };
+        std::vector<uint32_t> indices{0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6,
+                                      6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7};
+        return {vertices, indices, 0};
+    }
+
 private:
     DeviceBuffer vertexBuffer;
     DeviceBuffer indexBuffer;
