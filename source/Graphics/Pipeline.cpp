@@ -36,7 +36,7 @@ vk::UniquePipeline createGraphicsPipeline(
     rasterization.setCullMode(vk::CullModeFlagBits::eNone);
     rasterization.setFrontFace(vk::FrontFace::eCounterClockwise);
     rasterization.setDepthBiasEnable(VK_FALSE);
-    rasterization.setLineWidth(2.0f);
+    rasterization.setLineWidth(4.0f);
 
     vk::PipelineMultisampleStateCreateInfo multisampling;
     multisampling.setSampleShadingEnable(VK_FALSE);

@@ -18,7 +18,7 @@ public:
     glm::mat4 getProj() const;
     glm::mat4 getInvView() const { return glm::inverse(getView()); }
     glm::mat4 getInvProj() const { return glm::inverse(getProj()); }
-    float getFovY() const { return glm::radians(45.0f); }
+    float getFovY() const { return fovY; }
 
     float getAspect() const { return aspect; }
     float getNear() const { return zNear; }
@@ -36,6 +36,7 @@ public:
     }
     void setNear(float n) { zNear = n; }
     void setFar(float f) { zFar = f; }
+    void setFovY(float f) { fovY = f; }
 
 private:
     void updateFront();
@@ -48,4 +49,5 @@ private:
     float yaw = 0.0f;
     float pitch = 0.0f;
     bool dirty = false;
+    float fovY = glm::radians(45.0f);
 };
