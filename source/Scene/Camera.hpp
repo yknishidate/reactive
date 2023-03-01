@@ -34,6 +34,8 @@ public:
         yaw = y;
         updateFront();
     }
+    void setNear(float n) { zNear = n; }
+    void setFar(float f) { zFar = f; }
 
 private:
     void updateFront();
