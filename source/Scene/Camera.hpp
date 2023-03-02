@@ -19,12 +19,12 @@ public:
     glm::mat4 getInvView() const { return glm::inverse(getView()); }
     glm::mat4 getInvProj() const { return glm::inverse(getProj()); }
     float getFovY() const { return fovY; }
-
     float getAspect() const { return aspect; }
     float getNear() const { return zNear; }
     float getFar() const { return zFar; }
 
     void setPosition(float x, float y, float z) { position = {x, y, z}; }
+    void setPosition(glm::vec3 pos) { position = pos; }
     void setSpeed(float s) { speed = s; }
     void setPitch(float p) {
         pitch = p;
