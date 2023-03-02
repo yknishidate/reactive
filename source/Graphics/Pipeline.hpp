@@ -11,7 +11,9 @@ class RenderPass;
 class Pipeline {
 public:
     Pipeline() = default;
-    Pipeline(DescriptorSet& descSet) : descSet{&descSet} {}
+
+    void setDescriptorSet(DescriptorSet& set) { descSet = &set; }
+    void setPushSize(size_t size) { pushSize = size; }
 
 protected:
     friend class CommandBuffer;
@@ -20,17 +22,16 @@ protected:
 
     vk::UniquePipelineLayout pipelineLayout;
     vk::UniquePipeline pipeline;
-    size_t pushSize{};
+    size_t pushSize = 0;
     DescriptorSet* descSet;
 };
 
 class GraphicsPipeline : public Pipeline {
 public:
     GraphicsPipeline() = default;
-    GraphicsPipeline(DescriptorSet& descSet) : Pipeline(descSet) {}
 
-    void setup(RenderPass& renderPass, size_t pushSize);
-    void setup(vk::RenderPass renderPass, size_t pushSize);
+    void setup(RenderPass& renderPass);
+    void setup(vk::RenderPass renderPass);
     void addShader(const Shader& shader) { shaders.push_back(&shader); }
 
     void setTopology(vk::PrimitiveTopology topology) { this->topology = topology; }
@@ -49,9 +50,8 @@ private:
 class ComputePipeline : public Pipeline {
 public:
     ComputePipeline() = default;
-    ComputePipeline(DescriptorSet& descSet) : Pipeline(descSet) {}
 
-    void setup(size_t pushSize = 0);
+    void setup();
 
     void setComputeShader(const Shader& compShader) {
         assert(compShader.getStage() == vk::ShaderStageFlagBits::eCompute);
@@ -70,9 +70,8 @@ private:
 class RayTracingPipeline : public Pipeline {
 public:
     RayTracingPipeline() = default;
-    RayTracingPipeline(DescriptorSet& descSet) : Pipeline(descSet) {}
 
-    void setup(size_t pushSize = 0);
+    void setup();
 
     void setShaders(const Shader& rgenShader, const Shader& missShader, const Shader& chitShader) {
         assert(rgenShader.getStage() == vk::ShaderStageFlagBits::eRaygenKHR);

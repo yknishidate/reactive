@@ -126,7 +126,7 @@ vk::StridedDeviceAddressRegionKHR createAddressRegion(
 }
 }  // namespace
 
-void GraphicsPipeline::setup(RenderPass& renderPass, size_t pushSize) {
+void GraphicsPipeline::setup(RenderPass& renderPass) {
     this->pushSize = pushSize;
     pipelineLayout = descSet->createPipelineLayout(pushSize, vk::ShaderStageFlagBits::eAllGraphics |
                                                                  vk::ShaderStageFlagBits::eMeshEXT |
@@ -146,7 +146,7 @@ void GraphicsPipeline::setup(RenderPass& renderPass, size_t pushSize) {
                                       useMeshShader);
 }
 
-void GraphicsPipeline::setup(vk::RenderPass renderPass, size_t pushSize) {
+void GraphicsPipeline::setup(vk::RenderPass renderPass) {
     this->pushSize = pushSize;
     pipelineLayout = descSet->createPipelineLayout(pushSize, vk::ShaderStageFlagBits::eAllGraphics |
                                                                  vk::ShaderStageFlagBits::eMeshEXT |
@@ -186,8 +186,7 @@ void GraphicsPipeline::pushConstants(vk::CommandBuffer commandBuffer, void* push
                                 0, pushSize, pushData);
 }
 
-void ComputePipeline::setup(size_t pushSize) {
-    this->pushSize = pushSize;
+void ComputePipeline::setup() {
     pipelineLayout = descSet->createPipelineLayout(pushSize, vk::ShaderStageFlagBits::eCompute);
     pipeline =
         createComputePipeline(shaderModule, vk::ShaderStageFlagBits::eCompute, *pipelineLayout);
@@ -209,9 +208,7 @@ void ComputePipeline::dispatch(vk::CommandBuffer commandBuffer,
     commandBuffer.dispatch(groupCountX, groupCountY, 1);
 }
 
-void RayTracingPipeline::setup(size_t pushSize) {
-    this->pushSize = pushSize;
-
+void RayTracingPipeline::setup() {
     pipelineLayout = descSet->createPipelineLayout(
         pushSize, vk::ShaderStageFlagBits::eRaygenKHR | vk::ShaderStageFlagBits::eMissKHR |
                       vk::ShaderStageFlagBits::eClosestHitKHR |
