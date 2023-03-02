@@ -1,6 +1,6 @@
 # Reactive
 
-Realtime Ray Tracing Engine using Vulkan
+Personal Vulkan Wrapper
 
 ## Requirement
 
@@ -8,57 +8,24 @@ Realtime Ray Tracing Engine using Vulkan
 - CMake
 - vcpkg
 
-## Build
+## Run cmake
 
-### Install dependencies
-
-```
-vcpkg install stb:x64-windows
-vcpkg install glm:x64-windows
-vcpkg install glfw3:x64-windows
-vcpkg install imgui[docking-experimental,glfw-binding,vulkan-binding]:x64-windows
-vcpkg install spdlog:x64-windows
-vcpkg install tinyobjloader:x64-windows
-```
-
-### Set env variable
-
-```
-VCPKG_ROOT=/path/to/your/vcpkg
-```
-
-### Run
-
-```
+```sh
 mkdir build
 cd build
-cmake ..
 
-cmake --build .
-
-Debug\Reactive.exe
+# change to your vcpkg path
+cmake .. -D CMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake
 ```
-
-## Samples
-
-- [Hello Graphics](sample/hello_graphics/)
-- [Hello Raytracing](sample/hello_raytracing/)
-- [Light Field](sample/light_field/)
-- [ReSTIR](sample/restir/)
 
 ## Usage (in your project)
 
 1. Create project
 
 ```sh
-# make your project
 mkdir project_name
 cd project_name
-
-# init git
 git init
-
-# add Reactive
 git submodule add https://github.com/yknishidate/Reactive.git
 ```
 
@@ -66,8 +33,8 @@ git submodule add https://github.com/yknishidate/Reactive.git
 
 ```
 project_name/
-  - Reactive/
-  - main.cpp
+ - Reactive/
+ - main.cpp
 ```
 
 ```cpp
@@ -78,7 +45,7 @@ int main()
     try {
         Log::init();
         Window::init(750, 750);
-        Context::init();
+        Context::init(true);
         while (!Window::shouldClose()) {
             Window::pollEvents();
         }
@@ -102,9 +69,6 @@ project_name/
 ```cmake
 cmake_minimum_required(VERSION 3.16)
 
-# Use vcpkg
-include($ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
-
 project(project_name LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 
@@ -126,5 +90,5 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 4. Run cmake
 
 ```sh
-cmake . -B build
+cmake . -B build -D CMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake
 ```
