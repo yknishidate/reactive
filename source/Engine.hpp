@@ -27,3 +27,21 @@ void init() {
     spdlog::set_pattern("[%^%l%$] %v");
 }
 }  // namespace Log
+
+namespace File {
+template <typename T>
+void writeBinary(const std::string& filepath, const std::vector<T>& vec) {
+    std::ofstream ofs(filepath, std::ios::out | std::ios::binary);
+    ofs.write(reinterpret_cast<const char*>(vec.data()), vec.size() * sizeof(T));
+    ofs.close();
+}
+
+template <typename T>
+void readBinary(const std::string& filepath, std::vector<T>& vec) {
+    std::uintmax_t size = std::filesystem::file_size(filepath);
+    vec.resize(size / sizeof(T));
+    std::ifstream ifs(filepath, std::ios::in | std::ios::binary);
+    ifs.read(reinterpret_cast<char*>(vec.data()), vec.size() * sizeof(T));
+    ifs.close();
+}
+}  // namespace File
