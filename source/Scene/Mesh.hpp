@@ -89,7 +89,7 @@ public:
 
     int getMaterialID() const { return materialID; }
 
-    static Mesh createFrustumLines() {
+    static Mesh createCubeLines() {
         std::vector<Vertex> vertices{
             {glm::vec3(-1.0, -1.0, -1.0)}, {glm::vec3(1.0, -1.0, -1.0)},
             {glm::vec3(1.0, -1.0, 1.0)},   {glm::vec3(-1.0, -1.0, 1.0)},
