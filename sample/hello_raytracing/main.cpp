@@ -9,20 +9,20 @@ int main() {
     try {
         Log::init();
         Window::init(750, 750);
-        Context::init();
+        Context::init(true);
 
-        // std::vector<Vertex> vertices{ {{-1, 0, 0}}, {{ 0, -1, 0}}, {{ 1, 0, 0}} };
-        // std::vector<Index> indices{ 0, 1, 2 };
-        // Mesh mesh{ vertices, indices };
+        std::vector<Vertex> vertices{{{-1, 0, 0}}, {{0, -1, 0}}, {{1, 0, 0}}};
+        std::vector<Index> indices{0, 1, 2};
+        Mesh mesh{vertices, indices, 0};
 
         Swapchain swapchin{};
         GUI gui{swapchin};
-        Mesh mesh{"bunny.obj"};
         Object object{mesh};
         TopAccel topAccel{object};
         Camera camera{Window::getWidth(), Window::getHeight()};
 
-        Image outputImage{vk::Format::eB8G8R8A8Unorm};
+        Image outputImage{Window::getWidth(), Window::getHeight(), vk::Format::eB8G8R8A8Unorm,
+                          ImageUsage::GeneralStorage};
 
         Shader rgenShader{SHADER_DIR + "hello_raytracing.rgen"};
         Shader missShader{SHADER_DIR + "hello_raytracing.rmiss"};
@@ -36,9 +36,11 @@ int main() {
         descSet.record("outputImage", outputImage);
         descSet.allocate();
 
-        RayTracingPipeline pipeline{descSet};
+        RayTracingPipeline pipeline{};
         pipeline.setShaders(rgenShader, missShader, chitShader);
-        pipeline.setup(sizeof(PushConstants));
+        pipeline.setDescriptorSet(descSet);
+        pipeline.setPushSize(sizeof(PushConstants));
+        pipeline.setup();
 
         int testInt = 0;
         int frame = 0;
@@ -62,9 +64,9 @@ int main() {
             commandBuffer.pushConstants(pipeline, &pushConstants);
             commandBuffer.traceRays(pipeline, Window::getWidth(), Window::getHeight());
             commandBuffer.copyToBackImage(outputImage);
-            commandBuffer.beginRenderPass();
+            commandBuffer.beginDefaultRenderPass();
             commandBuffer.drawGUI(gui);
-            commandBuffer.endRenderPass();
+            commandBuffer.endDefaultRenderPass();
             commandBuffer.submit();
 
             swapchin.present();
