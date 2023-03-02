@@ -42,7 +42,7 @@ int main() {
 
         std::vector<Vertex> vertices{{{-1, 0, 0}}, {{0, -1, 0}}, {{1, 0, 0}}};
         std::vector<Index> indices{0, 1, 2};
-        Mesh mesh{vertices, indices, 0};
+        Mesh mesh{vertices, indices};
 
         Camera camera{Window::getWidth(), Window::getHeight()};
 
