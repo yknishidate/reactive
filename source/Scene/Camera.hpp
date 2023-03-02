@@ -22,6 +22,8 @@ public:
     float getAspect() const { return aspect; }
     float getNear() const { return zNear; }
     float getFar() const { return zFar; }
+    float getPitch() const { return pitch; }
+    float getYaw() const { return yaw; }
 
     void setPosition(float x, float y, float z) { position = {x, y, z}; }
     void setPosition(glm::vec3 pos) { position = pos; }
