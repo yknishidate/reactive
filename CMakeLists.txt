@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
 
-include($ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
-
 project(Reactive LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 
