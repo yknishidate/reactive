@@ -25,6 +25,16 @@ public:
     static auto getDescriptorPool() { return *descriptorPool; }
     static auto getSurface() { return *surface; }
 
+    static auto getPhysicalDeviceProperties() { return physicalDevice.getProperties(); }
+    template <typename T>
+    static T getPhysicalDevicePropertiesExt() {
+        T extProps;
+        vk::PhysicalDeviceProperties2 props;
+        props.pNext = &extProps;
+        physicalDevice.getProperties2(&props);
+        return extProps;
+    }
+
     static void waitIdle() { device->waitIdle(); }
 
 private:
