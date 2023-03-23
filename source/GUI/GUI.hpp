@@ -19,6 +19,11 @@ public:
     bool colorPicker4(const std::string& label, glm::vec4& value);
     bool sliderFloat(const std::string& label, float& value, float min, float max);
     bool button(const std::string& label);
+    bool dragFloat3(const std::string& label,
+                    glm::vec3& value,
+                    float speed = 1,
+                    float min = 0,
+                    float max = 0);
 
     template <typename... Args>
     void text(const char* fmt, const Args&... args) {

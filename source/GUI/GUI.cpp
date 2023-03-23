@@ -130,3 +130,11 @@ bool GUI::sliderFloat(const std::string& label, float& value, float min, float m
 bool GUI::button(const std::string& label) {
     return ImGui::Button(label.c_str());
 }
+
+bool GUI::dragFloat3(const std::string& label,
+                     glm::vec3& value,
+                     float speed,
+                     float min,
+                     float max) {
+    return ImGui::DragFloat3(label.c_str(), reinterpret_cast<float*>(&value), speed, min, max);
+}
