@@ -19,7 +19,7 @@ public:
         : swapchain{swapchain}, commandBuffer{commandBuffer} {}
 
     void bindPipeline(Pipeline& pipeline);
-    void pushConstants(Pipeline& pipeline, void* pushData);
+    void pushConstants(Pipeline& pipeline, const void* pushData);
 
     void traceRays(RayTracingPipeline& rtPipeline, uint32_t countX, uint32_t countY);
     void dispatch(ComputePipeline& compPipeline, uint32_t countX, uint32_t countY);

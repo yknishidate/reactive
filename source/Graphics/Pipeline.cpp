@@ -36,7 +36,7 @@ vk::UniquePipeline createGraphicsPipeline(
     rasterization.setCullMode(vk::CullModeFlagBits::eNone);
     rasterization.setFrontFace(vk::FrontFace::eCounterClockwise);
     rasterization.setDepthBiasEnable(VK_FALSE);
-    rasterization.setLineWidth(4.0f);
+    rasterization.setLineWidth(2.0f);
 
     vk::PipelineMultisampleStateCreateInfo multisampling;
     multisampling.setSampleShadingEnable(VK_FALSE);
@@ -178,7 +178,7 @@ void GraphicsPipeline::bind(vk::CommandBuffer commandBuffer) {
     descSet->bind(commandBuffer, vk::PipelineBindPoint::eGraphics, *pipelineLayout);
 }
 
-void GraphicsPipeline::pushConstants(vk::CommandBuffer commandBuffer, void* pushData) {
+void GraphicsPipeline::pushConstants(vk::CommandBuffer commandBuffer, const void* pushData) {
     commandBuffer.pushConstants(*pipelineLayout,
                                 vk::ShaderStageFlagBits::eAllGraphics |
                                     vk::ShaderStageFlagBits::eMeshEXT |
@@ -197,7 +197,7 @@ void ComputePipeline::bind(vk::CommandBuffer commandBuffer) {
     descSet->bind(commandBuffer, vk::PipelineBindPoint::eCompute, *pipelineLayout);
 }
 
-void ComputePipeline::pushConstants(vk::CommandBuffer commandBuffer, void* pushData) {
+void ComputePipeline::pushConstants(vk::CommandBuffer commandBuffer, const void* pushData) {
     commandBuffer.pushConstants(*pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0, pushSize,
                                 pushData);
 }
@@ -254,7 +254,7 @@ void RayTracingPipeline::bind(vk::CommandBuffer commandBuffer) {
     descSet->bind(commandBuffer, vk::PipelineBindPoint::eRayTracingKHR, *pipelineLayout);
 }
 
-void RayTracingPipeline::pushConstants(vk::CommandBuffer commandBuffer, void* pushData) {
+void RayTracingPipeline::pushConstants(vk::CommandBuffer commandBuffer, const void* pushData) {
     commandBuffer.pushConstants(
         *pipelineLayout,
         vk::ShaderStageFlagBits::eRaygenKHR | vk::ShaderStageFlagBits::eMissKHR |

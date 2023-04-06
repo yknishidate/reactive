@@ -17,7 +17,7 @@ void CommandBuffer::bindPipeline(Pipeline& pipeline) {
     pipeline.bind(commandBuffer);
 }
 
-void CommandBuffer::pushConstants(Pipeline& pipeline, void* pushData) {
+void CommandBuffer::pushConstants(Pipeline& pipeline, const void* pushData) {
     pipeline.pushConstants(commandBuffer, pushData);
 }
 

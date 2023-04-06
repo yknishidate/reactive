@@ -18,7 +18,7 @@ public:
 protected:
     friend class CommandBuffer;
     virtual void bind(vk::CommandBuffer commandBuffer) = 0;
-    virtual void pushConstants(vk::CommandBuffer commandBuffer, void* pushData) = 0;
+    virtual void pushConstants(vk::CommandBuffer commandBuffer, const void* pushData) = 0;
 
     vk::UniquePipelineLayout pipelineLayout;
     vk::UniquePipeline pipeline;
@@ -40,7 +40,7 @@ public:
 private:
     friend class CommandBuffer;
     void bind(vk::CommandBuffer commandBuffer) override;
-    void pushConstants(vk::CommandBuffer commandBuffer, void* pushData) override;
+    void pushConstants(vk::CommandBuffer commandBuffer, const void* pushData) override;
 
     std::vector<const Shader*> shaders;
     vk::PrimitiveTopology topology = vk::PrimitiveTopology::eTriangleList;
@@ -61,7 +61,7 @@ public:
 private:
     friend class CommandBuffer;
     void bind(vk::CommandBuffer commandBuffer) override;
-    void pushConstants(vk::CommandBuffer commandBuffer, void* pushData) override;
+    void pushConstants(vk::CommandBuffer commandBuffer, const void* pushData) override;
     void dispatch(vk::CommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY);
 
     vk::ShaderModule shaderModule;
@@ -139,7 +139,7 @@ public:
 private:
     friend class CommandBuffer;
     void bind(vk::CommandBuffer commandBuffer) override;
-    void pushConstants(vk::CommandBuffer commandBuffer, void* pushData) override;
+    void pushConstants(vk::CommandBuffer commandBuffer, const void* pushData) override;
     void traceRays(vk::CommandBuffer commandBuffer, uint32_t countX, uint32_t countY);
 
     std::vector<vk::ShaderModule> shaderModules;
