@@ -12,6 +12,7 @@ class GUI;
 class RenderPass;
 class DeviceBuffer;
 class GPUTimer;
+class Buffer;
 
 class CommandBuffer {
 public:
@@ -56,6 +57,13 @@ public:
         commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, memoryBarriers,
                                       bufferMemoryBarriers, imageMemoryBarriers);
     }
+
+    void pipelineBarrier(vk::PipelineStageFlags srcStageMask,
+                         vk::PipelineStageFlags dstStageMask,
+                         vk::DependencyFlags dependencyFlags,
+                         const Buffer& buffer,
+                         vk::AccessFlags srcAccessMask,
+                         vk::AccessFlags dstAccessMask) const;
 
     void pipelineBarrier(
         vk::PipelineStageFlags srcStageMask,

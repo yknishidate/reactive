@@ -81,6 +81,25 @@ void CommandBuffer::drawMeshTasks(uint32_t groupCountX,
     commandBuffer.drawMeshTasksEXT(groupCountX, groupCountY, groupCountZ);
 }
 
+void CommandBuffer::pipelineBarrier(vk::PipelineStageFlags srcStageMask,
+                                    vk::PipelineStageFlags dstStageMask,
+                                    vk::DependencyFlags dependencyFlags,
+                                    const Buffer& buffer,
+                                    vk::AccessFlags srcAccessMask,
+                                    vk::AccessFlags dstAccessMask) const {
+    vk::BufferMemoryBarrier bufferMemoryBarrier;
+    bufferMemoryBarrier.srcAccessMask = srcAccessMask;
+    bufferMemoryBarrier.dstAccessMask = dstAccessMask;
+    bufferMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    bufferMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    bufferMemoryBarrier.buffer = buffer.getBuffer();
+    bufferMemoryBarrier.offset = 0;
+    bufferMemoryBarrier.size = VK_WHOLE_SIZE;
+
+    commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, nullptr,
+                                  bufferMemoryBarrier, nullptr);
+}
+
 void CommandBuffer::copyToBackImage(Image& source) {
     swapchain->copyToBackImage(commandBuffer, source);
 }
