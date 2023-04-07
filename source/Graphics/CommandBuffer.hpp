@@ -26,11 +26,17 @@ public:
 
     void clearBackImage(std::array<float, 4> color);
     void clearColorImage(Image& image, std::array<float, 4> color);
+
+    // render pass
     void beginDefaultRenderPass();
     void beginRenderPass(RenderPass& renderPass);
     void endDefaultRenderPass();
     void endRenderPass(RenderPass& renderPass);
+
+    // submit
     void submit();
+
+    // draw
     void drawIndexed(const Mesh& mesh);
     void drawIndexed(const DeviceBuffer& vertexBuffer,
                      const DeviceBuffer& indexBuffer,
@@ -38,6 +44,46 @@ public:
                      uint32_t firstIndex = 0) const;
     void drawGUI(GUI& gui);
     void drawMeshTasks(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
+
+    // barrier
+    void pipelineBarrier(
+        vk::PipelineStageFlags srcStageMask,
+        vk::PipelineStageFlags dstStageMask,
+        vk::DependencyFlags dependencyFlags,
+        vk::ArrayProxy<const vk::MemoryBarrier> const& memoryBarriers,
+        vk::ArrayProxy<const vk::BufferMemoryBarrier> const& bufferMemoryBarriers,
+        vk::ArrayProxy<const vk::ImageMemoryBarrier> const& imageMemoryBarriers) const {
+        commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, memoryBarriers,
+                                      bufferMemoryBarriers, imageMemoryBarriers);
+    }
+
+    void pipelineBarrier(
+        vk::PipelineStageFlags srcStageMask,
+        vk::PipelineStageFlags dstStageMask,
+        vk::DependencyFlags dependencyFlags,
+        vk::ArrayProxy<const vk::BufferMemoryBarrier> const& bufferMemoryBarriers) const {
+        commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, nullptr,
+                                      bufferMemoryBarriers, nullptr);
+    }
+
+    void pipelineBarrier(
+        vk::PipelineStageFlags srcStageMask,
+        vk::PipelineStageFlags dstStageMask,
+        vk::DependencyFlags dependencyFlags,
+        vk::ArrayProxy<const vk::ImageMemoryBarrier> const& imageMemoryBarriers) const {
+        commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, nullptr, nullptr,
+                                      imageMemoryBarriers);
+    }
+
+    void pipelineBarrier(vk::PipelineStageFlags srcStageMask,
+                         vk::PipelineStageFlags dstStageMask,
+                         vk::DependencyFlags dependencyFlags,
+                         vk::ArrayProxy<const vk::MemoryBarrier> const& memoryBarriers) const {
+        commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, memoryBarriers,
+                                      nullptr, nullptr);
+    }
+
+    // back image
     void copyToBackImage(Image& image);
     void setBackImageLayout(vk::ImageLayout layout);
 
