@@ -30,6 +30,9 @@ private:
 
 class DescriptorSet {
 public:
+    DescriptorSet() = default;
+    DescriptorSet(const App* app) : m_app{app} {}
+
     void allocate();
     void update();
     void bind(vk::CommandBuffer commandBuffer,
@@ -39,7 +42,7 @@ public:
     void record(const std::string& name, const std::vector<Image>& images);
     void record(const std::string& name, const Buffer& buffer);
     void record(const std::string& name, const Image& image);
-    void record(const std::string& name, const TopAccel& accel);
+    // void record(const std::string& name, const TopAccel& accel);
 
     void addResources(const Shader& shader);
 
@@ -52,6 +55,7 @@ private:
                           vk::ShaderStageFlags stage,
                           vk::DescriptorType type);
 
+    const App* m_app;
     vk::UniqueDescriptorSet descSet;
     vk::UniqueDescriptorSetLayout descSetLayout;
     std::unordered_map<std::string, vk::DescriptorSetLayoutBinding> bindingMap;

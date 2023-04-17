@@ -1,86 +1,16 @@
-// #include "Pipeline.hpp"
-// #include <spdlog/spdlog.h>
-// #include <regex>
-// #include "Compiler/Compiler.hpp"
-// #include "Context.hpp"
-// #include "Image.hpp"
-// #include "RenderPass.hpp"
-// #include "Scene/Object.hpp"
-// #include "Window/Window.hpp"
-//
-// namespace {
-// vk::UniqueShaderModule createShaderModule(const std::vector<uint32_t>& code) {
-//     vk::ShaderModuleCreateInfo createInfo;
-//     createInfo.setCode(code);
-//     return Context::getDevice().createShaderModuleUnique(createInfo);
-// }
-//
-// vk::UniquePipeline createGraphicsPipeline(
-//     ArrayProxy<vk::PipelineShaderStageCreateInfo> shaderStages,
-//     vk::PipelineLayout pipelineLayout,
-//     vk::RenderPass renderPass,
-//     vk::PipelineColorBlendStateCreateInfo colorBlending,
-//     vk::PrimitiveTopology topology,
-//     vk::PolygonMode polygonMode,
-//     bool useMeshShader) {
-//     auto width = static_cast<float>(Window::getWidth());
-//     auto height = static_cast<float>(Window::getHeight());
-//     vk::Viewport viewport{0.0f, 0.0f, width, height, 0.0f, 1.0f};
-//     vk::Rect2D scissor{{0, 0}, {Window::getWidth(), Window::getWidth()}};
-//     vk::PipelineViewportStateCreateInfo viewportState{{}, 1, &viewport, 1, &scissor};
-//
-//     vk::PipelineRasterizationStateCreateInfo rasterization;
-//     rasterization.setDepthClampEnable(VK_FALSE);
-//     rasterization.setRasterizerDiscardEnable(VK_FALSE);
-//     rasterization.setPolygonMode(polygonMode);
-//     rasterization.setCullMode(vk::CullModeFlagBits::eNone);
-//     rasterization.setFrontFace(vk::FrontFace::eCounterClockwise);
-//     rasterization.setDepthBiasEnable(VK_FALSE);
-//     rasterization.setLineWidth(2.0f);
-//
-//     vk::PipelineMultisampleStateCreateInfo multisampling;
-//     multisampling.setSampleShadingEnable(VK_FALSE);
-//
-//     vk::PipelineDepthStencilStateCreateInfo depthStencil;
-//     depthStencil.setDepthTestEnable(VK_TRUE);
-//     depthStencil.setDepthWriteEnable(VK_TRUE);
-//     depthStencil.setDepthCompareOp(vk::CompareOp::eLess);
-//     depthStencil.setDepthBoundsTestEnable(VK_FALSE);
-//     depthStencil.setStencilTestEnable(VK_FALSE);
-//
-//     vk::GraphicsPipelineCreateInfo pipelineInfo;
-//     pipelineInfo.setStages(shaderStages);
-//     pipelineInfo.setPViewportState(&viewportState);
-//     pipelineInfo.setPRasterizationState(&rasterization);
-//     pipelineInfo.setPMultisampleState(&multisampling);
-//     pipelineInfo.setPDepthStencilState(&depthStencil);
-//     pipelineInfo.setPColorBlendState(&colorBlending);
-//     pipelineInfo.setLayout(pipelineLayout);
-//     pipelineInfo.setSubpass(0);
-//     pipelineInfo.setRenderPass(renderPass);
-//
-//     vk::VertexInputBindingDescription bindingDescription;
-//     std::array attributeDescriptions = Vertex::getAttributeDescriptions();
-//     vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
-//     vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
-//     if (!useMeshShader) {
-//         bindingDescription.setBinding(0);
-//         bindingDescription.setStride(sizeof(Vertex));
-//         bindingDescription.setInputRate(vk::VertexInputRate::eVertex);
-//         vertexInputInfo.setVertexBindingDescriptions(bindingDescription);
-//         vertexInputInfo.setVertexAttributeDescriptions(attributeDescriptions);
-//         inputAssembly.setTopology(topology);
-//         pipelineInfo.setPInputAssemblyState(&inputAssembly);
-//         pipelineInfo.setPVertexInputState(&vertexInputInfo);
-//     }
-//
-//     auto result = Context::getDevice().createGraphicsPipelineUnique({}, pipelineInfo);
-//     if (result.result != vk::Result::eSuccess) {
-//         throw std::runtime_error("failed to create a pipeline!");
-//     }
-//     return std::move(result.value);
-// }
-//
+#include "Pipeline.hpp"
+#include <spdlog/spdlog.h>
+#include <regex>
+#include "Compiler/Compiler.hpp"
+#include "Context.hpp"
+#include "Graphics/ArrayProxy.hpp"
+#include "Image.hpp"
+#include "RenderPass.hpp"
+#include "Scene/Mesh.hpp"
+#include "Scene/Object.hpp"
+#include "Window/Window.hpp"
+
+namespace {
 // vk::UniquePipeline createComputePipeline(vk::ShaderModule shaderModule,
 //                                          vk::ShaderStageFlagBits shaderStage,
 //                                          vk::PipelineLayout pipelineLayout) {
@@ -114,18 +44,18 @@
 //     }
 //     return std::move(res.value);
 // }
-//
-// vk::StridedDeviceAddressRegionKHR createAddressRegion(
-//     vk::PhysicalDeviceRayTracingPipelinePropertiesKHR rtProperties,
-//     vk::DeviceAddress deviceAddress) {
-//     vk::StridedDeviceAddressRegionKHR region{};
-//     region.setDeviceAddress(deviceAddress);
-//     region.setStride(rtProperties.shaderGroupHandleAlignment);
-//     region.setSize(rtProperties.shaderGroupHandleAlignment);
-//     return region;
-// }
-// }  // namespace
-//
+
+vk::StridedDeviceAddressRegionKHR createAddressRegion(
+    vk::PhysicalDeviceRayTracingPipelinePropertiesKHR rtProperties,
+    vk::DeviceAddress deviceAddress) {
+    vk::StridedDeviceAddressRegionKHR region{};
+    region.setDeviceAddress(deviceAddress);
+    region.setStride(rtProperties.shaderGroupHandleAlignment);
+    region.setSize(rtProperties.shaderGroupHandleAlignment);
+    return region;
+}
+}  // namespace
+
 // void GraphicsPipeline::setup(RenderPass& renderPass) {
 //     this->pushSize = pushSize;
 //     pipelineLayout = descSet->createPipelineLayout(pushSize,
@@ -147,49 +77,103 @@
 //                                       renderPass.createColorBlending(), topology, polygonMode,
 //                                       useMeshShader);
 // }
-//
-// void GraphicsPipeline::setup(vk::RenderPass renderPass) {
-//     this->pushSize = pushSize;
-//     pipelineLayout = descSet->createPipelineLayout(pushSize,
-//     vk::ShaderStageFlagBits::eAllGraphics |
-//                                                                  vk::ShaderStageFlagBits::eMeshEXT
-//                                                                  |
-//                                                                  vk::ShaderStageFlagBits::eTaskEXT);
-//
-//     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
-//     bool useMeshShader = false;
-//     for (auto& shader : shaders) {
-//         useMeshShader |= shader->getStage() == vk::ShaderStageFlagBits::eMeshEXT;
-//         shaderStages.push_back(vk::PipelineShaderStageCreateInfo()
-//                                    .setModule(shader->getModule())
-//                                    .setStage(shader->getStage())
-//                                    .setPName("main"));
-//     }
-//     vk::PipelineColorBlendAttachmentState colorBlendState;
-//     colorBlendState.setColorWriteMask(
-//         vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
-//         vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
-//
-//     vk::PipelineColorBlendStateCreateInfo colorBlending;
-//     colorBlending.setAttachments(colorBlendState);
-//     colorBlending.setLogicOpEnable(VK_FALSE);
-//     pipeline = createGraphicsPipeline(shaderStages, *pipelineLayout, renderPass, colorBlending,
-//                                       topology, polygonMode, useMeshShader);
-// }
-//
-// void GraphicsPipeline::bind(vk::CommandBuffer commandBuffer) {
-//     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *pipeline);
-//     descSet->bind(commandBuffer, vk::PipelineBindPoint::eGraphics, *pipelineLayout);
-// }
-//
-// void GraphicsPipeline::pushConstants(vk::CommandBuffer commandBuffer, const void* pushData) {
-//     commandBuffer.pushConstants(*pipelineLayout,
-//                                 vk::ShaderStageFlagBits::eAllGraphics |
-//                                     vk::ShaderStageFlagBits::eMeshEXT |
-//                                     vk::ShaderStageFlagBits::eTaskEXT,
-//                                 0, pushSize, pushData);
-// }
-//
+
+void GraphicsPipeline::setup(vk::RenderPass renderPass) {
+    this->pushSize = pushSize;
+    pipelineLayout = descSet->createPipelineLayout(pushSize, vk::ShaderStageFlagBits::eAllGraphics |
+                                                                 vk::ShaderStageFlagBits::eMeshEXT |
+                                                                 vk::ShaderStageFlagBits::eTaskEXT);
+
+    std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
+    bool useMeshShader = false;
+    for (auto& shader : shaders) {
+        useMeshShader |= shader->getStage() == vk::ShaderStageFlagBits::eMeshEXT;
+        shaderStages.push_back(vk::PipelineShaderStageCreateInfo()
+                                   .setModule(shader->getModule())
+                                   .setStage(shader->getStage())
+                                   .setPName("main"));
+    }
+    vk::PipelineColorBlendAttachmentState colorBlendState;
+    colorBlendState.setColorWriteMask(
+        vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+        vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
+
+    vk::PipelineColorBlendStateCreateInfo colorBlending;
+    colorBlending.setAttachments(colorBlendState);
+    colorBlending.setLogicOpEnable(VK_FALSE);
+    // pipeline = createGraphicsPipeline(shaderStages, *pipelineLayout, renderPass, colorBlending,
+    //                                   topology, polygonMode, useMeshShader);
+    auto width = static_cast<float>(m_app->getWidth());
+    auto height = static_cast<float>(m_app->getHeight());
+    vk::Viewport viewport{0.0f, 0.0f, width, height, 0.0f, 1.0f};
+    vk::Rect2D scissor{{0, 0}, {m_app->getWidth(), m_app->getWidth()}};
+    vk::PipelineViewportStateCreateInfo viewportState{{}, 1, &viewport, 1, &scissor};
+
+    vk::PipelineRasterizationStateCreateInfo rasterization;
+    rasterization.setDepthClampEnable(VK_FALSE);
+    rasterization.setRasterizerDiscardEnable(VK_FALSE);
+    rasterization.setPolygonMode(polygonMode);
+    rasterization.setCullMode(vk::CullModeFlagBits::eNone);
+    rasterization.setFrontFace(vk::FrontFace::eCounterClockwise);
+    rasterization.setDepthBiasEnable(VK_FALSE);
+    rasterization.setLineWidth(2.0f);
+
+    vk::PipelineMultisampleStateCreateInfo multisampling;
+    multisampling.setSampleShadingEnable(VK_FALSE);
+
+    vk::PipelineDepthStencilStateCreateInfo depthStencil;
+    depthStencil.setDepthTestEnable(VK_TRUE);
+    depthStencil.setDepthWriteEnable(VK_TRUE);
+    depthStencil.setDepthCompareOp(vk::CompareOp::eLess);
+    depthStencil.setDepthBoundsTestEnable(VK_FALSE);
+    depthStencil.setStencilTestEnable(VK_FALSE);
+
+    vk::GraphicsPipelineCreateInfo pipelineInfo;
+    pipelineInfo.setStages(shaderStages);
+    pipelineInfo.setPViewportState(&viewportState);
+    pipelineInfo.setPRasterizationState(&rasterization);
+    pipelineInfo.setPMultisampleState(&multisampling);
+    pipelineInfo.setPDepthStencilState(&depthStencil);
+    pipelineInfo.setPColorBlendState(&colorBlending);
+    pipelineInfo.setLayout(*pipelineLayout);
+    pipelineInfo.setSubpass(0);
+    pipelineInfo.setRenderPass(renderPass);
+
+    vk::VertexInputBindingDescription bindingDescription;
+    std::array attributeDescriptions = Vertex::getAttributeDescriptions();
+    vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
+    vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
+    if (!useMeshShader) {
+        bindingDescription.setBinding(0);
+        bindingDescription.setStride(sizeof(Vertex));
+        bindingDescription.setInputRate(vk::VertexInputRate::eVertex);
+        vertexInputInfo.setVertexBindingDescriptions(bindingDescription);
+        vertexInputInfo.setVertexAttributeDescriptions(attributeDescriptions);
+        inputAssembly.setTopology(topology);
+        pipelineInfo.setPInputAssemblyState(&inputAssembly);
+        pipelineInfo.setPVertexInputState(&vertexInputInfo);
+    }
+
+    auto result = m_app->getDevice().createGraphicsPipelineUnique({}, pipelineInfo);
+    if (result.result != vk::Result::eSuccess) {
+        throw std::runtime_error("failed to create a pipeline!");
+    }
+    pipeline = std::move(result.value);
+}
+
+void GraphicsPipeline::bind(vk::CommandBuffer commandBuffer) {
+    commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *pipeline);
+    descSet->bind(commandBuffer, vk::PipelineBindPoint::eGraphics, *pipelineLayout);
+}
+
+void GraphicsPipeline::pushConstants(vk::CommandBuffer commandBuffer, const void* pushData) {
+    commandBuffer.pushConstants(*pipelineLayout,
+                                vk::ShaderStageFlagBits::eAllGraphics |
+                                    vk::ShaderStageFlagBits::eMeshEXT |
+                                    vk::ShaderStageFlagBits::eTaskEXT,
+                                0, pushSize, pushData);
+}
+
 // void ComputePipeline::setup() {
 //     pipelineLayout = descSet->createPipelineLayout(pushSize, vk::ShaderStageFlagBits::eCompute);
 //     pipeline =

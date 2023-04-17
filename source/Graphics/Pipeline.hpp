@@ -6,11 +6,12 @@
 
 class Image;
 class Scene;
-class RenderPass;
+// class RenderPass;
 
 class Pipeline {
 public:
     Pipeline() = default;
+    Pipeline(const App* app) : m_app{app} {}
 
     void setDescriptorSet(DescriptorSet& set) { descSet = &set; }
     void setPushSize(size_t size) { pushSize = size; }
@@ -20,6 +21,7 @@ protected:
     virtual void bind(vk::CommandBuffer commandBuffer) = 0;
     virtual void pushConstants(vk::CommandBuffer commandBuffer, const void* pushData) = 0;
 
+    const App* m_app;
     vk::UniquePipelineLayout pipelineLayout;
     vk::UniquePipeline pipeline;
     size_t pushSize = 0;
@@ -29,8 +31,9 @@ protected:
 class GraphicsPipeline : public Pipeline {
 public:
     GraphicsPipeline() = default;
+    GraphicsPipeline(const App* app) : Pipeline{app} {}
 
-    void setup(RenderPass& renderPass);
+    // void setup(RenderPass& renderPass);
     void setup(vk::RenderPass renderPass);
     void addShader(const Shader& shader) { shaders.push_back(&shader); }
 
@@ -50,6 +53,7 @@ private:
 class ComputePipeline : public Pipeline {
 public:
     ComputePipeline() = default;
+    ComputePipeline(const App* app) : Pipeline{app} {}
 
     void setup();
 
@@ -70,6 +74,7 @@ private:
 class RayTracingPipeline : public Pipeline {
 public:
     RayTracingPipeline() = default;
+    RayTracingPipeline(const App* app) : Pipeline{app} {}
 
     void setup();
 

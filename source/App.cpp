@@ -1,5 +1,4 @@
 #include "App.hpp"
-VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -8,6 +7,9 @@ VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
+#include <imgui_impl_vulkan.h>
+
+VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 App::App(int width, int height, const std::string& title, bool enableValidation)
     : m_width{width}, m_height{height}, m_title{title}, m_enableValidation{enableValidation} {
@@ -28,6 +30,7 @@ void App::run() {
         while (!glfwWindowShouldClose(m_window)) {
             glfwPollEvents();
 
+            // Update mouse position
             double xPos{};
             double yPos{};
             glfwGetCursorPos(m_window, &xPos, &yPos);
@@ -35,10 +38,15 @@ void App::run() {
             m_currMousePos = {xPos, yPos};
 
             onUpdate();
+            onRender();
         }
         device->waitIdle();
+
+        // Shutdown GLFW
         glfwDestroyWindow(m_window);
         glfwTerminate();
+
+        // Shutdown ImGui
         ImGui_ImplVulkan_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
@@ -47,14 +55,14 @@ void App::run() {
     }
 }
 
-std::vector<vk::UniqueCommandBuffer> App::allocateCommandBuffers(uint32_t count) {
+std::vector<vk::UniqueCommandBuffer> App::allocateCommandBuffers(uint32_t count) const {
     return device->allocateCommandBuffersUnique(vk::CommandBufferAllocateInfo()
                                                     .setCommandPool(*commandPool)
                                                     .setLevel(vk::CommandBufferLevel::ePrimary)
                                                     .setCommandBufferCount(count));
 }
 
-void App::oneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command) {
+void App::oneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command) const {
     vk::UniqueCommandBuffer commandBuffer = std::move(allocateCommandBuffers(1).front());
     commandBuffer->begin(
         vk::CommandBufferBeginInfo().setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
@@ -62,6 +70,13 @@ void App::oneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command) {
     commandBuffer->end();
     queue.submit(vk::SubmitInfo().setCommandBuffers(*commandBuffer));
     queue.waitIdle();
+}
+
+vk::UniqueDescriptorSet App::allocateDescriptorSet(vk::DescriptorSetLayout descSetLayout) const {
+    vk::DescriptorSetAllocateInfo descSetInfo;
+    descSetInfo.setDescriptorPool(*descriptorPool);
+    descSetInfo.setSetLayouts(descSetLayout);
+    return std::move(device->allocateDescriptorSetsUnique(descSetInfo).front());
 }
 
 uint32_t App::findMemoryTypeIndex(vk::MemoryRequirements requirements,
@@ -131,12 +146,15 @@ void App::initVulkan() {
                 .setPfnUserCallback(&debugCallback));
     }
 
+    // Create surface
     VkSurfaceKHR _surface;
     if (glfwCreateWindowSurface(VkInstance{*instance}, m_window, nullptr, &_surface) !=
         VK_SUCCESS) {
         throw std::runtime_error("failed to create window surface!");
     }
     surface = vk::UniqueSurfaceKHR{_surface, {*instance}};
+
+    // Pick GPU
     physicalDevice = instance->enumeratePhysicalDevices().front();
 
     // Find queue family

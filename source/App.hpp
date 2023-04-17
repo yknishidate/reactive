@@ -4,7 +4,6 @@
 #include <vector>
 
 #include <GLFW/glfw3.h>
-#include <imgui_impl_vulkan.h>
 #include <spdlog/spdlog.h>
 #include <vulkan/vulkan.hpp>
 
@@ -16,16 +15,24 @@ public:
 
     virtual void onStart() {}
     virtual void onUpdate() {}
+    virtual void onRender() {}
 
     // Vulkan function
-    std::vector<vk::UniqueCommandBuffer> allocateCommandBuffers(uint32_t count);
+    std::vector<vk::UniqueCommandBuffer> allocateCommandBuffers(uint32_t count) const;
 
-    void oneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command);
+    void oneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command) const;
+
+    vk::UniqueDescriptorSet allocateDescriptorSet(vk::DescriptorSetLayout descSetLayout) const;
 
     uint32_t findMemoryTypeIndex(vk::MemoryRequirements requirements,
                                  vk::MemoryPropertyFlags memoryProp) const;
 
-private:
+    // Getter
+    vk::Device getDevice() const { return *device; }
+    uint32_t getWidth() const { return m_width; }
+    uint32_t getHeight() const { return m_height; }
+
+protected:
     void initGLFW();
     void initVulkan();
     void initImGui();
