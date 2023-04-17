@@ -167,6 +167,10 @@ public:
 };
 
 int main() {
-    HelloApp app{};
-    app.run();
+    try {
+        HelloApp app{};
+        app.run();
+    } catch (const std::exception& e) {
+        spdlog::error(e.what());
+    }
 }

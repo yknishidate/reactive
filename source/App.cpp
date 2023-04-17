@@ -15,104 +15,96 @@ App::App(int width, int height, const std::string& title, bool enableValidation)
     : m_width{width}, m_height{height}, m_title{title}, m_enableValidation{enableValidation} {
     spdlog::set_pattern("[%^%l%$] %v");
 
-    try {
-        initGLFW();
-        initVulkan();
-        initImGui();
-    } catch (const std::exception& e) {
-        spdlog::error(e.what());
-    }
+    initGLFW();
+    initVulkan();
+    initImGui();
 }
 
 void App::run() {
-    try {
-        onStart();
-        while (!glfwWindowShouldClose(m_window)) {
-            glfwPollEvents();
+    onStart();
+    while (!glfwWindowShouldClose(m_window)) {
+        glfwPollEvents();
 
-            // Update mouse position
-            double xPos{};
-            double yPos{};
-            glfwGetCursorPos(m_window, &xPos, &yPos);
-            m_lastMousePos = m_currMousePos;
-            m_currMousePos = {xPos, yPos};
+        // Update mouse position
+        double xPos{};
+        double yPos{};
+        glfwGetCursorPos(m_window, &xPos, &yPos);
+        m_lastMousePos = m_currMousePos;
+        m_currMousePos = {xPos, yPos};
 
-            onUpdate();
+        onUpdate();
 
-            // Start ImGui
-            ImGui_ImplVulkan_NewFrame();
-            ImGui_ImplGlfw_NewFrame();
-            ImGui::NewFrame();
+        // Start ImGui
+        ImGui_ImplVulkan_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
 
-            // Acquire next image
-            frameIndex =
-                device->acquireNextImageKHR(*swapchain, UINT64_MAX, *imageAcquiredSemaphore).value;
+        // Acquire next image
+        frameIndex =
+            device->acquireNextImageKHR(*swapchain, UINT64_MAX, *imageAcquiredSemaphore).value;
 
-            // Wait fences
-            vk::Result result = device->waitForFences(*fences[frameIndex], VK_TRUE, UINT64_MAX);
-            if (result != vk::Result::eSuccess) {
-                throw std::runtime_error("Failed to wait for fence");
-            }
-            device->resetFences(*fences[frameIndex]);
+        // Wait fences
+        vk::Result result = device->waitForFences(*fences[frameIndex], VK_TRUE, UINT64_MAX);
+        if (result != vk::Result::eSuccess) {
+            throw std::runtime_error("Failed to wait for fence");
+        }
+        device->resetFences(*fences[frameIndex]);
 
-            // Begin command buffer
-            commandBuffers[frameIndex]->begin(vk::CommandBufferBeginInfo().setFlags(
-                vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
+        // Begin command buffer
+        commandBuffers[frameIndex]->begin(
+            vk::CommandBufferBeginInfo().setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
+
+        // Render
+        CommandBuffer commandBuffer = {this, *commandBuffers[frameIndex]};
+        onRender(commandBuffer);
+
+        // Draw GUI
+        {
+            // Begin render pass
+            commandBuffer.beginDefaultRenderPass();
 
             // Render
-            CommandBuffer commandBuffer = {this, *commandBuffers[frameIndex]};
-            onRender(commandBuffer);
+            ImGui::Render();
+            ImDrawData* drawData = ImGui::GetDrawData();
+            ImGui_ImplVulkan_RenderDrawData(drawData, *commandBuffers[frameIndex]);
 
-            // Draw GUI
-            {
-                // Begin render pass
-                commandBuffer.beginDefaultRenderPass();
-
-                // Render
-                ImGui::Render();
-                ImDrawData* drawData = ImGui::GetDrawData();
-                ImGui_ImplVulkan_RenderDrawData(drawData, *commandBuffers[frameIndex]);
-
-                // End render pass
-                commandBuffer.endRenderPass();
-            }
-
-            // End command buffer
-            commandBuffers[frameIndex]->end();
-
-            // Submit
-            vk::PipelineStageFlags waitStage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-            vk::SubmitInfo submitInfo;
-            submitInfo.setWaitDstStageMask(waitStage);
-            submitInfo.setCommandBuffers(*commandBuffers[frameIndex]);
-            submitInfo.setWaitSemaphores(*imageAcquiredSemaphore);
-            submitInfo.setSignalSemaphores(*renderCompleteSemaphore);
-            queue.submit(submitInfo, *fences[frameIndex]);
-
-            // Present image
-            vk::PresentInfoKHR presentInfo;
-            presentInfo.setWaitSemaphores(*renderCompleteSemaphore);
-            presentInfo.setSwapchains(*swapchain);
-            presentInfo.setImageIndices(frameIndex);
-            if (queue.presentKHR(presentInfo) != vk::Result::eSuccess) {
-                swapchainRebuild = true;
-                return;
-            }
-            semaphoreIndex = (semaphoreIndex + 1) % swapchainImages.size();
+            // End render pass
+            commandBuffer.endRenderPass();
         }
-        device->waitIdle();
 
-        // Shutdown GLFW
-        glfwDestroyWindow(m_window);
-        glfwTerminate();
+        // End command buffer
+        commandBuffers[frameIndex]->end();
 
-        // Shutdown ImGui
-        ImGui_ImplVulkan_Shutdown();
-        ImGui_ImplGlfw_Shutdown();
-        ImGui::DestroyContext();
-    } catch (const std::exception& e) {
-        spdlog::error(e.what());
+        // Submit
+        vk::PipelineStageFlags waitStage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+        vk::SubmitInfo submitInfo;
+        submitInfo.setWaitDstStageMask(waitStage);
+        submitInfo.setCommandBuffers(*commandBuffers[frameIndex]);
+        submitInfo.setWaitSemaphores(*imageAcquiredSemaphore);
+        submitInfo.setSignalSemaphores(*renderCompleteSemaphore);
+        queue.submit(submitInfo, *fences[frameIndex]);
+
+        // Present image
+        vk::PresentInfoKHR presentInfo;
+        presentInfo.setWaitSemaphores(*renderCompleteSemaphore);
+        presentInfo.setSwapchains(*swapchain);
+        presentInfo.setImageIndices(frameIndex);
+        if (queue.presentKHR(presentInfo) != vk::Result::eSuccess) {
+            swapchainRebuild = true;
+            return;
+        }
+        semaphoreIndex = (semaphoreIndex + 1) % swapchainImages.size();
     }
+    device->waitIdle();
+
+    // Shutdown GLFW
+    glfwDestroyWindow(m_window);
+    glfwTerminate();
+
+    // Shutdown ImGui
+    ImGui_ImplVulkan_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 }
 
 std::vector<vk::UniqueCommandBuffer> App::allocateCommandBuffers(uint32_t count) const {
