@@ -7,6 +7,8 @@
 #include <spdlog/spdlog.h>
 #include <vulkan/vulkan.hpp>
 
+#include "Graphics/CommandBuffer.hpp"
+
 namespace Key {
 constexpr inline int W = GLFW_KEY_W;
 constexpr inline int A = GLFW_KEY_A;
@@ -23,7 +25,7 @@ public:
 
     virtual void onStart() {}
     virtual void onUpdate() {}
-    virtual void onRender() {}
+    virtual void onRender(vk::CommandBuffer commandBuffer) {}
 
     // Vulkan function
     std::vector<vk::UniqueCommandBuffer> allocateCommandBuffers(uint32_t count) const;
@@ -39,6 +41,7 @@ public:
     vk::Device getDevice() const { return *device; }
     uint32_t getWidth() const { return m_width; }
     uint32_t getHeight() const { return m_height; }
+    vk::Image getBackImage() const { return swapchainImages[frameIndex]; }
 
     // Input
     bool mousePressed() const;

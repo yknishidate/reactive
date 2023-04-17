@@ -1,7 +1,7 @@
-// #include "Image.hpp"
-// #include "Buffer.hpp"
-// #include "Window/Window.hpp"
-//
+#include "Image.hpp"
+#include "Buffer.hpp"
+#include "Window/Window.hpp"
+
 // #define STB_IMAGE_IMPLEMENTATION
 // #define STB_IMAGE_WRITE_IMPLEMENTATION
 // #include <stb_image.h>
@@ -232,37 +232,37 @@
 //     return attachRef;
 // }
 //
-//// static functions
-// void Image::setImageLayout(vk::CommandBuffer commandBuffer,
-//                            vk::Image image,
-//                            vk::ImageLayout newLayout,
-//                            vk::ImageAspectFlags aspect) {
-//     vk::PipelineStageFlags srcStageMask = vk::PipelineStageFlagBits::eAllCommands;
-//     vk::PipelineStageFlags dstStageMask = vk::PipelineStageFlagBits::eAllCommands;
-//
-//     vk::ImageMemoryBarrier barrier{};
-//     barrier.setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
-//     barrier.setSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
-//     barrier.setImage(image);
-//     barrier.setOldLayout(vk::ImageLayout::eUndefined);
-//     barrier.setNewLayout(newLayout);
-//     barrier.setSubresourceRange({aspect, 0, 1, 0, 1});
-//     switch (newLayout) {
-//         case vk::ImageLayout::eTransferDstOptimal:
-//             barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
-//             break;
-//         case vk::ImageLayout::eTransferSrcOptimal:
-//             barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
-//             break;
-//         case vk::ImageLayout::eColorAttachmentOptimal:
-//             barrier.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
-//             break;
-//         default:
-//             break;
-//     }
-//     commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, {}, {}, {}, barrier);
-// }
-//
+// static functions
+void Image::setImageLayout(vk::CommandBuffer commandBuffer,
+                           vk::Image image,
+                           vk::ImageLayout newLayout,
+                           vk::ImageAspectFlags aspect) {
+    vk::PipelineStageFlags srcStageMask = vk::PipelineStageFlagBits::eAllCommands;
+    vk::PipelineStageFlags dstStageMask = vk::PipelineStageFlagBits::eAllCommands;
+
+    vk::ImageMemoryBarrier barrier{};
+    barrier.setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
+    barrier.setSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
+    barrier.setImage(image);
+    barrier.setOldLayout(vk::ImageLayout::eUndefined);
+    barrier.setNewLayout(newLayout);
+    barrier.setSubresourceRange({aspect, 0, 1, 0, 1});
+    switch (newLayout) {
+        case vk::ImageLayout::eTransferDstOptimal:
+            barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
+            break;
+        case vk::ImageLayout::eTransferSrcOptimal:
+            barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
+            break;
+        case vk::ImageLayout::eColorAttachmentOptimal:
+            barrier.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+            break;
+        default:
+            break;
+    }
+    commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, {}, {}, {}, barrier);
+}
+
 //// private member functions
 // void Image::createImage() {
 //     vk::ImageCreateInfo imageInfo;

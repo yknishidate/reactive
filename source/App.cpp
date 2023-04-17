@@ -44,7 +44,74 @@ void App::run() {
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
 
-            onRender();
+            // Acquire next image
+            frameIndex =
+                device->acquireNextImageKHR(*swapchain, UINT64_MAX, *imageAcquiredSemaphore).value;
+
+            // Wait fences
+            vk::Result result = device->waitForFences(*fences[frameIndex], VK_TRUE, UINT64_MAX);
+            if (result != vk::Result::eSuccess) {
+                throw std::runtime_error("Failed to wait for fence");
+            }
+            device->resetFences(*fences[frameIndex]);
+
+            // Begin command buffer
+            commandBuffers[frameIndex]->begin(vk::CommandBufferBeginInfo().setFlags(
+                vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
+
+            // Render
+            onRender(*commandBuffers[frameIndex]);
+
+            // Draw GUI
+            {
+                // Begin render pass
+                vk::Rect2D renderArea;
+                renderArea.setExtent(
+                    {static_cast<uint32_t>(m_width), static_cast<uint32_t>(m_height)});
+
+                std::array<vk::ClearValue, 2> clearValues;
+                clearValues[0].color = {std::array{0.0f, 0.0f, 0.0f, 1.0f}};
+                clearValues[1].depthStencil = vk::ClearDepthStencilValue{1.0f, 0};
+
+                vk::RenderPassBeginInfo beginInfo;
+                beginInfo.setRenderPass(*renderPass);
+                beginInfo.setClearValues(clearValues);
+                beginInfo.setFramebuffer(*framebuffers[frameIndex]);
+                beginInfo.setRenderArea(renderArea);
+                commandBuffers[frameIndex]->beginRenderPass(beginInfo,
+                                                            vk::SubpassContents::eInline);
+
+                // Render
+                ImGui::Render();
+                ImDrawData* drawData = ImGui::GetDrawData();
+                ImGui_ImplVulkan_RenderDrawData(drawData, *commandBuffers[frameIndex]);
+
+                // End render pass
+                commandBuffers[frameIndex]->endRenderPass();
+            }
+
+            // End command buffer
+            commandBuffers[frameIndex]->end();
+
+            // Submit
+            vk::PipelineStageFlags waitStage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+            vk::SubmitInfo submitInfo;
+            submitInfo.setWaitDstStageMask(waitStage);
+            submitInfo.setCommandBuffers(*commandBuffers[frameIndex]);
+            submitInfo.setWaitSemaphores(*imageAcquiredSemaphore);
+            submitInfo.setSignalSemaphores(*renderCompleteSemaphore);
+            queue.submit(submitInfo, *fences[frameIndex]);
+
+            // Present image
+            vk::PresentInfoKHR presentInfo;
+            presentInfo.setWaitSemaphores(*renderCompleteSemaphore);
+            presentInfo.setSwapchains(*swapchain);
+            presentInfo.setImageIndices(frameIndex);
+            if (queue.presentKHR(presentInfo) != vk::Result::eSuccess) {
+                swapchainRebuild = true;
+                return;
+            }
+            semaphoreIndex = (semaphoreIndex + 1) % swapchainImages.size();
         }
         device->waitIdle();
 

@@ -140,22 +140,16 @@ public:
         pushConstants.view = camera.getView();
     }
 
-    void onRender() override {
+    void onRender(vk::CommandBuffer commandBuffer) override {
+        Image::setImageLayout(commandBuffer, getBackImage(), vk::ImageLayout::eTransferDstOptimal);
+
+        vk::ClearColorValue clearColor{0.0f, 0.0f, 0.5f, 1.0f};
+
+        commandBuffer.clearColorImage(
+            getBackImage(), vk::ImageLayout::eTransferDstOptimal, clearColor,
+            vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1});
+
         ImGui::SliderInt("Test slider", &testInt, 0, 100);
-
-        // swapchain.waitNextFrame();
-
-        // CommandBuffer commandBuffer = swapchain.beginCommandBuffer();
-        // commandBuffer.bindPipeline(pipeline);
-        // commandBuffer.pushConstants(pipeline, &pushConstants);
-        // commandBuffer.clearBackImage({0.0f, 0.0f, 0.3f, 1.0f});
-        // commandBuffer.beginDefaultRenderPass();
-        // commandBuffer.drawIndexed(mesh);
-        // GUI::render(commandBuffer.commandBuffer);
-        // commandBuffer.endDefaultRenderPass();
-        // commandBuffer.submit();
-
-        // swapchain.present();
         frame++;
     }
 
