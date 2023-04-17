@@ -1,13 +1,14 @@
 #include "GUI/GUI.hpp"
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
+#include <imgui_impl_vulkan.h>
 #include <spdlog/spdlog.h>
-#include "GUI/imgui_impl_vulkan_hpp.h"
 #include "Graphics/Context.hpp"
 #include "Graphics/Swapchain.hpp"
 #include "Window/Window.hpp"
 
-GUI::GUI(Swapchain& swapchain) {
+namespace GUI {
+void init(Swapchain& swapchain) {
     spdlog::info("GUI::GUI()");
 
     // Setup Dear ImGui context
@@ -60,7 +61,7 @@ GUI::GUI(Swapchain& swapchain) {
     initInfo.Subpass = 0;
     initInfo.MinImageCount = swapchain.getMinImageCount();
     initInfo.ImageCount = swapchain.getImageCount();
-    initInfo.MSAASamples = vk::SampleCountFlagBits::e1;
+    initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
     initInfo.Allocator = nullptr;
     ImGui_ImplVulkan_Init(&initInfo, swapchain.getRenderPass());
 
@@ -75,13 +76,13 @@ GUI::GUI(Swapchain& swapchain) {
     }
 }
 
-GUI::~GUI() {
+void shutdown() {
     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 }
 
-void GUI::startFrame() {
+void startFrame() {
     // if (swapchainRebuild) {
     //     RebuildSwapchain();
     // }
@@ -90,51 +91,9 @@ void GUI::startFrame() {
     ImGui::NewFrame();
 }
 
-void GUI::render(vk::CommandBuffer commandBuffer) {
+void render(vk::CommandBuffer commandBuffer) {
     ImGui::Render();
     ImDrawData* drawData = ImGui::GetDrawData();
     ImGui_ImplVulkan_RenderDrawData(drawData, commandBuffer);
 }
-
-bool GUI::checkbox(const std::string& label, bool& value) {
-    return ImGui::Checkbox(label.c_str(), &value);
-}
-
-bool GUI::checkbox(const std::string& label, int& value) {
-    bool tmp_value = value;
-    bool changed = ImGui::Checkbox(label.c_str(), &tmp_value);
-    value = static_cast<int>(tmp_value);
-    return changed;
-}
-
-bool GUI::combo(const std::string& label, int& value, const std::vector<std::string>& items) {
-    std::string concated;
-    for (auto& item : items) {
-        concated += item + '\0';
-    }
-    return ImGui::Combo(label.c_str(), &value, concated.c_str());
-}
-
-bool GUI::sliderInt(const std::string& label, int& value, int min, int max) {
-    return ImGui::SliderInt(label.c_str(), &value, min, max);
-}
-
-bool GUI::colorPicker4(const std::string& label, glm::vec4& value) {
-    return ImGui::ColorPicker4(label.c_str(), reinterpret_cast<float*>(&value));
-}
-
-bool GUI::sliderFloat(const std::string& label, float& value, float min, float max) {
-    return ImGui::SliderFloat(label.c_str(), &value, min, max);
-}
-
-bool GUI::button(const std::string& label) {
-    return ImGui::Button(label.c_str());
-}
-
-bool GUI::dragFloat3(const std::string& label,
-                     glm::vec3& value,
-                     float speed,
-                     float min,
-                     float max) {
-    return ImGui::DragFloat3(label.c_str(), reinterpret_cast<float*>(&value), speed, min, max);
-}
+}  // namespace GUI

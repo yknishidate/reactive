@@ -8,7 +8,6 @@ class GraphicsPipeline;
 class RayTracingPipeline;
 class Swapchain;
 class Mesh;
-class GUI;
 class RenderPass;
 class DeviceBuffer;
 class GPUTimer;
@@ -43,7 +42,6 @@ public:
                      const DeviceBuffer& indexBuffer,
                      uint32_t indexCount,
                      uint32_t firstIndex = 0) const;
-    void drawGUI(GUI& gui);
     void drawMeshTasks(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
 
     // barrier

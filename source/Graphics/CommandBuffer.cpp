@@ -2,8 +2,6 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include "Context.hpp"
-#include "GUI/GUI.hpp"
-#include "GUI/imgui_impl_vulkan_hpp.h"
 #include "Graphics/Buffer.hpp"
 #include "Graphics/Image.hpp"
 #include "Graphics/Pipeline.hpp"
@@ -69,10 +67,6 @@ void CommandBuffer::drawIndexed(const DeviceBuffer& vertexBuffer,
     commandBuffer.bindVertexBuffers(0, vertexBuffer.getBuffer(), offsets);
     commandBuffer.bindIndexBuffer(indexBuffer.getBuffer(), 0, vk::IndexType::eUint32);
     commandBuffer.drawIndexed(indexCount, 1, firstIndex, 0, 0);
-}
-
-void CommandBuffer::drawGUI(GUI& gui) {
-    gui.render(commandBuffer);
 }
 
 void CommandBuffer::drawMeshTasks(uint32_t groupCountX,

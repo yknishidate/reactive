@@ -38,7 +38,7 @@ int main() {
         Context::init(true);
 
         Swapchain swapchain{};
-        GUI gui{swapchain};
+        GUI::init(swapchain);
 
         std::vector<Vertex> vertices{{{-1, 0, 0}}, {{0, -1, 0}}, {{1, 0, 0}}};
         std::vector<Index> indices{0, 1, 2};
@@ -72,8 +72,8 @@ int main() {
             pushConstants.proj = camera.getProj();
             pushConstants.view = camera.getView();
 
-            gui.startFrame();
-            gui.sliderInt("Test slider", testInt, 0, 100);
+            GUI::startFrame();
+            ImGui::SliderInt("Test slider", &testInt, 0, 100);
 
             swapchain.waitNextFrame();
 
@@ -83,7 +83,7 @@ int main() {
             commandBuffer.clearBackImage({0.0f, 0.0f, 0.3f, 1.0f});
             commandBuffer.beginDefaultRenderPass();
             commandBuffer.drawIndexed(mesh);
-            commandBuffer.drawGUI(gui);
+            GUI::render(commandBuffer.commandBuffer);
             commandBuffer.endDefaultRenderPass();
             commandBuffer.submit();
 
@@ -92,6 +92,7 @@ int main() {
         }
         Context::waitIdle();
         Window::shutdown();
+        GUI::shutdown();
     } catch (const std::exception& e) {
         Log::error(e.what());
     }
