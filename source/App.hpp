@@ -7,6 +7,14 @@
 #include <spdlog/spdlog.h>
 #include <vulkan/vulkan.hpp>
 
+namespace Key {
+constexpr inline int W = GLFW_KEY_W;
+constexpr inline int A = GLFW_KEY_A;
+constexpr inline int S = GLFW_KEY_S;
+constexpr inline int D = GLFW_KEY_D;
+constexpr inline int Space = GLFW_KEY_SPACE;
+}  // namespace Key
+
 class App {
 public:
     App(int width, int height, const std::string& title, bool enableValidation);
@@ -31,6 +39,12 @@ public:
     vk::Device getDevice() const { return *device; }
     uint32_t getWidth() const { return m_width; }
     uint32_t getHeight() const { return m_height; }
+
+    // Input
+    bool mousePressed() const;
+    bool keyPressed(int key) const { return glfwGetKey(m_window, key) == GLFW_PRESS; }
+    glm::vec2 getMousePos() const { return m_currMousePos; }
+    glm::vec2 getMouseMotion() const { return m_currMousePos - m_lastMousePos; }
 
 protected:
     void initGLFW();

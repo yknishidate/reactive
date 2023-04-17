@@ -91,6 +91,14 @@ uint32_t App::findMemoryTypeIndex(vk::MemoryRequirements requirements,
     throw std::runtime_error("Failed to find memory type index.");
 }
 
+bool App::mousePressed() const {
+    bool pressed = glfwGetMouseButton(m_window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+    if (ImGui::GetCurrentContext()) {
+        return pressed && !ImGui::IsWindowFocused(ImGuiFocusedFlags_AnyWindow);
+    }
+    return pressed;
+}
+
 void App::initGLFW() {
     // Init GLFW
     glfwInit();
