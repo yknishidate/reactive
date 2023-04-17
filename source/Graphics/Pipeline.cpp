@@ -2,7 +2,6 @@
 #include <spdlog/spdlog.h>
 #include <regex>
 #include "Compiler/Compiler.hpp"
-#include "Context.hpp"
 #include "Graphics/ArrayProxy.hpp"
 #include "Image.hpp"
 #include "RenderPass.hpp"

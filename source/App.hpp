@@ -54,6 +54,29 @@ public:
         commandBuffer.beginRenderPass(beginInfo, vk::SubpassContents::eInline);
     }
 
+    // void copyToBackImage(vk::CommandBuffer commandBuffer, Image& source) {
+    //     vk::ImageCopy copyRegion;
+    //     copyRegion.setSrcSubresource({vk::ImageAspectFlagBits::eColor, 0, 0, 1});
+    //     copyRegion.setDstSubresource({vk::ImageAspectFlagBits::eColor, 0, 0, 1});
+    //     copyRegion.setExtent({width, height, 1});
+
+    //    vk::Image backImage = getBackImage();
+    //    source.setImageLayout(commandBuffer, vk::ImageLayout::eTransferSrcOptimal);
+    //    Image::setImageLayout(commandBuffer, backImage, vk::ImageLayout::eTransferDstOptimal);
+    //    commandBuffer.copyImage(source.getImage(), vk::ImageLayout::eTransferSrcOptimal,
+    //    backImage,
+    //                            vk::ImageLayout::eTransferDstOptimal, copyRegion);
+    //    source.setImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
+    //    Image::setImageLayout(commandBuffer, backImage, vk::ImageLayout::ePresentSrcKHR);
+    //}
+
+    // void clearBackImage(vk::CommandBuffer commandBuffer, std::array<float, 4> color) {
+    //     Image::setImageLayout(commandBuffer, getBackImage(),
+    //     vk::ImageLayout::eTransferDstOptimal); commandBuffer.clearColorImage(
+    //         getBackImage(), vk::ImageLayout::eTransferDstOptimal, vk::ClearColorValue{color},
+    //         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1});
+    // }
+
     // Getter
     vk::Device getDevice() const { return *device; }
     vk::PhysicalDevice getPhysicalDevice() const { return physicalDevice; }

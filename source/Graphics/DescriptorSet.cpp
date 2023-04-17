@@ -1,7 +1,6 @@
 #include "DescriptorSet.hpp"
 #include <regex>
 #include "Compiler/Compiler.hpp"
-#include "Context.hpp"
 
 WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
                                        vk::DescriptorBufferInfo bufferInfo)

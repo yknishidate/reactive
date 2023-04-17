@@ -3,7 +3,6 @@
 #include <imgui_impl_glfw.h>
 #include <spdlog/spdlog.h>
 #include <memory>
-#include "GUI/GUI.hpp"
 #include "Graphics/DescriptorSet.hpp"
 #include "Graphics/Image.hpp"
 #include "Graphics/Pipeline.hpp"

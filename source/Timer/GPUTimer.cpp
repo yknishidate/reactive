@@ -1,5 +1,4 @@
 #include "GPUTimer.hpp"
-#include "Graphics/Context.hpp"
 
 GPUTimer::GPUTimer(const App* app) : m_app{app} {
     vk::QueryPoolCreateInfo queryPoolInfo;

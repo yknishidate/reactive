@@ -1,5 +1,4 @@
 // #include "Accel.hpp"
-// #include "Context.hpp"
 // #include "Scene/Object.hpp"
 //
 // namespace {
