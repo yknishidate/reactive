@@ -1,4 +1,6 @@
-// #include "Engine.hpp"
+#include "App.hpp"
+#include "Engine.hpp"
+
 struct PushConstants {
     glm::mat4 model{1};
     glm::mat4 view{1};
@@ -30,75 +32,6 @@ layout(location = 0) out vec4 outColor;
 void main() {
     outColor = vec4(1.0);
 })";
-
-// int main() {
-//     try {
-//         Window::init(750, 750);
-//         Context::init(true);
-//
-//         Swapchain swapchain{};
-//         GUI::init(swapchain);
-//
-//         std::vector<Vertex> vertices{{{-1, 0, 0}}, {{0, -1, 0}}, {{1, 0, 0}}};
-//         std::vector<Index> indices{0, 1, 2};
-//         Mesh mesh{vertices, indices};
-//
-//         Camera camera{Window::getWidth(), Window::getHeight()};
-//
-//         Shader vertShader{vertCode, vk::ShaderStageFlagBits::eVertex};
-//         Shader fragShader{fragCode, vk::ShaderStageFlagBits::eFragment};
-//
-//         DescriptorSet descSet;
-//         descSet.addResources(vertShader);
-//         descSet.addResources(fragShader);
-//         descSet.allocate();
-//
-//         GraphicsPipeline pipeline;
-//         pipeline.setDescriptorSet(descSet);
-//         pipeline.addShader(vertShader);
-//         pipeline.addShader(fragShader);
-//         pipeline.setPushSize(sizeof(PushConstants));
-//         pipeline.setup(swapchain.getRenderPass());
-//
-//         int testInt = 0;
-//         int frame = 0;
-//         while (!Window::shouldClose()) {
-//             Window::pollEvents();
-//             camera.processInput();
-//
-//             PushConstants pushConstants;
-//             pushConstants.model = glm::rotate(glm::mat4(1), 0.01f * frame, glm::vec3(0, 1, 0));
-//             pushConstants.proj = camera.getProj();
-//             pushConstants.view = camera.getView();
-//
-//             GUI::startFrame();
-//             ImGui::SliderInt("Test slider", &testInt, 0, 100);
-//
-//             swapchain.waitNextFrame();
-//
-//             CommandBuffer commandBuffer = swapchain.beginCommandBuffer();
-//             commandBuffer.bindPipeline(pipeline);
-//             commandBuffer.pushConstants(pipeline, &pushConstants);
-//             commandBuffer.clearBackImage({0.0f, 0.0f, 0.3f, 1.0f});
-//             commandBuffer.beginDefaultRenderPass();
-//             commandBuffer.drawIndexed(mesh);
-//             GUI::render(commandBuffer.commandBuffer);
-//             commandBuffer.endDefaultRenderPass();
-//             commandBuffer.submit();
-//
-//             swapchain.present();
-//             frame++;
-//         }
-//         Context::waitIdle();
-//         Window::shutdown();
-//         GUI::shutdown();
-//     } catch (const std::exception& e) {
-//         Log::error(e.what());
-//     }
-// }
-
-#include "App.hpp"
-#include "Engine.hpp"
 
 class HelloApp : public App {
 public:
