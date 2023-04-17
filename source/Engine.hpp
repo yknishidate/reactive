@@ -4,7 +4,6 @@
 #include <spdlog/spdlog.h>
 #include <memory>
 #include "GUI/GUI.hpp"
-#include "GUI/imgui_impl_vulkan_hpp.h"
 #include "Graphics/DescriptorSet.hpp"
 #include "Graphics/Image.hpp"
 #include "Graphics/Pipeline.hpp"
@@ -19,14 +18,6 @@
 #include "Timer/CPUTimer.hpp"
 #include "Timer/GPUTimer.hpp"
 #include "Window/Window.hpp"
-
-namespace Log {
-using namespace spdlog;
-
-void init() {
-    spdlog::set_pattern("[%^%l%$] %v");
-}
-}  // namespace Log
 
 namespace File {
 template <typename T>
