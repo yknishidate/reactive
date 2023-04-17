@@ -38,6 +38,12 @@ void App::run() {
             m_currMousePos = {xPos, yPos};
 
             onUpdate();
+
+            // Start ImGui
+            ImGui_ImplVulkan_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
+
             onRender();
         }
         device->waitIdle();

@@ -100,11 +100,6 @@ void main() {
 #include "App.hpp"
 #include "Engine.hpp"
 
-#pragma once
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/glm.hpp>
-
 class HelloApp : public App {
 public:
     HelloApp() : App(1280, 720, "Hello", true) {}
@@ -137,6 +132,33 @@ public:
         spdlog::info("Pipeline is created.");
     }
 
+    void onUpdate() override {
+        camera.processInput();
+
+        pushConstants.model = glm::rotate(glm::mat4(1), 0.01f * frame, glm::vec3(0, 1, 0));
+        pushConstants.proj = camera.getProj();
+        pushConstants.view = camera.getView();
+    }
+
+    void onRender() override {
+        ImGui::SliderInt("Test slider", &testInt, 0, 100);
+
+        // swapchain.waitNextFrame();
+
+        // CommandBuffer commandBuffer = swapchain.beginCommandBuffer();
+        // commandBuffer.bindPipeline(pipeline);
+        // commandBuffer.pushConstants(pipeline, &pushConstants);
+        // commandBuffer.clearBackImage({0.0f, 0.0f, 0.3f, 1.0f});
+        // commandBuffer.beginDefaultRenderPass();
+        // commandBuffer.drawIndexed(mesh);
+        // GUI::render(commandBuffer.commandBuffer);
+        // commandBuffer.endDefaultRenderPass();
+        // commandBuffer.submit();
+
+        // swapchain.present();
+        frame++;
+    }
+
     DeviceBuffer vertexBuffer;
     DeviceBuffer indexBuffer;
     Camera camera;
@@ -144,6 +166,10 @@ public:
     Shader fragShader;
     DescriptorSet descSet;
     GraphicsPipeline pipeline;
+
+    PushConstants pushConstants;
+    int testInt = 0;
+    int frame = 0;
 };
 
 int main() {
