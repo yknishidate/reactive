@@ -60,26 +60,13 @@ void App::run() {
                 vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
 
             // Render
-            onRender(*commandBuffers[frameIndex]);
+            CommandBuffer commandBuffer = {this, *commandBuffers[frameIndex]};
+            onRender(commandBuffer);
 
             // Draw GUI
             {
                 // Begin render pass
-                vk::Rect2D renderArea;
-                renderArea.setExtent(
-                    {static_cast<uint32_t>(m_width), static_cast<uint32_t>(m_height)});
-
-                std::array<vk::ClearValue, 2> clearValues;
-                clearValues[0].color = {std::array{0.0f, 0.0f, 0.0f, 1.0f}};
-                clearValues[1].depthStencil = vk::ClearDepthStencilValue{1.0f, 0};
-
-                vk::RenderPassBeginInfo beginInfo;
-                beginInfo.setRenderPass(*renderPass);
-                beginInfo.setClearValues(clearValues);
-                beginInfo.setFramebuffer(*framebuffers[frameIndex]);
-                beginInfo.setRenderArea(renderArea);
-                commandBuffers[frameIndex]->beginRenderPass(beginInfo,
-                                                            vk::SubpassContents::eInline);
+                commandBuffer.beginDefaultRenderPass();
 
                 // Render
                 ImGui::Render();
@@ -87,7 +74,7 @@ void App::run() {
                 ImGui_ImplVulkan_RenderDrawData(drawData, *commandBuffers[frameIndex]);
 
                 // End render pass
-                commandBuffers[frameIndex]->endRenderPass();
+                commandBuffer.endRenderPass();
             }
 
             // End command buffer

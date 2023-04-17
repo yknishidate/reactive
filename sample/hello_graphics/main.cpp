@@ -105,8 +105,6 @@ public:
     HelloApp() : App(1280, 720, "Hello", true) {}
 
     void onStart() override {
-        std::vector<Vertex> vertices{{{-1, 0, 0}}, {{0, -1, 0}}, {{1, 0, 0}}};
-        std::vector<Index> indices{0, 1, 2};
         vertexBuffer = DeviceBuffer{this, BufferUsage::Vertex, vertices};
         indexBuffer = DeviceBuffer{this, BufferUsage::Index, indices};
         spdlog::info("Buffers are created.");
@@ -140,19 +138,21 @@ public:
         pushConstants.view = camera.getView();
     }
 
-    void onRender(vk::CommandBuffer commandBuffer) override {
-        Image::setImageLayout(commandBuffer, getBackImage(), vk::ImageLayout::eTransferDstOptimal);
-
-        vk::ClearColorValue clearColor{0.0f, 0.0f, 0.5f, 1.0f};
-
-        commandBuffer.clearColorImage(
-            getBackImage(), vk::ImageLayout::eTransferDstOptimal, clearColor,
-            vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1});
-
+    void onRender(const CommandBuffer& commandBuffer) override {
         ImGui::SliderInt("Test slider", &testInt, 0, 100);
+
+        commandBuffer.clearBackImage({0.0f, 0.0f, 0.5f, 1.0f});
+        commandBuffer.bindPipeline(pipeline);
+        commandBuffer.pushConstants(pipeline, &pushConstants);
+        commandBuffer.beginDefaultRenderPass();
+        commandBuffer.drawIndexed(vertexBuffer, indexBuffer, indices.size());
+        commandBuffer.endRenderPass();
+
         frame++;
     }
 
+    std::vector<Vertex> vertices{{{-1, 0, 0}}, {{0, -1, 0}}, {{1, 0, 0}}};
+    std::vector<Index> indices{0, 1, 2};
     DeviceBuffer vertexBuffer;
     DeviceBuffer indexBuffer;
     Camera camera;

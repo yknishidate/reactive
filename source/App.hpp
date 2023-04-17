@@ -25,7 +25,7 @@ public:
 
     virtual void onStart() {}
     virtual void onUpdate() {}
-    virtual void onRender(vk::CommandBuffer commandBuffer) {}
+    virtual void onRender(const CommandBuffer& commandBuffer) {}
 
     // Vulkan function
     std::vector<vk::UniqueCommandBuffer> allocateCommandBuffers(uint32_t count) const;
@@ -37,8 +37,26 @@ public:
     uint32_t findMemoryTypeIndex(vk::MemoryRequirements requirements,
                                  vk::MemoryPropertyFlags memoryProp) const;
 
+    // Command
+    void beginDefaultRenderPass(vk::CommandBuffer commandBuffer) const {
+        vk::Rect2D renderArea;
+        renderArea.setExtent({static_cast<uint32_t>(m_width), static_cast<uint32_t>(m_height)});
+
+        std::array<vk::ClearValue, 2> clearValues;
+        clearValues[0].color = {std::array{0.0f, 0.0f, 0.0f, 1.0f}};
+        clearValues[1].depthStencil = vk::ClearDepthStencilValue{1.0f, 0};
+
+        vk::RenderPassBeginInfo beginInfo;
+        beginInfo.setRenderPass(*renderPass);
+        beginInfo.setClearValues(clearValues);
+        beginInfo.setFramebuffer(*framebuffers[frameIndex]);
+        beginInfo.setRenderArea(renderArea);
+        commandBuffer.beginRenderPass(beginInfo, vk::SubpassContents::eInline);
+    }
+
     // Getter
     vk::Device getDevice() const { return *device; }
+    vk::PhysicalDevice getPhysicalDevice() const { return physicalDevice; }
     uint32_t getWidth() const { return m_width; }
     uint32_t getHeight() const { return m_height; }
     vk::Image getBackImage() const { return swapchainImages[frameIndex]; }
