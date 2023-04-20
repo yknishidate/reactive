@@ -38,11 +38,13 @@ public:
     // void submit();
 
     // draw
-    void drawIndexed(const Mesh& mesh);
+    void drawIndexed(const Mesh& mesh) const;
     void drawIndexed(const DeviceBuffer& vertexBuffer,
                      const DeviceBuffer& indexBuffer,
                      uint32_t indexCount,
-                     uint32_t firstIndex = 0) const;
+                     uint32_t firstIndex = 0,
+                     uint32_t instanceCount = 1,
+                     uint32_t firstInstance = 0) const;
     void drawMeshTasks(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
 
     // barrier

@@ -60,18 +60,20 @@ void CommandBuffer::beginDefaultRenderPass() const {
 //    swapchain->submit();
 //}
 
-void CommandBuffer::drawIndexed(const Mesh& mesh) {
+void CommandBuffer::drawIndexed(const Mesh& mesh) const {
     mesh.drawIndexed(commandBuffer);
 }
 
 void CommandBuffer::drawIndexed(const DeviceBuffer& vertexBuffer,
                                 const DeviceBuffer& indexBuffer,
                                 uint32_t indexCount,
-                                uint32_t firstIndex) const {
+                                uint32_t firstIndex,
+                                uint32_t instanceCount,
+                                uint32_t firstInstance) const {
     vk::DeviceSize offsets{0};
     commandBuffer.bindVertexBuffers(0, vertexBuffer.getBuffer(), offsets);
     commandBuffer.bindIndexBuffer(indexBuffer.getBuffer(), 0, vk::IndexType::eUint32);
-    commandBuffer.drawIndexed(indexCount, 1, firstIndex, 0, 0);
+    commandBuffer.drawIndexed(indexCount, instanceCount, firstIndex, 0, firstInstance);
 }
 
 void CommandBuffer::drawMeshTasks(uint32_t groupCountX,
