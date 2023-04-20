@@ -11,6 +11,12 @@
 #include "Timer/GPUTimer.hpp"
 #include "Window/Window.hpp"
 
+void CommandBuffer::bindDescriptorSet(DescriptorSet& descSet,
+                                      vk::PipelineBindPoint bindPoint,
+                                      vk::PipelineLayout pipelineLayout) const {
+    descSet.bind(commandBuffer, bindPoint, pipelineLayout);
+}
+
 void CommandBuffer::bindPipeline(Pipeline& pipeline) const {
     pipeline.bind(commandBuffer);
 }

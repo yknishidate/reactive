@@ -46,8 +46,7 @@ public:
 
     void addResources(const Shader& shader);
 
-    vk::UniquePipelineLayout createPipelineLayout(size_t pushSize,
-                                                  vk::ShaderStageFlags shaderStage) const;
+    vk::DescriptorSetLayout getLayout() const { return *descSetLayout; }
 
 private:
     void updateBindingMap(spirv_cross::Resource& resource,

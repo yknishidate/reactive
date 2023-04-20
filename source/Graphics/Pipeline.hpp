@@ -13,8 +13,9 @@ public:
     Pipeline() = default;
     Pipeline(const App* app) : m_app{app} {}
 
-    void setDescriptorSet(DescriptorSet& set) { descSet = &set; }
     void setPushSize(size_t size) { pushSize = size; }
+
+    vk::PipelineLayout getPipelineLayout() const { return *pipelineLayout; }
 
 protected:
     friend class CommandBuffer;
@@ -25,7 +26,6 @@ protected:
     vk::UniquePipelineLayout pipelineLayout;
     vk::UniquePipeline pipeline;
     size_t pushSize = 0;
-    DescriptorSet* descSet;
 };
 
 class GraphicsPipeline : public Pipeline {
@@ -34,7 +34,7 @@ public:
     GraphicsPipeline(const App* app) : Pipeline{app} {}
 
     // void setup(RenderPass& renderPass);
-    void setup(vk::RenderPass renderPass);
+    void setup(vk::RenderPass renderPass, vk::DescriptorSetLayout descSetLayout);
     void addShader(const Shader& shader) { shaders.push_back(&shader); }
 
     void setTopology(vk::PrimitiveTopology topology) { this->topology = topology; }
@@ -48,6 +48,7 @@ private:
     std::vector<const Shader*> shaders;
     vk::PrimitiveTopology topology = vk::PrimitiveTopology::eTriangleList;
     vk::PolygonMode polygonMode = vk::PolygonMode::eFill;
+    bool useMeshShader = false;
 };
 
 // class ComputePipeline : public Pipeline {

@@ -77,14 +77,20 @@ vk::StridedDeviceAddressRegionKHR createAddressRegion(
 //                                       useMeshShader);
 // }
 
-void GraphicsPipeline::setup(vk::RenderPass renderPass) {
-    this->pushSize = pushSize;
-    pipelineLayout = descSet->createPipelineLayout(pushSize, vk::ShaderStageFlagBits::eAllGraphics |
-                                                                 vk::ShaderStageFlagBits::eMeshEXT |
-                                                                 vk::ShaderStageFlagBits::eTaskEXT);
+void GraphicsPipeline::setup(vk::RenderPass renderPass, vk::DescriptorSetLayout descSetLayout) {
+    vk::PushConstantRange pushRange;
+    pushRange.setOffset(0);
+    pushRange.setSize(pushSize);
+    pushRange.setStageFlags(vk::ShaderStageFlagBits::eAllGraphics);
+
+    vk::PipelineLayoutCreateInfo layoutInfo;
+    layoutInfo.setSetLayouts(descSetLayout);
+    if (pushSize) {
+        layoutInfo.setPushConstantRanges(pushRange);
+    }
+    pipelineLayout = m_app->getDevice().createPipelineLayoutUnique(layoutInfo);
 
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
-    bool useMeshShader = false;
     for (auto& shader : shaders) {
         useMeshShader |= shader->getStage() == vk::ShaderStageFlagBits::eMeshEXT;
         shaderStages.push_back(vk::PipelineShaderStageCreateInfo()
@@ -162,15 +168,14 @@ void GraphicsPipeline::setup(vk::RenderPass renderPass) {
 
 void GraphicsPipeline::bind(vk::CommandBuffer commandBuffer) {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *pipeline);
-    descSet->bind(commandBuffer, vk::PipelineBindPoint::eGraphics, *pipelineLayout);
 }
 
 void GraphicsPipeline::pushConstants(vk::CommandBuffer commandBuffer, const void* pushData) {
-    commandBuffer.pushConstants(*pipelineLayout,
-                                vk::ShaderStageFlagBits::eAllGraphics |
-                                    vk::ShaderStageFlagBits::eMeshEXT |
-                                    vk::ShaderStageFlagBits::eTaskEXT,
-                                0, pushSize, pushData);
+    vk::ShaderStageFlags stage = vk::ShaderStageFlagBits::eAllGraphics;
+    if (useMeshShader) {
+        stage |= vk::ShaderStageFlagBits::eMeshEXT | vk::ShaderStageFlagBits::eTaskEXT;
+    }
+    commandBuffer.pushConstants(*pipelineLayout, stage, 0, pushSize, pushData);
 }
 
 // void ComputePipeline::setup() {

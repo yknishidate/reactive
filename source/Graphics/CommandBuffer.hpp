@@ -13,12 +13,16 @@ class RenderPass;
 class DeviceBuffer;
 class GPUTimer;
 class Buffer;
+class DescriptorSet;
 
 class CommandBuffer {
 public:
     CommandBuffer(const App* app, vk::CommandBuffer commandBuffer)
         : m_app{app}, commandBuffer{commandBuffer} {}
 
+    void bindDescriptorSet(DescriptorSet& descSet,
+                           vk::PipelineBindPoint bindPoint,
+                           vk::PipelineLayout pipelineLayout) const;
     void bindPipeline(Pipeline& pipeline) const;
     void pushConstants(Pipeline& pipeline, const void* pushData) const;
 

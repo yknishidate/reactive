@@ -120,24 +120,6 @@ void DescriptorSet::addResources(const Shader& shader) {
     }
 }
 
-vk::UniquePipelineLayout DescriptorSet::createPipelineLayout(
-    size_t pushSize,
-    vk::ShaderStageFlags shaderStage) const {
-    vk::PushConstantRange pushRange;
-    pushRange.setOffset(0);
-    pushRange.setSize(pushSize);
-    pushRange.setStageFlags(shaderStage);
-
-    vk::PipelineLayoutCreateInfo layoutInfo;
-    if (!writes.empty()) {
-        layoutInfo.setSetLayouts(*descSetLayout);
-    }
-    if (pushSize) {
-        layoutInfo.setPushConstantRanges(pushRange);
-    }
-    return m_app->getDevice().createPipelineLayoutUnique(layoutInfo);
-}
-
 void DescriptorSet::bind(vk::CommandBuffer commandBuffer,
                          vk::PipelineBindPoint bindPoint,
                          vk::PipelineLayout pipelineLayout) {
