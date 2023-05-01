@@ -36,25 +36,12 @@ void CommandBuffer::pushConstants(Pipeline& pipeline, const void* pushData) cons
 //     image.clearColor(commandBuffer, color);
 // }
 
-void CommandBuffer::clearImage(vk::Image image, std::array<float, 4> color) const {
+void CommandBuffer::clearColorImage(vk::Image image, std::array<float, 4> color) const {
     Image::setImageLayout(commandBuffer, image, vk::ImageLayout::eTransferDstOptimal);
     commandBuffer.clearColorImage(
         image, vk::ImageLayout::eTransferDstOptimal, vk::ClearColorValue{color},
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1});
 }
-
-// void CommandBuffer::clearBackImage(std::array<float, 4> color) const {
-//     Image::setImageLayout(commandBuffer, m_app->getBackImage(),
-//                           vk::ImageLayout::eTransferDstOptimal);
-//
-//     commandBuffer.clearColorImage(
-//         m_app->getBackImage(), vk::ImageLayout::eTransferDstOptimal, vk::ClearColorValue{color},
-//         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1});
-// }
-//
-// void CommandBuffer::beginDefaultRenderPass() const {
-//     m_app->beginDefaultRenderPass(commandBuffer);
-// }
 
 void CommandBuffer::beginRenderPass(vk::RenderPass renderPass,
                                     vk::Framebuffer framebuffer,
@@ -77,10 +64,6 @@ void CommandBuffer::beginRenderPass(vk::RenderPass renderPass,
 
 // void CommandBuffer::beginRenderPass(RenderPass& renderPass) {
 //     renderPass.beginRenderPass(commandBuffer);
-// }
-//
-// void CommandBuffer::endDefaultRenderPass() {
-//     swapchain->endRenderPass();
 // }
 //
 // void CommandBuffer::endRenderPass(RenderPass& renderPass) {
@@ -109,7 +92,7 @@ void CommandBuffer::drawIndexed(const DeviceBuffer& vertexBuffer,
 
 void CommandBuffer::drawMeshTasks(uint32_t groupCountX,
                                   uint32_t groupCountY,
-                                  uint32_t groupCountZ) {
+                                  uint32_t groupCountZ) const {
     commandBuffer.drawMeshTasksEXT(groupCountX, groupCountY, groupCountZ);
 }
 
@@ -131,14 +114,6 @@ void CommandBuffer::pipelineBarrier(vk::PipelineStageFlags srcStageMask,
     commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, nullptr,
                                   bufferMemoryBarrier, nullptr);
 }
-
-// void CommandBuffer::copyToBackImage(Image& source) {
-//     swapchain->copyToBackImage(commandBuffer, source);
-// }
-//
-// void CommandBuffer::setBackImageLayout(vk::ImageLayout layout) {
-//     swapchain->setBackImageLayout(commandBuffer, layout);
-// }
 
 void CommandBuffer::beginTimestamp(const GPUTimer& gpuTimer) const {
     gpuTimer.beginTimestamp(commandBuffer);

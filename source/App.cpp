@@ -9,8 +9,6 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
 
-VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
-
 App::App(uint32_t width, uint32_t height, const std::string& title, bool enableValidation)
     : width{width}, height{height}, title{title}, enableValidation{enableValidation} {
     spdlog::set_pattern("[%^%l%$] %v");

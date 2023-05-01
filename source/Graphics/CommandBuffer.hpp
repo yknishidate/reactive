@@ -29,8 +29,7 @@ public:
     // void traceRays(RayTracingPipeline& rtPipeline, uint32_t countX, uint32_t countY);
     // void dispatch(ComputePipeline& compPipeline, uint32_t countX, uint32_t countY);
 
-    void clearImage(vk::Image image, std::array<float, 4> color) const;
-    // void clearBackImage(std::array<float, 4> color) const;
+    void clearColorImage(vk::Image image, std::array<float, 4> color) const;
     //  void clearColorImage(Image& image, std::array<float, 4> color);
 
     // render pass
@@ -38,10 +37,7 @@ public:
                          vk::Framebuffer framebuffer,
                          uint32_t width,
                          uint32_t height) const;
-    // void beginDefaultRenderPass() const;
-    // void beginRenderPass(RenderPass& renderPass);
     void endRenderPass() const { commandBuffer.endRenderPass(); }
-    // void endRenderPass(RenderPass& renderPass);
 
     // submit
     // void submit();
@@ -54,7 +50,7 @@ public:
                      uint32_t firstIndex = 0,
                      uint32_t instanceCount = 1,
                      uint32_t firstInstance = 0) const;
-    void drawMeshTasks(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
+    void drawMeshTasks(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ) const;
 
     // barrier
     void pipelineBarrier(
