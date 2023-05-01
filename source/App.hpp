@@ -97,82 +97,10 @@ protected:
     void initVulkan();
     void initImGui();
 
-    void createSwapchain() {
-        // Create swapchain
-        uint32_t queueFamily = context.getQueueFamily();
-        swapchain = context.getDevice().createSwapchainKHRUnique(
-            vk::SwapchainCreateInfoKHR()
-                .setSurface(*surface)
-                .setMinImageCount(minImageCount)
-                .setImageFormat(vk::Format::eB8G8R8A8Unorm)
-                .setImageColorSpace(vk::ColorSpaceKHR::eSrgbNonlinear)
-                .setImageExtent({width, height})
-                .setImageArrayLayers(1)
-                .setImageUsage(vk::ImageUsageFlagBits::eColorAttachment |
-                               vk::ImageUsageFlagBits::eTransferDst)
-                .setPreTransform(vk::SurfaceTransformFlagBitsKHR::eIdentity)
-                .setPresentMode(vk::PresentModeKHR::eFifo)
-                .setClipped(true)
-                .setQueueFamilyIndices(queueFamily));
-
-        // Get images
-        swapchainImages = context.getDevice().getSwapchainImagesKHR(*swapchain);
-
-        // Create image views
-        for (auto& image : swapchainImages) {
-            swapchainImageViews.push_back(context.getDevice().createImageViewUnique(
-                vk::ImageViewCreateInfo()
-                    .setImage(image)
-                    .setViewType(vk::ImageViewType::e2D)
-                    .setFormat(vk::Format::eB8G8R8A8Unorm)
-                    .setComponents({vk::ComponentSwizzle::eR, vk::ComponentSwizzle::eG,
-                                    vk::ComponentSwizzle::eB, vk::ComponentSwizzle::eA})
-                    .setSubresourceRange({vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1})));
-        }
-    }
-
-    void createDepthImage() {
-        depthImage = context.getDevice().createImageUnique(
-            vk::ImageCreateInfo()
-                .setImageType(vk::ImageType::e2D)
-                .setFormat(vk::Format::eD32Sfloat)
-                .setExtent({width, height, 1})
-                .setMipLevels(1)
-                .setArrayLayers(1)
-                .setUsage(vk::ImageUsageFlagBits::eDepthStencilAttachment));
-
-        vk::MemoryRequirements requirements =
-            context.getDevice().getImageMemoryRequirements(*depthImage);
-        uint32_t memoryTypeIndex =
-            context.findMemoryTypeIndex(requirements, vk::MemoryPropertyFlagBits::eDeviceLocal);
-        depthImageMemory =
-            context.getDevice().allocateMemoryUnique(vk::MemoryAllocateInfo()
-                                                         .setAllocationSize(requirements.size)
-                                                         .setMemoryTypeIndex(memoryTypeIndex));
-
-        context.getDevice().bindImageMemory(*depthImage, *depthImageMemory, 0);
-
-        depthImageView = context.getDevice().createImageViewUnique(
-            vk::ImageViewCreateInfo()
-                .setImage(*depthImage)
-                .setViewType(vk::ImageViewType::e2D)
-                .setFormat(vk::Format::eD32Sfloat)
-                .setSubresourceRange({vk::ImageAspectFlagBits::eDepth, 0, 1, 0, 1}));
-    }
-
-    void createFramebuffers() {
-        framebuffers.resize(swapchainImages.size());
-        for (uint32_t i = 0; i < swapchainImages.size(); i++) {
-            std::array attachments{*swapchainImageViews[i], *depthImageView};
-            framebuffers[i] =
-                context.getDevice().createFramebufferUnique(vk::FramebufferCreateInfo()
-                                                                .setRenderPass(*renderPass)
-                                                                .setAttachments(attachments)
-                                                                .setWidth(width)
-                                                                .setHeight(height)
-                                                                .setLayers(1));
-        }
-    }
+    void createSwapchain();
+    void createDepthImage();
+    void createRenderPass();
+    void createFramebuffers();
 
     // GLFW
     GLFWwindow* window;
