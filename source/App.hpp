@@ -45,8 +45,6 @@ public:
     //}
 
     // Getter
-    uint32_t getWidth() const { return width; }
-    uint32_t getHeight() const { return height; }
     vk::Image getBackImage() const { return swapchainImages[frameIndex]; }
 
     // Input

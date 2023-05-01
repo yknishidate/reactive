@@ -273,9 +273,8 @@ void App::initVulkan() {
 
     createFramebuffers();
 
-    size_t imageCount = swapchainImages.size();
-
     // Allocate command buffers
+    size_t imageCount = swapchainImages.size();
     commandBuffers = context.allocateCommandBuffers(imageCount);
 
     // Create sync objects
