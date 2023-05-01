@@ -9,7 +9,6 @@
 #include "Scene/Mesh.hpp"
 #include "Swapchain.hpp"
 #include "Timer/GPUTimer.hpp"
-#include "Window/Window.hpp"
 
 void CommandBuffer::bindDescriptorSet(DescriptorSet& descSet,
                                       vk::PipelineBindPoint bindPoint,

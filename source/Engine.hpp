@@ -16,7 +16,6 @@
 #include "Scene/Object.hpp"
 #include "Timer/CPUTimer.hpp"
 #include "Timer/GPUTimer.hpp"
-#include "Window/Window.hpp"
 
 namespace File {
 template <typename T>

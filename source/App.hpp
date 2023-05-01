@@ -8,6 +8,7 @@
 #include <vulkan/vulkan.hpp>
 
 #include "Graphics/CommandBuffer.hpp"
+#include "Graphics/Context.hpp"
 
 namespace Key {
 constexpr inline int W = GLFW_KEY_W;
@@ -26,16 +27,6 @@ public:
     virtual void onStart() {}
     virtual void onUpdate() {}
     virtual void onRender(const CommandBuffer& commandBuffer) {}
-
-    // Vulkan function
-    std::vector<vk::UniqueCommandBuffer> allocateCommandBuffers(uint32_t count) const;
-
-    void oneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command) const;
-
-    vk::UniqueDescriptorSet allocateDescriptorSet(vk::DescriptorSetLayout descSetLayout) const;
-
-    uint32_t findMemoryTypeIndex(vk::MemoryRequirements requirements,
-                                 vk::MemoryPropertyFlags memoryProp) const;
 
     // Command
     void beginDefaultRenderPass(vk::CommandBuffer commandBuffer) const {
@@ -77,9 +68,23 @@ public:
     //         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1});
     // }
 
+    vk::UniqueDescriptorSet allocateDescriptorSet(vk::DescriptorSetLayout descSetLayout) const {
+        return context.allocateDescriptorSet(descSetLayout);
+    }
+
+    uint32_t findMemoryTypeIndex(vk::MemoryRequirements requirements,
+                                 vk::MemoryPropertyFlags memoryProp) const {
+        return context.findMemoryTypeIndex(requirements, memoryProp);
+    }
+
+    void oneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command) const {
+        context.oneTimeSubmit(command);
+    }
+
     // Getter
-    vk::Device getDevice() const { return *device; }
-    vk::PhysicalDevice getPhysicalDevice() const { return physicalDevice; }
+    vk::Device getDevice() const { return context.getDevice(); }
+    vk::PhysicalDevice getPhysicalDevice() const { return context.getPhysicalDevice(); }
+
     uint32_t getWidth() const { return m_width; }
     uint32_t getHeight() const { return m_height; }
     vk::Image getBackImage() const { return swapchainImages[frameIndex]; }
@@ -103,33 +108,9 @@ protected:
     glm::vec2 m_currMousePos = {0.0f, 0.0f};
     glm::vec2 m_lastMousePos = {0.0f, 0.0f};
 
-    // Vulkan
-    static VKAPI_ATTR VkBool32 VKAPI_CALL
-    debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-                  VkDebugUtilsMessageTypeFlagsEXT messageTypes,
-                  VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData,
-                  void* pUserData) {
-        const std::string message{pCallbackData->pMessage};
-        const std::regex regex{"The Vulkan spec states: "};
-        std::smatch result;
-        if (std::regex_search(message, result, regex)) {
-            spdlog::error("{}\n", message.substr(0, result.position()));
-        } else {
-            spdlog::error("{}\n", message);
-        }
-        return VK_FALSE;
-    }
-
-    bool m_enableValidation;
-    vk::UniqueInstance instance;
-    vk::UniqueDebugUtilsMessengerEXT debugMessenger;
+    Context context;
     vk::UniqueSurfaceKHR surface;
-    vk::UniqueDevice device;
-    vk::PhysicalDevice physicalDevice;
-    uint32_t queueFamily = ~0u;
-    vk::Queue queue;
-    vk::UniqueCommandPool commandPool;
-    vk::UniqueDescriptorPool descriptorPool;
+    bool m_enableValidation;
 
     // Swapchain
     vk::UniqueSwapchainKHR swapchain;

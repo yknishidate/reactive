@@ -1,6 +1,5 @@
 #include "Image.hpp"
 #include "Buffer.hpp"
-#include "Window/Window.hpp"
 
 // #define STB_IMAGE_IMPLEMENTATION
 // #define STB_IMAGE_WRITE_IMPLEMENTATION

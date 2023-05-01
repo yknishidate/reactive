@@ -1,7 +1,6 @@
 #include "Camera.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
-#include "Window/Window.hpp"
 
 Camera::Camera(const App* app, uint32_t width, uint32_t height) : m_app{app} {
     aspect = static_cast<float>(width) / height;

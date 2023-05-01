@@ -7,7 +7,6 @@
 #include "RenderPass.hpp"
 #include "Scene/Mesh.hpp"
 #include "Scene/Object.hpp"
-#include "Window/Window.hpp"
 
 namespace {
 // vk::UniquePipeline createComputePipeline(vk::ShaderModule shaderModule,
