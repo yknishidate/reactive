@@ -2,13 +2,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
-Camera::Camera(const App* app, uint32_t width, uint32_t height) : m_app{app} {
+Camera::Camera(const App* app, uint32_t width, uint32_t height) : app{app} {
     aspect = static_cast<float>(width) / height;
 }
 
 void Camera::processInput() {
-    if (m_app->mousePressed()) {
-        glm::vec2 motion = m_app->getMouseMotion();
+    if (app->mousePressed()) {
+        glm::vec2 motion = app->getMouseMotion();
         yaw = glm::mod(yaw - motion.x * 0.1f, 360.0f);
         pitch = glm::clamp(pitch + motion.y * 0.1f, -89.9f, 89.9f);
         updateFront();
@@ -17,23 +17,23 @@ void Camera::processInput() {
 
     glm::vec3 forward = getFront();
     glm::vec3 right = getRight();
-    if (m_app->keyPressed(Key::W)) {
+    if (app->keyPressed(Key::W)) {
         position += forward * 0.15f * speed;
         dirty = true;
     }
-    if (m_app->keyPressed(Key::S)) {
+    if (app->keyPressed(Key::S)) {
         position -= forward * 0.15f * speed;
         dirty = true;
     }
-    if (m_app->keyPressed(Key::D)) {
+    if (app->keyPressed(Key::D)) {
         position += right * 0.1f * speed;
         dirty = true;
     }
-    if (m_app->keyPressed(Key::A)) {
+    if (app->keyPressed(Key::A)) {
         position -= right * 0.1f * speed;
         dirty = true;
     }
-    if (m_app->keyPressed(Key::Space)) {
+    if (app->keyPressed(Key::Space)) {
         position.y -= 0.05f * speed;
         dirty = true;
     }

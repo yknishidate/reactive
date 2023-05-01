@@ -13,9 +13,9 @@
 class Shader {
 public:
     Shader() = default;
-    Shader(const App* app, const std::string& filepath);
-    Shader(const App* app, const std::string& glslCode, vk::ShaderStageFlagBits shaderStage);
-    Shader(const App* app,
+    Shader(const Context* context, const std::string& filepath);
+    Shader(const Context* context, const std::string& glslCode, vk::ShaderStageFlagBits shaderStage);
+    Shader(const Context* context,
            const std::vector<uint32_t>& spvCode,
            vk::ShaderStageFlagBits shaderStage);
 

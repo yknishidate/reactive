@@ -1,9 +1,9 @@
 #pragma once
-#include "App.hpp"
+#include "Graphics/Context.hpp"
 
 class GPUTimer {
 public:
-    GPUTimer(const App* app);
+    GPUTimer(const Context* context);
 
     void beginTimestamp(vk::CommandBuffer commandBuffer) const;
     void endTimestamp(vk::CommandBuffer commandBuffer) const;
@@ -11,7 +11,7 @@ public:
     float elapsedInMilli();
 
 private:
-    const App* m_app;
+    const Context* context;
     vk::UniqueQueryPool queryPool;
     float timestampPeriod;
 };

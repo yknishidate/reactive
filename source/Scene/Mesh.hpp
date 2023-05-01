@@ -67,7 +67,9 @@ using Index = uint32_t;
 
 struct Mesh {
     Mesh() = default;
-    Mesh(const App* app, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
+    Mesh(const Context* context,
+         const std::vector<Vertex>& vertices,
+         const std::vector<uint32_t>& indices);
 
     uint64_t getVertexBufferAddress() const { return m_vertexBuffer.getAddress(); }
     uint64_t getIndexBufferAddress() const { return m_indexBuffer.getAddress(); }
@@ -81,7 +83,7 @@ struct Mesh {
         commandBuffer.drawIndexed(static_cast<uint32_t>(m_indices.size()), 1, 0, 0, 0);
     }
 
-    static Mesh createCubeLines(const App* app) {
+    static Mesh createCubeLines(const Context* context) {
         std::vector<Vertex> vertices{
             {glm::vec3(-1.0, -1.0, -1.0)}, {glm::vec3(1.0, -1.0, -1.0)},
             {glm::vec3(1.0, -1.0, 1.0)},   {glm::vec3(-1.0, -1.0, 1.0)},
@@ -90,10 +92,10 @@ struct Mesh {
         };
         std::vector<uint32_t> indices{0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6,
                                       6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7};
-        return {app, vertices, indices};
+        return {context, vertices, indices};
     }
 
-    static Mesh createSpherePolys(const App* app, int n_slices, int n_stacks) {
+    static Mesh createSpherePolys(const Context* context, int n_slices, int n_stacks) {
         // add top vertex
         std::vector<Vertex> vertices;
         vertices.push_back({{0, 1, 0}});
@@ -149,7 +151,7 @@ struct Mesh {
                 indices.push_back(i0);
             }
         }
-        return {app, vertices, indices};
+        return {context, vertices, indices};
     }
 
     DeviceBuffer m_vertexBuffer;

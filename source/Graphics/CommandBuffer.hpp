@@ -1,5 +1,5 @@
 #pragma once
-#include <vulkan/vulkan.hpp>
+#include "Context.hpp"
 
 class App;
 class Image;
@@ -17,8 +17,8 @@ class DescriptorSet;
 
 class CommandBuffer {
 public:
-    CommandBuffer(const App* app, vk::CommandBuffer commandBuffer)
-        : m_app{app}, commandBuffer{commandBuffer} {}
+    CommandBuffer(const Context* context, vk::CommandBuffer commandBuffer)
+        : context{context}, commandBuffer{commandBuffer} {}
 
     void bindDescriptorSet(DescriptorSet& descSet,
                            vk::PipelineBindPoint bindPoint,
@@ -29,11 +29,16 @@ public:
     // void traceRays(RayTracingPipeline& rtPipeline, uint32_t countX, uint32_t countY);
     // void dispatch(ComputePipeline& compPipeline, uint32_t countX, uint32_t countY);
 
-    void clearBackImage(std::array<float, 4> color) const;
-    // void clearColorImage(Image& image, std::array<float, 4> color);
+    void clearImage(vk::Image image, std::array<float, 4> color) const;
+    // void clearBackImage(std::array<float, 4> color) const;
+    //  void clearColorImage(Image& image, std::array<float, 4> color);
 
     // render pass
-    void beginDefaultRenderPass() const;
+    void beginRenderPass(vk::RenderPass renderPass,
+                         vk::Framebuffer framebuffer,
+                         uint32_t width,
+                         uint32_t height) const;
+    // void beginDefaultRenderPass() const;
     // void beginRenderPass(RenderPass& renderPass);
     void endRenderPass() const { commandBuffer.endRenderPass(); }
     // void endRenderPass(RenderPass& renderPass);
@@ -97,14 +102,14 @@ public:
     }
 
     // back image
-    void copyToBackImage(Image& image);
-    void setBackImageLayout(vk::ImageLayout layout);
+    // void copyToBackImage(Image& image);
+    // void setBackImageLayout(vk::ImageLayout layout);
 
     // timestamp
     void beginTimestamp(const GPUTimer& gpuTimer) const;
     void endTimestamp(const GPUTimer& gpuTimer) const;
 
-    const App* m_app;
+    const Context* context;
     vk::CommandBuffer commandBuffer;
     // Swapchain* swapchain = nullptr;
 };

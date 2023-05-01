@@ -1,7 +1,10 @@
 #include "Buffer.hpp"
 
-Buffer::Buffer(const App* app, BufferUsage usage, vk::MemoryPropertyFlags memoryProp, size_t size)
-    : m_app{app}, size(size) {
+Buffer::Buffer(const Context* context,
+               BufferUsage usage,
+               vk::MemoryPropertyFlags memoryProp,
+               size_t size)
+    : context{context}, size(size) {
     vk::BufferUsageFlags usageFlag;
     switch (usage) {
         case BufferUsage::Vertex:
@@ -54,21 +57,21 @@ Buffer::Buffer(const App* app, BufferUsage usage, vk::MemoryPropertyFlags memory
         default:
             assert(false);
     }
-    buffer = app->getDevice().createBufferUnique({{}, size, usageFlag});
+    buffer = context->getDevice().createBufferUnique({{}, size, usageFlag});
 
-    vk::MemoryRequirements requirements = app->getDevice().getBufferMemoryRequirements(*buffer);
-    uint32_t memoryTypeIndex = app->findMemoryTypeIndex(requirements, memoryProp);
+    vk::MemoryRequirements requirements = context->getDevice().getBufferMemoryRequirements(*buffer);
+    uint32_t memoryTypeIndex = context->findMemoryTypeIndex(requirements, memoryProp);
     vk::MemoryAllocateFlagsInfo flagsInfo{vk::MemoryAllocateFlagBits::eDeviceAddress};
-    memory = app->getDevice().allocateMemoryUnique(vk::MemoryAllocateInfo()
-                                                       .setAllocationSize(requirements.size)
-                                                       .setMemoryTypeIndex(memoryTypeIndex)
-                                                       .setPNext(&flagsInfo));
+    memory = context->getDevice().allocateMemoryUnique(vk::MemoryAllocateInfo()
+                                                           .setAllocationSize(requirements.size)
+                                                           .setMemoryTypeIndex(memoryTypeIndex)
+                                                           .setPNext(&flagsInfo));
 
-    app->getDevice().bindBufferMemory(*buffer, *memory, 0);
+    context->getDevice().bindBufferMemory(*buffer, *memory, 0);
 }
 
-HostBuffer::HostBuffer(const App* app, BufferUsage usage, size_t size)
-    : Buffer(app,
+HostBuffer::HostBuffer(const Context* context, BufferUsage usage, size_t size)
+    : Buffer(context,
              usage,
              vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
              size) {}
@@ -80,18 +83,18 @@ void HostBuffer::copy(const void* data) {
 
 void* HostBuffer::map() {
     if (!mapped) {
-        mapped = m_app->getDevice().mapMemory(*memory, 0, VK_WHOLE_SIZE);
+        mapped = context->getDevice().mapMemory(*memory, 0, VK_WHOLE_SIZE);
     }
     return mapped;
 }
 
-DeviceBuffer::DeviceBuffer(const App* app, BufferUsage usage, size_t size)
-    : Buffer(app, usage, vk::MemoryPropertyFlagBits::eDeviceLocal, size) {}
+DeviceBuffer::DeviceBuffer(const Context* context, BufferUsage usage, size_t size)
+    : Buffer(context, usage, vk::MemoryPropertyFlagBits::eDeviceLocal, size) {}
 
 void DeviceBuffer::copy(const void* data) {
-    HostBuffer stagingBuffer{m_app, BufferUsage::Staging, size};
+    HostBuffer stagingBuffer{context, BufferUsage::Staging, size};
     stagingBuffer.copy(data);
-    m_app->oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
+    context->oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
         vk::BufferCopy region{0, 0, size};
         commandBuffer.copyBuffer(stagingBuffer.getBuffer(), *buffer, region);
     });

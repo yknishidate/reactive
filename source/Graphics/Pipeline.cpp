@@ -76,7 +76,10 @@ vk::StridedDeviceAddressRegionKHR createAddressRegion(
 //                                       useMeshShader);
 // }
 
-void GraphicsPipeline::setup(vk::RenderPass renderPass, vk::DescriptorSetLayout descSetLayout) {
+void GraphicsPipeline::setup(vk::RenderPass renderPass,
+                             vk::DescriptorSetLayout descSetLayout,
+                             uint32_t width,
+                             uint32_t height) {
     vk::PushConstantRange pushRange;
     pushRange.setOffset(0);
     pushRange.setSize(pushSize);
@@ -87,7 +90,7 @@ void GraphicsPipeline::setup(vk::RenderPass renderPass, vk::DescriptorSetLayout 
     if (pushSize) {
         layoutInfo.setPushConstantRanges(pushRange);
     }
-    pipelineLayout = m_app->getDevice().createPipelineLayoutUnique(layoutInfo);
+    pipelineLayout = context->getDevice().createPipelineLayoutUnique(layoutInfo);
 
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
     for (auto& shader : shaders) {
@@ -105,12 +108,9 @@ void GraphicsPipeline::setup(vk::RenderPass renderPass, vk::DescriptorSetLayout 
     vk::PipelineColorBlendStateCreateInfo colorBlending;
     colorBlending.setAttachments(colorBlendState);
     colorBlending.setLogicOpEnable(VK_FALSE);
-    // pipeline = createGraphicsPipeline(shaderStages, *pipelineLayout, renderPass, colorBlending,
-    //                                   topology, polygonMode, useMeshShader);
-    auto width = static_cast<float>(m_app->getWidth());
-    auto height = static_cast<float>(m_app->getHeight());
-    vk::Viewport viewport{0.0f, 0.0f, width, height, 0.0f, 1.0f};
-    vk::Rect2D scissor{{0, 0}, {m_app->getWidth(), m_app->getWidth()}};
+    vk::Viewport viewport{0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height),
+                          0.0f, 1.0f};
+    vk::Rect2D scissor{{0, 0}, {width, height}};
     vk::PipelineViewportStateCreateInfo viewportState{{}, 1, &viewport, 1, &scissor};
 
     vk::PipelineRasterizationStateCreateInfo rasterization;
@@ -158,7 +158,7 @@ void GraphicsPipeline::setup(vk::RenderPass renderPass, vk::DescriptorSetLayout 
         pipelineInfo.setPVertexInputState(&vertexInputInfo);
     }
 
-    auto result = m_app->getDevice().createGraphicsPipelineUnique({}, pipelineInfo);
+    auto result = context->getDevice().createGraphicsPipelineUnique({}, pipelineInfo);
     if (result.result != vk::Result::eSuccess) {
         throw std::runtime_error("failed to create a pipeline!");
     }

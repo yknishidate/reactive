@@ -11,8 +11,8 @@
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
-App::App(int width, int height, const std::string& title, bool enableValidation)
-    : m_width{width}, m_height{height}, m_title{title}, m_enableValidation{enableValidation} {
+App::App(uint32_t width, uint32_t height, const std::string& title, bool enableValidation)
+    : width{width}, height{height}, m_title{title}, m_enableValidation{enableValidation} {
     spdlog::set_pattern("[%^%l%$] %v");
 
     initGLFW();
@@ -57,13 +57,13 @@ void App::run() {
             vk::CommandBufferBeginInfo().setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
 
         // Render
-        CommandBuffer commandBuffer = {this, *commandBuffers[frameIndex]};
+        CommandBuffer commandBuffer = {&context, *commandBuffers[frameIndex]};
         onRender(commandBuffer);
 
         // Draw GUI
         {
             // Begin render pass
-            commandBuffer.beginDefaultRenderPass();
+            commandBuffer.beginRenderPass(*renderPass, *framebuffers[frameIndex], width, height);
 
             // Render
             ImGui::Render();
@@ -124,7 +124,7 @@ void App::initGLFW() {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
     // Create window
-    m_window = glfwCreateWindow(m_width, m_height, m_title.c_str(), nullptr, nullptr);
+    m_window = glfwCreateWindow(width, height, m_title.c_str(), nullptr, nullptr);
 
     // Set window icon
     GLFWimage icon;
@@ -213,7 +213,7 @@ void App::initVulkan() {
             .setMinImageCount(minImageCount)
             .setImageFormat(vk::Format::eB8G8R8A8Unorm)
             .setImageColorSpace(vk::ColorSpaceKHR::eSrgbNonlinear)
-            .setImageExtent({static_cast<uint32_t>(m_width), static_cast<uint32_t>(m_height)})
+            .setImageExtent({width, height})
             .setImageArrayLayers(1)
             .setImageUsage(vk::ImageUsageFlagBits::eColorAttachment |
                            vk::ImageUsageFlagBits::eTransferDst)
@@ -242,7 +242,7 @@ void App::initVulkan() {
         vk::ImageCreateInfo()
             .setImageType(vk::ImageType::e2D)
             .setFormat(vk::Format::eD32Sfloat)
-            .setExtent({static_cast<uint32_t>(m_width), static_cast<uint32_t>(m_height), 1})
+            .setExtent({width, height, 1})
             .setMipLevels(1)
             .setArrayLayers(1)
             .setUsage(vk::ImageUsageFlagBits::eDepthStencilAttachment));
@@ -326,8 +326,8 @@ void App::initVulkan() {
             context.getDevice().createFramebufferUnique(vk::FramebufferCreateInfo()
                                                             .setRenderPass(*renderPass)
                                                             .setAttachments(attachments)
-                                                            .setWidth(m_width)
-                                                            .setHeight(m_height)
+                                                            .setWidth(width)
+                                                            .setHeight(height)
                                                             .setLayers(1));
         fences[i] = context.getDevice().createFenceUnique(
             vk::FenceCreateInfo().setFlags(vk::FenceCreateFlagBits::eSignaled));

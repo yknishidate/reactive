@@ -1,11 +1,11 @@
 #include "GPUTimer.hpp"
 
-GPUTimer::GPUTimer(const App* app) : m_app{app} {
+GPUTimer::GPUTimer(const Context* context) : context{context} {
     vk::QueryPoolCreateInfo queryPoolInfo;
     queryPoolInfo.setQueryType(vk::QueryType::eTimestamp);
     queryPoolInfo.setQueryCount(2);
-    queryPool = m_app->getDevice().createQueryPoolUnique(queryPoolInfo);
-    timestampPeriod = m_app->getPhysicalDevice().getProperties().limits.timestampPeriod;
+    queryPool = context->getDevice().createQueryPoolUnique(queryPoolInfo);
+    timestampPeriod = context->getPhysicalDevice().getProperties().limits.timestampPeriod;
 }
 
 void GPUTimer::beginTimestamp(vk::CommandBuffer commandBuffer) const {
@@ -19,7 +19,7 @@ void GPUTimer::endTimestamp(vk::CommandBuffer commandBuffer) const {
 
 float GPUTimer::elapsedInNano() {
     std::array<uint64_t, 2> timestamps{};
-    vk::resultCheck(m_app->getDevice().getQueryPoolResults(
+    vk::resultCheck(context->getDevice().getQueryPoolResults(
                         *queryPool, 0, 2,
                         timestamps.size() * sizeof(uint64_t),  // dataSize
                         timestamps.data(),                     // pData

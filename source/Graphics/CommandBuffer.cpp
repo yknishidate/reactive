@@ -36,17 +36,43 @@ void CommandBuffer::pushConstants(Pipeline& pipeline, const void* pushData) cons
 //     image.clearColor(commandBuffer, color);
 // }
 
-void CommandBuffer::clearBackImage(std::array<float, 4> color) const {
-    Image::setImageLayout(commandBuffer, m_app->getBackImage(),
-                          vk::ImageLayout::eTransferDstOptimal);
-
+void CommandBuffer::clearImage(vk::Image image, std::array<float, 4> color) const {
+    Image::setImageLayout(commandBuffer, image, vk::ImageLayout::eTransferDstOptimal);
     commandBuffer.clearColorImage(
-        m_app->getBackImage(), vk::ImageLayout::eTransferDstOptimal, vk::ClearColorValue{color},
+        image, vk::ImageLayout::eTransferDstOptimal, vk::ClearColorValue{color},
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1});
 }
 
-void CommandBuffer::beginDefaultRenderPass() const {
-    m_app->beginDefaultRenderPass(commandBuffer);
+// void CommandBuffer::clearBackImage(std::array<float, 4> color) const {
+//     Image::setImageLayout(commandBuffer, m_app->getBackImage(),
+//                           vk::ImageLayout::eTransferDstOptimal);
+//
+//     commandBuffer.clearColorImage(
+//         m_app->getBackImage(), vk::ImageLayout::eTransferDstOptimal, vk::ClearColorValue{color},
+//         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1});
+// }
+//
+// void CommandBuffer::beginDefaultRenderPass() const {
+//     m_app->beginDefaultRenderPass(commandBuffer);
+// }
+
+void CommandBuffer::beginRenderPass(vk::RenderPass renderPass,
+                                    vk::Framebuffer framebuffer,
+                                    uint32_t width,
+                                    uint32_t height) const {
+    vk::Rect2D renderArea;
+    renderArea.setExtent({width, height});
+
+    std::array<vk::ClearValue, 2> clearValues;
+    clearValues[0].color = {std::array{0.0f, 0.0f, 0.0f, 1.0f}};
+    clearValues[1].depthStencil = vk::ClearDepthStencilValue{1.0f, 0};
+
+    vk::RenderPassBeginInfo beginInfo;
+    beginInfo.setRenderPass(renderPass);
+    beginInfo.setClearValues(clearValues);
+    beginInfo.setFramebuffer(framebuffer);
+    beginInfo.setRenderArea(renderArea);
+    commandBuffer.beginRenderPass(beginInfo, vk::SubpassContents::eInline);
 }
 
 // void CommandBuffer::beginRenderPass(RenderPass& renderPass) {

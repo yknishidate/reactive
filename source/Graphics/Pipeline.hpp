@@ -11,7 +11,7 @@ class Scene;
 class Pipeline {
 public:
     Pipeline() = default;
-    Pipeline(const App* app) : m_app{app} {}
+    Pipeline(const Context* context) : context{context} {}
 
     void setPushSize(size_t size) { pushSize = size; }
 
@@ -22,7 +22,7 @@ protected:
     virtual void bind(vk::CommandBuffer commandBuffer) = 0;
     virtual void pushConstants(vk::CommandBuffer commandBuffer, const void* pushData) = 0;
 
-    const App* m_app;
+    const Context* context;
     vk::UniquePipelineLayout pipelineLayout;
     vk::UniquePipeline pipeline;
     size_t pushSize = 0;
@@ -31,10 +31,13 @@ protected:
 class GraphicsPipeline : public Pipeline {
 public:
     GraphicsPipeline() = default;
-    GraphicsPipeline(const App* app) : Pipeline{app} {}
+    GraphicsPipeline(const Context* context) : Pipeline{context} {}
 
     // void setup(RenderPass& renderPass);
-    void setup(vk::RenderPass renderPass, vk::DescriptorSetLayout descSetLayout);
+    void setup(vk::RenderPass renderPass,
+               vk::DescriptorSetLayout descSetLayout,
+               uint32_t width,
+               uint32_t height);
     void addShader(const Shader& shader) { shaders.push_back(&shader); }
 
     void setTopology(vk::PrimitiveTopology topology) { this->topology = topology; }
@@ -54,7 +57,7 @@ private:
 // class ComputePipeline : public Pipeline {
 // public:
 //     ComputePipeline() = default;
-//     ComputePipeline(const App* app) : Pipeline{app} {}
+//     ComputePipeline(const Context* context) : Pipeline{app} {}
 //
 //     void setup();
 //
@@ -75,7 +78,7 @@ private:
 // class RayTracingPipeline : public Pipeline {
 // public:
 //     RayTracingPipeline() = default;
-//     RayTracingPipeline(const App* app) : Pipeline{app} {}
+//     RayTracingPipeline(const Context* context) : Pipeline{app} {}
 //
 //     void setup();
 //

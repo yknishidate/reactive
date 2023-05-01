@@ -1,10 +1,10 @@
 #include "Shader.hpp"
 
-Shader::Shader(const App* app, const std::string& filepath) {
+Shader::Shader(const Context* context, const std::string& filepath) {
     spvCode = Compiler::compileToSPV(filepath);
 
-    shaderModule =
-        app->getDevice().createShaderModuleUnique(vk::ShaderModuleCreateInfo().setCode(spvCode));
+    shaderModule = context->getDevice().createShaderModuleUnique(
+        vk::ShaderModuleCreateInfo().setCode(spvCode));
 
     if (filepath.ends_with("vert"))
         shaderStage = vk::ShaderStageFlagBits::eVertex;
@@ -28,17 +28,19 @@ Shader::Shader(const App* app, const std::string& filepath) {
         assert(false && "Unknown shader stage");
 }
 
-Shader::Shader(const App* app, const std::string& glslCode, vk::ShaderStageFlagBits shaderStage)
+Shader::Shader(const Context* context,
+               const std::string& glslCode,
+               vk::ShaderStageFlagBits shaderStage)
     : shaderStage{shaderStage} {
     spvCode = Compiler::compileToSPV(glslCode, shaderStage);
-    shaderModule =
-        app->getDevice().createShaderModuleUnique(vk::ShaderModuleCreateInfo().setCode(spvCode));
+    shaderModule = context->getDevice().createShaderModuleUnique(
+        vk::ShaderModuleCreateInfo().setCode(spvCode));
 }
 
-Shader::Shader(const App* app,
+Shader::Shader(const Context* context,
                const std::vector<uint32_t>& spvCode,
                vk::ShaderStageFlagBits shaderStage)
     : spvCode{spvCode}, shaderStage{shaderStage} {
-    shaderModule =
-        app->getDevice().createShaderModuleUnique(vk::ShaderModuleCreateInfo().setCode(spvCode));
+    shaderModule = context->getDevice().createShaderModuleUnique(
+        vk::ShaderModuleCreateInfo().setCode(spvCode));
 }

@@ -45,7 +45,7 @@ public:
 private:
     void updateFront();
 
-    const App* m_app;
+    const App* app;
     float speed = 1.0f;
     glm::vec3 position = {0.0f, 0.0f, 5.0f};
     glm::vec3 front = {0.0f, 0.0f, -1.0f};

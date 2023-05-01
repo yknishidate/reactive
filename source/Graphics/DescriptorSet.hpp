@@ -31,7 +31,7 @@ private:
 class DescriptorSet {
 public:
     DescriptorSet() = default;
-    DescriptorSet(const App* app) : m_app{app} {}
+    DescriptorSet(const Context* context) : context{context} {}
 
     void allocate();
     void update();
@@ -54,7 +54,7 @@ private:
                           vk::ShaderStageFlags stage,
                           vk::DescriptorType type);
 
-    const App* m_app;
+    const Context* context;
     vk::UniqueDescriptorSet descSet;
     vk::UniqueDescriptorSetLayout descSetLayout;
     std::unordered_map<std::string, vk::DescriptorSetLayoutBinding> bindingMap;

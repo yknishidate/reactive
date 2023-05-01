@@ -20,30 +20,13 @@ constexpr inline int Space = GLFW_KEY_SPACE;
 
 class App {
 public:
-    App(int width, int height, const std::string& title, bool enableValidation);
+    App(uint32_t width, uint32_t height, const std::string& title, bool enableValidation);
 
     void run();
 
     virtual void onStart() {}
     virtual void onUpdate() {}
     virtual void onRender(const CommandBuffer& commandBuffer) {}
-
-    // Command
-    void beginDefaultRenderPass(vk::CommandBuffer commandBuffer) const {
-        vk::Rect2D renderArea;
-        renderArea.setExtent({static_cast<uint32_t>(m_width), static_cast<uint32_t>(m_height)});
-
-        std::array<vk::ClearValue, 2> clearValues;
-        clearValues[0].color = {std::array{0.0f, 0.0f, 0.0f, 1.0f}};
-        clearValues[1].depthStencil = vk::ClearDepthStencilValue{1.0f, 0};
-
-        vk::RenderPassBeginInfo beginInfo;
-        beginInfo.setRenderPass(*renderPass);
-        beginInfo.setClearValues(clearValues);
-        beginInfo.setFramebuffer(*framebuffers[frameIndex]);
-        beginInfo.setRenderArea(renderArea);
-        commandBuffer.beginRenderPass(beginInfo, vk::SubpassContents::eInline);
-    }
 
     // void copyToBackImage(vk::CommandBuffer commandBuffer, Image& source) {
     //     vk::ImageCopy copyRegion;
@@ -61,32 +44,9 @@ public:
     //    Image::setImageLayout(commandBuffer, backImage, vk::ImageLayout::ePresentSrcKHR);
     //}
 
-    // void clearBackImage(vk::CommandBuffer commandBuffer, std::array<float, 4> color) {
-    //     Image::setImageLayout(commandBuffer, getBackImage(),
-    //     vk::ImageLayout::eTransferDstOptimal); commandBuffer.clearColorImage(
-    //         getBackImage(), vk::ImageLayout::eTransferDstOptimal, vk::ClearColorValue{color},
-    //         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1});
-    // }
-
-    vk::UniqueDescriptorSet allocateDescriptorSet(vk::DescriptorSetLayout descSetLayout) const {
-        return context.allocateDescriptorSet(descSetLayout);
-    }
-
-    uint32_t findMemoryTypeIndex(vk::MemoryRequirements requirements,
-                                 vk::MemoryPropertyFlags memoryProp) const {
-        return context.findMemoryTypeIndex(requirements, memoryProp);
-    }
-
-    void oneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command) const {
-        context.oneTimeSubmit(command);
-    }
-
     // Getter
-    vk::Device getDevice() const { return context.getDevice(); }
-    vk::PhysicalDevice getPhysicalDevice() const { return context.getPhysicalDevice(); }
-
-    uint32_t getWidth() const { return m_width; }
-    uint32_t getHeight() const { return m_height; }
+    uint32_t getWidth() const { return width; }
+    uint32_t getHeight() const { return height; }
     vk::Image getBackImage() const { return swapchainImages[frameIndex]; }
 
     // Input
@@ -102,8 +62,6 @@ protected:
 
     // GLFW
     GLFWwindow* m_window;
-    int m_width;
-    int m_height;
     std::string m_title;
     glm::vec2 m_currMousePos = {0.0f, 0.0f};
     glm::vec2 m_lastMousePos = {0.0f, 0.0f};

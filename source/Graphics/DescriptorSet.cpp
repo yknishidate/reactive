@@ -50,9 +50,9 @@ void DescriptorSet::allocate() {
         bindings.push_back(binding);
     }
 
-    descSetLayout = m_app->getDevice().createDescriptorSetLayoutUnique(
+    descSetLayout = context->getDevice().createDescriptorSetLayoutUnique(
         vk::DescriptorSetLayoutCreateInfo().setBindings(bindings));
-    descSet = m_app->allocateDescriptorSet(*descSetLayout);
+    descSet = context->allocateDescriptorSet(*descSetLayout);
     update();
 }
 
@@ -65,7 +65,7 @@ void DescriptorSet::update() {
     for (auto& write : _writes) {
         write.setDstSet(*descSet);
     }
-    m_app->getDevice().updateDescriptorSets(_writes, nullptr);
+    context->getDevice().updateDescriptorSets(_writes, nullptr);
 }
 
 void DescriptorSet::record(const std::string& name, const std::vector<Image>& images) {
