@@ -27,6 +27,7 @@ public:
     float getPitch() const { return pitch; }
     float getYaw() const { return yaw; }
 
+    void setAspect(float asp) { aspect = asp; }
     void setPosition(float x, float y, float z) { position = {x, y, z}; }
     void setPosition(glm::vec3 pos) { position = pos; }
     void setSpeed(float s) { speed = s; }

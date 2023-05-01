@@ -37,17 +37,22 @@ void App::run() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // Acquire next image
-        frameIndex = context.getDevice()
-                         .acquireNextImageKHR(*swapchain, UINT64_MAX, *imageAcquiredSemaphore)
-                         .value;
-
-        // Wait fences
-        vk::Result result =
+        // Wait fence
+        vk::Result waitResult =
             context.getDevice().waitForFences(*fences[frameIndex], VK_TRUE, UINT64_MAX);
-        if (result != vk::Result::eSuccess) {
+        if (waitResult != vk::Result::eSuccess) {
             throw std::runtime_error("Failed to wait for fence");
         }
+
+        // Acquire next image
+        auto acquireResult = context.getDevice().acquireNextImageKHR(*swapchain, UINT64_MAX,
+                                                                     *imageAcquiredSemaphore);
+        if (acquireResult.result == vk::Result::eErrorOutOfDateKHR) {
+            continue;
+        }
+        frameIndex = acquireResult.value;
+
+        // Reset fence
         context.getDevice().resetFences(*fences[frameIndex]);
 
         // Begin command buffer
@@ -118,7 +123,7 @@ bool App::mousePressed() const {
 void App::initGLFW() {
     // Init GLFW
     glfwInit();
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    // glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
     // Create window
@@ -132,6 +137,18 @@ void App::initGLFW() {
         glfwSetWindowIcon(window, 1, &icon);
     }
     stbi_image_free(icon.pixels);
+
+    // Setup input callbacks
+    glfwSetWindowUserPointer(window, this);
+    glfwSetKeyCallback(window, keyCallback);
+    glfwSetCharCallback(window, charCallback);
+    glfwSetCharModsCallback(window, charModsCallback);
+    glfwSetMouseButtonCallback(window, mouseButtonCallback);
+    glfwSetCursorPosCallback(window, cursorPosCallback);
+    glfwSetCursorEnterCallback(window, cursorEnterCallback);
+    glfwSetScrollCallback(window, scrollCallback);
+    glfwSetDropCallback(window, dropCallback);
+    glfwSetWindowSizeCallback(window, windowSizeCallback);
 }
 
 void App::initVulkan() {
@@ -202,65 +219,8 @@ void App::initVulkan() {
     vk::PhysicalDeviceBufferDeviceAddressFeatures bufferDeviceAddressFeatures{true};
     context.initDevice(deviceExtensions, deviceFeatures, &bufferDeviceAddressFeatures);
 
-    // Create swapchain
-    uint32_t queueFamily = context.getQueueFamily();
-    swapchain = context.getDevice().createSwapchainKHRUnique(
-        vk::SwapchainCreateInfoKHR()
-            .setSurface(*surface)
-            .setMinImageCount(minImageCount)
-            .setImageFormat(vk::Format::eB8G8R8A8Unorm)
-            .setImageColorSpace(vk::ColorSpaceKHR::eSrgbNonlinear)
-            .setImageExtent({width, height})
-            .setImageArrayLayers(1)
-            .setImageUsage(vk::ImageUsageFlagBits::eColorAttachment |
-                           vk::ImageUsageFlagBits::eTransferDst)
-            .setPreTransform(vk::SurfaceTransformFlagBitsKHR::eIdentity)
-            .setPresentMode(vk::PresentModeKHR::eFifo)
-            .setClipped(true)
-            .setQueueFamilyIndices(queueFamily));
-
-    // Get images
-    swapchainImages = context.getDevice().getSwapchainImagesKHR(*swapchain);
-
-    // Create image views
-    for (auto& image : swapchainImages) {
-        swapchainImageViews.push_back(context.getDevice().createImageViewUnique(
-            vk::ImageViewCreateInfo()
-                .setImage(image)
-                .setViewType(vk::ImageViewType::e2D)
-                .setFormat(vk::Format::eB8G8R8A8Unorm)
-                .setComponents({vk::ComponentSwizzle::eR, vk::ComponentSwizzle::eG,
-                                vk::ComponentSwizzle::eB, vk::ComponentSwizzle::eA})
-                .setSubresourceRange({vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1})));
-    }
-
-    // Create depth image
-    depthImage = context.getDevice().createImageUnique(
-        vk::ImageCreateInfo()
-            .setImageType(vk::ImageType::e2D)
-            .setFormat(vk::Format::eD32Sfloat)
-            .setExtent({width, height, 1})
-            .setMipLevels(1)
-            .setArrayLayers(1)
-            .setUsage(vk::ImageUsageFlagBits::eDepthStencilAttachment));
-
-    vk::MemoryRequirements requirements =
-        context.getDevice().getImageMemoryRequirements(*depthImage);
-    uint32_t memoryTypeIndex =
-        context.findMemoryTypeIndex(requirements, vk::MemoryPropertyFlagBits::eDeviceLocal);
-    depthImageMemory =
-        context.getDevice().allocateMemoryUnique(vk::MemoryAllocateInfo()
-                                                     .setAllocationSize(requirements.size)
-                                                     .setMemoryTypeIndex(memoryTypeIndex));
-
-    context.getDevice().bindImageMemory(*depthImage, *depthImageMemory, 0);
-
-    depthImageView = context.getDevice().createImageViewUnique(
-        vk::ImageViewCreateInfo()
-            .setImage(*depthImage)
-            .setViewType(vk::ImageViewType::e2D)
-            .setFormat(vk::Format::eD32Sfloat)
-            .setSubresourceRange({vk::ImageAspectFlagBits::eDepth, 0, 1, 0, 1}));
+    createSwapchain();
+    createDepthImage();
 
     // Create render pass
     vk::AttachmentDescription colorAttachment;
@@ -311,21 +271,18 @@ void App::initVulkan() {
                                                                 .setSubpasses(subpass)
                                                                 .setDependencies(dependency));
 
+    createFramebuffers();
+
     size_t imageCount = swapchainImages.size();
+
+    // Allocate command buffers
     commandBuffers = context.allocateCommandBuffers(imageCount);
-    framebuffers.resize(imageCount);
+
+    // Create sync objects
     fences.resize(imageCount);
     imageAcquiredSemaphore = context.getDevice().createSemaphoreUnique({});
     renderCompleteSemaphore = context.getDevice().createSemaphoreUnique({});
     for (uint32_t i = 0; i < imageCount; i++) {
-        std::array attachments{*swapchainImageViews[i], *depthImageView};
-        framebuffers[i] =
-            context.getDevice().createFramebufferUnique(vk::FramebufferCreateInfo()
-                                                            .setRenderPass(*renderPass)
-                                                            .setAttachments(attachments)
-                                                            .setWidth(width)
-                                                            .setHeight(height)
-                                                            .setLayers(1));
         fences[i] = context.getDevice().createFenceUnique(
             vk::FenceCreateInfo().setFlags(vk::FenceCreateFlagBits::eSignaled));
     }
@@ -395,4 +352,89 @@ void App::initImGui() {
         });
         ImGui_ImplVulkan_DestroyFontUploadObjects();
     }
+}
+
+// Callbacks
+void App::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    ImGuiIO& io = ImGui::GetIO();
+    if (key >= 0 && key < IM_ARRAYSIZE(io.KeysDown)) {
+        if (action == GLFW_PRESS) {
+            io.KeysDown[key] = true;
+        } else if (action == GLFW_RELEASE) {
+            io.KeysDown[key] = false;
+        }
+    }
+
+    io.KeyCtrl = io.KeysDown[GLFW_KEY_LEFT_CONTROL] || io.KeysDown[GLFW_KEY_RIGHT_CONTROL];
+    io.KeyShift = io.KeysDown[GLFW_KEY_LEFT_SHIFT] || io.KeysDown[GLFW_KEY_RIGHT_SHIFT];
+    io.KeyAlt = io.KeysDown[GLFW_KEY_LEFT_ALT] || io.KeysDown[GLFW_KEY_RIGHT_ALT];
+    io.KeySuper = io.KeysDown[GLFW_KEY_LEFT_SUPER] || io.KeysDown[GLFW_KEY_RIGHT_SUPER];
+
+    if (!io.WantCaptureKeyboard) {
+        App* app = (App*)glfwGetWindowUserPointer(window);
+        app->onKey(key, scancode, action, mods);
+    }
+}
+
+void App::charCallback(GLFWwindow* window, unsigned int codepoint) {
+    App* app = (App*)glfwGetWindowUserPointer(window);
+    ImGuiIO& io = ImGui::GetIO();
+    io.AddInputCharacter(codepoint);
+    app->onChar(codepoint);
+}
+
+void App::charModsCallback(GLFWwindow* window, unsigned int codepoint, int mods) {
+    App* app = (App*)glfwGetWindowUserPointer(window);
+    app->onCharMods(codepoint, mods);
+}
+
+void App::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+    ImGuiIO& io = ImGui::GetIO();
+    if (button >= 0 && button < IM_ARRAYSIZE(io.MouseDown)) {
+        if (action == GLFW_PRESS) {
+            io.MouseDown[button] = true;
+        } else if (action == GLFW_RELEASE) {
+            io.MouseDown[button] = false;
+        }
+    }
+
+    if (!io.WantCaptureMouse) {
+        App* app = (App*)glfwGetWindowUserPointer(window);
+        app->onMouseButton(button, action, mods);
+    }
+}
+
+void App::cursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
+    App* app = (App*)glfwGetWindowUserPointer(window);
+    app->onCursorPos(xpos, ypos);
+}
+
+void App::cursorEnterCallback(GLFWwindow* window, int entered) {
+    App* app = (App*)glfwGetWindowUserPointer(window);
+    app->onCursorEnter(entered);
+}
+
+void App::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+    ImGuiIO& io = ImGui::GetIO();
+    io.MouseWheelH += (float)xoffset;
+    io.MouseWheel += (float)yoffset;
+
+    if (!io.WantCaptureMouse) {
+        App* app = (App*)glfwGetWindowUserPointer(window);
+        app->mouseWheelH += (float)xoffset;
+        app->mouseWheel += (float)yoffset;
+        app->onScroll(xoffset, yoffset);
+    }
+}
+
+void App::dropCallback(GLFWwindow* window, int count, const char** paths) {
+    App* app = (App*)glfwGetWindowUserPointer(window);
+    app->onDrop(count, paths);
+}
+
+void App::windowSizeCallback(GLFWwindow* window, int width, int height) {
+    App* app = (App*)glfwGetWindowUserPointer(window);
+    app->width = width;
+    app->height = height;
+    app->onWindowSize(width, height);
 }
