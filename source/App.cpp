@@ -12,7 +12,7 @@
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 App::App(uint32_t width, uint32_t height, const std::string& title, bool enableValidation)
-    : width{width}, height{height}, m_title{title}, m_enableValidation{enableValidation} {
+    : width{width}, height{height}, title{title}, enableValidation{enableValidation} {
     spdlog::set_pattern("[%^%l%$] %v");
 
     initGLFW();
@@ -22,15 +22,15 @@ App::App(uint32_t width, uint32_t height, const std::string& title, bool enableV
 
 void App::run() {
     onStart();
-    while (!glfwWindowShouldClose(m_window)) {
+    while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
         // Update mouse position
         double xPos{};
         double yPos{};
-        glfwGetCursorPos(m_window, &xPos, &yPos);
-        m_lastMousePos = m_currMousePos;
-        m_currMousePos = {xPos, yPos};
+        glfwGetCursorPos(window, &xPos, &yPos);
+        lastMousePos = currMousePos;
+        currMousePos = {xPos, yPos};
 
         onUpdate();
 
@@ -100,7 +100,7 @@ void App::run() {
     context.getDevice().waitIdle();
 
     // Shutdown GLFW
-    glfwDestroyWindow(m_window);
+    glfwDestroyWindow(window);
     glfwTerminate();
 
     // Shutdown ImGui
@@ -110,7 +110,7 @@ void App::run() {
 }
 
 bool App::mousePressed() const {
-    bool pressed = glfwGetMouseButton(m_window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+    bool pressed = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
     if (ImGui::GetCurrentContext()) {
         return pressed && !ImGui::IsWindowFocused(ImGuiFocusedFlags_AnyWindow);
     }
@@ -124,14 +124,14 @@ void App::initGLFW() {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
     // Create window
-    m_window = glfwCreateWindow(width, height, m_title.c_str(), nullptr, nullptr);
+    window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 
     // Set window icon
     GLFWimage icon;
     std::string iconPath = ASSET_DIR + "Vulkan.png";
     icon.pixels = stbi_load(iconPath.c_str(), &icon.width, &icon.height, nullptr, 4);
     if (icon.pixels != nullptr) {
-        glfwSetWindowIcon(m_window, 1, &icon);
+        glfwSetWindowIcon(window, 1, &icon);
     }
     stbi_image_free(icon.pixels);
 }
@@ -143,16 +143,15 @@ void App::initVulkan() {
     instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     instanceExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
     std::vector layers{"VK_LAYER_LUNARG_monitor"};
-    if (m_enableValidation) {
+    if (enableValidation) {
         layers.push_back("VK_LAYER_KHRONOS_validation");
     }
 
-    context.initInstance(m_enableValidation, layers, instanceExtensions, VK_API_VERSION_1_3);
+    context.initInstance(enableValidation, layers, instanceExtensions, VK_API_VERSION_1_3);
 
     // Create surface
     VkSurfaceKHR _surface;
-    if (glfwCreateWindowSurface(context.getInstance(), m_window, nullptr, &_surface) !=
-        VK_SUCCESS) {
+    if (glfwCreateWindowSurface(context.getInstance(), window, nullptr, &_surface) != VK_SUCCESS) {
         throw std::runtime_error("failed to create window surface!");
     }
     surface = vk::UniqueSurfaceKHR{_surface, {context.getInstance()}};
@@ -373,7 +372,7 @@ void App::initImGui() {
     style.Colors[ImGuiCol_ResizeGripActive] = red80;
 
     // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForVulkan(m_window, true);
+    ImGui_ImplGlfw_InitForVulkan(window, true);
     ImGui_ImplVulkan_InitInfo initInfo{};
     initInfo.Instance = context.getInstance();
     initInfo.PhysicalDevice = context.getPhysicalDevice();

@@ -51,9 +51,9 @@ public:
 
     // Input
     bool mousePressed() const;
-    bool keyPressed(int key) const { return glfwGetKey(m_window, key) == GLFW_PRESS; }
-    glm::vec2 getMousePos() const { return m_currMousePos; }
-    glm::vec2 getMouseMotion() const { return m_currMousePos - m_lastMousePos; }
+    bool keyPressed(int key) const { return glfwGetKey(window, key) == GLFW_PRESS; }
+    glm::vec2 getMousePos() const { return currMousePos; }
+    glm::vec2 getMouseMotion() const { return currMousePos - lastMousePos; }
 
 protected:
     void initGLFW();
@@ -61,14 +61,14 @@ protected:
     void initImGui();
 
     // GLFW
-    GLFWwindow* m_window;
-    std::string m_title;
-    glm::vec2 m_currMousePos = {0.0f, 0.0f};
-    glm::vec2 m_lastMousePos = {0.0f, 0.0f};
+    GLFWwindow* window;
+    std::string title;
+    glm::vec2 currMousePos = {0.0f, 0.0f};
+    glm::vec2 lastMousePos = {0.0f, 0.0f};
 
     Context context;
     vk::UniqueSurfaceKHR surface;
-    bool m_enableValidation;
+    bool enableValidation;
 
     // Swapchain
     vk::UniqueSwapchainKHR swapchain;

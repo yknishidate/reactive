@@ -71,16 +71,16 @@ struct Mesh {
          const std::vector<Vertex>& vertices,
          const std::vector<uint32_t>& indices);
 
-    uint64_t getVertexBufferAddress() const { return m_vertexBuffer.getAddress(); }
-    uint64_t getIndexBufferAddress() const { return m_indexBuffer.getAddress(); }
-    uint32_t getIndicesCount() const { return m_indices.size(); }
-    uint32_t getTriangleCount() const { return m_indices.size() / 3; }
+    uint64_t getVertexBufferAddress() const { return vertexBuffer.getAddress(); }
+    uint64_t getIndexBufferAddress() const { return indexBuffer.getAddress(); }
+    uint32_t getIndicesCount() const { return indices.size(); }
+    uint32_t getTriangleCount() const { return indices.size() / 3; }
 
     void drawIndexed(vk::CommandBuffer commandBuffer) const {
         vk::DeviceSize offsets{0};
-        commandBuffer.bindVertexBuffers(0, m_vertexBuffer.getBuffer(), offsets);
-        commandBuffer.bindIndexBuffer(m_indexBuffer.getBuffer(), 0, vk::IndexType::eUint32);
-        commandBuffer.drawIndexed(static_cast<uint32_t>(m_indices.size()), 1, 0, 0, 0);
+        commandBuffer.bindVertexBuffers(0, vertexBuffer.getBuffer(), offsets);
+        commandBuffer.bindIndexBuffer(indexBuffer.getBuffer(), 0, vk::IndexType::eUint32);
+        commandBuffer.drawIndexed(static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
     }
 
     static Mesh createCubeLines(const Context* context) {
@@ -154,8 +154,8 @@ struct Mesh {
         return {context, vertices, indices};
     }
 
-    DeviceBuffer m_vertexBuffer;
-    DeviceBuffer m_indexBuffer;
-    std::vector<Vertex> m_vertices;
-    std::vector<uint32_t> m_indices;
+    DeviceBuffer vertexBuffer;
+    DeviceBuffer indexBuffer;
+    std::vector<Vertex> vertices;
+    std::vector<uint32_t> indices;
 };
