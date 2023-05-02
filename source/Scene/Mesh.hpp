@@ -14,8 +14,8 @@ struct Vertex {
     glm::vec3 normal{0.0};
     glm::vec2 texCoord{0.0};
 
-    static std::array<vk::VertexInputAttributeDescription, 3> getAttributeDescriptions() {
-        std::array<vk::VertexInputAttributeDescription, 3> attributeDescriptions;
+    static std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions() {
+        std::vector<vk::VertexInputAttributeDescription> attributeDescriptions(3);
         attributeDescriptions[0].setBinding(0);
         attributeDescriptions[0].setLocation(0);
         attributeDescriptions[0].setFormat(vk::Format::eR32G32B32Sfloat);

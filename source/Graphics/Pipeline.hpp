@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.hpp>
 #include "Buffer.hpp"
 #include "DescriptorSet.hpp"
+#include "Scene/Mesh.hpp"
 
 class Image;
 class Scene;
@@ -39,20 +40,46 @@ public:
     GraphicsPipeline() = default;
     GraphicsPipeline(const Context* context) : Pipeline{context} {}
 
-    void build(vk::RenderPass renderPass,
-               vk::DescriptorSetLayout descSetLayout,
-               uint32_t width,
-               uint32_t height);
-    void addShader(const Shader& shader) { shaders.push_back(&shader); }
+    void build(vk::RenderPass renderPass, vk::DescriptorSetLayout descSetLayout);
 
-    void setTopology(vk::PrimitiveTopology topology) { this->topology = topology; }
+    void addShader(const Shader* shader) { shaders.push_back(shader); }
+
+    // Rasterization state
     void setPolygonMode(vk::PolygonMode polygonMode) { this->polygonMode = polygonMode; }
+    void setCullMode(vk::CullModeFlags cullMode) { this->cullMode = cullMode; }
+    void setFrontFace(vk::FrontFace frontFace) { this->frontFace = frontFace; }
+    void setLineWidth(float lineWidth) { this->lineWidth = lineWidth; }
+
+    // Viewport state
+    void setWidth(uint32_t width) { this->width = width; }
+    void setHeight(uint32_t height) { this->height = height; }
+
+    // Input assembly state
+    void setTopology(vk::PrimitiveTopology topology) { this->topology = topology; }
 
 private:
+    enum class Type { Graphics, MeshShader };
+    Type type = Type::Graphics;
+
     std::vector<const Shader*> shaders;
-    vk::PrimitiveTopology topology = vk::PrimitiveTopology::eTriangleList;
+
+    // Rasterization state
     vk::PolygonMode polygonMode = vk::PolygonMode::eFill;
-    bool useMeshShader = false;
+    vk::CullModeFlags cullMode = vk::CullModeFlagBits::eNone;
+    vk::FrontFace frontFace = vk::FrontFace::eCounterClockwise;
+    float lineWidth = 1.0f;
+
+    // Viewport state
+    uint32_t width = 0;
+    uint32_t height = 0;
+
+    // Vertex input state
+    uint32_t vertexStride = sizeof(Vertex);
+    std::vector<vk::VertexInputAttributeDescription> vertexAttributes =
+        Vertex::getAttributeDescriptions();
+
+    // Input assembly state
+    vk::PrimitiveTopology topology = vk::PrimitiveTopology::eTriangleList;
 };
 
 // class ComputePipeline : public Pipeline {

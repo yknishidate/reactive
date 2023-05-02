@@ -76,10 +76,7 @@ vk::StridedDeviceAddressRegionKHR createAddressRegion(
 //                                       useMeshShader);
 // }
 
-void GraphicsPipeline::build(vk::RenderPass renderPass,
-                             vk::DescriptorSetLayout descSetLayout,
-                             uint32_t width,
-                             uint32_t height) {
+void GraphicsPipeline::build(vk::RenderPass renderPass, vk::DescriptorSetLayout descSetLayout) {
     shaderStageFlags = vk::ShaderStageFlagBits::eAllGraphics;
     bindPoint = vk::PipelineBindPoint::eGraphics;
 
@@ -97,7 +94,9 @@ void GraphicsPipeline::build(vk::RenderPass renderPass,
 
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
     for (auto& shader : shaders) {
-        useMeshShader |= shader->getStage() == vk::ShaderStageFlagBits::eMeshEXT;
+        if (shader->getStage() == vk::ShaderStageFlagBits::eMeshEXT) {
+            type = Type::MeshShader;
+        }
         shaderStages.push_back(vk::PipelineShaderStageCreateInfo()
                                    .setModule(shader->getModule())
                                    .setStage(shader->getStage())
@@ -147,15 +146,14 @@ void GraphicsPipeline::build(vk::RenderPass renderPass,
     pipelineInfo.setRenderPass(renderPass);
 
     vk::VertexInputBindingDescription bindingDescription;
-    std::array attributeDescriptions = Vertex::getAttributeDescriptions();
     vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
-    if (!useMeshShader) {
+    if (type == Type::Graphics) {
         bindingDescription.setBinding(0);
-        bindingDescription.setStride(sizeof(Vertex));
+        bindingDescription.setStride(vertexStride);
         bindingDescription.setInputRate(vk::VertexInputRate::eVertex);
         vertexInputInfo.setVertexBindingDescriptions(bindingDescription);
-        vertexInputInfo.setVertexAttributeDescriptions(attributeDescriptions);
+        vertexInputInfo.setVertexAttributeDescriptions(vertexAttributes);
         inputAssembly.setTopology(topology);
         pipelineInfo.setPInputAssemblyState(&inputAssembly);
         pipelineInfo.setPVertexInputState(&vertexInputInfo);
