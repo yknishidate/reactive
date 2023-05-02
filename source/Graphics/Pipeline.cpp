@@ -76,10 +76,13 @@ vk::StridedDeviceAddressRegionKHR createAddressRegion(
 //                                       useMeshShader);
 // }
 
-void GraphicsPipeline::setup(vk::RenderPass renderPass,
+void GraphicsPipeline::build(vk::RenderPass renderPass,
                              vk::DescriptorSetLayout descSetLayout,
                              uint32_t width,
                              uint32_t height) {
+    shaderStageFlags = vk::ShaderStageFlagBits::eAllGraphics;
+    bindPoint = vk::PipelineBindPoint::eGraphics;
+
     vk::PushConstantRange pushRange;
     pushRange.setOffset(0);
     pushRange.setSize(pushSize);
@@ -163,18 +166,6 @@ void GraphicsPipeline::setup(vk::RenderPass renderPass,
         throw std::runtime_error("failed to create a pipeline!");
     }
     pipeline = std::move(result.value);
-}
-
-void GraphicsPipeline::bind(vk::CommandBuffer commandBuffer) {
-    commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *pipeline);
-}
-
-void GraphicsPipeline::pushConstants(vk::CommandBuffer commandBuffer, const void* pushData) {
-    vk::ShaderStageFlags stage = vk::ShaderStageFlagBits::eAllGraphics;
-    if (useMeshShader) {
-        stage |= vk::ShaderStageFlagBits::eMeshEXT | vk::ShaderStageFlagBits::eTaskEXT;
-    }
-    commandBuffer.pushConstants(*pipelineLayout, stage, 0, pushSize, pushData);
 }
 
 // void ComputePipeline::setup() {

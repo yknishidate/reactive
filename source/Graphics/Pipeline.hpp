@@ -13,19 +13,25 @@ public:
     Pipeline() = default;
     Pipeline(const Context* context) : context{context} {}
 
-    void setPushSize(size_t size) { pushSize = size; }
-
     vk::PipelineLayout getPipelineLayout() const { return *pipelineLayout; }
+
+    void setPushSize(uint32_t size) { pushSize = size; }
 
 protected:
     friend class CommandBuffer;
-    virtual void bind(vk::CommandBuffer commandBuffer) = 0;
-    virtual void pushConstants(vk::CommandBuffer commandBuffer, const void* pushData) = 0;
+
+    void bind(vk::CommandBuffer commandBuffer) { commandBuffer.bindPipeline(bindPoint, *pipeline); }
+
+    void pushConstants(vk::CommandBuffer commandBuffer, const void* pushData) {
+        commandBuffer.pushConstants(*pipelineLayout, shaderStageFlags, 0, pushSize, pushData);
+    }
 
     const Context* context;
     vk::UniquePipelineLayout pipelineLayout;
     vk::UniquePipeline pipeline;
-    size_t pushSize = 0;
+    vk::ShaderStageFlags shaderStageFlags;
+    vk::PipelineBindPoint bindPoint;
+    uint32_t pushSize = 0;
 };
 
 class GraphicsPipeline : public Pipeline {
@@ -33,8 +39,7 @@ public:
     GraphicsPipeline() = default;
     GraphicsPipeline(const Context* context) : Pipeline{context} {}
 
-    // void setup(RenderPass& renderPass);
-    void setup(vk::RenderPass renderPass,
+    void build(vk::RenderPass renderPass,
                vk::DescriptorSetLayout descSetLayout,
                uint32_t width,
                uint32_t height);
@@ -44,10 +49,6 @@ public:
     void setPolygonMode(vk::PolygonMode polygonMode) { this->polygonMode = polygonMode; }
 
 private:
-    friend class CommandBuffer;
-    void bind(vk::CommandBuffer commandBuffer) override;
-    void pushConstants(vk::CommandBuffer commandBuffer, const void* pushData) override;
-
     std::vector<const Shader*> shaders;
     vk::PrimitiveTopology topology = vk::PrimitiveTopology::eTriangleList;
     vk::PolygonMode polygonMode = vk::PolygonMode::eFill;
