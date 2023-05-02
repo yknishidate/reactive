@@ -90,6 +90,7 @@ void* HostBuffer::map() {
 
 void HostBuffer::unmap() {
     context->getDevice().unmapMemory(*memory);
+    mapped = nullptr;
 }
 
 DeviceBuffer::DeviceBuffer(const Context* context, BufferUsage usage, size_t size)
