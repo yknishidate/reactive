@@ -44,6 +44,7 @@ public:
 
     void copy(const void* data);
     void* map();
+    void unmap();
 
 private:
     void* mapped = nullptr;

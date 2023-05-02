@@ -88,6 +88,10 @@ void* HostBuffer::map() {
     return mapped;
 }
 
+void HostBuffer::unmap() {
+    context->getDevice().unmapMemory(*memory);
+}
+
 DeviceBuffer::DeviceBuffer(const Context* context, BufferUsage usage, size_t size)
     : Buffer(context, usage, vk::MemoryPropertyFlagBits::eDeviceLocal, size) {}
 
