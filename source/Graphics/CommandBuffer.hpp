@@ -20,9 +20,7 @@ public:
     CommandBuffer(const Context* context, vk::CommandBuffer commandBuffer)
         : context{context}, commandBuffer{commandBuffer} {}
 
-    void bindDescriptorSet(DescriptorSet& descSet,
-                           vk::PipelineBindPoint bindPoint,
-                           vk::PipelineLayout pipelineLayout) const;
+    void bindDescriptorSet(DescriptorSet& descSet, const Pipeline& pipeline) const;
     void bindPipeline(Pipeline& pipeline) const;
     void pushConstants(Pipeline& pipeline, const void* pushData) const;
 

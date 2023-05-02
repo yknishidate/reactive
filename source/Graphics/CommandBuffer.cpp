@@ -10,10 +10,8 @@
 #include "Swapchain.hpp"
 #include "Timer/GPUTimer.hpp"
 
-void CommandBuffer::bindDescriptorSet(DescriptorSet& descSet,
-                                      vk::PipelineBindPoint bindPoint,
-                                      vk::PipelineLayout pipelineLayout) const {
-    descSet.bind(commandBuffer, bindPoint, pipelineLayout);
+void CommandBuffer::bindDescriptorSet(DescriptorSet& descSet, const Pipeline& pipeline) const {
+    descSet.bind(commandBuffer, pipeline.getPipelineBindPoint(), pipeline.getPipelineLayout());
 }
 
 void CommandBuffer::bindPipeline(Pipeline& pipeline) const {

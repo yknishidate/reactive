@@ -14,6 +14,7 @@ public:
     Pipeline() = default;
     Pipeline(const Context* context) : context{context} {}
 
+    vk::PipelineBindPoint getPipelineBindPoint() const { return bindPoint; }
     vk::PipelineLayout getPipelineLayout() const { return *pipelineLayout; }
 
     void setPushSize(uint32_t size) { pushSize = size; }
