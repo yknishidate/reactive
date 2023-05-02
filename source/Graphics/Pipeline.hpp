@@ -41,9 +41,13 @@ public:
     GraphicsPipeline() = default;
     GraphicsPipeline(const Context* context) : Pipeline{context} {}
 
-    void build(vk::RenderPass renderPass, vk::DescriptorSetLayout descSetLayout);
+    void build();
 
     void addShader(const Shader* shader) { shaders.push_back(shader); }
+    void setRenderPass(vk::RenderPass renderPass) { this->renderPass = renderPass; }
+    void setDescriptorSetLayout(vk::DescriptorSetLayout descriptorSetLayout) {
+        this->descriptorSetLayout = descriptorSetLayout;
+    }
 
     // Rasterization state
     void setPolygonMode(vk::PolygonMode polygonMode) { this->polygonMode = polygonMode; }
@@ -63,6 +67,8 @@ private:
     Type type = Type::Graphics;
 
     std::vector<const Shader*> shaders;
+    vk::RenderPass renderPass;
+    vk::DescriptorSetLayout descriptorSetLayout;
 
     // Rasterization state
     vk::PolygonMode polygonMode = vk::PolygonMode::eFill;

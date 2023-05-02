@@ -76,7 +76,7 @@ vk::StridedDeviceAddressRegionKHR createAddressRegion(
 //                                       useMeshShader);
 // }
 
-void GraphicsPipeline::build(vk::RenderPass renderPass, vk::DescriptorSetLayout descSetLayout) {
+void GraphicsPipeline::build() {
     shaderStageFlags = vk::ShaderStageFlagBits::eAllGraphics;
     bindPoint = vk::PipelineBindPoint::eGraphics;
 
@@ -86,7 +86,7 @@ void GraphicsPipeline::build(vk::RenderPass renderPass, vk::DescriptorSetLayout 
     pushRange.setStageFlags(vk::ShaderStageFlagBits::eAllGraphics);
 
     vk::PipelineLayoutCreateInfo layoutInfo;
-    layoutInfo.setSetLayouts(descSetLayout);
+    layoutInfo.setSetLayouts(descriptorSetLayout);
     if (pushSize) {
         layoutInfo.setPushConstantRanges(pushRange);
     }
