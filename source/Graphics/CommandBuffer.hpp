@@ -41,6 +41,10 @@ public:
     // void submit();
 
     // draw
+    void draw(uint32_t vertexCount,
+              uint32_t instanceCount,
+              uint32_t firstVertex,
+              uint32_t firstInstance) const;
     void drawIndexed(const Mesh& mesh) const;
     void drawIndexed(const DeviceBuffer& vertexBuffer,
                      const DeviceBuffer& indexBuffer,

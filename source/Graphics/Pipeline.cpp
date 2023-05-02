@@ -149,14 +149,16 @@ void GraphicsPipeline::build() {
     vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
     if (type == Type::Graphics) {
-        bindingDescription.setBinding(0);
-        bindingDescription.setStride(vertexStride);
-        bindingDescription.setInputRate(vk::VertexInputRate::eVertex);
-        vertexInputInfo.setVertexBindingDescriptions(bindingDescription);
-        vertexInputInfo.setVertexAttributeDescriptions(vertexAttributes);
         inputAssembly.setTopology(topology);
         pipelineInfo.setPInputAssemblyState(&inputAssembly);
-        pipelineInfo.setPVertexInputState(&vertexInputInfo);
+        if (vertexStride != 0) {
+            bindingDescription.setBinding(0);
+            bindingDescription.setStride(vertexStride);
+            bindingDescription.setInputRate(vk::VertexInputRate::eVertex);
+            vertexInputInfo.setVertexBindingDescriptions(bindingDescription);
+            vertexInputInfo.setVertexAttributeDescriptions(vertexAttributes);
+            pipelineInfo.setPVertexInputState(&vertexInputInfo);
+        }
     }
 
     auto result = context->getDevice().createGraphicsPipelineUnique({}, pipelineInfo);

@@ -42,6 +42,7 @@ public:
     void setNear(float n) { zNear = n; }
     void setFar(float f) { zFar = f; }
     void setFovY(float f) { fovY = f; }
+    void setTarget(glm::vec3 target) { front = glm::normalize(position - target); }
 
 private:
     void updateFront();

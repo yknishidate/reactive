@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <vulkan/vulkan.hpp>
+#include "ArrayProxy.hpp"
 #include "Buffer.hpp"
 #include "DescriptorSet.hpp"
 #include "Scene/Mesh.hpp"
@@ -59,6 +60,13 @@ public:
     void setWidth(uint32_t width) { this->width = width; }
     void setHeight(uint32_t height) { this->height = height; }
 
+    // Vertex input state
+    void setVertexStride(uint32_t vertexStride) { this->vertexStride = vertexStride; }
+    void setVertexInputAttributeDescriptions(
+        ArrayProxy<vk::VertexInputAttributeDescription> vertexAttributes) {
+        this->vertexAttributes = vertexAttributes;
+    }
+
     // Input assembly state
     void setTopology(vk::PrimitiveTopology topology) { this->topology = topology; }
 
@@ -82,7 +90,7 @@ private:
 
     // Vertex input state
     uint32_t vertexStride = sizeof(Vertex);
-    std::vector<vk::VertexInputAttributeDescription> vertexAttributes =
+    ArrayProxy<vk::VertexInputAttributeDescription> vertexAttributes =
         Vertex::getAttributeDescriptions();
 
     // Input assembly state
