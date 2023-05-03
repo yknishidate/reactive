@@ -10,11 +10,19 @@
 #include "Compiler/Compiler.hpp"
 #include "Image.hpp"
 
+struct ShaderCreateInfo {
+    const std::string& glslCode;
+    vk::ShaderStageFlagBits shaderStage;
+};
+
 class Shader {
 public:
     Shader() = default;
+    Shader(const Context* context, ShaderCreateInfo createInfo);
     Shader(const Context* context, const std::string& filepath);
-    Shader(const Context* context, const std::string& glslCode, vk::ShaderStageFlagBits shaderStage);
+    Shader(const Context* context,
+           const std::string& glslCode,
+           vk::ShaderStageFlagBits shaderStage);
     Shader(const Context* context,
            const std::vector<uint32_t>& spvCode,
            vk::ShaderStageFlagBits shaderStage);

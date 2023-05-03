@@ -1,5 +1,12 @@
 #include "Shader.hpp"
 
+Shader::Shader(const Context* context, ShaderCreateInfo createInfo)
+    : shaderStage{createInfo.shaderStage} {
+    spvCode = Compiler::compileToSPV(createInfo.glslCode, shaderStage);
+    shaderModule = context->getDevice().createShaderModuleUnique(
+        vk::ShaderModuleCreateInfo().setCode(spvCode));
+}
+
 Shader::Shader(const Context* context, const std::string& filepath) {
     spvCode = Compiler::compileToSPV(filepath);
 
