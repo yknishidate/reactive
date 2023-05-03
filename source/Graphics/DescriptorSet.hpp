@@ -31,8 +31,8 @@ private:
 
 struct DescriptorSetCreateInfo {
     ArrayProxy<const Shader*> shaders;
-    ArrayProxy<std::pair<const char*, const Buffer*>> buffers;
-    ArrayProxy<std::pair<const char*, const Image*>> images;
+    ArrayProxy<std::pair<const char*, const Buffer&>> buffers;
+    ArrayProxy<std::pair<const char*, const Image&>> images;
 };
 
 class DescriptorSet {
@@ -45,12 +45,12 @@ public:
         for (auto& [name, buffer] : createInfo.buffers) {
             assert(bindingMap.contains(name));
             bindingMap[name].descriptorCount = 1;
-            writes.emplace_back(bindingMap[name], buffer->getInfo());
+            writes.emplace_back(bindingMap[name], buffer.getInfo());
         }
         for (auto& [name, image] : createInfo.images) {
             assert(bindingMap.contains(name));
             bindingMap[name].descriptorCount = 1;
-            writes.emplace_back(bindingMap[name], image->getInfo());
+            writes.emplace_back(bindingMap[name], image.getInfo());
         }
         allocate();
         update();
