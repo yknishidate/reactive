@@ -54,31 +54,11 @@ vk::StridedDeviceAddressRegionKHR createAddressRegion(
 }
 }  // namespace
 
-// void GraphicsPipeline::setup(RenderPass& renderPass) {
-//     this->pushSize = pushSize;
-//     pipelineLayout = descSet->createPipelineLayout(pushSize,
-//     vk::ShaderStageFlagBits::eAllGraphics |
-//                                                                  vk::ShaderStageFlagBits::eMeshEXT
-//                                                                  |
-//                                                                  vk::ShaderStageFlagBits::eTaskEXT);
-//
-//     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
-//     bool useMeshShader = false;
-//     for (auto& shader : shaders) {
-//         useMeshShader |= shader->getStage() == vk::ShaderStageFlagBits::eMeshEXT;
-//         shaderStages.push_back(vk::PipelineShaderStageCreateInfo()
-//                                    .setModule(shader->getModule())
-//                                    .setStage(shader->getStage())
-//                                    .setPName("main"));
-//     }
-//     pipeline = createGraphicsPipeline(shaderStages, *pipelineLayout, renderPass.getRenderPass(),
-//                                       renderPass.createColorBlending(), topology, polygonMode,
-//                                       useMeshShader);
-// }
-
-void GraphicsPipeline::build() {
+GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreateInfo createInfo)
+    : Pipeline{context} {
     shaderStageFlags = vk::ShaderStageFlagBits::eAllGraphics;
     bindPoint = vk::PipelineBindPoint::eGraphics;
+    pushSize = createInfo.pushSize;
 
     vk::PushConstantRange pushRange;
     pushRange.setOffset(0);
@@ -86,22 +66,20 @@ void GraphicsPipeline::build() {
     pushRange.setStageFlags(vk::ShaderStageFlagBits::eAllGraphics);
 
     vk::PipelineLayoutCreateInfo layoutInfo;
-    layoutInfo.setSetLayouts(descriptorSetLayout);
+    layoutInfo.setSetLayouts(createInfo.descSetLayout);
     if (pushSize) {
         layoutInfo.setPushConstantRanges(pushRange);
     }
     pipelineLayout = context->getDevice().createPipelineLayoutUnique(layoutInfo);
 
-    std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
-    for (auto& shader : shaders) {
-        if (shader->getStage() == vk::ShaderStageFlagBits::eMeshEXT) {
-            type = Type::MeshShader;
-        }
-        shaderStages.push_back(vk::PipelineShaderStageCreateInfo()
-                                   .setModule(shader->getModule())
-                                   .setStage(shader->getStage())
-                                   .setPName("main"));
-    }
+    std::vector<vk::PipelineShaderStageCreateInfo> shaderStages(2);
+    shaderStages[0].setModule(createInfo.vertexShader->getModule());
+    shaderStages[0].setStage(createInfo.vertexShader->getStage());
+    shaderStages[0].setPName("main");
+    shaderStages[1].setModule(createInfo.fragmentShader->getModule());
+    shaderStages[1].setStage(createInfo.fragmentShader->getStage());
+    shaderStages[1].setPName("main");
+
     vk::PipelineColorBlendAttachmentState colorBlendState;
     colorBlendState.setColorWriteMask(
         vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
@@ -110,15 +88,16 @@ void GraphicsPipeline::build() {
     vk::PipelineColorBlendStateCreateInfo colorBlending;
     colorBlending.setAttachments(colorBlendState);
     colorBlending.setLogicOpEnable(VK_FALSE);
-    vk::Viewport viewport{0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height),
-                          0.0f, 1.0f};
-    vk::Rect2D scissor{{0, 0}, {width, height}};
+    vk::Viewport viewport{
+        0.0f, 0.0f, static_cast<float>(createInfo.width), static_cast<float>(createInfo.height),
+        0.0f, 1.0f};
+    vk::Rect2D scissor{{0, 0}, {createInfo.width, createInfo.height}};
     vk::PipelineViewportStateCreateInfo viewportState{{}, 1, &viewport, 1, &scissor};
 
     vk::PipelineRasterizationStateCreateInfo rasterization;
     rasterization.setDepthClampEnable(VK_FALSE);
     rasterization.setRasterizerDiscardEnable(VK_FALSE);
-    rasterization.setPolygonMode(polygonMode);
+    rasterization.setPolygonMode(createInfo.polygonMode);
     rasterization.setCullMode(vk::CullModeFlagBits::eNone);
     rasterization.setFrontFace(vk::FrontFace::eCounterClockwise);
     rasterization.setDepthBiasEnable(VK_FALSE);
@@ -143,20 +122,20 @@ void GraphicsPipeline::build() {
     pipelineInfo.setPColorBlendState(&colorBlending);
     pipelineInfo.setLayout(*pipelineLayout);
     pipelineInfo.setSubpass(0);
-    pipelineInfo.setRenderPass(renderPass);
+    pipelineInfo.setRenderPass(createInfo.renderPass);
 
     vk::VertexInputBindingDescription bindingDescription;
     vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
     if (type == Type::Graphics) {
-        if (vertexStride != 0) {
+        if (createInfo.vertexStride != 0) {
             bindingDescription.setBinding(0);
-            bindingDescription.setStride(vertexStride);
+            bindingDescription.setStride(createInfo.vertexStride);
             bindingDescription.setInputRate(vk::VertexInputRate::eVertex);
             vertexInputInfo.setVertexBindingDescriptions(bindingDescription);
-            vertexInputInfo.setVertexAttributeDescriptions(vertexAttributes);
+            vertexInputInfo.setVertexAttributeDescriptions(createInfo.vertexAttributes);
         }
-        inputAssembly.setTopology(topology);
+        inputAssembly.setTopology(createInfo.topology);
         pipelineInfo.setPInputAssemblyState(&inputAssembly);
         pipelineInfo.setPVertexInputState(&vertexInputInfo);
     }

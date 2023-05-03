@@ -18,8 +18,6 @@ public:
     vk::PipelineBindPoint getPipelineBindPoint() const { return bindPoint; }
     vk::PipelineLayout getPipelineLayout() const { return *pipelineLayout; }
 
-    void setPushSize(uint32_t size) { pushSize = size; }
-
 protected:
     friend class CommandBuffer;
 
@@ -37,46 +35,13 @@ protected:
     uint32_t pushSize = 0;
 };
 
-class GraphicsPipeline : public Pipeline {
-public:
-    GraphicsPipeline() = default;
-    GraphicsPipeline(const Context* context) : Pipeline{context} {}
+struct GraphicsPipelineCreateInfo {
+    const Shader* vertexShader = nullptr;
+    const Shader* fragmentShader = nullptr;
 
-    void build();
-
-    void addShader(const Shader* shader) { shaders.push_back(shader); }
-    void setRenderPass(vk::RenderPass renderPass) { this->renderPass = renderPass; }
-    void setDescriptorSetLayout(vk::DescriptorSetLayout descriptorSetLayout) {
-        this->descriptorSetLayout = descriptorSetLayout;
-    }
-
-    // Rasterization state
-    void setPolygonMode(vk::PolygonMode polygonMode) { this->polygonMode = polygonMode; }
-    void setCullMode(vk::CullModeFlags cullMode) { this->cullMode = cullMode; }
-    void setFrontFace(vk::FrontFace frontFace) { this->frontFace = frontFace; }
-    void setLineWidth(float lineWidth) { this->lineWidth = lineWidth; }
-
-    // Viewport state
-    void setWidth(uint32_t width) { this->width = width; }
-    void setHeight(uint32_t height) { this->height = height; }
-
-    // Vertex input state
-    void setVertexStride(uint32_t vertexStride) { this->vertexStride = vertexStride; }
-    void setVertexInputAttributeDescriptions(
-        ArrayProxy<vk::VertexInputAttributeDescription> vertexAttributes) {
-        this->vertexAttributes = vertexAttributes;
-    }
-
-    // Input assembly state
-    void setTopology(vk::PrimitiveTopology topology) { this->topology = topology; }
-
-private:
-    enum class Type { Graphics, MeshShader };
-    Type type = Type::Graphics;
-
-    std::vector<const Shader*> shaders;
-    vk::RenderPass renderPass;
-    vk::DescriptorSetLayout descriptorSetLayout;
+    vk::RenderPass renderPass = {};
+    vk::DescriptorSetLayout descSetLayout = {};
+    uint32_t pushSize = 0;
 
     // Rasterization state
     vk::PolygonMode polygonMode = vk::PolygonMode::eFill;
@@ -89,12 +54,21 @@ private:
     uint32_t height = 0;
 
     // Vertex input state
-    uint32_t vertexStride = sizeof(Vertex);
-    ArrayProxy<vk::VertexInputAttributeDescription> vertexAttributes =
-        Vertex::getAttributeDescriptions();
+    uint32_t vertexStride = 0;
+    ArrayProxy<vk::VertexInputAttributeDescription> vertexAttributes = {};
 
     // Input assembly state
     vk::PrimitiveTopology topology = vk::PrimitiveTopology::eTriangleList;
+};
+
+class GraphicsPipeline : public Pipeline {
+public:
+    GraphicsPipeline() = default;
+    GraphicsPipeline(const Context* context, GraphicsPipelineCreateInfo createInfo);
+
+private:
+    enum class Type { Graphics, MeshShader };
+    Type type = Type::Graphics;
 };
 
 // class ComputePipeline : public Pipeline {

@@ -1,5 +1,6 @@
 #include "Context.hpp"
 #include "DescriptorSet.hpp"
+#include "Pipeline.hpp"
 #include "Shader.hpp"
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
@@ -151,5 +152,9 @@ Shader Context::createShader(ShaderCreateInfo createInfo) const {
 }
 
 DescriptorSet Context::createDescriptorSet(DescriptorSetCreateInfo createInfo) const {
+    return {this, createInfo};
+}
+
+GraphicsPipeline Context::createGraphicsPipeline(GraphicsPipelineCreateInfo createInfo) const {
     return {this, createInfo};
 }
