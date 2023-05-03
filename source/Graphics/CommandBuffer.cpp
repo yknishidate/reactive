@@ -79,8 +79,8 @@ void CommandBuffer::draw(uint32_t vertexCount,
     commandBuffer.draw(vertexCount, instanceCount, firstVertex, firstInstance);
 }
 
-void CommandBuffer::drawIndexed(const Mesh& mesh) const {
-    mesh.drawIndexed(commandBuffer);
+void CommandBuffer::drawIndexed(const Mesh& mesh, uint32_t instanceCount) const {
+    mesh.drawIndexed(commandBuffer, instanceCount);
 }
 
 void CommandBuffer::drawIndexed(const DeviceBuffer& vertexBuffer,
