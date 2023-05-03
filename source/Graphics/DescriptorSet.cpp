@@ -43,6 +43,25 @@ WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding) {
     write.setDstBinding(binding.binding);
 }
 
+DescriptorSet::DescriptorSet(const Context* context, DescriptorSetCreateInfo createInfo)
+    : context{context} {
+    for (auto& shader : createInfo.shaders) {
+        addResources(*shader);
+    }
+    for (auto& [name, buffer] : createInfo.buffers) {
+        assert(bindingMap.contains(name));
+        bindingMap[name].descriptorCount = 1;
+        writes.emplace_back(bindingMap[name], buffer.getInfo());
+    }
+    for (auto& [name, image] : createInfo.images) {
+        assert(bindingMap.contains(name));
+        bindingMap[name].descriptorCount = 1;
+        writes.emplace_back(bindingMap[name], image.getInfo());
+    }
+    allocate();
+    update();
+}
+
 void DescriptorSet::allocate() {
     std::vector<vk::DescriptorSetLayoutBinding> bindings;
     bindings.reserve(bindingMap.size());

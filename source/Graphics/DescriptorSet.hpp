@@ -38,23 +38,7 @@ struct DescriptorSetCreateInfo {
 class DescriptorSet {
 public:
     DescriptorSet() = default;
-    DescriptorSet(const Context* context, DescriptorSetCreateInfo createInfo) : context{context} {
-        for (auto& shader : createInfo.shaders) {
-            addResources(*shader);
-        }
-        for (auto& [name, buffer] : createInfo.buffers) {
-            assert(bindingMap.contains(name));
-            bindingMap[name].descriptorCount = 1;
-            writes.emplace_back(bindingMap[name], buffer.getInfo());
-        }
-        for (auto& [name, image] : createInfo.images) {
-            assert(bindingMap.contains(name));
-            bindingMap[name].descriptorCount = 1;
-            writes.emplace_back(bindingMap[name], image.getInfo());
-        }
-        allocate();
-        update();
-    }
+    DescriptorSet(const Context* context, DescriptorSetCreateInfo createInfo);
 
     void allocate();
     void update();

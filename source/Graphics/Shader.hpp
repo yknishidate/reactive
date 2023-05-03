@@ -5,7 +5,7 @@
 #include <string_view>
 #include <unordered_map>
 #include "Accel.hpp"
-#include "App.hpp"
+#include "Context.hpp"
 #include "Buffer.hpp"
 #include "Compiler/Compiler.hpp"
 #include "Image.hpp"
