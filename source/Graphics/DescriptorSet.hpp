@@ -2,6 +2,7 @@
 #include <spirv_glsl.hpp>
 #include <unordered_map>
 #include "Accel.hpp"
+#include "ArrayProxy.hpp"
 #include "Buffer.hpp"
 #include "Image.hpp"
 #include "Shader.hpp"
@@ -28,10 +29,32 @@ private:
     std::vector<vk::WriteDescriptorSetAccelerationStructureKHR> accelInfos;
 };
 
+struct DescriptorSetCreateInfo {
+    ArrayProxy<const Shader*> shaders;
+    ArrayProxy<std::pair<const char*, const Buffer*>> buffers;
+    ArrayProxy<std::pair<const char*, const Image*>> images;
+};
+
 class DescriptorSet {
 public:
     DescriptorSet() = default;
-    DescriptorSet(const Context* context) : context{context} {}
+    DescriptorSet(const Context* context, DescriptorSetCreateInfo createInfo) : context{context} {
+        for (auto& shader : createInfo.shaders) {
+            addResources(*shader);
+        }
+        for (auto& [name, buffer] : createInfo.buffers) {
+            assert(bindingMap.contains(name));
+            bindingMap[name].descriptorCount = 1;
+            writes.emplace_back(bindingMap[name], buffer->getInfo());
+        }
+        for (auto& [name, image] : createInfo.images) {
+            assert(bindingMap.contains(name));
+            bindingMap[name].descriptorCount = 1;
+            writes.emplace_back(bindingMap[name], image->getInfo());
+        }
+        allocate();
+        update();
+    }
 
     void allocate();
     void update();
@@ -39,10 +62,8 @@ public:
               vk::PipelineBindPoint bindPoint,
               vk::PipelineLayout pipelineLayout);
 
-    void record(const std::string& name, const std::vector<Image>& images);
-    void record(const std::string& name, const Buffer& buffer);
-    void record(const std::string& name, const Image& image);
-    // void record(const std::string& name, const TopAccel& accel);
+    // void record(const std::string& name, const std::vector<Image>& images);
+    //  void record(const std::string& name, const TopAccel& accel);
 
     void addResources(const Shader& shader);
 

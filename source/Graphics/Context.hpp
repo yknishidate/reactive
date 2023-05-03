@@ -6,6 +6,11 @@
 #include <spdlog/spdlog.h>
 #include <vulkan/vulkan.hpp>
 
+struct ShaderCreateInfo;
+struct DescriptorSetCreateInfo;
+class Shader;
+class DescriptorSet;
+
 class Context {
 public:
     void initInstance(bool enableValidation,
@@ -34,6 +39,9 @@ public:
 
     uint32_t findMemoryTypeIndex(vk::MemoryRequirements requirements,
                                  vk::MemoryPropertyFlags memoryProp) const;
+
+    Shader createShader(ShaderCreateInfo createInfo) const;
+    DescriptorSet createDescriptorSet(DescriptorSetCreateInfo createInfo) const;
 
 private:
     static VKAPI_ATTR VkBool32 VKAPI_CALL

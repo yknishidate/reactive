@@ -1,4 +1,6 @@
 #include "Context.hpp"
+#include "DescriptorSet.hpp"
+#include "Shader.hpp"
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
@@ -142,4 +144,12 @@ uint32_t Context::findMemoryTypeIndex(vk::MemoryRequirements requirements,
         }
     }
     throw std::runtime_error("Failed to find memory type index.");
+}
+
+Shader Context::createShader(ShaderCreateInfo createInfo) const {
+    return {this, createInfo};
+}
+
+DescriptorSet Context::createDescriptorSet(DescriptorSetCreateInfo createInfo) const {
+    return {this, createInfo};
 }

@@ -53,7 +53,6 @@ void DescriptorSet::allocate() {
     descSetLayout = context->getDevice().createDescriptorSetLayoutUnique(
         vk::DescriptorSetLayoutCreateInfo().setBindings(bindings));
     descSet = context->allocateDescriptorSet(*descSetLayout);
-    update();
 }
 
 void DescriptorSet::update() {
@@ -68,29 +67,17 @@ void DescriptorSet::update() {
     context->getDevice().updateDescriptorSets(_writes, nullptr);
 }
 
-void DescriptorSet::record(const std::string& name, const std::vector<Image>& images) {
-    assert(bindingMap.contains(name));
-    std::vector<vk::DescriptorImageInfo> infos;
-    infos.reserve(images.size());
-    for (auto& image : images) {
-        infos.push_back(image.getInfo());
-    }
-
-    bindingMap[name].descriptorCount = images.size();
-    writes.emplace_back(bindingMap[name], infos);
-}
-
-void DescriptorSet::record(const std::string& name, const Buffer& buffer) {
-    assert(bindingMap.contains(name));
-    bindingMap[name].descriptorCount = 1;
-    writes.emplace_back(bindingMap[name], buffer.getInfo());
-}
-
-void DescriptorSet::record(const std::string& name, const Image& image) {
-    assert(bindingMap.contains(name));
-    bindingMap[name].descriptorCount = 1;
-    writes.emplace_back(bindingMap[name], image.getInfo());
-}
+// void DescriptorSet::record(const std::string& name, const std::vector<Image>& images) {
+//     assert(bindingMap.contains(name));
+//     std::vector<vk::DescriptorImageInfo> infos;
+//     infos.reserve(images.size());
+//     for (auto& image : images) {
+//         infos.push_back(image.getInfo());
+//     }
+//
+//     bindingMap[name].descriptorCount = images.size();
+//     writes.emplace_back(bindingMap[name], infos);
+// }
 
 // void DescriptorSet::record(const std::string& name, const TopAccel& accel) {
 //     assert(bindingMap.contains(name));
