@@ -158,3 +158,7 @@ DescriptorSet Context::createDescriptorSet(DescriptorSetCreateInfo createInfo) c
 GraphicsPipeline Context::createGraphicsPipeline(GraphicsPipelineCreateInfo createInfo) const {
     return {this, createInfo};
 }
+
+HostBuffer Context::createHostBuffer(HostBufferCreateInfo createInfo) const {
+    return {this, createInfo};
+}

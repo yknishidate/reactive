@@ -37,10 +37,16 @@ protected:
     vk::DeviceSize size = 0u;
 };
 
+struct HostBufferCreateInfo {
+    BufferUsage usage;
+    size_t size = 0;
+    const void* initialData = nullptr;
+};
+
 class HostBuffer : public Buffer {
 public:
     HostBuffer() = default;
-    HostBuffer(const Context* context, BufferUsage usage, size_t size);
+    HostBuffer(const Context* context, HostBufferCreateInfo createInfo);
 
     void copy(const void* data);
     void* map();
