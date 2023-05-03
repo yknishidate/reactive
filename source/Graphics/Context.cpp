@@ -175,6 +175,10 @@ Mesh Context::createSphereMesh(SphereMeshCreateInfo createInfo) const {
     return {this, createInfo};
 }
 
+Mesh Context::createPlaneMesh(PlaneMeshCreateInfo createInfo) const {
+    return {this, createInfo};
+}
+
 Mesh Context::createCubeMesh(CubeMeshCreateInfo createInfo) const {
     return {this, createInfo};
 }

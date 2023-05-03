@@ -9,6 +9,7 @@
 struct BufferCreateInfo;
 struct MeshCreateInfo;
 struct SphereMeshCreateInfo;
+struct PlaneMeshCreateInfo;
 struct CubeMeshCreateInfo;
 struct ShaderCreateInfo;
 struct DescriptorSetCreateInfo;
@@ -56,6 +57,7 @@ public:
     DeviceBuffer createDeviceBuffer(BufferCreateInfo createInfo) const;
     Mesh createMesh(MeshCreateInfo createInfo) const;
     Mesh createSphereMesh(SphereMeshCreateInfo createInfo) const;
+    Mesh createPlaneMesh(PlaneMeshCreateInfo createInfo) const;
     Mesh createCubeMesh(CubeMeshCreateInfo createInfo) const;
 
 private:

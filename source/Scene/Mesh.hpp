@@ -71,12 +71,15 @@ struct SphereMeshCreateInfo {
     int numStacks;
 };
 
+struct PlaneMeshCreateInfo {};
+
 struct CubeMeshCreateInfo {};
 
 struct Mesh {
     Mesh() = default;
     Mesh(const Context* context, MeshCreateInfo createInfo);
     Mesh(const Context* context, SphereMeshCreateInfo createInfo);
+    Mesh(const Context* context, PlaneMeshCreateInfo createInfo);
     Mesh(const Context* context, CubeMeshCreateInfo createInfo);
 
     uint64_t getVertexBufferAddress() const { return vertexBuffer.getAddress(); }

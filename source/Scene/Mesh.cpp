@@ -83,6 +83,29 @@ Mesh::Mesh(const Context* context, SphereMeshCreateInfo createInfo) {
     });
 }
 
+Mesh::Mesh(const Context* context, PlaneMeshCreateInfo createInfo) {
+    vertices = std::vector<Vertex>{
+        {glm::vec3(-1.0, 0.0, -1.0)},
+        {glm::vec3(1.0, 0.0, -1.0)},
+        {glm::vec3(1.0, 0.0, 1.0)},
+        {glm::vec3(-1.0, 0.0, 1.0)},
+    };
+    indices = std::vector<uint32_t>{
+        0, 1, 2, 0, 2, 3,
+    };
+
+    vertexBuffer = context->createDeviceBuffer({
+        .usage = BufferUsage::Vertex,
+        .size = sizeof(Vertex) * vertices.size(),
+        .initialData = vertices.data(),
+    });
+    indexBuffer = context->createDeviceBuffer({
+        .usage = BufferUsage::Index,
+        .size = sizeof(uint32_t) * indices.size(),
+        .initialData = indices.data(),
+    });
+}
+
 Mesh::Mesh(const Context* context, CubeMeshCreateInfo createInfo) {
     vertices = std::vector<Vertex>{
         {glm::vec3(-1.0, -1.0, -1.0)}, {glm::vec3(1.0, -1.0, -1.0)}, {glm::vec3(1.0, -1.0, 1.0)},
