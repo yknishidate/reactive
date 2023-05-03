@@ -43,15 +43,15 @@ struct GraphicsPipelineCreateInfo {
     vk::DescriptorSetLayout descSetLayout = {};
     uint32_t pushSize = 0;
 
+    // Viewport state
+    uint32_t width = 0;
+    uint32_t height = 0;
+
     // Rasterization state
     vk::PolygonMode polygonMode = vk::PolygonMode::eFill;
     vk::CullModeFlags cullMode = vk::CullModeFlagBits::eNone;
     vk::FrontFace frontFace = vk::FrontFace::eCounterClockwise;
     float lineWidth = 1.0f;
-
-    // Viewport state
-    uint32_t width = 0;
-    uint32_t height = 0;
 
     // Vertex input state
     uint32_t vertexStride = 0;
