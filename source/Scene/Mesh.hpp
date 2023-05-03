@@ -47,8 +47,6 @@ struct hash<Vertex> {
 };
 }  // namespace std
 
-using Index = uint32_t;
-
 // struct Material {
 //     glm::vec3 ambient{1.0};
 //     glm::vec3 diffuse{1.0};
@@ -63,11 +61,23 @@ using Index = uint32_t;
 //     int emissionTexture = -1;
 // };
 
+struct MeshCreateInfo {
+    const std::vector<Vertex>& vertices;
+    const std::vector<uint32_t>& indices;
+};
+
+struct SphereMeshCreateInfo {
+    int numSlices;
+    int numStacks;
+};
+
+struct CubeMeshCreateInfo {};
+
 struct Mesh {
     Mesh() = default;
-    Mesh(const Context* context,
-         const std::vector<Vertex>& vertices,
-         const std::vector<uint32_t>& indices);
+    Mesh(const Context* context, MeshCreateInfo createInfo);
+    Mesh(const Context* context, SphereMeshCreateInfo createInfo);
+    Mesh(const Context* context, CubeMeshCreateInfo createInfo);
 
     uint64_t getVertexBufferAddress() const { return vertexBuffer.getAddress(); }
     uint64_t getIndexBufferAddress() const { return indexBuffer.getAddress(); }
@@ -80,10 +90,6 @@ struct Mesh {
         commandBuffer.bindIndexBuffer(indexBuffer.getBuffer(), 0, vk::IndexType::eUint32);
         commandBuffer.drawIndexed(static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
     }
-
-    static Mesh createCubeLines(const Context* context);
-
-    static Mesh createSpherePolys(const Context* context, int n_slices, int n_stacks);
 
     DeviceBuffer vertexBuffer;
     DeviceBuffer indexBuffer;

@@ -166,3 +166,15 @@ HostBuffer Context::createHostBuffer(BufferCreateInfo createInfo) const {
 DeviceBuffer Context::createDeviceBuffer(BufferCreateInfo createInfo) const {
     return {this, createInfo};
 }
+
+Mesh Context::createMesh(MeshCreateInfo createInfo) const {
+    return {this, createInfo};
+}
+
+Mesh Context::createSphereMesh(SphereMeshCreateInfo createInfo) const {
+    return {this, createInfo};
+}
+
+Mesh Context::createCubeMesh(CubeMeshCreateInfo createInfo) const {
+    return {this, createInfo};
+}

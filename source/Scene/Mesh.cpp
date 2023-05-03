@@ -1,9 +1,7 @@
 #include "Mesh.hpp"
 
-Mesh::Mesh(const Context* context,
-           const std::vector<Vertex>& vertices,
-           const std::vector<uint32_t>& indices)
-    : vertices{vertices}, indices{indices} {
+Mesh::Mesh(const Context* context, MeshCreateInfo createInfo)
+    : vertices{createInfo.vertices}, indices{createInfo.indices} {
     vertexBuffer = context->createDeviceBuffer({
         .usage = BufferUsage::Vertex,
         .size = sizeof(Vertex) * vertices.size(),
@@ -16,23 +14,13 @@ Mesh::Mesh(const Context* context,
     });
 }
 
-Mesh Mesh::createCubeLines(const Context* context) {
-    std::vector<Vertex> vertices{
-        {glm::vec3(-1.0, -1.0, -1.0)}, {glm::vec3(1.0, -1.0, -1.0)}, {glm::vec3(1.0, -1.0, 1.0)},
-        {glm::vec3(-1.0, -1.0, 1.0)},  {glm::vec3(-1.0, 1.0, -1.0)}, {glm::vec3(1.0, 1.0, -1.0)},
-        {glm::vec3(1.0, 1.0, 1.0)},    {glm::vec3(-1.0, 1.0, 1.0)},
-    };
-    std::vector<uint32_t> indices{0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6,
-                                  6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7};
-    return {context, vertices, indices};
-}
-
-Mesh Mesh::createSpherePolys(const Context* context, int n_slices, int n_stacks) {
+Mesh::Mesh(const Context* context, SphereMeshCreateInfo createInfo) {
     // add top vertex
-    std::vector<Vertex> vertices;
     vertices.push_back({{0, 1, 0}});
     uint32_t v0 = 0;
 
+    int n_stacks = createInfo.numStacks;
+    int n_slices = createInfo.numSlices;
     // generate vertices per stack / slice
     constexpr double PI = glm::pi<double>();
     for (int i = 0; i < n_stacks - 1; i++) {
@@ -52,7 +40,6 @@ Mesh Mesh::createSpherePolys(const Context* context, int n_slices, int n_stacks)
     uint32_t v1 = vertices.size() - 1;
 
     // add top / bottom triangles
-    std::vector<uint32_t> indices;
     for (int i = 0; i < n_slices; ++i) {
         auto i0 = i + 1;
         auto i1 = (i + 1) % n_slices + 1;
@@ -83,5 +70,48 @@ Mesh Mesh::createSpherePolys(const Context* context, int n_slices, int n_stacks)
             indices.push_back(i0);
         }
     }
-    return {context, vertices, indices};
+
+    vertexBuffer = context->createDeviceBuffer({
+        .usage = BufferUsage::Vertex,
+        .size = sizeof(Vertex) * vertices.size(),
+        .initialData = vertices.data(),
+    });
+    indexBuffer = context->createDeviceBuffer({
+        .usage = BufferUsage::Index,
+        .size = sizeof(uint32_t) * indices.size(),
+        .initialData = indices.data(),
+    });
+}
+
+Mesh::Mesh(const Context* context, CubeMeshCreateInfo createInfo) {
+    vertices = std::vector<Vertex>{
+        {glm::vec3(-1.0, -1.0, -1.0)}, {glm::vec3(1.0, -1.0, -1.0)}, {glm::vec3(1.0, -1.0, 1.0)},
+        {glm::vec3(-1.0, -1.0, 1.0)},  {glm::vec3(-1.0, 1.0, -1.0)}, {glm::vec3(1.0, 1.0, -1.0)},
+        {glm::vec3(1.0, 1.0, 1.0)},    {glm::vec3(-1.0, 1.0, 1.0)},
+    };
+    indices = std::vector<uint32_t>{
+        0, 1, 2,  // Top
+        0, 2, 3,  // Top
+        2, 6, 7,  // Front
+        2, 7, 3,  // Front
+        3, 7, 4,  // Left
+        3, 4, 0,  // Left
+        0, 4, 5,  // Back
+        0, 5, 1,  // Back
+        1, 5, 6,  // Right
+        1, 6, 2,  // Right
+        5, 4, 7,  // Bottom
+        5, 7, 6,  // Bottom
+    };
+
+    vertexBuffer = context->createDeviceBuffer({
+        .usage = BufferUsage::Vertex,
+        .size = sizeof(Vertex) * vertices.size(),
+        .initialData = vertices.data(),
+    });
+    indexBuffer = context->createDeviceBuffer({
+        .usage = BufferUsage::Index,
+        .size = sizeof(uint32_t) * indices.size(),
+        .initialData = indices.data(),
+    });
 }

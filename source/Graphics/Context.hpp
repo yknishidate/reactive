@@ -7,11 +7,15 @@
 #include <vulkan/vulkan.hpp>
 
 struct BufferCreateInfo;
+struct MeshCreateInfo;
+struct SphereMeshCreateInfo;
+struct CubeMeshCreateInfo;
 struct ShaderCreateInfo;
 struct DescriptorSetCreateInfo;
 struct GraphicsPipelineCreateInfo;
 class HostBuffer;
 class DeviceBuffer;
+class Mesh;
 class Shader;
 class DescriptorSet;
 class GraphicsPipeline;
@@ -50,6 +54,9 @@ public:
     GraphicsPipeline createGraphicsPipeline(GraphicsPipelineCreateInfo createInfo) const;
     HostBuffer createHostBuffer(BufferCreateInfo createInfo) const;
     DeviceBuffer createDeviceBuffer(BufferCreateInfo createInfo) const;
+    Mesh createMesh(MeshCreateInfo createInfo) const;
+    Mesh createSphereMesh(SphereMeshCreateInfo createInfo) const;
+    Mesh createCubeMesh(CubeMeshCreateInfo createInfo) const;
 
 private:
     static VKAPI_ATTR VkBool32 VKAPI_CALL
