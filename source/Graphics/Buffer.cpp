@@ -70,7 +70,7 @@ Buffer::Buffer(const Context* context,
     context->getDevice().bindBufferMemory(*buffer, *memory, 0);
 }
 
-HostBuffer::HostBuffer(const Context* context, HostBufferCreateInfo createInfo)
+HostBuffer::HostBuffer(const Context* context, BufferCreateInfo createInfo)
     : Buffer(context,
              createInfo.usage,
              vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
@@ -97,8 +97,12 @@ void HostBuffer::unmap() {
     mapped = nullptr;
 }
 
-DeviceBuffer::DeviceBuffer(const Context* context, BufferUsage usage, size_t size)
-    : Buffer(context, usage, vk::MemoryPropertyFlagBits::eDeviceLocal, size) {}
+DeviceBuffer::DeviceBuffer(const Context* context, BufferCreateInfo createInfo)
+    : Buffer(context, createInfo.usage, vk::MemoryPropertyFlagBits::eDeviceLocal, createInfo.size) {
+    if (createInfo.initialData) {
+        copy(createInfo.initialData);
+    }
+}
 
 void DeviceBuffer::copy(const void* data) {
     HostBuffer stagingBuffer = context->createHostBuffer({

@@ -37,7 +37,7 @@ protected:
     vk::DeviceSize size = 0u;
 };
 
-struct HostBufferCreateInfo {
+struct BufferCreateInfo {
     BufferUsage usage;
     size_t size = 0;
     const void* initialData = nullptr;
@@ -46,7 +46,7 @@ struct HostBufferCreateInfo {
 class HostBuffer : public Buffer {
 public:
     HostBuffer() = default;
-    HostBuffer(const Context* context, HostBufferCreateInfo createInfo);
+    HostBuffer(const Context* context, BufferCreateInfo createInfo);
 
     void copy(const void* data);
     void* map();
@@ -59,13 +59,7 @@ private:
 class DeviceBuffer : public Buffer {
 public:
     DeviceBuffer() = default;
-    DeviceBuffer(const Context* context, BufferUsage usage, size_t size);
-
-    template <typename T>
-    DeviceBuffer(const Context* context, BufferUsage usage, const std::vector<T>& data)
-        : DeviceBuffer(context, usage, sizeof(T) * data.size()) {
-        copy(data.data());
-    }
+    DeviceBuffer(const Context* context, BufferCreateInfo createInfo);
 
     void copy(const void* data);
 };

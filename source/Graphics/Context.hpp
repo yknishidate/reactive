@@ -6,11 +6,12 @@
 #include <spdlog/spdlog.h>
 #include <vulkan/vulkan.hpp>
 
-struct HostBufferCreateInfo;
+struct BufferCreateInfo;
 struct ShaderCreateInfo;
 struct DescriptorSetCreateInfo;
 struct GraphicsPipelineCreateInfo;
 class HostBuffer;
+class DeviceBuffer;
 class Shader;
 class DescriptorSet;
 class GraphicsPipeline;
@@ -47,7 +48,8 @@ public:
     Shader createShader(ShaderCreateInfo createInfo) const;
     DescriptorSet createDescriptorSet(DescriptorSetCreateInfo createInfo) const;
     GraphicsPipeline createGraphicsPipeline(GraphicsPipelineCreateInfo createInfo) const;
-    HostBuffer createHostBuffer(HostBufferCreateInfo createInfo) const;
+    HostBuffer createHostBuffer(BufferCreateInfo createInfo) const;
+    DeviceBuffer createDeviceBuffer(BufferCreateInfo createInfo) const;
 
 private:
     static VKAPI_ATTR VkBool32 VKAPI_CALL

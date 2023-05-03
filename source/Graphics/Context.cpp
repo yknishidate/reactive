@@ -159,6 +159,10 @@ GraphicsPipeline Context::createGraphicsPipeline(GraphicsPipelineCreateInfo crea
     return {this, createInfo};
 }
 
-HostBuffer Context::createHostBuffer(HostBufferCreateInfo createInfo) const {
+HostBuffer Context::createHostBuffer(BufferCreateInfo createInfo) const {
+    return {this, createInfo};
+}
+
+DeviceBuffer Context::createDeviceBuffer(BufferCreateInfo createInfo) const {
     return {this, createInfo};
 }
