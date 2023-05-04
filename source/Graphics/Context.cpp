@@ -1,4 +1,5 @@
 #include "Context.hpp"
+#include "Accel.hpp"
 #include "DescriptorSet.hpp"
 #include "Pipeline.hpp"
 #include "Shader.hpp"
@@ -63,7 +64,8 @@ void Context::initPhysicalDevice(vk::SurfaceKHR surface) {
 
 void Context::initDevice(const std::vector<const char*>& deviceExtensions,
                          const vk::PhysicalDeviceFeatures& deviceFeatures,
-                         const void* deviceCreateInfoPNext) {
+                         const void* deviceCreateInfoPNext,
+                         bool enableRayTracing) {
     // Create device
     float queuePriority = 1.0f;
     vk::DeviceQueueCreateInfo queueInfo;
@@ -96,7 +98,10 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
         {vk::DescriptorType::eUniformBuffer, 100},
         {vk::DescriptorType::eStorageBuffer, 100},
         {vk::DescriptorType::eInputAttachment, 100},
-        {vk::DescriptorType::eAccelerationStructureKHR, 100}};
+    };
+    if (enableRayTracing) {
+        poolSizes.push_back({vk::DescriptorType::eAccelerationStructureKHR, 100});
+    }
 
     vk::DescriptorPoolCreateInfo descriptorPoolCreateInfo;
     descriptorPoolCreateInfo.setPoolSizes(poolSizes);
@@ -180,5 +185,9 @@ Mesh Context::createPlaneMesh(PlaneMeshCreateInfo createInfo) const {
 }
 
 Mesh Context::createCubeMesh(CubeMeshCreateInfo createInfo) const {
+    return {this, createInfo};
+}
+
+BottomAccel Context::createBottomAccel(BottomAccelCreateInfo createInfo) const {
     return {this, createInfo};
 }

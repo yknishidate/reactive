@@ -18,7 +18,12 @@ void main() {
 
 class HelloApp : public App {
 public:
-    HelloApp() : App(1280, 720, "HelloGraphics", true) {}
+    HelloApp()
+        : App({
+              .windowWidth = 1280,
+              .windowHeight = 720,
+              .title = "HelloGraphics",
+          }) {}
 
     void onStart() override {
         vertShader = context.createShader({

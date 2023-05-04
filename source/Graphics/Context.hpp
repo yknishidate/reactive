@@ -14,12 +14,14 @@ struct CubeMeshCreateInfo;
 struct ShaderCreateInfo;
 struct DescriptorSetCreateInfo;
 struct GraphicsPipelineCreateInfo;
+struct BottomAccelCreateInfo;
 class HostBuffer;
 class DeviceBuffer;
 class Mesh;
 class Shader;
 class DescriptorSet;
 class GraphicsPipeline;
+class BottomAccel;
 
 class Context {
 public:
@@ -32,7 +34,8 @@ public:
 
     void initDevice(const std::vector<const char*>& deviceExtensions,
                     const vk::PhysicalDeviceFeatures& deviceFeatures,
-                    const void* deviceCreateInfoPNext);
+                    const void* deviceCreateInfoPNext,
+                    bool enableRayTracing);
 
     vk::Instance getInstance() const { return *instance; }
     vk::Device getDevice() const { return *device; }
@@ -59,6 +62,7 @@ public:
     Mesh createSphereMesh(SphereMeshCreateInfo createInfo) const;
     Mesh createPlaneMesh(PlaneMeshCreateInfo createInfo) const;
     Mesh createCubeMesh(CubeMeshCreateInfo createInfo) const;
+    BottomAccel createBottomAccel(BottomAccelCreateInfo createInfo) const;
 
 private:
     static VKAPI_ATTR VkBool32 VKAPI_CALL

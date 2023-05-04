@@ -59,9 +59,22 @@ constexpr inline int D = GLFW_KEY_D;
 constexpr inline int Space = GLFW_KEY_SPACE;
 }  // namespace Key
 
+struct AppCreateInfo {
+    // Window
+    uint32_t windowWidth = 0;
+    uint32_t windowHeight = 0;
+    const char* title;
+    bool windowResizable = true;
+
+    // Vulkan
+    bool enableValidation = true;
+    bool enableRayTracing = false;
+    bool enableMeshShader = false;
+};
+
 class App {
 public:
-    App(uint32_t width, uint32_t height, const std::string& title, bool enableValidation);
+    App(AppCreateInfo createInfo);
 
     void run();
 
@@ -136,8 +149,8 @@ protected:
     static void dropCallback(GLFWwindow* window, int count, const char** paths);
     static void windowSizeCallback(GLFWwindow* window, int width, int height);
 
-    void initGLFW();
-    void initVulkan();
+    void initGLFW(bool resizable, const char* title);
+    void initVulkan(bool enableValidation, bool enableRayTracing, bool enableMeshShader);
     void initImGui();
 
     void createSwapchain();
@@ -147,7 +160,6 @@ protected:
 
     // GLFW
     GLFWwindow* window;
-    std::string title;
     float mouseWheelH = 0.0f;
     float mouseWheel = 0.0f;
     glm::vec2 currMousePos = {0.0f, 0.0f};
@@ -155,7 +167,6 @@ protected:
 
     Context context;
     vk::UniqueSurfaceKHR surface;
-    bool enableValidation;
 
     // Swapchain
     vk::UniqueSwapchainKHR swapchain;

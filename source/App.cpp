@@ -9,12 +9,13 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
 
-App::App(uint32_t width, uint32_t height, const std::string& title, bool enableValidation)
-    : width{width}, height{height}, title{title}, enableValidation{enableValidation} {
+App::App(AppCreateInfo createInfo)
+    : width{createInfo.windowWidth}, height{createInfo.windowHeight} {
     spdlog::set_pattern("[%^%l%$] %v");
 
-    initGLFW();
-    initVulkan();
+    initGLFW(createInfo.windowResizable, createInfo.title);
+    initVulkan(createInfo.enableValidation, createInfo.enableRayTracing,
+               createInfo.enableMeshShader);
     initImGui();
 }
 
@@ -120,14 +121,14 @@ bool App::mousePressed() const {
     return pressed;
 }
 
-void App::initGLFW() {
+void App::initGLFW(bool resizable, const char* title) {
     // Init GLFW
     glfwInit();
-    // glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, resizable);
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
     // Create window
-    window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+    window = glfwCreateWindow(width, height, title, nullptr, nullptr);
 
     // Set window icon
     GLFWimage icon;
@@ -151,17 +152,34 @@ void App::initGLFW() {
     glfwSetWindowSizeCallback(window, windowSizeCallback);
 }
 
-void App::initVulkan() {
+struct StructureChain {
+    template <typename T>
+    void add(T features) {
+        if (!first) {
+            first = &features;
+        } else {
+            *next = &features;
+        }
+        next = &features.pNext;
+    }
+
+    void* first = nullptr;
+    void** next = nullptr;
+};
+
+void App::initVulkan(bool enableValidation, bool enableRayTracing, bool enableMeshShader) {
     uint32_t glfwExtensionCount = 0;
     const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
     std::vector instanceExtensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-    instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-    instanceExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+    if (enableValidation) {
+        instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    }
     std::vector layers{"VK_LAYER_LUNARG_monitor"};
     if (enableValidation) {
         layers.push_back("VK_LAYER_KHRONOS_validation");
     }
 
+    // NOTE: Assuming Vulkan 1.3
     context.initInstance(enableValidation, layers, instanceExtensions, VK_API_VERSION_1_3);
 
     // Create surface
@@ -176,20 +194,18 @@ void App::initVulkan() {
     // Create device
     std::vector deviceExtensions{
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-        VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME,
-        VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
-        VK_KHR_MAINTENANCE3_EXTENSION_NAME,
-        VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME,
-        VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
         VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
-        VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
-        VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
-        VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME,
-        VK_EXT_MESH_SHADER_EXTENSION_NAME,
-        VK_KHR_SPIRV_1_4_EXTENSION_NAME,
-        VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME,
-        VK_KHR_RAY_QUERY_EXTENSION_NAME,
+        VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
     };
+    if (enableRayTracing) {
+        deviceExtensions.push_back(VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME);
+        deviceExtensions.push_back(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME);
+        deviceExtensions.push_back(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
+        deviceExtensions.push_back(VK_KHR_RAY_QUERY_EXTENSION_NAME);
+    }
+    if (enableMeshShader) {
+        deviceExtensions.push_back(VK_EXT_MESH_SHADER_EXTENSION_NAME);
+    }
 
     vk::PhysicalDeviceFeatures deviceFeatures;
     deviceFeatures.setShaderInt64(true);
@@ -199,25 +215,38 @@ void App::initVulkan() {
     deviceFeatures.setFillModeNonSolid(true);
     deviceFeatures.setWideLines(true);
 
-    // vk::PhysicalDeviceDescriptorIndexingFeatures descFeatures;
-    // descFeatures.setRuntimeDescriptorArray(true);
+    vk::PhysicalDeviceDescriptorIndexingFeatures descFeatures;
+    descFeatures.setRuntimeDescriptorArray(true);
 
-    // vk::PhysicalDevice8BitStorageFeatures storage8BitFeatures;
-    // storage8BitFeatures.setStorageBuffer8BitAccess(true);
+    vk::PhysicalDevice8BitStorageFeatures storage8BitFeatures;
+    storage8BitFeatures.setStorageBuffer8BitAccess(true);
 
-    // vk::PhysicalDeviceShaderFloat16Int8Features shaderFloat16Int8Features;
-    // shaderFloat16Int8Features.setShaderInt8(true);
+    vk::PhysicalDeviceShaderFloat16Int8Features shaderFloat16Int8Features;
+    shaderFloat16Int8Features.setShaderInt8(true);
 
-    // vk::StructureChain createInfoChain{vk::PhysicalDeviceBufferDeviceAddressFeatures{true},
-    //                                    vk::PhysicalDeviceRayTracingPipelineFeaturesKHR{true},
-    //                                    vk::PhysicalDeviceAccelerationStructureFeaturesKHR{true},
-    //                                    vk::PhysicalDeviceMeshShaderFeaturesEXT{true, true},
-    //                                    vk::PhysicalDeviceRayQueryFeaturesKHR{true},
-    //                                    descFeatures,
-    //                                    shaderFloat16Int8Features,
-    //                                    storage8BitFeatures};
     vk::PhysicalDeviceBufferDeviceAddressFeatures bufferDeviceAddressFeatures{true};
-    context.initDevice(deviceExtensions, deviceFeatures, &bufferDeviceAddressFeatures);
+
+    StructureChain featuresChain;
+    featuresChain.add(descFeatures);
+    featuresChain.add(storage8BitFeatures);
+    featuresChain.add(shaderFloat16Int8Features);
+    featuresChain.add(bufferDeviceAddressFeatures);
+
+    vk::PhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures{true};
+    vk::PhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures{true};
+    vk::PhysicalDeviceRayQueryFeaturesKHR rayQueryFeatures{true};
+    if (enableRayTracing) {
+        featuresChain.add(rayTracingPipelineFeatures);
+        featuresChain.add(accelerationStructureFeatures);
+        featuresChain.add(rayQueryFeatures);
+    }
+
+    vk::PhysicalDeviceMeshShaderFeaturesEXT meshShaderFeatures{true, true};
+    if (enableMeshShader) {
+        featuresChain.add(meshShaderFeatures);
+    }
+
+    context.initDevice(deviceExtensions, deviceFeatures, featuresChain.first, enableRayTracing);
 
     createSwapchain();
     createDepthImage();
