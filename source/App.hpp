@@ -51,14 +51,6 @@ void readBinary(const std::string& filepath, std::vector<T>& vec) {
 }
 }  // namespace File
 
-namespace Key {
-constexpr inline int W = GLFW_KEY_W;
-constexpr inline int A = GLFW_KEY_A;
-constexpr inline int S = GLFW_KEY_S;
-constexpr inline int D = GLFW_KEY_D;
-constexpr inline int Space = GLFW_KEY_SPACE;
-}  // namespace Key
-
 struct AppCreateInfo {
     // Window
     uint32_t windowWidth = 0;
@@ -104,11 +96,7 @@ public:
     vk::RenderPass getDefaultRenderPass() const { return *renderPass; }
 
     // Input
-    bool mousePressed() const;
-    bool keyPressed(int key) const { return glfwGetKey(window, key) == GLFW_PRESS; }
-    glm::vec2 getMousePos() const { return currMousePos; }
-    glm::vec2 getMouseMotion() const { return currMousePos - lastMousePos; }
-
+    glm::vec2 getCursorPos() const;
     bool isKeyDown(int key) const;
     bool isMouseButtonDown(int button) const;
     float getMouseWheelH() const { return mouseWheelH; }
@@ -162,9 +150,8 @@ protected:
     GLFWwindow* window;
     float mouseWheelH = 0.0f;
     float mouseWheel = 0.0f;
-    glm::vec2 currMousePos = {0.0f, 0.0f};
-    glm::vec2 lastMousePos = {0.0f, 0.0f};
 
+    // Context
     Context context;
     vk::UniqueSurfaceKHR surface;
 

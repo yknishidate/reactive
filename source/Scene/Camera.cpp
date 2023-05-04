@@ -7,33 +7,36 @@ Camera::Camera(const App* app, uint32_t width, uint32_t height) : app{app} {
 }
 
 void Camera::processInput() {
-    if (app->mousePressed()) {
-        glm::vec2 motion = app->getMouseMotion();
-        yaw = glm::mod(yaw - motion.x * 0.1f, 360.0f);
-        pitch = glm::clamp(pitch + motion.y * 0.1f, -89.9f, 89.9f);
+    static glm::vec2 lastCursorPos{0.0f};
+    glm::vec2 cursorPos = app->getCursorPos();
+    glm::vec2 cursorOffset = cursorPos - lastCursorPos;
+    lastCursorPos = cursorPos;
+    if (app->isMouseButtonDown(GLFW_MOUSE_BUTTON_1)) {
+        yaw = glm::mod(yaw - cursorOffset.x * 0.1f, 360.0f);
+        pitch = glm::clamp(pitch + cursorOffset.y * 0.1f, -89.9f, 89.9f);
         updateFront();
         dirty = true;
     }
 
     glm::vec3 forward = getFront();
     glm::vec3 right = getRight();
-    if (app->keyPressed(Key::W)) {
+    if (app->isKeyDown(GLFW_KEY_W)) {
         position += forward * 0.15f * speed;
         dirty = true;
     }
-    if (app->keyPressed(Key::S)) {
+    if (app->isKeyDown(GLFW_KEY_S)) {
         position -= forward * 0.15f * speed;
         dirty = true;
     }
-    if (app->keyPressed(Key::D)) {
+    if (app->isKeyDown(GLFW_KEY_D)) {
         position += right * 0.1f * speed;
         dirty = true;
     }
-    if (app->keyPressed(Key::A)) {
+    if (app->isKeyDown(GLFW_KEY_A)) {
         position -= right * 0.1f * speed;
         dirty = true;
     }
-    if (app->keyPressed(Key::Space)) {
+    if (app->isKeyDown(GLFW_KEY_SPACE)) {
         position.y -= 0.05f * speed;
         dirty = true;
     }

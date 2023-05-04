@@ -39,13 +39,6 @@ void App::run() {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
-        // Update mouse position
-        double xPos{};
-        double yPos{};
-        glfwGetCursorPos(window, &xPos, &yPos);
-        lastMousePos = currMousePos;
-        currMousePos = {xPos, yPos};
-
         onUpdate();
 
         // Start ImGui
@@ -128,12 +121,27 @@ void App::run() {
     ImGui::DestroyContext();
 }
 
-bool App::mousePressed() const {
-    bool pressed = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
-    if (ImGui::GetCurrentContext()) {
-        return pressed && !ImGui::IsWindowFocused(ImGuiFocusedFlags_AnyWindow);
+glm::vec2 App::getCursorPos() const {
+    double xPos{};
+    double yPos{};
+    glfwGetCursorPos(window, &xPos, &yPos);
+    return {xPos, yPos};
+}
+
+bool App::isKeyDown(int key) const {
+    ImGuiIO& io = ImGui::GetIO();
+    if (key < GLFW_KEY_SPACE || key > GLFW_KEY_LAST || io.WantCaptureKeyboard) {
+        return false;
     }
-    return pressed;
+    return glfwGetKey(window, key) == GLFW_PRESS;
+}
+
+bool App::isMouseButtonDown(int button) const {
+    ImGuiIO& io = ImGui::GetIO();
+    if (button < GLFW_MOUSE_BUTTON_1 || button > GLFW_MOUSE_BUTTON_LAST || io.WantCaptureMouse) {
+        return false;
+    }
+    return glfwGetMouseButton(window, button) == GLFW_PRESS;
 }
 
 void App::initGLFW(bool resizable, const char* title) {
