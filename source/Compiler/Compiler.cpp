@@ -5,6 +5,16 @@
 #include <fstream>
 #include <regex>
 
+namespace File {
+std::string readFile(const std::string& path) {
+    std::ifstream input_file{path};
+    if (!input_file.is_open()) {
+        spdlog::error("Failed to open file: " + path);
+    }
+    return {(std::istreambuf_iterator<char>{input_file}), std::istreambuf_iterator<char>{}};
+}
+}  // namespace File
+
 namespace Compiler {
 const TBuiltInResource DefaultTBuiltInResource = {
     /* .MaxLights = */ 32,
@@ -123,14 +133,6 @@ const TBuiltInResource DefaultTBuiltInResource = {
         /* .generalConstantMatrixVectorIndexing = */ 1,
     }};
 
-std::string readFile(const std::string& path) {
-    std::ifstream input_file{path};
-    if (!input_file.is_open()) {
-        spdlog::error("Failed to open file: " + path);
-    }
-    return {(std::istreambuf_iterator<char>{input_file}), std::istreambuf_iterator<char>{}};
-}
-
 vk::ShaderStageFlagBits getShaderStage(const std::string& filepath) {
     if (filepath.ends_with("vert"))
         return vk::ShaderStageFlagBits::eVertex;
@@ -183,7 +185,7 @@ std::string include(const std::string& filepath, const std::string& sourceText) 
     std::smatch results;
     while (std::regex_search(included, results, regex)) {
         std::string includePath = dir.string() + "/" + results[1].str();
-        std::string includeText = readFile(includePath);
+        std::string includeText = File::readFile(includePath);
         included.replace(results.position(), results.length(), includeText);
     }
     return included;
@@ -221,7 +223,7 @@ std::vector<uint32_t> compileToSPV(const std::string& glslCode, EShLanguage stag
 // Support include directive
 std::vector<uint32_t> compileToSPV(const std::string& filepath) {
     spdlog::info("Compile shader: {}", filepath);
-    std::string glslCode = readFile(filepath);
+    std::string glslCode = File::readFile(filepath);
     EShLanguage stage = translateShaderStage(getShaderStage(filepath));
     std::string included = include(filepath, glslCode);
     return compileToSPV(included, stage);

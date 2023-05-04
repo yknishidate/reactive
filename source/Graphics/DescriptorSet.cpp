@@ -58,6 +58,11 @@ DescriptorSet::DescriptorSet(const Context* context, DescriptorSetCreateInfo cre
         bindingMap[name].descriptorCount = 1;
         writes.emplace_back(bindingMap[name], image.getInfo());
     }
+    for (auto& [name, accel] : createInfo.accels) {
+        assert(bindingMap.contains(name));
+        bindingMap[name].descriptorCount = 1;
+        writes.emplace_back(bindingMap[name], accel.getInfo());
+    }
     allocate();
     update();
 }

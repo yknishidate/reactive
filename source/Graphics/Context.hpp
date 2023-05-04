@@ -6,6 +6,7 @@
 #include <spdlog/spdlog.h>
 #include <vulkan/vulkan.hpp>
 
+struct ImageCreateInfo;
 struct BufferCreateInfo;
 struct MeshCreateInfo;
 struct SphereMeshCreateInfo;
@@ -16,6 +17,7 @@ struct DescriptorSetCreateInfo;
 struct GraphicsPipelineCreateInfo;
 struct BottomAccelCreateInfo;
 struct TopAccelCreateInfo;
+class Image;
 class HostBuffer;
 class DeviceBuffer;
 class Mesh;
@@ -58,6 +60,7 @@ public:
     Shader createShader(ShaderCreateInfo createInfo) const;
     DescriptorSet createDescriptorSet(DescriptorSetCreateInfo createInfo) const;
     GraphicsPipeline createGraphicsPipeline(GraphicsPipelineCreateInfo createInfo) const;
+    Image createImage(ImageCreateInfo createInfo) const;
     HostBuffer createHostBuffer(BufferCreateInfo createInfo) const;
     DeviceBuffer createDeviceBuffer(BufferCreateInfo createInfo) const;
     Mesh createMesh(MeshCreateInfo createInfo) const;

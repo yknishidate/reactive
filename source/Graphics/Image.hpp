@@ -1,5 +1,6 @@
 #pragma once
 #include <vulkan/vulkan.hpp>
+#include "Context.hpp"
 
 class Buffer;
 class HostBuffer;
@@ -10,9 +11,19 @@ enum class ImageUsage {
     DepthStencilAttachment,
 };
 
+struct ImageCreateInfo {
+    ImageUsage usage;
+    uint32_t width;
+    uint32_t height;
+    uint32_t depth = 1;
+    vk::Format format = vk::Format::eR8G8B8A8Unorm;
+    vk::ImageType type = vk::ImageType::e2D;
+};
+
 class Image {
 public:
     Image() = default;
+    Image(const Context* context, ImageCreateInfo createInfo);
     // Image(uint32_t width, uint32_t height, vk::Format format, ImageUsage usage);
     // Image(const std::string& filepath);
     // Image(uint32_t width, uint32_t height, HostBuffer& buffer, size_t offset);
@@ -51,17 +62,17 @@ private:
     // void bindImageMemory();
     // void createSampler();
     // unsigned char* loadFile(const std::string& filepath);
-
+    const Context* context;
     vk::UniqueImage image;
     vk::UniqueDeviceMemory memory;
     vk::UniqueImageView view;
     vk::UniqueSampler sampler;
 
-    vk::Format format;
-    vk::ImageType type = vk::ImageType::e2D;
+    // vk::Format format;
+    // vk::ImageType type;
     vk::ImageLayout layout = vk::ImageLayout::eUndefined;
-    vk::ImageUsageFlags usage;
-    vk::ImageAspectFlags aspect;
+    // vk::ImageUsageFlags usage;
+    // vk::ImageAspectFlags aspect;
 
     uint32_t width;
     uint32_t height;

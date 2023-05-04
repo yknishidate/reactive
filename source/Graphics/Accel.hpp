@@ -44,9 +44,9 @@ public:
 
     //     void rebuild(const ArrayProxy<Object>& objects);
     //
-    //     vk::AccelerationStructureKHR getAccel() const { return *accel; }
-    //     vk::WriteDescriptorSetAccelerationStructureKHR getInfo() const { return {*accel}; }
-    //
+    vk::AccelerationStructureKHR getAccel() const { return *accel; }
+    vk::WriteDescriptorSetAccelerationStructureKHR getInfo() const { return {*accel}; }
+
 private:
     const Context* context;
     vk::UniqueAccelerationStructureKHR accel;

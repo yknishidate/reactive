@@ -29,19 +29,36 @@ public:
             .bottomAccels = {{&bottomAccel, glm::mat4{1.0}}},
         });
 
-        // vertShader = context.createShader({
-        //     .glslCode = vertCode,
-        //     .shaderStage = vk::ShaderStageFlagBits::eVertex,
-        // });
+        image = context.createImage({
+            .usage = ImageUsage::GeneralStorage,
+            .width = width,
+            .height = height,
+        });
 
-        // fragShader = context.createShader({
-        //     .glslCode = fragCode,
-        //     .shaderStage = vk::ShaderStageFlagBits::eFragment,
-        // });
+        std::string rgenCode = File::readFile(SHADER_DIR + "hello_raytracing.rgen");
+        std::string missCode = File::readFile(SHADER_DIR + "hello_raytracing.rmiss");
+        std::string chitCode = File::readFile(SHADER_DIR + "hello_raytracing.rchit");
 
-        // descSet = context.createDescriptorSet({
-        //     .shaders = {&vertShader, &fragShader},
-        // });
+        rgenShader = context.createShader({
+            .glslCode = rgenCode,
+            .shaderStage = vk::ShaderStageFlagBits::eRaygenKHR,
+        });
+
+        missShader = context.createShader({
+            .glslCode = missCode,
+            .shaderStage = vk::ShaderStageFlagBits::eMissKHR,
+        });
+
+        chitShader = context.createShader({
+            .glslCode = chitCode,
+            .shaderStage = vk::ShaderStageFlagBits::eClosestHitKHR,
+        });
+
+        descSet = context.createDescriptorSet({
+            .shaders = {&rgenShader, &missShader, &chitShader},
+            .images = {{"outputImage", image}},
+            .accels = {{"topLevelAS", topAccel}},
+        });
 
         // pipeline = context.createGraphicsPipeline({
         //     .vertexShader = &vertShader,
@@ -66,8 +83,11 @@ public:
     Mesh mesh;
     BottomAccel bottomAccel;
     TopAccel topAccel;
-    Shader vertShader;
-    Shader fragShader;
+    Image image;
+
+    Shader rgenShader;
+    Shader missShader;
+    Shader chitShader;
     DescriptorSet descSet;
     GraphicsPipeline pipeline;
     int testInt = 0;

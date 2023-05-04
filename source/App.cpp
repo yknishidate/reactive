@@ -9,6 +9,21 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
 
+struct StructureChain {
+    template <typename T>
+    void add(T& structure) {
+        if (!pFirst) {
+            pFirst = &structure;
+        } else {
+            *ppNext = &structure;
+        }
+        ppNext = &structure.pNext;
+    }
+
+    void* pFirst = nullptr;
+    void** ppNext = nullptr;
+};
+
 App::App(AppCreateInfo createInfo)
     : width{createInfo.windowWidth}, height{createInfo.windowHeight} {
     spdlog::set_pattern("[%^%l%$] %v");
@@ -151,21 +166,6 @@ void App::initGLFW(bool resizable, const char* title) {
     glfwSetDropCallback(window, dropCallback);
     glfwSetWindowSizeCallback(window, windowSizeCallback);
 }
-
-struct StructureChain {
-    template <typename T>
-    void add(T structure) {
-        if (!pFirst) {
-            pFirst = &structure;
-        } else {
-            *ppNext = &structure;
-        }
-        ppNext = &structure.pNext;
-    }
-
-    void* pFirst = nullptr;
-    void** ppNext = nullptr;
-};
 
 void App::initVulkan(bool enableValidation, bool enableRayTracing, bool enableMeshShader) {
     uint32_t glfwExtensionCount = 0;

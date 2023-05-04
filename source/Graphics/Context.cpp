@@ -1,6 +1,7 @@
 #include "Context.hpp"
 #include "Accel.hpp"
 #include "DescriptorSet.hpp"
+#include "Image.hpp"
 #include "Pipeline.hpp"
 #include "Shader.hpp"
 
@@ -161,6 +162,10 @@ DescriptorSet Context::createDescriptorSet(DescriptorSetCreateInfo createInfo) c
 }
 
 GraphicsPipeline Context::createGraphicsPipeline(GraphicsPipelineCreateInfo createInfo) const {
+    return {this, createInfo};
+}
+
+Image Context::createImage(ImageCreateInfo createInfo) const {
     return {this, createInfo};
 }
 
