@@ -1,5 +1,4 @@
 #include "App.hpp"
-#include "Engine.hpp"
 
 struct PushConstants {
     glm::mat4 model{1};
@@ -38,29 +37,43 @@ public:
     HelloApp() : App(1280, 720, "Hello", true) {}
 
     void onStart() override {
-        vertexBuffer = DeviceBuffer{this, BufferUsage::Vertex, vertices};
-        indexBuffer = DeviceBuffer{this, BufferUsage::Index, indices};
-        spdlog::info("Buffers are created.");
+        vertexBuffer = context.createDeviceBuffer({
+            .usage = BufferUsage::Vertex,
+            .size = sizeof(Vertex) * vertices.size(),
+            .initialData = vertices.data(),
+        });
+        indexBuffer = context.createDeviceBuffer({
+            .usage = BufferUsage::Index,
+            .size = sizeof(Vertex) * indices.size(),
+            .initialData = indices.data(),
+        });
 
-        camera = Camera{this, static_cast<uint32_t>(m_width), static_cast<uint32_t>(m_height)};
+        vertShader = context.createShader({
+            .glslCode = vertCode,
+            .shaderStage = vk::ShaderStageFlagBits::eVertex,
+        });
+        fragShader = context.createShader({
+            .glslCode = fragCode,
+            .shaderStage = vk::ShaderStageFlagBits::eFragment,
+        });
 
-        vertShader = Shader{this, vertCode, vk::ShaderStageFlagBits::eVertex};
-        fragShader = Shader{this, fragCode, vk::ShaderStageFlagBits::eFragment};
-        spdlog::info("Shaders are created.");
+        descSet = context.createDescriptorSet({
+            .shaders = {&vertShader, &fragShader},
+        });
 
-        descSet = DescriptorSet{this};
-        descSet.addResources(vertShader);
-        descSet.addResources(fragShader);
-        descSet.allocate();
-        spdlog::info("DescriptorSet is created.");
+        pipeline = context.createGraphicsPipeline({
+            .vertexShader = &vertShader,
+            .fragmentShader = &fragShader,
+            .renderPass = getDefaultRenderPass(),
+            .descSetLayout = descSet.getLayout(),
+            .pushSize = sizeof(PushConstants),
+            .width = width,
+            .height = height,
+            .vertexStride = sizeof(Vertex),
+            .vertexAttributes = Vertex::getAttributeDescriptions(),
+        });
 
-        pipeline = GraphicsPipeline{this};
-        pipeline.setDescriptorSet(descSet);
-        pipeline.addShader(vertShader);
-        pipeline.addShader(fragShader);
-        pipeline.setPushSize(sizeof(PushConstants));
-        pipeline.setup(*renderPass);
-        spdlog::info("Pipeline is created.");
+        camera = Camera{this, width, height};
     }
 
     void onUpdate() override {
@@ -74,10 +87,10 @@ public:
     void onRender(const CommandBuffer& commandBuffer) override {
         ImGui::SliderInt("Test slider", &testInt, 0, 100);
 
-        commandBuffer.clearBackImage({0.0f, 0.0f, 0.5f, 1.0f});
+        commandBuffer.clearColorImage(getBackImage(), {0.0f, 0.0f, 0.5f, 1.0f});
         commandBuffer.bindPipeline(pipeline);
         commandBuffer.pushConstants(pipeline, &pushConstants);
-        commandBuffer.beginDefaultRenderPass();
+        commandBuffer.beginRenderPass(getDefaultRenderPass(), getBackFramebuffer(), width, height);
         commandBuffer.drawIndexed(vertexBuffer, indexBuffer, indices.size());
         commandBuffer.endRenderPass();
 
@@ -85,7 +98,7 @@ public:
     }
 
     std::vector<Vertex> vertices{{{-1, 0, 0}}, {{0, -1, 0}}, {{1, 0, 0}}};
-    std::vector<Index> indices{0, 1, 2};
+    std::vector<uint32_t> indices{0, 1, 2};
     DeviceBuffer vertexBuffer;
     DeviceBuffer indexBuffer;
     Camera camera;
