@@ -16,6 +16,8 @@ public:
           }) {}
 
     void onStart() override {
+        camera = Camera{this, width, height};
+
         mesh = context.createMesh({
             .vertices = vertices,
             .indices = indices,
@@ -69,12 +71,22 @@ public:
         });
     }
 
+    void onUpdate() override {
+        camera.processInput();
+        pushConstants.invProj = camera.getInvProj();
+        pushConstants.invView = camera.getInvView();
+    }
+
     void onRender(const CommandBuffer& commandBuffer) override {
-        // ImGui::SliderInt("Test slider", &testInt, 0, 100);
-        // commandBuffer.clearColorImage(getBackImage(), {0.0f, 0.0f, 0.5f, 1.0f});
-        // commandBuffer.bindPipeline(pipeline);
-        // commandBuffer.beginRenderPass(getDefaultRenderPass(), getBackFramebuffer(), width,
-        // height); commandBuffer.draw(3, 1, 0, 0); commandBuffer.endRenderPass();
+        ImGui::SliderInt("Test slider", &testInt, 0, 100);
+
+        commandBuffer.bindDescriptorSet(descSet, pipeline);
+        commandBuffer.bindPipeline(pipeline);
+        commandBuffer.pushConstants(pipeline, &pushConstants);
+        commandBuffer.traceRays(pipeline, width, height, 1);
+        commandBuffer.copyImageToImage(image.getImage(), getBackImage(),  // images
+                                       vk::ImageLayout::eGeneral, vk::ImageLayout::ePresentSrcKHR,
+                                       width, height);
     }
 
     std::vector<Vertex> vertices{{{-1, 0, 0}}, {{0, -1, 0}}, {{1, 0, 0}}};
@@ -89,6 +101,9 @@ public:
     Shader chitShader;
     DescriptorSet descSet;
     RayTracingPipeline pipeline;
+
+    Camera camera;
+    PushConstants pushConstants;
     int testInt = 0;
 };
 

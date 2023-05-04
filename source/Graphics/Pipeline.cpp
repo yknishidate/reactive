@@ -266,10 +266,10 @@ RayTracingPipeline::RayTracingPipeline(const Context* context,
 //             vk::ShaderStageFlagBits::eAnyHitKHR,
 //         0, pushSize, pushData);
 // }
-//
-// void RayTracingPipeline::traceRays(vk::CommandBuffer commandBuffer,
-//                                    uint32_t countX,
-//                                    uint32_t countY) {
-//     commandBuffer.traceRaysKHR(raygenRegion, missRegion, hitRegion, {}, countX, countY,
-//     1);
-// }
+
+void RayTracingPipeline::traceRays(vk::CommandBuffer commandBuffer,
+                                   uint32_t countX,
+                                   uint32_t countY,
+                                   uint32_t countZ) const {
+    commandBuffer.traceRaysKHR(raygenRegion, missRegion, hitRegion, {}, countX, countY, countZ);
+}

@@ -24,8 +24,12 @@ public:
     void bindPipeline(Pipeline& pipeline) const;
     void pushConstants(Pipeline& pipeline, const void* pushData) const;
 
-    // void traceRays(RayTracingPipeline& rtPipeline, uint32_t countX, uint32_t countY);
-    // void dispatch(ComputePipeline& compPipeline, uint32_t countX, uint32_t countY);
+    void traceRays(const RayTracingPipeline& pipeline,
+                   uint32_t countX,
+                   uint32_t countY,
+                   uint32_t countZ) const;
+    // void dispatch(ComputePipeline& compPipeline, uint32_t countX, uint32_t countY, uint32_t
+    // countZ);
 
     void clearColorImage(vk::Image image, std::array<float, 4> color) const;
     //  void clearColorImage(Image& image, std::array<float, 4> color);
@@ -36,9 +40,6 @@ public:
                          uint32_t width,
                          uint32_t height) const;
     void endRenderPass() const { commandBuffer.endRenderPass(); }
-
-    // submit
-    // void submit();
 
     // draw
     void draw(uint32_t vertexCount,
@@ -99,7 +100,12 @@ public:
                                       nullptr, nullptr);
     }
 
-    // back image
+    void copyImageToImage(vk::Image srcImage,
+                          vk::Image dstImage,
+                          vk::ImageLayout newSrcLayout,
+                          vk::ImageLayout newDstLayout,
+                          uint32_t width,
+                          uint32_t height) const;
     // void copyToBackImage(Image& image);
     // void setBackImageLayout(vk::ImageLayout layout);
 
@@ -109,5 +115,4 @@ public:
 
     const Context* context;
     vk::CommandBuffer commandBuffer;
-    // Swapchain* swapchain = nullptr;
 };

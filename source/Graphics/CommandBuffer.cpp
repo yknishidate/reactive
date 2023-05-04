@@ -22,10 +22,13 @@ void CommandBuffer::pushConstants(Pipeline& pipeline, const void* pushData) cons
     pipeline.pushConstants(commandBuffer, pushData);
 }
 
-// void CommandBuffer::traceRays(RayTracingPipeline& rtPipeline, uint32_t countX, uint32_t countY) {
-//     rtPipeline.traceRays(commandBuffer, countX, countY);
-// }
-//
+void CommandBuffer::traceRays(const RayTracingPipeline& pipeline,
+                              uint32_t countX,
+                              uint32_t countY,
+                              uint32_t countZ) const {
+    pipeline.traceRays(commandBuffer, countX, countY, countZ);
+}
+
 // void CommandBuffer::dispatch(ComputePipeline& compPipeline, uint32_t countX, uint32_t countY) {
 //     compPipeline.dispatch(commandBuffer, countX, countY);
 // }
@@ -59,18 +62,6 @@ void CommandBuffer::beginRenderPass(vk::RenderPass renderPass,
     beginInfo.setRenderArea(renderArea);
     commandBuffer.beginRenderPass(beginInfo, vk::SubpassContents::eInline);
 }
-
-// void CommandBuffer::beginRenderPass(RenderPass& renderPass) {
-//     renderPass.beginRenderPass(commandBuffer);
-// }
-//
-// void CommandBuffer::endRenderPass(RenderPass& renderPass) {
-//    renderPass.endRenderPass(commandBuffer);
-//}
-//
-// void CommandBuffer::submit() {
-//    swapchain->submit();
-//}
 
 void CommandBuffer::draw(uint32_t vertexCount,
                          uint32_t instanceCount,
@@ -118,6 +109,27 @@ void CommandBuffer::pipelineBarrier(vk::PipelineStageFlags srcStageMask,
 
     commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, nullptr,
                                   bufferMemoryBarrier, nullptr);
+}
+
+void CommandBuffer::copyImageToImage(vk::Image srcImage,
+                                     vk::Image dstImage,
+                                     vk::ImageLayout newSrcLayout,
+                                     vk::ImageLayout newDstLayout,
+                                     uint32_t width,
+                                     uint32_t height) const {
+    Image::setImageLayout(commandBuffer, srcImage, vk::ImageLayout::eTransferSrcOptimal);
+    Image::setImageLayout(commandBuffer, dstImage, vk::ImageLayout::eTransferDstOptimal);
+
+    vk::ImageCopy copyRegion;
+    copyRegion.setSrcSubresource({vk::ImageAspectFlagBits::eColor, 0, 0, 1});
+    copyRegion.setDstSubresource({vk::ImageAspectFlagBits::eColor, 0, 0, 1});
+    copyRegion.setExtent({width, height, 1});
+    commandBuffer.copyImage(srcImage, vk::ImageLayout::eTransferSrcOptimal,  // src
+                            dstImage, vk::ImageLayout::eTransferDstOptimal,  // dst
+                            copyRegion);
+
+    Image::setImageLayout(commandBuffer, srcImage, newSrcLayout);
+    Image::setImageLayout(commandBuffer, dstImage, newDstLayout);
 }
 
 void CommandBuffer::beginTimestamp(const GPUTimer& gpuTimer) const {
