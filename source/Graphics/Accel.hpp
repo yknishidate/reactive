@@ -1,24 +1,33 @@
-// #pragma once
-// #include "ArrayProxy.hpp"
+#pragma once
+#include "ArrayProxy.hpp"
+#include "Buffer.hpp"
 // #include "Geometry.hpp"
 //
 // class Mesh;
 // class Object;
-//
-// class BottomAccel {
-// public:
-//     BottomAccel() = default;
-//     explicit BottomAccel(const Mesh& mesh,
-//                          vk::GeometryFlagBitsKHR geometryFlag =
-//                          vk::GeometryFlagBitsKHR::eOpaque);
-//
-//     uint64_t getBufferAddress() const { return buffer.getAddress(); }
-//
-// private:
-//     vk::UniqueAccelerationStructureKHR accel;
-//     DeviceBuffer buffer;
-// };
-//
+
+struct BottomAccelCreateInfo {
+    const Mesh* mesh;
+    vk::GeometryFlagsKHR geometryFlags = vk::GeometryFlagBitsKHR::eOpaque;
+    vk::BuildAccelerationStructureFlagsKHR buildFlags =
+        vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace;
+    vk::AccelerationStructureBuildTypeKHR buildType =
+        vk::AccelerationStructureBuildTypeKHR::eDevice;
+};
+
+class BottomAccel {
+public:
+    BottomAccel() = default;
+    BottomAccel(const Context* context, BottomAccelCreateInfo createInfo);
+
+    uint64_t getBufferAddress() const { return buffer.getAddress(); }
+
+private:
+    const Context* context;
+    vk::UniqueAccelerationStructureKHR accel;
+    DeviceBuffer buffer;
+};
+
 // class TopAccel {
 // public:
 //     TopAccel() = default;

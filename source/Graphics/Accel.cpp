@@ -1,6 +1,6 @@
-// #include "Accel.hpp"
-// #include "Scene/Object.hpp"
-//
+#include "Accel.hpp"
+#include "Scene/Mesh.hpp"
+
 // namespace {
 // vk::UniqueAccelerationStructureKHR createAccel(vk::Buffer buffer,
 //                                                vk::DeviceSize size,
@@ -27,18 +27,57 @@
 //     });
 // }
 // }  // namespace
-//
-// BottomAccel::BottomAccel(const Mesh& mesh, vk::GeometryFlagBitsKHR geometryFlag) {
-//     size_t primitiveCount = mesh.getTriangleCount();
-//     TrianglesGeometry geometry{mesh.getTriangles(), geometryFlag, primitiveCount};
-//     auto size = geometry.getAccelSize();
-//     auto type = vk::AccelerationStructureTypeKHR::eBottomLevel;
-//
-//     buffer = geometry.createAccelBuffer();
-//     accel = createAccel(buffer.getBuffer(), size, type);
-//     buildAccel(*accel, size, primitiveCount, geometry.getInfo());
-// }
-//
+
+BottomAccel::BottomAccel(const Context* context, BottomAccelCreateInfo createInfo) {
+    const Mesh* mesh = createInfo.mesh;
+
+    vk::AccelerationStructureGeometryDataKHR geometryData;
+    geometryData.setTriangles(mesh->getTrianglesData());
+
+    vk::AccelerationStructureGeometryKHR geometry;
+    geometry.setGeometryType(vk::GeometryTypeKHR::eTriangles);
+    geometry.setGeometry({geometryData});
+    geometry.setFlags(createInfo.geometryFlags);
+
+    vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
+    buildGeometryInfo.setType(vk::AccelerationStructureTypeKHR::eBottomLevel);
+    buildGeometryInfo.setFlags(createInfo.buildFlags);
+    buildGeometryInfo.setGeometries(geometry);
+
+    size_t primitiveCount = mesh->getTriangleCount();
+    auto buildSizesInfo = context->getDevice().getAccelerationStructureBuildSizesKHR(
+        createInfo.buildType, buildGeometryInfo, primitiveCount);
+
+    buffer = context->createDeviceBuffer({
+        .usage = BufferUsage::AccelStorage,
+        .size = buildSizesInfo.accelerationStructureSize,
+    });
+
+    accel = context->getDevice().createAccelerationStructureKHRUnique(
+        vk::AccelerationStructureCreateInfoKHR{}
+            .setBuffer(buffer.getBuffer())
+            .setSize(buildSizesInfo.accelerationStructureSize)
+            .setType(vk::AccelerationStructureTypeKHR::eBottomLevel));
+
+    Buffer scratchBuffer = context->createHostBuffer({
+        .usage = BufferUsage::Scratch,
+        .size = buildSizesInfo.buildScratchSize,
+    });
+
+    buildGeometryInfo.setMode(vk::BuildAccelerationStructureModeKHR::eBuild);
+    buildGeometryInfo.setDstAccelerationStructure(*accel);
+    buildGeometryInfo.setScratchData(scratchBuffer.getAddress());
+
+    context->oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
+        vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo{};
+        buildRangeInfo.setPrimitiveCount(primitiveCount);
+        buildRangeInfo.setPrimitiveOffset(0);
+        buildRangeInfo.setFirstVertex(0);
+        buildRangeInfo.setTransformOffset(0);
+        commandBuffer.buildAccelerationStructuresKHR(buildGeometryInfo, &buildRangeInfo);
+    });
+}
+
 // TopAccel::TopAccel(const ArrayProxy<Object>& objects, vk::GeometryFlagBitsKHR geometryFlag) {
 //     // Gather instances
 //     std::vector<vk::AccelerationStructureInstanceKHR> instances;
