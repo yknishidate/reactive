@@ -191,3 +191,7 @@ Mesh Context::createCubeMesh(CubeMeshCreateInfo createInfo) const {
 BottomAccel Context::createBottomAccel(BottomAccelCreateInfo createInfo) const {
     return {this, createInfo};
 }
+
+TopAccel Context::createTopAccel(TopAccelCreateInfo createInfo) const {
+    return {this, createInfo};
+}

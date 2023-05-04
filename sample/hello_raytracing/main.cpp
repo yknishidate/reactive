@@ -25,6 +25,10 @@ public:
             .mesh = &mesh,
         });
 
+        topAccel = context.createTopAccel({
+            .bottomAccels = {{&bottomAccel, glm::mat4{1.0}}},
+        });
+
         // vertShader = context.createShader({
         //     .glslCode = vertCode,
         //     .shaderStage = vk::ShaderStageFlagBits::eVertex,
@@ -61,6 +65,7 @@ public:
     std::vector<uint32_t> indices{0, 1, 2};
     Mesh mesh;
     BottomAccel bottomAccel;
+    TopAccel topAccel;
     Shader vertShader;
     Shader fragShader;
     DescriptorSet descSet;

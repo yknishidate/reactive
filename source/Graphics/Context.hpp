@@ -15,6 +15,7 @@ struct ShaderCreateInfo;
 struct DescriptorSetCreateInfo;
 struct GraphicsPipelineCreateInfo;
 struct BottomAccelCreateInfo;
+struct TopAccelCreateInfo;
 class HostBuffer;
 class DeviceBuffer;
 class Mesh;
@@ -22,6 +23,7 @@ class Shader;
 class DescriptorSet;
 class GraphicsPipeline;
 class BottomAccel;
+class TopAccel;
 
 class Context {
 public:
@@ -63,6 +65,7 @@ public:
     Mesh createPlaneMesh(PlaneMeshCreateInfo createInfo) const;
     Mesh createCubeMesh(CubeMeshCreateInfo createInfo) const;
     BottomAccel createBottomAccel(BottomAccelCreateInfo createInfo) const;
+    TopAccel createTopAccel(TopAccelCreateInfo createInfo) const;
 
 private:
     static VKAPI_ATTR VkBool32 VKAPI_CALL
