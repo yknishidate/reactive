@@ -165,6 +165,11 @@ GraphicsPipeline Context::createGraphicsPipeline(GraphicsPipelineCreateInfo crea
     return {this, createInfo};
 }
 
+RayTracingPipeline Context::createRayTracingPipeline(
+    RayTracingPipelineCreateInfo createInfo) const {
+    return {this, createInfo};
+}
+
 Image Context::createImage(ImageCreateInfo createInfo) const {
     return {this, createInfo};
 }

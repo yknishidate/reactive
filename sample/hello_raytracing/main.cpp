@@ -60,14 +60,13 @@ public:
             .accels = {{"topLevelAS", topAccel}},
         });
 
-        // pipeline = context.createGraphicsPipeline({
-        //     .vertexShader = &vertShader,
-        //     .fragmentShader = &fragShader,
-        //     .renderPass = getDefaultRenderPass(),
-        //     .descSetLayout = descSet.getLayout(),
-        //     .width = width,
-        //     .height = height,
-        // });
+        pipeline = context.createRayTracingPipeline({
+            .rgenShader = &rgenShader,
+            .missShader = &missShader,
+            .chitShader = &chitShader,
+            .descSetLayout = descSet.getLayout(),
+            .pushSize = sizeof(PushConstants),
+        });
     }
 
     void onRender(const CommandBuffer& commandBuffer) override {
@@ -89,7 +88,7 @@ public:
     Shader missShader;
     Shader chitShader;
     DescriptorSet descSet;
-    GraphicsPipeline pipeline;
+    RayTracingPipeline pipeline;
     int testInt = 0;
 };
 

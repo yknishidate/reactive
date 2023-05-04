@@ -15,6 +15,7 @@ struct CubeMeshCreateInfo;
 struct ShaderCreateInfo;
 struct DescriptorSetCreateInfo;
 struct GraphicsPipelineCreateInfo;
+struct RayTracingPipelineCreateInfo;
 struct BottomAccelCreateInfo;
 struct TopAccelCreateInfo;
 class Image;
@@ -24,6 +25,7 @@ class Mesh;
 class Shader;
 class DescriptorSet;
 class GraphicsPipeline;
+class RayTracingPipeline;
 class BottomAccel;
 class TopAccel;
 
@@ -60,6 +62,7 @@ public:
     Shader createShader(ShaderCreateInfo createInfo) const;
     DescriptorSet createDescriptorSet(DescriptorSetCreateInfo createInfo) const;
     GraphicsPipeline createGraphicsPipeline(GraphicsPipelineCreateInfo createInfo) const;
+    RayTracingPipeline createRayTracingPipeline(RayTracingPipelineCreateInfo createInfo) const;
     Image createImage(ImageCreateInfo createInfo) const;
     HostBuffer createHostBuffer(BufferCreateInfo createInfo) const;
     DeviceBuffer createDeviceBuffer(BufferCreateInfo createInfo) const;
