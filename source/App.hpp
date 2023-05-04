@@ -51,7 +51,6 @@ void readBinary(const std::string& filepath, std::vector<T>& vec) {
 }
 }  // namespace File
 
-
 namespace Key {
 constexpr inline int W = GLFW_KEY_W;
 constexpr inline int A = GLFW_KEY_A;
@@ -88,6 +87,8 @@ public:
 
     // Getter
     vk::Image getBackImage() const { return swapchainImages[frameIndex]; }
+    vk::Framebuffer getBackFramebuffer() const { return *framebuffers[frameIndex]; }
+    vk::RenderPass getDefaultRenderPass() const { return *renderPass; }
 
     // Input
     bool mousePressed() const;
