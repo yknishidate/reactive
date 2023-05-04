@@ -10,7 +10,7 @@ public:
         : App({
               .windowWidth = 1280,
               .windowHeight = 720,
-              .title = "HelloRayTracing",
+              .title = "HelloCompute",
               .enableRayTracing = true,
           }) {}
 
