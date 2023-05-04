@@ -40,7 +40,12 @@ project_name/
 ```cpp
 class HelloApp : public App {
 public:
-    HelloApp() : App(1280, 720, "HelloGraphics", true) {}
+    HelloApp()
+        : App({
+              .windowWidth = 1280,
+              .windowHeight = 720,
+              .title = "HelloGraphics",
+          }) {}
 };
 
 int main() {
