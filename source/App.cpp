@@ -154,17 +154,17 @@ void App::initGLFW(bool resizable, const char* title) {
 
 struct StructureChain {
     template <typename T>
-    void add(T features) {
-        if (!first) {
-            first = &features;
+    void add(T structure) {
+        if (!pFirst) {
+            pFirst = &structure;
         } else {
-            *next = &features;
+            *ppNext = &structure;
         }
-        next = &features.pNext;
+        ppNext = &structure.pNext;
     }
 
-    void* first = nullptr;
-    void** next = nullptr;
+    void* pFirst = nullptr;
+    void** ppNext = nullptr;
 };
 
 void App::initVulkan(bool enableValidation, bool enableRayTracing, bool enableMeshShader) {
@@ -246,7 +246,7 @@ void App::initVulkan(bool enableValidation, bool enableRayTracing, bool enableMe
         featuresChain.add(meshShaderFeatures);
     }
 
-    context.initDevice(deviceExtensions, deviceFeatures, featuresChain.first, enableRayTracing);
+    context.initDevice(deviceExtensions, deviceFeatures, featuresChain.pFirst, enableRayTracing);
 
     createSwapchain();
     createDepthImage();
