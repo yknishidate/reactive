@@ -71,6 +71,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 
 option(REACTIVE_BUILD_SAMPLES "Build the Reactive samples" ON)
 if (REACTIVE_BUILD_SAMPLES)
-    add_subdirectory(sample/hello_raytracing)
     add_subdirectory(sample/hello_graphics)
+    add_subdirectory(sample/hello_raytracing)
+    add_subdirectory(sample/hello_compute)
 endif()

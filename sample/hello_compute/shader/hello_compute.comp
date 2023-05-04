@@ -1,0 +1,16 @@
+#version 460
+#extension GL_EXT_ray_tracing : enable
+
+layout(local_size_x = 1, local_size_y = 1) in;
+layout(binding = 0, rgba8) uniform image2D outputImage;
+layout(push_constant) uniform PushConstants {
+    int frame;
+};
+
+void main()
+{
+    vec2 resolution = vec2(gl_WorkGroupSize.xy * gl_NumWorkGroups.xy);
+    vec2 uv = vec2(gl_GlobalInvocationID.xy) / resolution;
+
+    imageStore(outputImage, ivec2(gl_GlobalInvocationID.xy), vec4(uv, sin(frame * 0.05) * 0.5 + 0.5, 1));
+}

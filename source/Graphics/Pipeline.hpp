@@ -70,6 +70,26 @@ private:
     Type type = Type::Graphics;
 };
 
+struct ComputePipelineCreateInfo {
+    const Shader* computeShader = nullptr;
+
+    vk::DescriptorSetLayout descSetLayout = {};
+    uint32_t pushSize = 0;
+};
+
+class ComputePipeline : public Pipeline {
+public:
+    ComputePipeline() = default;
+    ComputePipeline(const Context* context, ComputePipelineCreateInfo createInfo);
+
+private:
+    friend class CommandBuffer;
+    void dispatch(vk::CommandBuffer commandBuffer,
+                  uint32_t groupCountX,
+                  uint32_t groupCountY,
+                  uint32_t groupCountZ) const;
+};
+
 struct RayTracingPipelineCreateInfo {
     const Shader* rgenShader = nullptr;
     const Shader* missShader = nullptr;
@@ -80,27 +100,6 @@ struct RayTracingPipelineCreateInfo {
 
     uint32_t maxRayRecursionDepth = 4;
 };
-
-// class ComputePipeline : public Pipeline {
-// public:
-//     ComputePipeline() = default;
-//     ComputePipeline(const Context* context) : Pipeline{app} {}
-//
-//     void setup();
-//
-//     void setComputeShader(const Shader& compShader) {
-//         assert(compShader.getStage() == vk::ShaderStageFlagBits::eCompute);
-//         shaderModule = compShader.getModule();
-//     }
-//
-// private:
-//     friend class CommandBuffer;
-//     void bind(vk::CommandBuffer commandBuffer) override;
-//     void pushConstants(vk::CommandBuffer commandBuffer, const void* pushData) override;
-//     void dispatch(vk::CommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY);
-//
-//     vk::ShaderModule shaderModule;
-// };
 
 class RayTracingPipeline : public Pipeline {
 public:
@@ -172,8 +171,6 @@ public:
 
 private:
     friend class CommandBuffer;
-    // void bind(vk::CommandBuffer commandBuffer);
-    // void pushConstants(vk::CommandBuffer commandBuffer, const void* pushData);
     void traceRays(vk::CommandBuffer commandBuffer,
                    uint32_t countX,
                    uint32_t countY,

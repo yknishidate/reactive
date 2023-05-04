@@ -8,52 +8,6 @@
 #include "Scene/Mesh.hpp"
 #include "Scene/Object.hpp"
 
-namespace {
-// vk::UniquePipeline createComputePipeline(vk::ShaderModule shaderModule,
-//                                          vk::ShaderStageFlagBits shaderStage,
-//                                          vk::PipelineLayout pipelineLayout) {
-//     vk::PipelineShaderStageCreateInfo stage;
-//     stage.setStage(shaderStage);
-//     stage.setModule(shaderModule);
-//     stage.setPName("main");
-//
-//     vk::ComputePipelineCreateInfo createInfo;
-//     createInfo.setStage(stage);
-//     createInfo.setLayout(pipelineLayout);
-//     auto res = Context::getDevice().createComputePipelinesUnique({}, createInfo);
-//     if (res.result != vk::Result::eSuccess) {
-//         throw std::runtime_error("failed to create ray tracing pipeline.");
-//     }
-//     return std::move(res.value.front());
-// }
-//
-// vk::UniquePipeline createRayTracingPipeline(
-//     const std::vector<vk::PipelineShaderStageCreateInfo>& shaderStages,
-//     const std::vector<vk::RayTracingShaderGroupCreateInfoKHR>& shaderGroups,
-//     vk::PipelineLayout pipelineLayout) {
-//     vk::RayTracingPipelineCreateInfoKHR createInfo;
-//     createInfo.setStages(shaderStages);
-//     createInfo.setGroups(shaderGroups);
-//     createInfo.setMaxPipelineRayRecursionDepth(4);
-//     createInfo.setLayout(pipelineLayout);
-//     auto res = Context::getDevice().createRayTracingPipelineKHRUnique(nullptr, nullptr,
-//     createInfo); if (res.result != vk::Result::eSuccess) {
-//         throw std::runtime_error("failed to create ray tracing pipeline.");
-//     }
-//     return std::move(res.value);
-// }
-
-vk::StridedDeviceAddressRegionKHR createAddressRegion(
-    vk::PhysicalDeviceRayTracingPipelinePropertiesKHR rtProperties,
-    vk::DeviceAddress deviceAddress) {
-    vk::StridedDeviceAddressRegionKHR region{};
-    region.setDeviceAddress(deviceAddress);
-    region.setStride(rtProperties.shaderGroupHandleAlignment);
-    region.setSize(rtProperties.shaderGroupHandleAlignment);
-    return region;
-}
-}  // namespace
-
 GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreateInfo createInfo)
     : Pipeline{context} {
     shaderStageFlags = vk::ShaderStageFlagBits::eAllGraphics;
@@ -147,6 +101,45 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
     pipeline = std::move(result.value);
 }
 
+ComputePipeline::ComputePipeline(const Context* context, ComputePipelineCreateInfo createInfo) {
+    shaderStageFlags = vk::ShaderStageFlagBits::eCompute;
+    bindPoint = vk::PipelineBindPoint::eCompute;
+    pushSize = createInfo.pushSize;
+
+    vk::PushConstantRange pushRange;
+    pushRange.setOffset(0);
+    pushRange.setSize(pushSize);
+    pushRange.setStageFlags(shaderStageFlags);
+
+    vk::PipelineLayoutCreateInfo layoutInfo;
+    layoutInfo.setSetLayouts(createInfo.descSetLayout);
+    if (pushSize) {
+        layoutInfo.setPushConstantRanges(pushRange);
+    }
+    pipelineLayout = context->getDevice().createPipelineLayoutUnique(layoutInfo);
+
+    vk::PipelineShaderStageCreateInfo stage;
+    stage.setStage(createInfo.computeShader->getStage());
+    stage.setModule(createInfo.computeShader->getModule());
+    stage.setPName("main");
+
+    vk::ComputePipelineCreateInfo pipelineInfo;
+    pipelineInfo.setStage(stage);
+    pipelineInfo.setLayout(*pipelineLayout);
+    auto res = context->getDevice().createComputePipelinesUnique({}, pipelineInfo);
+    if (res.result != vk::Result::eSuccess) {
+        throw std::runtime_error("failed to create a pipeline.");
+    }
+    pipeline = std::move(res.value.front());
+}
+
+void ComputePipeline::dispatch(vk::CommandBuffer commandBuffer,
+                               uint32_t groupCountX,
+                               uint32_t groupCountY,
+                               uint32_t groupCountZ) const {
+    commandBuffer.dispatch(groupCountX, groupCountY, groupCountZ);
+}
+
 RayTracingPipeline::RayTracingPipeline(const Context* context,
                                        RayTracingPipelineCreateInfo createInfo)
     : Pipeline{context} {
@@ -179,7 +172,7 @@ RayTracingPipeline::RayTracingPipeline(const Context* context,
     auto res =
         context->getDevice().createRayTracingPipelineKHRUnique(nullptr, nullptr, pipelineInfo);
     if (res.result != vk::Result::eSuccess) {
-        throw std::runtime_error("failed to create ray tracing pipeline.");
+        throw std::runtime_error("failed to create a pipeline.");
     }
     pipeline = std::move(res.value);
 
@@ -220,52 +213,18 @@ RayTracingPipeline::RayTracingPipeline(const Context* context,
         .initialData = shaderHandleStorage.data() + 2 * handleSizeAligned,
     });
 
-    raygenRegion = createAddressRegion(rtProperties, raygenSBT.getAddress());
-    missRegion = createAddressRegion(rtProperties, missSBT.getAddress());
-    hitRegion = createAddressRegion(rtProperties, hitSBT.getAddress());
+    raygenRegion.setDeviceAddress(raygenSBT.getAddress());
+    raygenRegion.setStride(rtProperties.shaderGroupHandleAlignment);
+    raygenRegion.setSize(rtProperties.shaderGroupHandleAlignment);
+
+    missRegion.setDeviceAddress(missSBT.getAddress());
+    missRegion.setStride(rtProperties.shaderGroupHandleAlignment);
+    missRegion.setSize(rtProperties.shaderGroupHandleAlignment);
+
+    hitRegion.setDeviceAddress(hitSBT.getAddress());
+    hitRegion.setStride(rtProperties.shaderGroupHandleAlignment);
+    hitRegion.setSize(rtProperties.shaderGroupHandleAlignment);
 }
-
-// void ComputePipeline::setup() {
-//     pipelineLayout = descSet->createPipelineLayout(pushSize,
-//     vk::ShaderStageFlagBits::eCompute); pipeline =
-//         createComputePipeline(shaderModule, vk::ShaderStageFlagBits::eCompute,
-//         *pipelineLayout);
-// }
-//
-// void ComputePipeline::bind(vk::CommandBuffer commandBuffer) {
-//     commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *pipeline);
-//     descSet->bind(commandBuffer, vk::PipelineBindPoint::eCompute, *pipelineLayout);
-// }
-//
-// void ComputePipeline::pushConstants(vk::CommandBuffer commandBuffer, const void*
-// pushData) {
-//     commandBuffer.pushConstants(*pipelineLayout, vk::ShaderStageFlagBits::eCompute, 0,
-//     pushSize,
-//                                 pushData);
-// }
-//
-// void ComputePipeline::dispatch(vk::CommandBuffer commandBuffer,
-//                                uint32_t groupCountX,
-//                                uint32_t groupCountY) {
-//     commandBuffer.dispatch(groupCountX, groupCountY, 1);
-// }
-
-//
-// void RayTracingPipeline::bind(vk::CommandBuffer commandBuffer) {
-//     commandBuffer.bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, *pipeline);
-//     descSet->bind(commandBuffer, vk::PipelineBindPoint::eRayTracingKHR,
-//     *pipelineLayout);
-// }
-//
-// void RayTracingPipeline::pushConstants(vk::CommandBuffer commandBuffer, const void*
-// pushData) {
-//     commandBuffer.pushConstants(
-//         *pipelineLayout,
-//         vk::ShaderStageFlagBits::eRaygenKHR | vk::ShaderStageFlagBits::eMissKHR |
-//             vk::ShaderStageFlagBits::eClosestHitKHR |
-//             vk::ShaderStageFlagBits::eAnyHitKHR,
-//         0, pushSize, pushData);
-// }
 
 void RayTracingPipeline::traceRays(vk::CommandBuffer commandBuffer,
                                    uint32_t countX,

@@ -29,6 +29,13 @@ void CommandBuffer::traceRays(const RayTracingPipeline& pipeline,
     pipeline.traceRays(commandBuffer, countX, countY, countZ);
 }
 
+void CommandBuffer::dispatch(const ComputePipeline& pipeline,
+                             uint32_t countX,
+                             uint32_t countY,
+                             uint32_t countZ) const {
+    pipeline.dispatch(commandBuffer, countX, countY, countZ);
+}
+
 // void CommandBuffer::dispatch(ComputePipeline& compPipeline, uint32_t countX, uint32_t countY) {
 //     compPipeline.dispatch(commandBuffer, countX, countY);
 // }

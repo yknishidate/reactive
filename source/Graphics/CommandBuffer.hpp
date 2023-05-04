@@ -28,8 +28,10 @@ public:
                    uint32_t countX,
                    uint32_t countY,
                    uint32_t countZ) const;
-    // void dispatch(ComputePipeline& compPipeline, uint32_t countX, uint32_t countY, uint32_t
-    // countZ);
+    void dispatch(const ComputePipeline& pipeline,
+                  uint32_t countX,
+                  uint32_t countY,
+                  uint32_t countZ) const;
 
     void clearColorImage(vk::Image image, std::array<float, 4> color) const;
     //  void clearColorImage(Image& image, std::array<float, 4> color);
@@ -106,8 +108,6 @@ public:
                           vk::ImageLayout newDstLayout,
                           uint32_t width,
                           uint32_t height) const;
-    // void copyToBackImage(Image& image);
-    // void setBackImageLayout(vk::ImageLayout layout);
 
     // timestamp
     void beginTimestamp(const GPUTimer& gpuTimer) const;
