@@ -149,10 +149,3 @@ vk::AccelerationStructureGeometryTrianglesDataKHR Mesh::getTrianglesData() const
     trianglesData.setIndexData(indexBuffer.getAddress());
     return trianglesData;
 }
-
-void Mesh::drawIndexed(vk::CommandBuffer commandBuffer, uint32_t instanceCount) const {
-    vk::DeviceSize offsets{0};
-    commandBuffer.bindVertexBuffers(0, vertexBuffer.getBuffer(), offsets);
-    commandBuffer.bindIndexBuffer(indexBuffer.getBuffer(), 0, vk::IndexType::eUint32);
-    commandBuffer.drawIndexed(static_cast<uint32_t>(indices.size()), instanceCount, 0, 0, 0);
-}

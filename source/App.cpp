@@ -535,8 +535,8 @@ void App::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
 
     if (!io.WantCaptureMouse) {
         App* app = (App*)glfwGetWindowUserPointer(window);
-        app->mouseWheelH += (float)xoffset;
-        app->mouseWheel += (float)yoffset;
+        app->mouseWheel.x += (float)xoffset;
+        app->mouseWheel.y += (float)yoffset;
         app->onScroll(xoffset, yoffset);
     }
 }

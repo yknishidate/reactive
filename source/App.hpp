@@ -96,11 +96,10 @@ public:
     vk::RenderPass getDefaultRenderPass() const { return *renderPass; }
 
     // Input
-    glm::vec2 getCursorPos() const;
     bool isKeyDown(int key) const;
     bool isMouseButtonDown(int button) const;
-    float getMouseWheelH() const { return mouseWheelH; }
-    float getMouseWheel() const { return mouseWheel; }
+    glm::vec2 getCursorPos() const;
+    glm::vec2 getMouseWheel() const { return mouseWheel; }
     virtual void onReset() {}
     virtual void onKey(int key, int scancode, int action, int mods) {}
     virtual void onChar(unsigned int codepoint) {}
@@ -148,8 +147,7 @@ protected:
 
     // GLFW
     GLFWwindow* window;
-    float mouseWheelH = 0.0f;
-    float mouseWheel = 0.0f;
+    glm::vec2 mouseWheel{0.0};
 
     // Context
     Context context;
