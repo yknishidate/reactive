@@ -25,6 +25,7 @@ public:
             .glslCode = vertCode,
             .shaderStage = vk::ShaderStageFlagBits::eVertex,
         });
+
         fragShader = context.createShader({
             .glslCode = fragCode,
             .shaderStage = vk::ShaderStageFlagBits::eFragment,

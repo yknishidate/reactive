@@ -38,21 +38,17 @@ project_name/
 ```
 
 ```cpp
+class HelloApp : public App {
+public:
+    HelloApp() : App(1280, 720, "HelloGraphics", true) {}
+};
 
-
-int main()
-{
+int main() {
     try {
-        Log::init();
-        Window::init(750, 750);
-        Context::init(true);
-        while (!Window::shouldClose()) {
-            Window::pollEvents();
-        }
-        Context::waitIdle();
-        Window::shutdown();
+        HelloApp app{};
+        app.run();
     } catch (const std::exception& e) {
-        Log::error(e.what());
+        spdlog::error(e.what());
     }
 }
 ```
@@ -90,5 +86,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 4. Run cmake
 
 ```sh
+# change to your vcpkg path
 cmake . -B build -D CMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake
 ```
