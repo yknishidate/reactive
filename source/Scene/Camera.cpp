@@ -52,8 +52,8 @@ void OrbitalCamera::processInput() {
     glm::vec2 cursorOffset = cursorPos - lastCursorPos;
     lastCursorPos = cursorPos;
     if (app->isMouseButtonDown(GLFW_MOUSE_BUTTON_1)) {
-        phi = glm::mod(phi - cursorOffset.x, 360.0f);
-        theta = std::min(std::max(theta + cursorOffset.y, -89.9f), 89.9f);
+        phi = glm::mod(phi - cursorOffset.x * 0.5f, 360.0f);
+        theta = std::min(std::max(theta + cursorOffset.y * 0.5f, -89.9f), 89.9f);
     }
 
     static float lastWheel = 0.0f;
