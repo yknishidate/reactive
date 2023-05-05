@@ -1,6 +1,27 @@
 # Reactive
 
-Personal Vulkan Wrapper
+Personal Vulkan wrapper using
+
+- Vulkan
+- GLFW
+- glm
+- ImGui
+- glslang
+- SPIRV-Cross
+- tinyobjloader
+- spdlog
+
+## Sample
+
+![Screenshot (187)](https://user-images.githubusercontent.com/30839669/236360394-45217ef8-c190-4800-b5f5-514a1631bfd8.png)
+
+## Features
+
+- [x] Vulkan wrapper
+- [x] Window creation
+- [x] ImGui integration
+- [x] GLSL Shader compile
+- [x] Shader reflection
 
 ## Requirement
 

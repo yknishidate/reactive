@@ -3,17 +3,21 @@
 std::string vertCode = R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
+layout(location = 0) out vec4 outColor;
 vec3 positions[] = vec3[](vec3(-0.5, 0.5, 0), vec3(0, -0.5, 0), vec3(0.5, 0.5, 0));
+vec3 colors[] = vec3[](vec3(0), vec3(1, 0, 0), vec3(0, 1, 0));
 void main() {
     gl_Position = vec4(positions[gl_VertexIndex], 1);
+    outColor = vec4(colors[gl_VertexIndex], 1);
 })";
 
 std::string fragCode = R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
+layout(location = 0) in vec4 inColor;
 layout(location = 0) out vec4 outColor;
 void main() {
-    outColor = vec4(1.0);
+    outColor = inColor;
 })";
 
 class HelloApp : public App {
