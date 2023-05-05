@@ -138,6 +138,13 @@ void CommandBuffer::copyImage(vk::Image srcImage,
     Image::setImageLayout(commandBuffer, dstImage, newDstLayout);
 }
 
+void CommandBuffer::fillBuffer(const Buffer& dstBuffer,
+                               vk::DeviceSize dstOffset,
+                               vk::DeviceSize size,
+                               uint32_t data) const {
+    commandBuffer.fillBuffer(dstBuffer.getBuffer(), dstOffset, size, data);
+}
+
 void CommandBuffer::beginTimestamp(const GPUTimer& gpuTimer) const {
     gpuTimer.beginTimestamp(commandBuffer);
 }

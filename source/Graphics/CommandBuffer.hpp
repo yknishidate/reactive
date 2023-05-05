@@ -109,6 +109,11 @@ public:
                    uint32_t width,
                    uint32_t height) const;
 
+    void fillBuffer(const Buffer& dstBuffer,
+                    vk::DeviceSize dstOffset,
+                    vk::DeviceSize size,
+                    uint32_t data) const;
+
     // timestamp
     void beginTimestamp(const GPUTimer& gpuTimer) const;
     void endTimestamp(const GPUTimer& gpuTimer) const;
