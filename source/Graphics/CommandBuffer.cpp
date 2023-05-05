@@ -7,7 +7,6 @@
 #include "Graphics/Pipeline.hpp"
 #include "Graphics/RenderPass.hpp"
 #include "Scene/Mesh.hpp"
-#include "Swapchain.hpp"
 #include "Timer/GPUTimer.hpp"
 
 void CommandBuffer::bindDescriptorSet(DescriptorSet& descSet, const Pipeline& pipeline) const {
@@ -118,12 +117,12 @@ void CommandBuffer::pipelineBarrier(vk::PipelineStageFlags srcStageMask,
                                   bufferMemoryBarrier, nullptr);
 }
 
-void CommandBuffer::copyImageToImage(vk::Image srcImage,
-                                     vk::Image dstImage,
-                                     vk::ImageLayout newSrcLayout,
-                                     vk::ImageLayout newDstLayout,
-                                     uint32_t width,
-                                     uint32_t height) const {
+void CommandBuffer::copyImage(vk::Image srcImage,
+                              vk::Image dstImage,
+                              vk::ImageLayout newSrcLayout,
+                              vk::ImageLayout newDstLayout,
+                              uint32_t width,
+                              uint32_t height) const {
     Image::setImageLayout(commandBuffer, srcImage, vk::ImageLayout::eTransferSrcOptimal);
     Image::setImageLayout(commandBuffer, dstImage, vk::ImageLayout::eTransferDstOptimal);
 

@@ -1,9 +1,5 @@
 #include "App.hpp"
 
-struct PushConstants {
-    int frame = 0;
-};
-
 class HelloApp : public App {
 public:
     HelloApp()
@@ -11,7 +7,6 @@ public:
               .windowWidth = 1280,
               .windowHeight = 720,
               .title = "HelloCompute",
-              .enableRayTracing = true,
           }) {}
 
     void onStart() override {
@@ -21,10 +16,8 @@ public:
             .height = height,
         });
 
-        std::string compCode = File::readFile(SHADER_DIR + "hello_compute.comp");
-
-        compShader = context.createShader({
-            .glslCode = compCode,
+        Shader compShader = context.createShader({
+            .glslCode = File::readFile(SHADER_DIR + "hello_compute.comp"),
             .shaderStage = vk::ShaderStageFlagBits::eCompute,
         });
 
@@ -36,32 +29,27 @@ public:
         pipeline = context.createComputePipeline({
             .computeShader = &compShader,
             .descSetLayout = descSet.getLayout(),
-            .pushSize = sizeof(PushConstants),
+            .pushSize = sizeof(int),
         });
     }
 
-    void onUpdate() override { pushConstants.frame++; }
+    void onUpdate() override { frame++; }
 
     void onRender(const CommandBuffer& commandBuffer) override {
         ImGui::SliderInt("Test slider", &testInt, 0, 100);
-
         commandBuffer.bindDescriptorSet(descSet, pipeline);
         commandBuffer.bindPipeline(pipeline);
-        commandBuffer.pushConstants(pipeline, &pushConstants);
+        commandBuffer.pushConstants(pipeline, &frame);
         commandBuffer.dispatch(pipeline, width, height, 1);
-        commandBuffer.copyImageToImage(image.getImage(), getBackImage(),  // images
-                                       vk::ImageLayout::eGeneral, vk::ImageLayout::ePresentSrcKHR,
-                                       width, height);
+        commandBuffer.copyImage(image.getImage(), getCurrentImage(), vk::ImageLayout::eGeneral,
+                                vk::ImageLayout::ePresentSrcKHR, width, height);
     }
 
     Image image;
-
-    Shader compShader;
     DescriptorSet descSet;
     ComputePipeline pipeline;
-
-    PushConstants pushConstants;
     int testInt = 0;
+    int frame = 0;
 };
 
 int main() {

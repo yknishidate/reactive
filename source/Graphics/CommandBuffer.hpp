@@ -102,12 +102,12 @@ public:
                                       nullptr, nullptr);
     }
 
-    void copyImageToImage(vk::Image srcImage,
-                          vk::Image dstImage,
-                          vk::ImageLayout newSrcLayout,
-                          vk::ImageLayout newDstLayout,
-                          uint32_t width,
-                          uint32_t height) const;
+    void copyImage(vk::Image srcImage,
+                   vk::Image dstImage,
+                   vk::ImageLayout newSrcLayout,
+                   vk::ImageLayout newDstLayout,
+                   uint32_t width,
+                   uint32_t height) const;
 
     // timestamp
     void beginTimestamp(const GPUTimer& gpuTimer) const;

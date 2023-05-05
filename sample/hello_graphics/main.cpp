@@ -30,12 +30,12 @@ public:
           }) {}
 
     void onStart() override {
-        vertShader = context.createShader({
+        Shader vertShader = context.createShader({
             .glslCode = vertCode,
             .shaderStage = vk::ShaderStageFlagBits::eVertex,
         });
 
-        fragShader = context.createShader({
+        Shader fragShader = context.createShader({
             .glslCode = fragCode,
             .shaderStage = vk::ShaderStageFlagBits::eFragment,
         });
@@ -56,15 +56,14 @@ public:
 
     void onRender(const CommandBuffer& commandBuffer) override {
         ImGui::SliderInt("Test slider", &testInt, 0, 100);
-        commandBuffer.clearColorImage(getBackImage(), {0.0f, 0.0f, 0.5f, 1.0f});
+        commandBuffer.clearColorImage(getCurrentImage(), {0.0f, 0.0f, 0.5f, 1.0f});
         commandBuffer.bindPipeline(pipeline);
-        commandBuffer.beginRenderPass(getDefaultRenderPass(), getBackFramebuffer(), width, height);
+        commandBuffer.beginRenderPass(getDefaultRenderPass(), getCurrentFramebuffer(), width,
+                                      height);
         commandBuffer.draw(3, 1, 0, 0);
         commandBuffer.endRenderPass();
     }
 
-    Shader vertShader;
-    Shader fragShader;
     DescriptorSet descSet;
     GraphicsPipeline pipeline;
     int testInt = 0;

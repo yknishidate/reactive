@@ -18,7 +18,6 @@
 #include "Graphics/Pipeline.hpp"
 #include "Graphics/RenderPass.hpp"
 #include "Graphics/Shader.hpp"
-#include "Graphics/Swapchain.hpp"
 #include "Scene/AABB.hpp"
 #include "Scene/Camera.hpp"
 #include "Scene/Loader.hpp"
@@ -80,7 +79,7 @@ public:
     //     copyRegion.setDstSubresource({vk::ImageAspectFlagBits::eColor, 0, 0, 1});
     //     copyRegion.setExtent({width, height, 1});
 
-    //    vk::Image backImage = getBackImage();
+    //    vk::Image backImage = getCurrentImage();
     //    source.setImageLayout(commandBuffer, vk::ImageLayout::eTransferSrcOptimal);
     //    Image::setImageLayout(commandBuffer, backImage, vk::ImageLayout::eTransferDstOptimal);
     //    commandBuffer.copyImage(source.getImage(), vk::ImageLayout::eTransferSrcOptimal,
@@ -91,8 +90,8 @@ public:
     //}
 
     // Getter
-    vk::Image getBackImage() const { return swapchainImages[frameIndex]; }
-    vk::Framebuffer getBackFramebuffer() const { return *framebuffers[frameIndex]; }
+    vk::Image getCurrentImage() const { return swapchainImages[frameIndex]; }
+    vk::Framebuffer getCurrentFramebuffer() const { return *framebuffers[frameIndex]; }
     vk::RenderPass getDefaultRenderPass() const { return *renderPass; }
 
     // Input
