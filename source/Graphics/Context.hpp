@@ -19,6 +19,7 @@ struct ComputePipelineCreateInfo;
 struct RayTracingPipelineCreateInfo;
 struct BottomAccelCreateInfo;
 struct TopAccelCreateInfo;
+struct GPUTimerCreateInfo;
 class Image;
 class HostBuffer;
 class DeviceBuffer;
@@ -30,6 +31,7 @@ class ComputePipeline;
 class RayTracingPipeline;
 class BottomAccel;
 class TopAccel;
+class GPUTimer;
 
 class Context {
 public:
@@ -75,6 +77,7 @@ public:
     Mesh createCubeMesh(CubeMeshCreateInfo createInfo) const;
     BottomAccel createBottomAccel(BottomAccelCreateInfo createInfo) const;
     TopAccel createTopAccel(TopAccelCreateInfo createInfo) const;
+    GPUTimer createGPUTimer(GPUTimerCreateInfo createInfo) const;
 
 private:
     static VKAPI_ATTR VkBool32 VKAPI_CALL

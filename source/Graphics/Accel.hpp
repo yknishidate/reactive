@@ -43,7 +43,7 @@ public:
     TopAccel(const Context* context, TopAccelCreateInfo createInfo);
 
     //     void rebuild(const ArrayProxy<Object>& objects);
-    //
+
     vk::AccelerationStructureKHR getAccel() const { return *accel; }
     vk::WriteDescriptorSetAccelerationStructureKHR getInfo() const { return {*accel}; }
 

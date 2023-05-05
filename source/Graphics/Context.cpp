@@ -4,6 +4,7 @@
 #include "Image.hpp"
 #include "Pipeline.hpp"
 #include "Shader.hpp"
+#include "Timer/GPUTimer.hpp"
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
@@ -207,5 +208,9 @@ BottomAccel Context::createBottomAccel(BottomAccelCreateInfo createInfo) const {
 }
 
 TopAccel Context::createTopAccel(TopAccelCreateInfo createInfo) const {
+    return {this, createInfo};
+}
+
+GPUTimer Context::createGPUTimer(GPUTimerCreateInfo createInfo) const {
     return {this, createInfo};
 }
