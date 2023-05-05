@@ -12,6 +12,7 @@ public:
               .width = 1280,
               .height = 720,
               .title = "HelloRayTracing",
+              .windowResizable = false,
               .enableRayTracing = true,
           }) {}
 
@@ -37,22 +38,18 @@ public:
             .height = height,
         });
 
-        std::string rgenCode = File::readFile(SHADER_DIR + "hello_raytracing.rgen");
-        std::string missCode = File::readFile(SHADER_DIR + "hello_raytracing.rmiss");
-        std::string chitCode = File::readFile(SHADER_DIR + "hello_raytracing.rchit");
-
-        rgenShader = context.createShader({
-            .glslCode = rgenCode,
+        Shader rgenShader = context.createShader({
+            .glslCode = File::readFile(SHADER_DIR + "hello_raytracing.rgen"),
             .stage = vk::ShaderStageFlagBits::eRaygenKHR,
         });
 
-        missShader = context.createShader({
-            .glslCode = missCode,
+        Shader missShader = context.createShader({
+            .glslCode = File::readFile(SHADER_DIR + "hello_raytracing.rmiss"),
             .stage = vk::ShaderStageFlagBits::eMissKHR,
         });
 
-        chitShader = context.createShader({
-            .glslCode = chitCode,
+        Shader chitShader = context.createShader({
+            .glslCode = File::readFile(SHADER_DIR + "hello_raytracing.rchit"),
             .stage = vk::ShaderStageFlagBits::eClosestHitKHR,
         });
 
@@ -95,9 +92,6 @@ public:
     TopAccel topAccel;
     Image image;
 
-    Shader rgenShader;
-    Shader missShader;
-    Shader chitShader;
     DescriptorSet descSet;
     RayTracingPipeline pipeline;
 
