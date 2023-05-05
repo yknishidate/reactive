@@ -5,12 +5,12 @@ Mesh::Mesh(const Context* context, MeshCreateInfo createInfo)
     vertexBuffer = context->createDeviceBuffer({
         .usage = BufferUsage::Vertex,
         .size = sizeof(Vertex) * vertices.size(),
-        .initialData = vertices.data(),
+        .data = vertices.data(),
     });
     indexBuffer = context->createDeviceBuffer({
         .usage = BufferUsage::Index,
         .size = sizeof(uint32_t) * indices.size(),
-        .initialData = indices.data(),
+        .data = indices.data(),
     });
 }
 
@@ -74,12 +74,12 @@ Mesh::Mesh(const Context* context, SphereMeshCreateInfo createInfo) {
     vertexBuffer = context->createDeviceBuffer({
         .usage = BufferUsage::Vertex,
         .size = sizeof(Vertex) * vertices.size(),
-        .initialData = vertices.data(),
+        .data = vertices.data(),
     });
     indexBuffer = context->createDeviceBuffer({
         .usage = BufferUsage::Index,
         .size = sizeof(uint32_t) * indices.size(),
-        .initialData = indices.data(),
+        .data = indices.data(),
     });
 }
 
@@ -97,12 +97,12 @@ Mesh::Mesh(const Context* context, PlaneMeshCreateInfo createInfo) {
     vertexBuffer = context->createDeviceBuffer({
         .usage = BufferUsage::Vertex,
         .size = sizeof(Vertex) * vertices.size(),
-        .initialData = vertices.data(),
+        .data = vertices.data(),
     });
     indexBuffer = context->createDeviceBuffer({
         .usage = BufferUsage::Index,
         .size = sizeof(uint32_t) * indices.size(),
-        .initialData = indices.data(),
+        .data = indices.data(),
     });
 }
 
@@ -130,12 +130,12 @@ Mesh::Mesh(const Context* context, CubeMeshCreateInfo createInfo) {
     vertexBuffer = context->createDeviceBuffer({
         .usage = BufferUsage::Vertex,
         .size = sizeof(Vertex) * vertices.size(),
-        .initialData = vertices.data(),
+        .data = vertices.data(),
     });
     indexBuffer = context->createDeviceBuffer({
         .usage = BufferUsage::Index,
         .size = sizeof(uint32_t) * indices.size(),
-        .initialData = indices.data(),
+        .data = indices.data(),
     });
 }
 

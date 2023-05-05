@@ -25,7 +25,7 @@ struct StructureChain {
 };
 
 App::App(AppCreateInfo createInfo)
-    : width{createInfo.windowWidth}, height{createInfo.windowHeight} {
+    : width{createInfo.width}, height{createInfo.height} {
     spdlog::set_pattern("[%^%l%$] %v");
 
     initGLFW(createInfo.windowResizable, createInfo.title);

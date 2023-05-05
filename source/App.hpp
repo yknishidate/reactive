@@ -52,8 +52,8 @@ void readBinary(const std::string& filepath, std::vector<T>& vec) {
 
 struct AppCreateInfo {
     // Window
-    uint32_t windowWidth = 0;
-    uint32_t windowHeight = 0;
+    uint32_t width = 0;
+    uint32_t height = 0;
     const char* title;
     bool windowResizable = true;
 

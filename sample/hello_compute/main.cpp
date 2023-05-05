@@ -4,8 +4,8 @@ class HelloApp : public App {
 public:
     HelloApp()
         : App({
-              .windowWidth = 1280,
-              .windowHeight = 720,
+              .width = 1280,
+              .height = 720,
               .title = "HelloCompute",
           }) {}
 

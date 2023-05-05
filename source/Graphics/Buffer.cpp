@@ -75,8 +75,8 @@ HostBuffer::HostBuffer(const Context* context, BufferCreateInfo createInfo)
              createInfo.usage,
              vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
              createInfo.size) {
-    if (createInfo.initialData) {
-        copy(createInfo.initialData);
+    if (createInfo.data) {
+        copy(createInfo.data);
     }
 }
 
@@ -99,8 +99,8 @@ void HostBuffer::unmap() {
 
 DeviceBuffer::DeviceBuffer(const Context* context, BufferCreateInfo createInfo)
     : Buffer(context, createInfo.usage, vk::MemoryPropertyFlagBits::eDeviceLocal, createInfo.size) {
-    if (createInfo.initialData) {
-        copy(createInfo.initialData);
+    if (createInfo.data) {
+        copy(createInfo.data);
     }
 }
 
@@ -108,7 +108,7 @@ void DeviceBuffer::copy(const void* data) {
     HostBuffer stagingBuffer = context->createHostBuffer({
         .usage = BufferUsage::Staging,
         .size = size,
-        .initialData = data,
+        .data = data,
     });
     context->oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
         vk::BufferCopy region{0, 0, size};

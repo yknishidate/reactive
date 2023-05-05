@@ -40,7 +40,7 @@ protected:
 struct BufferCreateInfo {
     BufferUsage usage;
     size_t size = 0;
-    const void* initialData = nullptr;
+    const void* data = nullptr;
 };
 
 class HostBuffer : public Buffer {

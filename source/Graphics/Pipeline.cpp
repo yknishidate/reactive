@@ -200,17 +200,17 @@ RayTracingPipeline::RayTracingPipeline(const Context* context,
     raygenSBT = context->createDeviceBuffer({
         .usage = BufferUsage::ShaderBindingTable,
         .size = handleSize * rgenCount,
-        .initialData = shaderHandleStorage.data() + 0 * handleSizeAligned,
+        .data = shaderHandleStorage.data() + 0 * handleSizeAligned,
     });
     missSBT = context->createDeviceBuffer({
         .usage = BufferUsage::ShaderBindingTable,
         .size = handleSize * missCount,
-        .initialData = shaderHandleStorage.data() + 1 * handleSizeAligned,
+        .data = shaderHandleStorage.data() + 1 * handleSizeAligned,
     });
     hitSBT = context->createDeviceBuffer({
         .usage = BufferUsage::ShaderBindingTable,
         .size = handleSize * hitCount,
-        .initialData = shaderHandleStorage.data() + 2 * handleSizeAligned,
+        .data = shaderHandleStorage.data() + 2 * handleSizeAligned,
     });
 
     raygenRegion.setDeviceAddress(raygenSBT.getAddress());
