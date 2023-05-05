@@ -32,12 +32,12 @@ public:
     void onStart() override {
         Shader vertShader = context.createShader({
             .glslCode = vertCode,
-            .shaderStage = vk::ShaderStageFlagBits::eVertex,
+            .stage = vk::ShaderStageFlagBits::eVertex,
         });
 
         Shader fragShader = context.createShader({
             .glslCode = fragCode,
-            .shaderStage = vk::ShaderStageFlagBits::eFragment,
+            .stage = vk::ShaderStageFlagBits::eFragment,
         });
 
         descSet = context.createDescriptorSet({

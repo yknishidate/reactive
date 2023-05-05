@@ -5,14 +5,14 @@
 #include <string_view>
 #include <unordered_map>
 #include "Accel.hpp"
-#include "Context.hpp"
 #include "Buffer.hpp"
 #include "Compiler/Compiler.hpp"
+#include "Context.hpp"
 #include "Image.hpp"
 
 struct ShaderCreateInfo {
     const std::string& glslCode;
-    vk::ShaderStageFlagBits shaderStage;
+    vk::ShaderStageFlagBits stage;
 };
 
 class Shader {

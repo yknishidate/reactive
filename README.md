@@ -13,7 +13,7 @@ Personal Vulkan wrapper using
 
 ## Sample
 
-![Screenshot (187)](https://user-images.githubusercontent.com/30839669/236360394-45217ef8-c190-4800-b5f5-514a1631bfd8.png)
+![image](https://user-images.githubusercontent.com/30839669/236371719-bb247384-52b9-4096-8739-d1ebe6bb1620.png)
 
 ## Features
 

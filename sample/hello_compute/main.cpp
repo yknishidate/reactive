@@ -18,7 +18,7 @@ public:
 
         Shader compShader = context.createShader({
             .glslCode = File::readFile(SHADER_DIR + "hello_compute.comp"),
-            .shaderStage = vk::ShaderStageFlagBits::eCompute,
+            .stage = vk::ShaderStageFlagBits::eCompute,
         });
 
         descSet = context.createDescriptorSet({

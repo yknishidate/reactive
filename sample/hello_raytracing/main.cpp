@@ -43,17 +43,17 @@ public:
 
         rgenShader = context.createShader({
             .glslCode = rgenCode,
-            .shaderStage = vk::ShaderStageFlagBits::eRaygenKHR,
+            .stage = vk::ShaderStageFlagBits::eRaygenKHR,
         });
 
         missShader = context.createShader({
             .glslCode = missCode,
-            .shaderStage = vk::ShaderStageFlagBits::eMissKHR,
+            .stage = vk::ShaderStageFlagBits::eMissKHR,
         });
 
         chitShader = context.createShader({
             .glslCode = chitCode,
-            .shaderStage = vk::ShaderStageFlagBits::eClosestHitKHR,
+            .stage = vk::ShaderStageFlagBits::eClosestHitKHR,
         });
 
         descSet = context.createDescriptorSet({
