@@ -139,6 +139,27 @@ Mesh::Mesh(const Context* context, CubeMeshCreateInfo createInfo) {
     });
 }
 
+Mesh::Mesh(const Context* context, CubeLineMeshCreateInfo createInfo) {
+    vertices = std::vector<Vertex>{
+        {glm::vec3(-1.0, -1.0, -1.0)}, {glm::vec3(1.0, -1.0, -1.0)}, {glm::vec3(1.0, -1.0, 1.0)},
+        {glm::vec3(-1.0, -1.0, 1.0)},  {glm::vec3(-1.0, 1.0, -1.0)}, {glm::vec3(1.0, 1.0, -1.0)},
+        {glm::vec3(1.0, 1.0, 1.0)},    {glm::vec3(-1.0, 1.0, 1.0)},
+    };
+    indices = std::vector<uint32_t>{0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6,
+                                    6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7};
+
+    vertexBuffer = context->createDeviceBuffer({
+        .usage = BufferUsage::Vertex,
+        .size = sizeof(Vertex) * vertices.size(),
+        .data = vertices.data(),
+    });
+    indexBuffer = context->createDeviceBuffer({
+        .usage = BufferUsage::Index,
+        .size = sizeof(uint32_t) * indices.size(),
+        .data = indices.data(),
+    });
+}
+
 vk::AccelerationStructureGeometryTrianglesDataKHR Mesh::getTrianglesData() const {
     vk::AccelerationStructureGeometryTrianglesDataKHR trianglesData;
     trianglesData.setVertexFormat(vk::Format::eR32G32B32Sfloat);

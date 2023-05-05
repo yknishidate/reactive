@@ -12,6 +12,7 @@ struct MeshCreateInfo;
 struct SphereMeshCreateInfo;
 struct PlaneMeshCreateInfo;
 struct CubeMeshCreateInfo;
+struct CubeLineMeshCreateInfo;
 struct ShaderCreateInfo;
 struct DescriptorSetCreateInfo;
 struct GraphicsPipelineCreateInfo;
@@ -75,6 +76,7 @@ public:
     Mesh createSphereMesh(SphereMeshCreateInfo createInfo) const;
     Mesh createPlaneMesh(PlaneMeshCreateInfo createInfo) const;
     Mesh createCubeMesh(CubeMeshCreateInfo createInfo) const;
+    Mesh createCubeLineMesh(CubeLineMeshCreateInfo createInfo) const;
     BottomAccel createBottomAccel(BottomAccelCreateInfo createInfo) const;
     TopAccel createTopAccel(TopAccelCreateInfo createInfo) const;
     GPUTimer createGPUTimer(GPUTimerCreateInfo createInfo) const;

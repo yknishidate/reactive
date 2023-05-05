@@ -74,6 +74,7 @@ struct SphereMeshCreateInfo {
 struct PlaneMeshCreateInfo {};
 
 struct CubeMeshCreateInfo {};
+struct CubeLineMeshCreateInfo {};
 
 struct Mesh {
     Mesh() = default;
@@ -81,6 +82,7 @@ struct Mesh {
     Mesh(const Context* context, SphereMeshCreateInfo createInfo);
     Mesh(const Context* context, PlaneMeshCreateInfo createInfo);
     Mesh(const Context* context, CubeMeshCreateInfo createInfo);
+    Mesh(const Context* context, CubeLineMeshCreateInfo createInfo);
 
     uint32_t getIndicesCount() const { return indices.size(); }
     uint32_t getTriangleCount() const { return indices.size() / 3; }

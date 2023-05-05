@@ -203,6 +203,10 @@ Mesh Context::createCubeMesh(CubeMeshCreateInfo createInfo) const {
     return {this, createInfo};
 }
 
+Mesh Context::createCubeLineMesh(CubeLineMeshCreateInfo createInfo) const {
+    return {this, createInfo};
+}
+
 BottomAccel Context::createBottomAccel(BottomAccelCreateInfo createInfo) const {
     return {this, createInfo};
 }
