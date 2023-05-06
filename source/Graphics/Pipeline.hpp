@@ -35,34 +35,39 @@ protected:
 };
 
 struct GraphicsPipelineCreateInfo {
-    const Shader* vertexShader = nullptr;
-    const Shader* fragmentShader = nullptr;
-    std::string vertexShaderEntry = "main";
-    std::string fragmentShaderEntry = "main";
-
     vk::RenderPass renderPass = {};
     vk::DescriptorSetLayout descSetLayout = {};
     uint32_t pushSize = 0;
 
-    // Viewport state
-    uint32_t width = 0;
-    uint32_t height = 0;
+    struct VertexState {
+        const Shader* shader = nullptr;
+        std::string entryPoint = "main";
+        uint32_t stride = 0;
+        ArrayProxy<vk::VertexInputAttributeDescription> attributes = {};
+        vk::PrimitiveTopology topology = vk::PrimitiveTopology::eTriangleList;
+    } vertex;
 
-    // Rasterization state
-    vk::PolygonMode polygonMode = vk::PolygonMode::eFill;
-    std::variant<vk::CullModeFlags, std::string> cullMode = vk::CullModeFlagBits::eNone;
-    std::variant<vk::FrontFace, std::string> frontFace = vk::FrontFace::eCounterClockwise;
-    std::variant<float, std::string> lineWidth = 1.0f;
+    struct FragmentState {
+        const Shader* shader = nullptr;
+        std::string entryPoint = "main";
+    } fragment;
 
-    // Vertex input state
-    uint32_t vertexStride = 0;
-    ArrayProxy<vk::VertexInputAttributeDescription> vertexAttributes = {};
+    struct ViewportState {
+        uint32_t x = 0;
+        uint32_t y = 0;
+        uint32_t width = 0;
+        uint32_t height = 0;
+        float minDepth = 0.0f;
+        float maxDepth = 1.0f;
+    } viewport;
 
-    // Input assembly state
-    vk::PrimitiveTopology topology = vk::PrimitiveTopology::eTriangleList;
-
-    // Blend state
-    bool alphaBlending = false;
+    struct RasterState {
+        vk::PolygonMode polygonMode = vk::PolygonMode::eFill;
+        std::variant<vk::CullModeFlags, std::string> cullMode = vk::CullModeFlagBits::eNone;
+        std::variant<vk::FrontFace, std::string> frontFace = vk::FrontFace::eCounterClockwise;
+        std::variant<float, std::string> lineWidth = 1.0f;
+        bool alphaBlending = false;
+    } raster;
 };
 
 class GraphicsPipeline : public Pipeline {

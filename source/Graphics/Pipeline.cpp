@@ -16,7 +16,7 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
 
     vk::PushConstantRange pushRange;
     pushRange.setOffset(0);
-    pushRange.setSize(pushSize);
+    pushRange.setSize(createInfo.pushSize);
     pushRange.setStageFlags(shaderStageFlags);
 
     vk::PipelineLayoutCreateInfo layoutInfo;
@@ -27,12 +27,12 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
     pipelineLayout = context->getDevice().createPipelineLayoutUnique(layoutInfo);
 
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages(2);
-    shaderStages[0].setModule(createInfo.vertexShader->getModule());
-    shaderStages[0].setStage(createInfo.vertexShader->getStage());
-    shaderStages[0].setPName(createInfo.vertexShaderEntry.c_str());
-    shaderStages[1].setModule(createInfo.fragmentShader->getModule());
-    shaderStages[1].setStage(createInfo.fragmentShader->getStage());
-    shaderStages[1].setPName(createInfo.fragmentShaderEntry.c_str());
+    shaderStages[0].setModule(createInfo.vertex.shader->getModule());
+    shaderStages[0].setStage(createInfo.vertex.shader->getStage());
+    shaderStages[0].setPName(createInfo.vertex.entryPoint.c_str());
+    shaderStages[1].setModule(createInfo.fragment.shader->getModule());
+    shaderStages[1].setStage(createInfo.fragment.shader->getStage());
+    shaderStages[1].setPName(createInfo.fragment.entryPoint.c_str());
 
     // Pipeline states
     std::vector<vk::DynamicState> dynamicStates;
@@ -41,7 +41,7 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
     colorBlendState.setColorWriteMask(
         vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
         vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
-    if (createInfo.alphaBlending) {
+    if (createInfo.raster.alphaBlending) {
         colorBlendState.setBlendEnable(true);
         colorBlendState.setSrcColorBlendFactor(vk::BlendFactor::eSrcAlpha);
         colorBlendState.setDstColorBlendFactor(vk::BlendFactor::eOneMinusSrcAlpha);
@@ -56,35 +56,40 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
     colorBlending.setLogicOpEnable(VK_FALSE);
 
     vk::Viewport viewport{
-        0.0f, 0.0f, static_cast<float>(createInfo.width), static_cast<float>(createInfo.height),
-        0.0f, 1.0f};
-    vk::Rect2D scissor{{0, 0}, {createInfo.width, createInfo.height}};
+        static_cast<float>(createInfo.viewport.x),
+        static_cast<float>(createInfo.viewport.y),
+        static_cast<float>(createInfo.viewport.width),
+        static_cast<float>(createInfo.viewport.height),
+        createInfo.viewport.minDepth,
+        createInfo.viewport.maxDepth,
+    };
+    vk::Rect2D scissor{{0, 0}, {createInfo.viewport.width, createInfo.viewport.height}};
     vk::PipelineViewportStateCreateInfo viewportState{{}, viewport, scissor};
 
     vk::PipelineRasterizationStateCreateInfo rasterization;
     rasterization.setDepthClampEnable(VK_FALSE);
     rasterization.setRasterizerDiscardEnable(VK_FALSE);
-    rasterization.setPolygonMode(createInfo.polygonMode);
+    rasterization.setPolygonMode(createInfo.raster.polygonMode);
     rasterization.setDepthBiasEnable(VK_FALSE);
 
-    if (std::holds_alternative<vk::FrontFace>(createInfo.frontFace)) {
-        rasterization.setFrontFace(std::get<vk::FrontFace>(createInfo.frontFace));
+    if (std::holds_alternative<vk::FrontFace>(createInfo.raster.frontFace)) {
+        rasterization.setFrontFace(std::get<vk::FrontFace>(createInfo.raster.frontFace));
     } else {
-        assert(std::get<std::string>(createInfo.frontFace) == "dynamic");
+        assert(std::get<std::string>(createInfo.raster.frontFace) == "dynamic");
         dynamicStates.push_back(vk::DynamicState::eFrontFace);
     }
 
-    if (std::holds_alternative<vk::CullModeFlags>(createInfo.cullMode)) {
-        rasterization.setCullMode(std::get<vk::CullModeFlags>(createInfo.cullMode));
+    if (std::holds_alternative<vk::CullModeFlags>(createInfo.raster.cullMode)) {
+        rasterization.setCullMode(std::get<vk::CullModeFlags>(createInfo.raster.cullMode));
     } else {
-        assert(std::get<std::string>(createInfo.cullMode) == "dynamic");
+        assert(std::get<std::string>(createInfo.raster.cullMode) == "dynamic");
         dynamicStates.push_back(vk::DynamicState::eCullMode);
     }
 
-    if (std::holds_alternative<float>(createInfo.lineWidth)) {
-        rasterization.setLineWidth(std::get<float>(createInfo.lineWidth));
+    if (std::holds_alternative<float>(createInfo.raster.lineWidth)) {
+        rasterization.setLineWidth(std::get<float>(createInfo.raster.lineWidth));
     } else {
-        assert(std::get<std::string>(createInfo.lineWidth) == "dynamic");
+        assert(std::get<std::string>(createInfo.raster.lineWidth) == "dynamic");
         dynamicStates.push_back(vk::DynamicState::eLineWidth);
     }
 
@@ -115,15 +120,15 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
 
     if (type == Type::Graphics) {
-        if (createInfo.vertexStride != 0) {
+        if (createInfo.vertex.stride != 0) {
             bindingDescription.setBinding(0);
-            bindingDescription.setStride(createInfo.vertexStride);
+            bindingDescription.setStride(createInfo.vertex.stride);
             bindingDescription.setInputRate(vk::VertexInputRate::eVertex);
             vertexInputInfo.setVertexBindingDescriptions(bindingDescription);
-            vertexInputInfo.setVertexAttributeDescriptions(createInfo.vertexAttributes);
+            vertexInputInfo.setVertexAttributeDescriptions(createInfo.vertex.attributes);
         }
         dynamicStateInfo.setDynamicStates(dynamicStates);
-        inputAssembly.setTopology(createInfo.topology);
+        inputAssembly.setTopology(createInfo.vertex.topology);
         pipelineInfo.setPInputAssemblyState(&inputAssembly);
         pipelineInfo.setPVertexInputState(&vertexInputInfo);
         pipelineInfo.setPDynamicState(&dynamicStateInfo);

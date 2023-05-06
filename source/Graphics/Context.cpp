@@ -163,7 +163,7 @@ DescriptorSet Context::createDescriptorSet(DescriptorSetCreateInfo createInfo) c
 }
 
 GraphicsPipeline Context::createGraphicsPipeline(GraphicsPipelineCreateInfo createInfo) const {
-    return {this, createInfo};
+    return {this, std::move(createInfo)};
 }
 
 ComputePipeline Context::createComputePipeline(ComputePipelineCreateInfo createInfo) const {
