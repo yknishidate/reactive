@@ -37,6 +37,8 @@ protected:
 struct GraphicsPipelineCreateInfo {
     const Shader* vertexShader = nullptr;
     const Shader* fragmentShader = nullptr;
+    std::string vertexShaderEntry = "main";
+    std::string fragmentShaderEntry = "main";
 
     vk::RenderPass renderPass = {};
     vk::DescriptorSetLayout descSetLayout = {};
@@ -51,7 +53,6 @@ struct GraphicsPipelineCreateInfo {
     vk::CullModeFlags cullMode = vk::CullModeFlagBits::eNone;
     vk::FrontFace frontFace = vk::FrontFace::eCounterClockwise;
     std::variant<float, std::string> lineWidth = 1.0f;
-    // float lineWidth = 1.0f;
 
     // Vertex input state
     uint32_t vertexStride = 0;

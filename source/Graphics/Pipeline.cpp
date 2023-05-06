@@ -29,10 +29,10 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages(2);
     shaderStages[0].setModule(createInfo.vertexShader->getModule());
     shaderStages[0].setStage(createInfo.vertexShader->getStage());
-    shaderStages[0].setPName("main");
+    shaderStages[0].setPName(createInfo.vertexShaderEntry.c_str());
     shaderStages[1].setModule(createInfo.fragmentShader->getModule());
     shaderStages[1].setStage(createInfo.fragmentShader->getStage());
-    shaderStages[1].setPName("main");
+    shaderStages[1].setPName(createInfo.fragmentShaderEntry.c_str());
 
     // Pipeline states
     std::vector<vk::DynamicState> dynamicStates;
@@ -59,20 +59,19 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
         0.0f, 0.0f, static_cast<float>(createInfo.width), static_cast<float>(createInfo.height),
         0.0f, 1.0f};
     vk::Rect2D scissor{{0, 0}, {createInfo.width, createInfo.height}};
-    vk::PipelineViewportStateCreateInfo viewportState{{}, 1, &viewport, 1, &scissor};
+    vk::PipelineViewportStateCreateInfo viewportState{{}, viewport, scissor};
 
     vk::PipelineRasterizationStateCreateInfo rasterization;
     rasterization.setDepthClampEnable(VK_FALSE);
     rasterization.setRasterizerDiscardEnable(VK_FALSE);
     rasterization.setPolygonMode(createInfo.polygonMode);
-    rasterization.setCullMode(vk::CullModeFlagBits::eNone);
-    rasterization.setFrontFace(vk::FrontFace::eCounterClockwise);
+    rasterization.setCullMode(createInfo.cullMode);
+    rasterization.setFrontFace(createInfo.frontFace);
     rasterization.setDepthBiasEnable(VK_FALSE);
     if (std::holds_alternative<float>(createInfo.lineWidth)) {
         rasterization.setLineWidth(std::get<float>(createInfo.lineWidth));
     } else {
-        const auto& text = std::get<std::string>(createInfo.lineWidth);
-        assert(text == "dynamic");
+        assert(std::get<std::string>(createInfo.lineWidth) == "dynamic");
         dynamicStates.push_back(vk::DynamicState::eLineWidth);
     }
 
