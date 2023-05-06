@@ -58,6 +58,9 @@ struct GraphicsPipelineCreateInfo {
 
     // Input assembly state
     vk::PrimitiveTopology topology = vk::PrimitiveTopology::eTriangleList;
+
+    // Blend state
+    bool alphaBlending = false;
 };
 
 class GraphicsPipeline : public Pipeline {

@@ -38,10 +38,20 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
     colorBlendState.setColorWriteMask(
         vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
         vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
+    if (createInfo.alphaBlending) {
+        colorBlendState.setBlendEnable(true);
+        colorBlendState.setSrcColorBlendFactor(vk::BlendFactor::eSrcAlpha);
+        colorBlendState.setDstColorBlendFactor(vk::BlendFactor::eOneMinusSrcAlpha);
+        colorBlendState.setColorBlendOp(vk::BlendOp::eAdd);
+        colorBlendState.setSrcAlphaBlendFactor(vk::BlendFactor::eOne);
+        colorBlendState.setDstAlphaBlendFactor(vk::BlendFactor::eZero);
+        colorBlendState.setAlphaBlendOp(vk::BlendOp::eAdd);
+    }
 
     vk::PipelineColorBlendStateCreateInfo colorBlending;
     colorBlending.setAttachments(colorBlendState);
     colorBlending.setLogicOpEnable(VK_FALSE);
+
     vk::Viewport viewport{
         0.0f, 0.0f, static_cast<float>(createInfo.width), static_cast<float>(createInfo.height),
         0.0f, 1.0f};

@@ -24,8 +24,7 @@ struct StructureChain {
     void** ppNext = nullptr;
 };
 
-App::App(AppCreateInfo createInfo)
-    : width{createInfo.width}, height{createInfo.height} {
+App::App(AppCreateInfo createInfo) : width{createInfo.width}, height{createInfo.height} {
     spdlog::set_pattern("[%^%l%$] %v");
 
     initGLFW(createInfo.windowResizable, createInfo.title);
@@ -202,8 +201,6 @@ void App::initVulkan(bool enableValidation, bool enableRayTracing, bool enableMe
     // Create device
     std::vector deviceExtensions{
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-        VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
-        VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
     };
     if (enableRayTracing) {
         deviceExtensions.push_back(VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME);
