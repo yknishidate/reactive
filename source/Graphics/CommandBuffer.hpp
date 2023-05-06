@@ -118,6 +118,9 @@ public:
     void beginTimestamp(const GPUTimer& gpuTimer) const;
     void endTimestamp(const GPUTimer& gpuTimer) const;
 
+    // dynamic state
+    void setLineWidth(float lineWidth) const { commandBuffer.setLineWidth(lineWidth); }
+
     const Context* context;
     vk::CommandBuffer commandBuffer;
 };

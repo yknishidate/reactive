@@ -1,5 +1,5 @@
 #pragma once
-#include <memory>
+#include <variant>
 #include <vulkan/vulkan.hpp>
 #include "ArrayProxy.hpp"
 #include "Buffer.hpp"
@@ -50,7 +50,8 @@ struct GraphicsPipelineCreateInfo {
     vk::PolygonMode polygonMode = vk::PolygonMode::eFill;
     vk::CullModeFlags cullMode = vk::CullModeFlagBits::eNone;
     vk::FrontFace frontFace = vk::FrontFace::eCounterClockwise;
-    float lineWidth = 1.0f;
+    std::variant<float, std::string> lineWidth = 1.0f;
+    // float lineWidth = 1.0f;
 
     // Vertex input state
     uint32_t vertexStride = 0;

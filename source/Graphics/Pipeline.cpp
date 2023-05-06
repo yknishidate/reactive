@@ -34,6 +34,9 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
     shaderStages[1].setStage(createInfo.fragmentShader->getStage());
     shaderStages[1].setPName("main");
 
+    // Pipeline states
+    std::vector<vk::DynamicState> dynamicStates;
+
     vk::PipelineColorBlendAttachmentState colorBlendState;
     colorBlendState.setColorWriteMask(
         vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
@@ -65,7 +68,13 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
     rasterization.setCullMode(vk::CullModeFlagBits::eNone);
     rasterization.setFrontFace(vk::FrontFace::eCounterClockwise);
     rasterization.setDepthBiasEnable(VK_FALSE);
-    rasterization.setLineWidth(2.0f);
+    if (std::holds_alternative<float>(createInfo.lineWidth)) {
+        rasterization.setLineWidth(std::get<float>(createInfo.lineWidth));
+    } else {
+        const auto& text = std::get<std::string>(createInfo.lineWidth);
+        assert(text == "dynamic");
+        dynamicStates.push_back(vk::DynamicState::eLineWidth);
+    }
 
     vk::PipelineMultisampleStateCreateInfo multisampling;
     multisampling.setSampleShadingEnable(VK_FALSE);
@@ -88,9 +97,11 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
     pipelineInfo.setSubpass(0);
     pipelineInfo.setRenderPass(createInfo.renderPass);
 
+    vk::PipelineDynamicStateCreateInfo dynamicStateInfo;
     vk::VertexInputBindingDescription bindingDescription;
     vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
+
     if (type == Type::Graphics) {
         if (createInfo.vertexStride != 0) {
             bindingDescription.setBinding(0);
@@ -99,9 +110,11 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
             vertexInputInfo.setVertexBindingDescriptions(bindingDescription);
             vertexInputInfo.setVertexAttributeDescriptions(createInfo.vertexAttributes);
         }
+        dynamicStateInfo.setDynamicStates(dynamicStates);
         inputAssembly.setTopology(createInfo.topology);
         pipelineInfo.setPInputAssemblyState(&inputAssembly);
         pipelineInfo.setPVertexInputState(&vertexInputInfo);
+        pipelineInfo.setPDynamicState(&dynamicStateInfo);
     }
 
     auto result = context->getDevice().createGraphicsPipelineUnique({}, pipelineInfo);
