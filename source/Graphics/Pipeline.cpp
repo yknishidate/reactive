@@ -65,9 +65,22 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
     rasterization.setDepthClampEnable(VK_FALSE);
     rasterization.setRasterizerDiscardEnable(VK_FALSE);
     rasterization.setPolygonMode(createInfo.polygonMode);
-    rasterization.setCullMode(createInfo.cullMode);
-    rasterization.setFrontFace(createInfo.frontFace);
     rasterization.setDepthBiasEnable(VK_FALSE);
+
+    if (std::holds_alternative<vk::FrontFace>(createInfo.frontFace)) {
+        rasterization.setFrontFace(std::get<vk::FrontFace>(createInfo.frontFace));
+    } else {
+        assert(std::get<std::string>(createInfo.frontFace) == "dynamic");
+        dynamicStates.push_back(vk::DynamicState::eFrontFace);
+    }
+
+    if (std::holds_alternative<vk::CullModeFlags>(createInfo.cullMode)) {
+        rasterization.setCullMode(std::get<vk::CullModeFlags>(createInfo.cullMode));
+    } else {
+        assert(std::get<std::string>(createInfo.cullMode) == "dynamic");
+        dynamicStates.push_back(vk::DynamicState::eCullMode);
+    }
+
     if (std::holds_alternative<float>(createInfo.lineWidth)) {
         rasterization.setLineWidth(std::get<float>(createInfo.lineWidth));
     } else {
