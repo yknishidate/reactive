@@ -281,34 +281,32 @@ void App::initImGui() {
     ImGui::StyleColorsDark();
 
     // Color scheme
-    ImVec4 red80 = ImVec4(0.8f, 0.0f, 0.0f, 1.0f);
-    ImVec4 red60 = ImVec4(0.6f, 0.0f, 0.0f, 1.0f);
-    ImVec4 red40 = ImVec4(0.4f, 0.0f, 0.0f, 1.0f);
+    // Vulkan color: RGB(164, 30, 34) or Hex(#A41E22)
+    ImVec4 vulkan = ImVec4(164.0f / 255.0f, 30.0f / 255.0f, 34.0f / 255.0f, 1.0f);
     ImVec4 black100 = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
     ImVec4 black90 = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
     ImVec4 black80 = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
-    ImVec4 black60 = ImVec4(0.4f, 0.4f, 0.4f, 1.0f);
 
     ImGuiStyle& style = ImGui::GetStyle();
     style.Colors[ImGuiCol_WindowBg] = black90;
-    style.Colors[ImGuiCol_TitleBg] = red80;
-    style.Colors[ImGuiCol_TitleBgActive] = red80;
-    style.Colors[ImGuiCol_MenuBarBg] = red40;
-    style.Colors[ImGuiCol_Header] = red40;
-    style.Colors[ImGuiCol_HeaderActive] = red40;
-    style.Colors[ImGuiCol_HeaderHovered] = red40;
+    style.Colors[ImGuiCol_TitleBg] = vulkan;
+    style.Colors[ImGuiCol_TitleBgActive] = vulkan;
+    style.Colors[ImGuiCol_MenuBarBg] = vulkan;
+    style.Colors[ImGuiCol_Header] = vulkan;
+    style.Colors[ImGuiCol_HeaderActive] = vulkan;
+    style.Colors[ImGuiCol_HeaderHovered] = vulkan;
     style.Colors[ImGuiCol_FrameBg] = black100;
     style.Colors[ImGuiCol_FrameBgHovered] = black80;
-    style.Colors[ImGuiCol_FrameBgActive] = black60;
-    style.Colors[ImGuiCol_CheckMark] = red80;
-    style.Colors[ImGuiCol_SliderGrab] = red40;
-    style.Colors[ImGuiCol_SliderGrabActive] = red80;
-    style.Colors[ImGuiCol_Button] = red40;
-    style.Colors[ImGuiCol_ButtonHovered] = red60;
-    style.Colors[ImGuiCol_ButtonActive] = red80;
-    style.Colors[ImGuiCol_ResizeGrip] = red40;
-    style.Colors[ImGuiCol_ResizeGripHovered] = red60;
-    style.Colors[ImGuiCol_ResizeGripActive] = red80;
+    style.Colors[ImGuiCol_FrameBgActive] = black80;
+    style.Colors[ImGuiCol_CheckMark] = vulkan;
+    style.Colors[ImGuiCol_SliderGrab] = vulkan;
+    style.Colors[ImGuiCol_SliderGrabActive] = vulkan;
+    style.Colors[ImGuiCol_Button] = vulkan;
+    style.Colors[ImGuiCol_ButtonHovered] = vulkan;
+    style.Colors[ImGuiCol_ButtonActive] = vulkan;
+    style.Colors[ImGuiCol_ResizeGrip] = vulkan;
+    style.Colors[ImGuiCol_ResizeGripHovered] = vulkan;
+    style.Colors[ImGuiCol_ResizeGripActive] = vulkan;
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForVulkan(window, true);
