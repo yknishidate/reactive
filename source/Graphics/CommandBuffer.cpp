@@ -21,6 +21,14 @@ void CommandBuffer::pushConstants(Pipeline& pipeline, const void* pushData) cons
     pipeline.pushConstants(commandBuffer, pushData);
 }
 
+void CommandBuffer::bindVertexBuffer(const Buffer& buffer, vk::DeviceSize offset) const {
+    commandBuffer.bindVertexBuffers(0, buffer.getBuffer(), offset);
+}
+
+void CommandBuffer::bindIndexBuffer(const Buffer& buffer, vk::DeviceSize offset) const {
+    commandBuffer.bindIndexBuffer(buffer.getBuffer(), 0, vk::IndexType::eUint32);
+}
+
 void CommandBuffer::traceRays(const RayTracingPipeline& pipeline,
                               uint32_t countX,
                               uint32_t countY,
@@ -76,8 +84,12 @@ void CommandBuffer::draw(uint32_t vertexCount,
     commandBuffer.draw(vertexCount, instanceCount, firstVertex, firstInstance);
 }
 
-void CommandBuffer::drawIndexed(const Mesh& mesh, uint32_t instanceCount) const {
-    mesh.drawIndexed(commandBuffer, instanceCount);
+void CommandBuffer::drawIndexed(uint32_t indexCount,
+                                uint32_t instanceCount,
+                                uint32_t firstIndex,
+                                int32_t vertexOffset,
+                                uint32_t firstInstance) const {
+    commandBuffer.drawIndexed(indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 }
 
 void CommandBuffer::drawIndexed(const DeviceBuffer& vertexBuffer,
@@ -90,6 +102,10 @@ void CommandBuffer::drawIndexed(const DeviceBuffer& vertexBuffer,
     commandBuffer.bindVertexBuffers(0, vertexBuffer.getBuffer(), offsets);
     commandBuffer.bindIndexBuffer(indexBuffer.getBuffer(), 0, vk::IndexType::eUint32);
     commandBuffer.drawIndexed(indexCount, instanceCount, firstIndex, 0, firstInstance);
+}
+
+void CommandBuffer::drawIndexed(const Mesh& mesh, uint32_t instanceCount) const {
+    mesh.drawIndexed(commandBuffer, instanceCount);
 }
 
 void CommandBuffer::drawMeshTasks(uint32_t groupCountX,

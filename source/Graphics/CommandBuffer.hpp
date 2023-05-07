@@ -24,6 +24,9 @@ public:
     void bindPipeline(Pipeline& pipeline) const;
     void pushConstants(Pipeline& pipeline, const void* pushData) const;
 
+    void bindVertexBuffer(const Buffer& buffer, vk::DeviceSize offset = 0) const;
+    void bindIndexBuffer(const Buffer& buffer, vk::DeviceSize offset = 0) const;
+
     void traceRays(const RayTracingPipeline& pipeline,
                    uint32_t countX,
                    uint32_t countY,
@@ -34,7 +37,6 @@ public:
                   uint32_t countZ) const;
 
     void clearColorImage(vk::Image image, std::array<float, 4> color) const;
-    //  void clearColorImage(Image& image, std::array<float, 4> color);
 
     // render pass
     void beginRenderPass(vk::RenderPass renderPass,
@@ -48,13 +50,18 @@ public:
               uint32_t instanceCount,
               uint32_t firstVertex,
               uint32_t firstInstance) const;
-    void drawIndexed(const Mesh& mesh, uint32_t instanceCount = 1) const;
+    void drawIndexed(uint32_t indexCount,
+                     uint32_t instanceCount = 1,
+                     uint32_t firstIndex = 0,
+                     int32_t vertexOffset = 0,
+                     uint32_t firstInstance = 0) const;
     void drawIndexed(const DeviceBuffer& vertexBuffer,
                      const DeviceBuffer& indexBuffer,
                      uint32_t indexCount,
                      uint32_t firstIndex = 0,
                      uint32_t instanceCount = 1,
                      uint32_t firstInstance = 0) const;
+    void drawIndexed(const Mesh& mesh, uint32_t instanceCount = 1) const;
     void drawMeshTasks(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ) const;
 
     // barrier
