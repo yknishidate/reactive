@@ -34,40 +34,43 @@ protected:
     uint32_t pushSize = 0;
 };
 
+struct VertexState {
+    const Shader& shader;
+    std::string entryPoint = "main";
+    uint32_t stride = 0;
+    ArrayProxy<vk::VertexInputAttributeDescription> attributes = {};
+    vk::PrimitiveTopology topology = vk::PrimitiveTopology::eTriangleList;
+};
+
+struct FragmentState {
+    const Shader& shader;
+    std::string entryPoint = "main";
+};
+
+struct ViewportState {
+    uint32_t x = 0;
+    uint32_t y = 0;
+    uint32_t width = 0;
+    uint32_t height = 0;
+    float minDepth = 0.0f;
+    float maxDepth = 1.0f;
+};
+
+struct RasterState {
+    vk::PolygonMode polygonMode = vk::PolygonMode::eFill;
+    std::variant<vk::CullModeFlags, std::string> cullMode = vk::CullModeFlagBits::eNone;
+    std::variant<vk::FrontFace, std::string> frontFace = vk::FrontFace::eCounterClockwise;
+    std::variant<float, std::string> lineWidth = 1.0f;
+};
+
 struct GraphicsPipelineCreateInfo {
     vk::RenderPass renderPass = {};
     vk::DescriptorSetLayout descSetLayout = {};
     uint32_t pushSize = 0;
-
-    struct VertexState {
-        const Shader* shader = nullptr;
-        std::string entryPoint = "main";
-        uint32_t stride = 0;
-        ArrayProxy<vk::VertexInputAttributeDescription> attributes = {};
-        vk::PrimitiveTopology topology = vk::PrimitiveTopology::eTriangleList;
-    } vertex;
-
-    struct FragmentState {
-        const Shader* shader = nullptr;
-        std::string entryPoint = "main";
-    } fragment;
-
-    struct ViewportState {
-        uint32_t x = 0;
-        uint32_t y = 0;
-        uint32_t width = 0;
-        uint32_t height = 0;
-        float minDepth = 0.0f;
-        float maxDepth = 1.0f;
-    } viewport;
-
-    struct RasterState {
-        vk::PolygonMode polygonMode = vk::PolygonMode::eFill;
-        std::variant<vk::CullModeFlags, std::string> cullMode = vk::CullModeFlagBits::eNone;
-        std::variant<vk::FrontFace, std::string> frontFace = vk::FrontFace::eCounterClockwise;
-        std::variant<float, std::string> lineWidth = 1.0f;
-    } raster;
-
+    VertexState vertex;
+    FragmentState fragment;
+    ViewportState viewport;
+    RasterState raster;
     bool alphaBlending = false;
 };
 
@@ -82,7 +85,7 @@ private:
 };
 
 struct ComputePipelineCreateInfo {
-    const Shader* computeShader = nullptr;
+    const Shader& computeShader;
 
     vk::DescriptorSetLayout descSetLayout = {};
     uint32_t pushSize = 0;

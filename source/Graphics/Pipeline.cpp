@@ -27,11 +27,11 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
     pipelineLayout = context->getDevice().createPipelineLayoutUnique(layoutInfo);
 
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages(2);
-    shaderStages[0].setModule(createInfo.vertex.shader->getModule());
-    shaderStages[0].setStage(createInfo.vertex.shader->getStage());
+    shaderStages[0].setModule(createInfo.vertex.shader.getModule());
+    shaderStages[0].setStage(createInfo.vertex.shader.getStage());
     shaderStages[0].setPName(createInfo.vertex.entryPoint.c_str());
-    shaderStages[1].setModule(createInfo.fragment.shader->getModule());
-    shaderStages[1].setStage(createInfo.fragment.shader->getStage());
+    shaderStages[1].setModule(createInfo.fragment.shader.getModule());
+    shaderStages[1].setStage(createInfo.fragment.shader.getStage());
     shaderStages[1].setPName(createInfo.fragment.entryPoint.c_str());
 
     // Pipeline states
@@ -159,8 +159,8 @@ ComputePipeline::ComputePipeline(const Context* context, ComputePipelineCreateIn
     pipelineLayout = context->getDevice().createPipelineLayoutUnique(layoutInfo);
 
     vk::PipelineShaderStageCreateInfo stage;
-    stage.setStage(createInfo.computeShader->getStage());
-    stage.setModule(createInfo.computeShader->getModule());
+    stage.setStage(createInfo.computeShader.getStage());
+    stage.setModule(createInfo.computeShader.getModule());
     stage.setPName("main");
 
     vk::ComputePipelineCreateInfo pipelineInfo;

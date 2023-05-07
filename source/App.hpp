@@ -54,7 +54,7 @@ struct AppCreateInfo {
     // Window
     uint32_t width = 0;
     uint32_t height = 0;
-    const char* title;
+    const char* title = nullptr;
     bool windowResizable = true;
 
     // Vulkan
