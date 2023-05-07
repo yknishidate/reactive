@@ -118,14 +118,26 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
     vk::VertexInputBindingDescription bindingDescription;
     vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
+    std::vector<vk::VertexInputAttributeDescription> attributes;
 
     if (type == Type::Graphics) {
         if (createInfo.vertex.stride != 0) {
             bindingDescription.setBinding(0);
             bindingDescription.setStride(createInfo.vertex.stride);
             bindingDescription.setInputRate(vk::VertexInputRate::eVertex);
+
+            attributes.resize(createInfo.vertex.attributes.size());
+            int i = 0;
+            for (auto& attribute : createInfo.vertex.attributes) {
+                attributes[i].setBinding(0);
+                attributes[i].setLocation(i);
+                attributes[i].setFormat(attribute.format);
+                attributes[i].setOffset(attribute.offset);
+                i++;
+            }
+
             vertexInputInfo.setVertexBindingDescriptions(bindingDescription);
-            vertexInputInfo.setVertexAttributeDescriptions(createInfo.vertex.attributes);
+            vertexInputInfo.setVertexAttributeDescriptions(attributes);
         }
         dynamicStateInfo.setDynamicStates(dynamicStates);
         inputAssembly.setTopology(createInfo.vertex.topology);

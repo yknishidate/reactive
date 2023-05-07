@@ -38,7 +38,7 @@ struct VertexState {
     const Shader& shader;
     std::string entryPoint = "main";
     uint32_t stride = 0;
-    ArrayProxy<vk::VertexInputAttributeDescription> attributes = {};
+    ArrayProxy<VertexAttributeDescription> attributes = {};
     vk::PrimitiveTopology topology = vk::PrimitiveTopology::eTriangleList;
 };
 
