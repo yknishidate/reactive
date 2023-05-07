@@ -41,7 +41,7 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
     colorBlendState.setColorWriteMask(
         vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
         vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
-    if (createInfo.raster.alphaBlending) {
+    if (createInfo.alphaBlending) {
         colorBlendState.setBlendEnable(true);
         colorBlendState.setSrcColorBlendFactor(vk::BlendFactor::eSrcAlpha);
         colorBlendState.setDstColorBlendFactor(vk::BlendFactor::eOneMinusSrcAlpha);

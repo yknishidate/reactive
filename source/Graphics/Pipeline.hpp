@@ -66,8 +66,9 @@ struct GraphicsPipelineCreateInfo {
         std::variant<vk::CullModeFlags, std::string> cullMode = vk::CullModeFlagBits::eNone;
         std::variant<vk::FrontFace, std::string> frontFace = vk::FrontFace::eCounterClockwise;
         std::variant<float, std::string> lineWidth = 1.0f;
-        bool alphaBlending = false;
     } raster;
+
+    bool alphaBlending = false;
 };
 
 class GraphicsPipeline : public Pipeline {
