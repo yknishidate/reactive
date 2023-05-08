@@ -1,7 +1,7 @@
 #include "Mesh.hpp"
 
 Mesh::Mesh(const Context* context, MeshCreateInfo createInfo)
-    : vertices{createInfo.vertices}, indices{createInfo.indices} {
+    : context{context}, vertices{createInfo.vertices}, indices{createInfo.indices} {
     vertexBuffer = context->createDeviceBuffer({
         .usage = BufferUsage::Vertex,
         .size = sizeof(Vertex) * vertices.size(),
@@ -14,7 +14,7 @@ Mesh::Mesh(const Context* context, MeshCreateInfo createInfo)
     });
 }
 
-Mesh::Mesh(const Context* context, SphereMeshCreateInfo createInfo) {
+Mesh::Mesh(const Context* context, SphereMeshCreateInfo createInfo) : context{context} {
     // add top vertex
     vertices.push_back({{0, 1, 0}});
     uint32_t v0 = 0;
@@ -83,7 +83,7 @@ Mesh::Mesh(const Context* context, SphereMeshCreateInfo createInfo) {
     });
 }
 
-Mesh::Mesh(const Context* context, PlaneMeshCreateInfo createInfo) {
+Mesh::Mesh(const Context* context, PlaneMeshCreateInfo createInfo) : context{context} {
     vertices = std::vector<Vertex>{
         {glm::vec3(-1.0, 0.0, -1.0)},
         {glm::vec3(1.0, 0.0, -1.0)},
@@ -106,7 +106,7 @@ Mesh::Mesh(const Context* context, PlaneMeshCreateInfo createInfo) {
     });
 }
 
-Mesh::Mesh(const Context* context, CubeMeshCreateInfo createInfo) {
+Mesh::Mesh(const Context* context, CubeMeshCreateInfo createInfo) : context{context} {
     vertices = std::vector<Vertex>{
         {glm::vec3(-1.0, -1.0, -1.0)}, {glm::vec3(1.0, -1.0, -1.0)}, {glm::vec3(1.0, -1.0, 1.0)},
         {glm::vec3(-1.0, -1.0, 1.0)},  {glm::vec3(-1.0, 1.0, -1.0)}, {glm::vec3(1.0, 1.0, -1.0)},
@@ -139,7 +139,7 @@ Mesh::Mesh(const Context* context, CubeMeshCreateInfo createInfo) {
     });
 }
 
-Mesh::Mesh(const Context* context, CubeLineMeshCreateInfo createInfo) {
+Mesh::Mesh(const Context* context, CubeLineMeshCreateInfo createInfo) : context{context} {
     vertices = std::vector<Vertex>{
         {glm::vec3(-1.0, -1.0, -1.0)}, {glm::vec3(1.0, -1.0, -1.0)}, {glm::vec3(1.0, -1.0, 1.0)},
         {glm::vec3(-1.0, -1.0, 1.0)},  {glm::vec3(-1.0, 1.0, -1.0)}, {glm::vec3(1.0, 1.0, -1.0)},

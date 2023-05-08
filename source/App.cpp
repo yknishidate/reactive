@@ -207,6 +207,7 @@ void App::initVulkan(bool enableValidation, bool enableRayTracing, bool enableMe
         deviceExtensions.push_back(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME);
         deviceExtensions.push_back(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
         deviceExtensions.push_back(VK_KHR_RAY_QUERY_EXTENSION_NAME);
+        deviceExtensions.push_back(VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME);
     }
     if (enableMeshShader) {
         deviceExtensions.push_back(VK_EXT_MESH_SHADER_EXTENSION_NAME);

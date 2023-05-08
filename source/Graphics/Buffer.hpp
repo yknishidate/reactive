@@ -20,8 +20,8 @@ public:
     vk::Buffer getBuffer() const { return *buffer; }
     vk::DeviceSize getSize() const { return size; }
     uint64_t getAddress() const {
-        vk::BufferDeviceAddressInfoKHR bufferDeviceAI{*buffer};
-        return context->getDevice().getBufferAddressKHR(&bufferDeviceAI);
+        vk::BufferDeviceAddressInfo bufferDeviceAI{*buffer};
+        return context->getDevice().getBufferAddress(&bufferDeviceAI);
     }
     vk::DescriptorBufferInfo getInfo() const { return {*buffer, 0, size}; }
 
@@ -31,7 +31,7 @@ protected:
            vk::MemoryPropertyFlags memoryProp,
            size_t size);
 
-    const Context* context;
+    const Context* context = nullptr;
     vk::UniqueBuffer buffer;
     vk::UniqueDeviceMemory memory;
     vk::DeviceSize size = 0u;

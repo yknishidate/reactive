@@ -90,6 +90,7 @@ struct Mesh {
         commandBuffer.drawIndexed(static_cast<uint32_t>(indices.size()), instanceCount, 0, 0, 0);
     }
 
+    const Context* context;
     DeviceBuffer vertexBuffer;
     DeviceBuffer indexBuffer;
     std::vector<Vertex> vertices;
