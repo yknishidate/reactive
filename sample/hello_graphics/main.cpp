@@ -45,12 +45,11 @@ public:
         });
 
         pipeline = context.createGraphicsPipeline({
-            .vertexShader = &vertShader,
-            .fragmentShader = &fragShader,
             .renderPass = getDefaultRenderPass(),
             .descSetLayout = descSet.getLayout(),
-            .width = width,
-            .height = height,
+            .vertex = {.shader = vertShader},
+            .fragment = {.shader = fragShader},
+            .viewport = {.width = width, .height = height},
         });
     }
 
