@@ -62,6 +62,7 @@ public:
         commandBuffer.clearColorImage(getCurrentImage(), {0.0f, 0.0f, 0.5f, 1.0f});
         commandBuffer.setViewport(width, height);
         commandBuffer.setScissor(width, height);
+        commandBuffer.bindDescriptorSet(descSet, pipeline);
         commandBuffer.bindPipeline(pipeline);
         commandBuffer.beginRenderPass(getDefaultRenderPass(), getCurrentFramebuffer(), width,
                                       height);
