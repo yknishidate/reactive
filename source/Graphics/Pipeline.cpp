@@ -55,16 +55,22 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
     colorBlending.setAttachments(colorBlendState);
     colorBlending.setLogicOpEnable(VK_FALSE);
 
-    vk::Viewport viewport{
-        static_cast<float>(createInfo.viewport.x),
-        static_cast<float>(createInfo.viewport.y),
-        static_cast<float>(createInfo.viewport.width),
-        static_cast<float>(createInfo.viewport.height),
-        createInfo.viewport.minDepth,
-        createInfo.viewport.maxDepth,
-    };
-    vk::Rect2D scissor{{0, 0}, {createInfo.viewport.width, createInfo.viewport.height}};
-    vk::PipelineViewportStateCreateInfo viewportState{{}, viewport, scissor};
+    vk::PipelineViewportStateCreateInfo viewportState;
+    if (std::holds_alternative<vk::Viewport>(createInfo.viewport.viewport)) {
+        viewportState.setViewports(std::get<vk::Viewport>(createInfo.viewport.viewport));
+    } else {
+        assert(std::get<std::string>(createInfo.viewport.viewport) == "dynamic");
+        viewportState.setViewportCount(1);
+        dynamicStates.push_back(vk::DynamicState::eViewport);
+    }
+
+    if (std::holds_alternative<vk::Rect2D>(createInfo.viewport.scissor)) {
+        viewportState.setScissors(std::get<vk::Rect2D>(createInfo.viewport.scissor));
+    } else {
+        assert(std::get<std::string>(createInfo.viewport.scissor) == "dynamic");
+        viewportState.setScissorCount(1);
+        dynamicStates.push_back(vk::DynamicState::eScissor);
+    }
 
     vk::PipelineRasterizationStateCreateInfo rasterization;
     rasterization.setDepthClampEnable(VK_FALSE);

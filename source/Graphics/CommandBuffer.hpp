@@ -127,6 +127,23 @@ public:
 
     // dynamic state
     void setLineWidth(float lineWidth) const { commandBuffer.setLineWidth(lineWidth); }
+    void setViewport(const vk::Viewport& viewport) const {
+        commandBuffer.setViewport(0, 1, &viewport);
+    }
+    void setViewport(uint32_t width, uint32_t height) const {
+        vk::Viewport viewport{
+            0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, 1.0f,
+        };
+        commandBuffer.setViewport(0, 1, &viewport);
+    }
+    void setScissor(const vk::Rect2D& scissor) const { commandBuffer.setScissor(0, 1, &scissor); }
+    void setScissor(uint32_t width, uint32_t height) const {
+        vk::Rect2D scissor{
+            {0, 0},
+            {width, height},
+        };
+        commandBuffer.setScissor(0, 1, &scissor);
+    }
 
     const Context* context;
     vk::CommandBuffer commandBuffer;

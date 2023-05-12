@@ -48,12 +48,8 @@ struct FragmentState {
 };
 
 struct ViewportState {
-    uint32_t x = 0;
-    uint32_t y = 0;
-    uint32_t width = 0;
-    uint32_t height = 0;
-    float minDepth = 0.0f;
-    float maxDepth = 1.0f;
+    std::variant<vk::Viewport, std::string> viewport;
+    std::variant<vk::Rect2D, std::string> scissor;
 };
 
 struct RasterState {
