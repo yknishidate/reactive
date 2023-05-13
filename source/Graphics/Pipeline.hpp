@@ -74,10 +74,34 @@ class GraphicsPipeline : public Pipeline {
 public:
     GraphicsPipeline() = default;
     GraphicsPipeline(const Context* context, GraphicsPipelineCreateInfo createInfo);
+};
 
-private:
-    enum class Type { Graphics, MeshShader };
-    Type type = Type::Graphics;
+struct TaskState {
+    const Shader& shader;
+    std::string entryPoint = "main";
+};
+
+struct MeshState {
+    const Shader& shader;
+    std::string entryPoint = "main";
+};
+
+struct MeshShaderPipelineCreateInfo {
+    vk::RenderPass renderPass = {};
+    vk::DescriptorSetLayout descSetLayout = {};
+    uint32_t pushSize = 0;
+    TaskState task;
+    MeshState mesh;
+    FragmentState fragment;
+    ViewportState viewport;
+    RasterState raster;
+    bool alphaBlending = false;
+};
+
+class MeshShaderPipeline : public Pipeline {
+public:
+    MeshShaderPipeline() = default;
+    MeshShaderPipeline(const Context* context, MeshShaderPipelineCreateInfo createInfo);
 };
 
 struct ComputePipelineCreateInfo {

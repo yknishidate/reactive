@@ -166,6 +166,11 @@ GraphicsPipeline Context::createGraphicsPipeline(GraphicsPipelineCreateInfo crea
     return {this, std::move(createInfo)};
 }
 
+MeshShaderPipeline Context::createMeshShaderPipeline(
+    MeshShaderPipelineCreateInfo createInfo) const {
+    return {this, std::move(createInfo)};
+}
+
 ComputePipeline Context::createComputePipeline(ComputePipelineCreateInfo createInfo) const {
     return {this, createInfo};
 }

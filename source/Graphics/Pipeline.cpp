@@ -126,31 +126,167 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
     std::vector<vk::VertexInputAttributeDescription> attributes;
 
-    if (type == Type::Graphics) {
-        if (createInfo.vertex.stride != 0) {
-            bindingDescription.setBinding(0);
-            bindingDescription.setStride(createInfo.vertex.stride);
-            bindingDescription.setInputRate(vk::VertexInputRate::eVertex);
+    if (createInfo.vertex.stride != 0) {
+        bindingDescription.setBinding(0);
+        bindingDescription.setStride(createInfo.vertex.stride);
+        bindingDescription.setInputRate(vk::VertexInputRate::eVertex);
 
-            attributes.resize(createInfo.vertex.attributes.size());
-            int i = 0;
-            for (auto& attribute : createInfo.vertex.attributes) {
-                attributes[i].setBinding(0);
-                attributes[i].setLocation(i);
-                attributes[i].setFormat(attribute.format);
-                attributes[i].setOffset(attribute.offset);
-                i++;
-            }
-
-            vertexInputInfo.setVertexBindingDescriptions(bindingDescription);
-            vertexInputInfo.setVertexAttributeDescriptions(attributes);
+        attributes.resize(createInfo.vertex.attributes.size());
+        int i = 0;
+        for (auto& attribute : createInfo.vertex.attributes) {
+            attributes[i].setBinding(0);
+            attributes[i].setLocation(i);
+            attributes[i].setFormat(attribute.format);
+            attributes[i].setOffset(attribute.offset);
+            i++;
         }
-        dynamicStateInfo.setDynamicStates(dynamicStates);
-        inputAssembly.setTopology(createInfo.vertex.topology);
-        pipelineInfo.setPInputAssemblyState(&inputAssembly);
-        pipelineInfo.setPVertexInputState(&vertexInputInfo);
-        pipelineInfo.setPDynamicState(&dynamicStateInfo);
+
+        vertexInputInfo.setVertexBindingDescriptions(bindingDescription);
+        vertexInputInfo.setVertexAttributeDescriptions(attributes);
     }
+    dynamicStateInfo.setDynamicStates(dynamicStates);
+    inputAssembly.setTopology(createInfo.vertex.topology);
+    pipelineInfo.setPInputAssemblyState(&inputAssembly);
+    pipelineInfo.setPVertexInputState(&vertexInputInfo);
+    pipelineInfo.setPDynamicState(&dynamicStateInfo);
+
+    auto result = context->getDevice().createGraphicsPipelineUnique({}, pipelineInfo);
+    if (result.result != vk::Result::eSuccess) {
+        throw std::runtime_error("failed to create a pipeline!");
+    }
+    pipeline = std::move(result.value);
+}
+
+MeshShaderPipeline::MeshShaderPipeline(const Context* context,
+                                       MeshShaderPipelineCreateInfo createInfo)
+    : Pipeline{context} {
+    shaderStageFlags = vk::ShaderStageFlagBits::eAllGraphics;
+    bindPoint = vk::PipelineBindPoint::eGraphics;
+    pushSize = createInfo.pushSize;
+
+    vk::PushConstantRange pushRange;
+    pushRange.setOffset(0);
+    pushRange.setSize(createInfo.pushSize);
+    pushRange.setStageFlags(shaderStageFlags);
+
+    vk::PipelineLayoutCreateInfo layoutInfo;
+    layoutInfo.setSetLayouts(createInfo.descSetLayout);
+    if (pushSize) {
+        layoutInfo.setPushConstantRanges(pushRange);
+    }
+    pipelineLayout = context->getDevice().createPipelineLayoutUnique(layoutInfo);
+
+    std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
+    if (createInfo.task.shader.getModule()) {
+        shaderStages.resize(3);
+        shaderStages[0].setModule(createInfo.task.shader.getModule());
+        shaderStages[0].setStage(createInfo.task.shader.getStage());
+        shaderStages[0].setPName(createInfo.task.entryPoint.c_str());
+        shaderStages[1].setModule(createInfo.mesh.shader.getModule());
+        shaderStages[1].setStage(createInfo.mesh.shader.getStage());
+        shaderStages[1].setPName(createInfo.mesh.entryPoint.c_str());
+        shaderStages[2].setModule(createInfo.fragment.shader.getModule());
+        shaderStages[2].setStage(createInfo.fragment.shader.getStage());
+        shaderStages[2].setPName(createInfo.fragment.entryPoint.c_str());
+    } else {
+        shaderStages.resize(2);
+        shaderStages[0].setModule(createInfo.mesh.shader.getModule());
+        shaderStages[0].setStage(createInfo.mesh.shader.getStage());
+        shaderStages[0].setPName(createInfo.mesh.entryPoint.c_str());
+        shaderStages[1].setModule(createInfo.fragment.shader.getModule());
+        shaderStages[1].setStage(createInfo.fragment.shader.getStage());
+        shaderStages[1].setPName(createInfo.fragment.entryPoint.c_str());
+    }
+
+    // Pipeline states
+    std::vector<vk::DynamicState> dynamicStates;
+
+    vk::PipelineColorBlendAttachmentState colorBlendState;
+    colorBlendState.setColorWriteMask(
+        vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+        vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
+    if (createInfo.alphaBlending) {
+        colorBlendState.setBlendEnable(true);
+        colorBlendState.setSrcColorBlendFactor(vk::BlendFactor::eSrcAlpha);
+        colorBlendState.setDstColorBlendFactor(vk::BlendFactor::eOneMinusSrcAlpha);
+        colorBlendState.setColorBlendOp(vk::BlendOp::eAdd);
+        colorBlendState.setSrcAlphaBlendFactor(vk::BlendFactor::eOne);
+        colorBlendState.setDstAlphaBlendFactor(vk::BlendFactor::eZero);
+        colorBlendState.setAlphaBlendOp(vk::BlendOp::eAdd);
+    }
+
+    vk::PipelineColorBlendStateCreateInfo colorBlending;
+    colorBlending.setAttachments(colorBlendState);
+    colorBlending.setLogicOpEnable(VK_FALSE);
+
+    vk::PipelineViewportStateCreateInfo viewportState;
+    if (std::holds_alternative<vk::Viewport>(createInfo.viewport.viewport)) {
+        viewportState.setViewports(std::get<vk::Viewport>(createInfo.viewport.viewport));
+    } else {
+        assert(std::get<std::string>(createInfo.viewport.viewport) == "dynamic");
+        viewportState.setViewportCount(1);
+        dynamicStates.push_back(vk::DynamicState::eViewport);
+    }
+
+    if (std::holds_alternative<vk::Rect2D>(createInfo.viewport.scissor)) {
+        viewportState.setScissors(std::get<vk::Rect2D>(createInfo.viewport.scissor));
+    } else {
+        assert(std::get<std::string>(createInfo.viewport.scissor) == "dynamic");
+        viewportState.setScissorCount(1);
+        dynamicStates.push_back(vk::DynamicState::eScissor);
+    }
+
+    vk::PipelineRasterizationStateCreateInfo rasterization;
+    rasterization.setDepthClampEnable(VK_FALSE);
+    rasterization.setRasterizerDiscardEnable(VK_FALSE);
+    rasterization.setPolygonMode(createInfo.raster.polygonMode);
+    rasterization.setDepthBiasEnable(VK_FALSE);
+
+    if (std::holds_alternative<vk::FrontFace>(createInfo.raster.frontFace)) {
+        rasterization.setFrontFace(std::get<vk::FrontFace>(createInfo.raster.frontFace));
+    } else {
+        assert(std::get<std::string>(createInfo.raster.frontFace) == "dynamic");
+        dynamicStates.push_back(vk::DynamicState::eFrontFace);
+    }
+
+    if (std::holds_alternative<vk::CullModeFlags>(createInfo.raster.cullMode)) {
+        rasterization.setCullMode(std::get<vk::CullModeFlags>(createInfo.raster.cullMode));
+    } else {
+        assert(std::get<std::string>(createInfo.raster.cullMode) == "dynamic");
+        dynamicStates.push_back(vk::DynamicState::eCullMode);
+    }
+
+    if (std::holds_alternative<float>(createInfo.raster.lineWidth)) {
+        rasterization.setLineWidth(std::get<float>(createInfo.raster.lineWidth));
+    } else {
+        assert(std::get<std::string>(createInfo.raster.lineWidth) == "dynamic");
+        dynamicStates.push_back(vk::DynamicState::eLineWidth);
+    }
+
+    vk::PipelineDynamicStateCreateInfo dynamicStateInfo;
+    dynamicStateInfo.setDynamicStates(dynamicStates);
+
+    vk::PipelineMultisampleStateCreateInfo multisampling;
+    multisampling.setSampleShadingEnable(VK_FALSE);
+
+    vk::PipelineDepthStencilStateCreateInfo depthStencil;
+    depthStencil.setDepthTestEnable(VK_TRUE);
+    depthStencil.setDepthWriteEnable(VK_TRUE);
+    depthStencil.setDepthCompareOp(vk::CompareOp::eLess);
+    depthStencil.setDepthBoundsTestEnable(VK_FALSE);
+    depthStencil.setStencilTestEnable(VK_FALSE);
+
+    vk::GraphicsPipelineCreateInfo pipelineInfo;
+    pipelineInfo.setStages(shaderStages);
+    pipelineInfo.setPViewportState(&viewportState);
+    pipelineInfo.setPRasterizationState(&rasterization);
+    pipelineInfo.setPMultisampleState(&multisampling);
+    pipelineInfo.setPDepthStencilState(&depthStencil);
+    pipelineInfo.setPColorBlendState(&colorBlending);
+    pipelineInfo.setLayout(*pipelineLayout);
+    pipelineInfo.setSubpass(0);
+    pipelineInfo.setRenderPass(createInfo.renderPass);
+    pipelineInfo.setPDynamicState(&dynamicStateInfo);
 
     auto result = context->getDevice().createGraphicsPipelineUnique({}, pipelineInfo);
     if (result.result != vk::Result::eSuccess) {
