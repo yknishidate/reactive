@@ -66,6 +66,15 @@ public:
     uint32_t findMemoryTypeIndex(vk::MemoryRequirements requirements,
                                  vk::MemoryPropertyFlags memoryProp) const;
 
+    template <typename T>
+    T getPhysicalDeviceProperties2() {
+        vk::PhysicalDeviceProperties2 props2;
+        T props;
+        props2.pNext = &props;
+        physicalDevice.getProperties2(&props2);
+        return props;
+    }
+
     Shader createShader(ShaderCreateInfo createInfo) const;
     DescriptorSet createDescriptorSet(DescriptorSetCreateInfo createInfo) const;
     GraphicsPipeline createGraphicsPipeline(GraphicsPipelineCreateInfo createInfo) const;
