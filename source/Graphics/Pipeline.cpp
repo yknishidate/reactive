@@ -160,7 +160,8 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
 MeshShaderPipeline::MeshShaderPipeline(const Context* context,
                                        MeshShaderPipelineCreateInfo createInfo)
     : Pipeline{context} {
-    shaderStageFlags = vk::ShaderStageFlagBits::eAllGraphics;
+    shaderStageFlags = vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT |
+                       vk::ShaderStageFlagBits::eFragment;
     bindPoint = vk::PipelineBindPoint::eGraphics;
     pushSize = createInfo.pushSize;
 
