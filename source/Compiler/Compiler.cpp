@@ -204,7 +204,16 @@ std::vector<uint32_t> compileToSPV(const std::string& glslCode, EShLanguage stag
 
     auto messages = static_cast<EShMessages>(EShMsgSpvRules | EShMsgVulkanRules);
     if (!shader.parse(&DefaultTBuiltInResource, 100, false, messages)) {
-        throw std::runtime_error("Failed to parse:\n" + glslCode + "\n" + shader.getInfoLog());
+        std::string message = "Failed to parse:";
+        int lineIndex = 1;
+        std::string line;
+        std::istringstream iss(glslCode);
+        while (std::getline(iss, line)) {
+            message += std::to_string(lineIndex) + ": " + line + "\n";
+            lineIndex++;
+        }
+        message += "\n" + std::string(shader.getInfoLog());
+        throw std::runtime_error(message);
     }
 
     glslang::TProgram program;
