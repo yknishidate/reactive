@@ -29,7 +29,7 @@ App::App(AppCreateInfo createInfo) : width{createInfo.width}, height{createInfo.
 
     initGLFW(createInfo.windowResizable, createInfo.title);
     initVulkan(createInfo.enableValidation, createInfo.enableRayTracing,
-               createInfo.enableMeshShader);
+               createInfo.enableMeshShader, createInfo.enableShaderObject);
     initImGui();
 }
 
@@ -174,7 +174,10 @@ void App::initGLFW(bool resizable, const char* title) {
     glfwSetWindowSizeCallback(window, windowSizeCallback);
 }
 
-void App::initVulkan(bool enableValidation, bool enableRayTracing, bool enableMeshShader) {
+void App::initVulkan(bool enableValidation,
+                     bool enableRayTracing,
+                     bool enableMeshShader,
+                     bool enableShaderObject) {
     uint32_t glfwExtensionCount = 0;
     const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
     std::vector instanceExtensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
@@ -212,6 +215,9 @@ void App::initVulkan(bool enableValidation, bool enableRayTracing, bool enableMe
     if (enableMeshShader) {
         deviceExtensions.push_back(VK_EXT_MESH_SHADER_EXTENSION_NAME);
     }
+    if (enableShaderObject) {
+        deviceExtensions.push_back(VK_EXT_SHADER_OBJECT_EXTENSION_NAME);
+    }
 
     vk::PhysicalDeviceFeatures deviceFeatures;
     deviceFeatures.setShaderInt64(true);
@@ -232,11 +238,14 @@ void App::initVulkan(bool enableValidation, bool enableRayTracing, bool enableMe
 
     vk::PhysicalDeviceBufferDeviceAddressFeatures bufferDeviceAddressFeatures{true};
 
+    vk::PhysicalDeviceShaderObjectFeaturesEXT shaderObjectFeatures{true};
+
     StructureChain featuresChain;
     featuresChain.add(descFeatures);
     featuresChain.add(storage8BitFeatures);
     featuresChain.add(shaderFloat16Int8Features);
     featuresChain.add(bufferDeviceAddressFeatures);
+    featuresChain.add(shaderObjectFeatures);
 
     vk::PhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures{true};
     vk::PhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures{true};

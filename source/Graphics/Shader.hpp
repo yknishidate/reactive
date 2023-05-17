@@ -19,13 +19,6 @@ class Shader {
 public:
     Shader() = default;
     Shader(const Context* context, ShaderCreateInfo createInfo);
-    Shader(const Context* context, const std::string& filepath);
-    Shader(const Context* context,
-           const std::string& glslCode,
-           vk::ShaderStageFlagBits shaderStage);
-    Shader(const Context* context,
-           const std::vector<uint32_t>& spvCode,
-           vk::ShaderStageFlagBits shaderStage);
 
     auto getSpvCode() const { return spvCode; }
     auto getModule() const { return *shaderModule; }
@@ -33,6 +26,7 @@ public:
 
 private:
     vk::UniqueShaderModule shaderModule;
+    vk::UniqueShaderEXT shader;
     std::vector<uint32_t> spvCode;
     vk::ShaderStageFlagBits shaderStage;
 };

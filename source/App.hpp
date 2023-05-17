@@ -61,6 +61,7 @@ struct AppCreateInfo {
     bool enableValidation = true;
     bool enableRayTracing = false;
     bool enableMeshShader = false;
+    bool enableShaderObject = false;
 };
 
 class App {
@@ -136,7 +137,10 @@ protected:
     static void windowSizeCallback(GLFWwindow* window, int width, int height);
 
     void initGLFW(bool resizable, const char* title);
-    void initVulkan(bool enableValidation, bool enableRayTracing, bool enableMeshShader);
+    void initVulkan(bool enableValidation,
+                    bool enableRayTracing,
+                    bool enableMeshShader,
+                    bool enableShaderObject);
     void initImGui();
 
     void createSwapchain();
