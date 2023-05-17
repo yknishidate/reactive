@@ -27,7 +27,7 @@ public:
         });
 
         pipeline = context.createComputePipeline({
-            .computeShader = compShader,
+            .compute = {.shader = compShader},
             .descSetLayout = descSet.getLayout(),
             .pushSize = sizeof(int),
         });

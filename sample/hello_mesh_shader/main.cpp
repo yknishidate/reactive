@@ -76,11 +76,8 @@ public:
             .task = {.shader = {}},
             .mesh = {.shader = meshShader},
             .fragment = {.shader = fragShader},
-            .viewport =
-                {
-                    .viewport = "dynamic",
-                    .scissor = "dynamic",
-                },
+            .viewport = "dynamic",
+            .scissor = "dynamic",
         });
     }
 

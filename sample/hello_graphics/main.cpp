@@ -49,11 +49,8 @@ public:
             .descSetLayout = descSet.getLayout(),
             .vertex = {.shader = vertShader},
             .fragment = {.shader = fragShader},
-            .viewport =
-                {
-                    .viewport = "dynamic",
-                    .scissor = "dynamic",
-                },
+            .viewport = "dynamic",
+            .scissor = "dynamic",
         });
     }
 
