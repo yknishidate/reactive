@@ -56,18 +56,18 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
     colorBlending.setLogicOpEnable(VK_FALSE);
 
     vk::PipelineViewportStateCreateInfo viewportState;
-    if (std::holds_alternative<vk::Viewport>(createInfo.viewport.viewport)) {
-        viewportState.setViewports(std::get<vk::Viewport>(createInfo.viewport.viewport));
+    if (std::holds_alternative<vk::Viewport>(createInfo.viewport)) {
+        viewportState.setViewports(std::get<vk::Viewport>(createInfo.viewport));
     } else {
-        assert(std::get<std::string>(createInfo.viewport.viewport) == "dynamic");
+        assert(std::get<std::string>(createInfo.viewport) == "dynamic");
         viewportState.setViewportCount(1);
         dynamicStates.push_back(vk::DynamicState::eViewport);
     }
 
-    if (std::holds_alternative<vk::Rect2D>(createInfo.viewport.scissor)) {
-        viewportState.setScissors(std::get<vk::Rect2D>(createInfo.viewport.scissor));
+    if (std::holds_alternative<vk::Rect2D>(createInfo.scissor)) {
+        viewportState.setScissors(std::get<vk::Rect2D>(createInfo.scissor));
     } else {
-        assert(std::get<std::string>(createInfo.viewport.scissor) == "dynamic");
+        assert(std::get<std::string>(createInfo.scissor) == "dynamic");
         viewportState.setScissorCount(1);
         dynamicStates.push_back(vk::DynamicState::eScissor);
     }
@@ -75,27 +75,27 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
     vk::PipelineRasterizationStateCreateInfo rasterization;
     rasterization.setDepthClampEnable(VK_FALSE);
     rasterization.setRasterizerDiscardEnable(VK_FALSE);
-    rasterization.setPolygonMode(createInfo.raster.polygonMode);
+    rasterization.setPolygonMode(createInfo.polygonMode);
     rasterization.setDepthBiasEnable(VK_FALSE);
 
-    if (std::holds_alternative<vk::FrontFace>(createInfo.raster.frontFace)) {
-        rasterization.setFrontFace(std::get<vk::FrontFace>(createInfo.raster.frontFace));
+    if (std::holds_alternative<vk::FrontFace>(createInfo.frontFace)) {
+        rasterization.setFrontFace(std::get<vk::FrontFace>(createInfo.frontFace));
     } else {
-        assert(std::get<std::string>(createInfo.raster.frontFace) == "dynamic");
+        assert(std::get<std::string>(createInfo.frontFace) == "dynamic");
         dynamicStates.push_back(vk::DynamicState::eFrontFace);
     }
 
-    if (std::holds_alternative<vk::CullModeFlags>(createInfo.raster.cullMode)) {
-        rasterization.setCullMode(std::get<vk::CullModeFlags>(createInfo.raster.cullMode));
+    if (std::holds_alternative<vk::CullModeFlags>(createInfo.cullMode)) {
+        rasterization.setCullMode(std::get<vk::CullModeFlags>(createInfo.cullMode));
     } else {
-        assert(std::get<std::string>(createInfo.raster.cullMode) == "dynamic");
+        assert(std::get<std::string>(createInfo.cullMode) == "dynamic");
         dynamicStates.push_back(vk::DynamicState::eCullMode);
     }
 
-    if (std::holds_alternative<float>(createInfo.raster.lineWidth)) {
-        rasterization.setLineWidth(std::get<float>(createInfo.raster.lineWidth));
+    if (std::holds_alternative<float>(createInfo.lineWidth)) {
+        rasterization.setLineWidth(std::get<float>(createInfo.lineWidth));
     } else {
-        assert(std::get<std::string>(createInfo.raster.lineWidth) == "dynamic");
+        assert(std::get<std::string>(createInfo.lineWidth) == "dynamic");
         dynamicStates.push_back(vk::DynamicState::eLineWidth);
     }
 
@@ -145,7 +145,7 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
         vertexInputInfo.setVertexAttributeDescriptions(attributes);
     }
     dynamicStateInfo.setDynamicStates(dynamicStates);
-    inputAssembly.setTopology(createInfo.vertex.topology);
+    inputAssembly.setTopology(createInfo.topology);
     pipelineInfo.setPInputAssemblyState(&inputAssembly);
     pipelineInfo.setPVertexInputState(&vertexInputInfo);
     pipelineInfo.setPDynamicState(&dynamicStateInfo);
@@ -221,18 +221,18 @@ MeshShaderPipeline::MeshShaderPipeline(const Context* context,
     colorBlending.setLogicOpEnable(VK_FALSE);
 
     vk::PipelineViewportStateCreateInfo viewportState;
-    if (std::holds_alternative<vk::Viewport>(createInfo.viewport.viewport)) {
-        viewportState.setViewports(std::get<vk::Viewport>(createInfo.viewport.viewport));
+    if (std::holds_alternative<vk::Viewport>(createInfo.viewport)) {
+        viewportState.setViewports(std::get<vk::Viewport>(createInfo.viewport));
     } else {
-        assert(std::get<std::string>(createInfo.viewport.viewport) == "dynamic");
+        assert(std::get<std::string>(createInfo.viewport) == "dynamic");
         viewportState.setViewportCount(1);
         dynamicStates.push_back(vk::DynamicState::eViewport);
     }
 
-    if (std::holds_alternative<vk::Rect2D>(createInfo.viewport.scissor)) {
-        viewportState.setScissors(std::get<vk::Rect2D>(createInfo.viewport.scissor));
+    if (std::holds_alternative<vk::Rect2D>(createInfo.scissor)) {
+        viewportState.setScissors(std::get<vk::Rect2D>(createInfo.scissor));
     } else {
-        assert(std::get<std::string>(createInfo.viewport.scissor) == "dynamic");
+        assert(std::get<std::string>(createInfo.scissor) == "dynamic");
         viewportState.setScissorCount(1);
         dynamicStates.push_back(vk::DynamicState::eScissor);
     }
@@ -240,27 +240,27 @@ MeshShaderPipeline::MeshShaderPipeline(const Context* context,
     vk::PipelineRasterizationStateCreateInfo rasterization;
     rasterization.setDepthClampEnable(VK_FALSE);
     rasterization.setRasterizerDiscardEnable(VK_FALSE);
-    rasterization.setPolygonMode(createInfo.raster.polygonMode);
+    rasterization.setPolygonMode(createInfo.polygonMode);
     rasterization.setDepthBiasEnable(VK_FALSE);
 
-    if (std::holds_alternative<vk::FrontFace>(createInfo.raster.frontFace)) {
-        rasterization.setFrontFace(std::get<vk::FrontFace>(createInfo.raster.frontFace));
+    if (std::holds_alternative<vk::FrontFace>(createInfo.frontFace)) {
+        rasterization.setFrontFace(std::get<vk::FrontFace>(createInfo.frontFace));
     } else {
-        assert(std::get<std::string>(createInfo.raster.frontFace) == "dynamic");
+        assert(std::get<std::string>(createInfo.frontFace) == "dynamic");
         dynamicStates.push_back(vk::DynamicState::eFrontFace);
     }
 
-    if (std::holds_alternative<vk::CullModeFlags>(createInfo.raster.cullMode)) {
-        rasterization.setCullMode(std::get<vk::CullModeFlags>(createInfo.raster.cullMode));
+    if (std::holds_alternative<vk::CullModeFlags>(createInfo.cullMode)) {
+        rasterization.setCullMode(std::get<vk::CullModeFlags>(createInfo.cullMode));
     } else {
-        assert(std::get<std::string>(createInfo.raster.cullMode) == "dynamic");
+        assert(std::get<std::string>(createInfo.cullMode) == "dynamic");
         dynamicStates.push_back(vk::DynamicState::eCullMode);
     }
 
-    if (std::holds_alternative<float>(createInfo.raster.lineWidth)) {
-        rasterization.setLineWidth(std::get<float>(createInfo.raster.lineWidth));
+    if (std::holds_alternative<float>(createInfo.lineWidth)) {
+        rasterization.setLineWidth(std::get<float>(createInfo.lineWidth));
     } else {
-        assert(std::get<std::string>(createInfo.raster.lineWidth) == "dynamic");
+        assert(std::get<std::string>(createInfo.lineWidth) == "dynamic");
         dynamicStates.push_back(vk::DynamicState::eLineWidth);
     }
 
@@ -314,9 +314,9 @@ ComputePipeline::ComputePipeline(const Context* context, ComputePipelineCreateIn
     pipelineLayout = context->getDevice().createPipelineLayoutUnique(layoutInfo);
 
     vk::PipelineShaderStageCreateInfo stage;
-    stage.setStage(createInfo.computeShader.getStage());
-    stage.setModule(createInfo.computeShader.getModule());
-    stage.setPName("main");
+    stage.setStage(createInfo.compute.shader.getStage());
+    stage.setModule(createInfo.compute.shader.getModule());
+    stage.setPName(createInfo.compute.entryPoint.c_str());
 
     vk::ComputePipelineCreateInfo pipelineInfo;
     pipelineInfo.setStage(stage);

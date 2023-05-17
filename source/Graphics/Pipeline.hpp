@@ -39,7 +39,6 @@ struct VertexState {
     std::string entryPoint = "main";
     uint32_t stride = 0;
     ArrayProxy<VertexAttributeDescription> attributes = {};
-    vk::PrimitiveTopology topology = vk::PrimitiveTopology::eTriangleList;
 };
 
 struct FragmentState {
@@ -47,26 +46,32 @@ struct FragmentState {
     std::string entryPoint = "main";
 };
 
-struct ViewportState {
+struct GraphicsPipelineCreateInfo {
+    // Render pass
+    vk::RenderPass renderPass = {};
+
+    // Layout
+    vk::DescriptorSetLayout descSetLayout = {};
+    uint32_t pushSize = 0;
+
+    // Shader
+    VertexState vertex;
+    FragmentState fragment;
+
+    // Viewport
     std::variant<vk::Viewport, std::string> viewport;
     std::variant<vk::Rect2D, std::string> scissor;
-};
 
-struct RasterState {
+    // Vertex input
+    vk::PrimitiveTopology topology = vk::PrimitiveTopology::eTriangleList;
+
+    // Raster
     vk::PolygonMode polygonMode = vk::PolygonMode::eFill;
     std::variant<vk::CullModeFlags, std::string> cullMode = vk::CullModeFlagBits::eNone;
     std::variant<vk::FrontFace, std::string> frontFace = vk::FrontFace::eCounterClockwise;
     std::variant<float, std::string> lineWidth = 1.0f;
-};
 
-struct GraphicsPipelineCreateInfo {
-    vk::RenderPass renderPass = {};
-    vk::DescriptorSetLayout descSetLayout = {};
-    uint32_t pushSize = 0;
-    VertexState vertex;
-    FragmentState fragment;
-    ViewportState viewport;
-    RasterState raster;
+    // Color blend
     bool alphaBlending = false;
 };
 
@@ -93,8 +98,17 @@ struct MeshShaderPipelineCreateInfo {
     TaskState task;
     MeshState mesh;
     FragmentState fragment;
-    ViewportState viewport;
-    RasterState raster;
+    // Viewport
+    std::variant<vk::Viewport, std::string> viewport;
+    std::variant<vk::Rect2D, std::string> scissor;
+
+    // Raster
+    vk::PolygonMode polygonMode = vk::PolygonMode::eFill;
+    std::variant<vk::CullModeFlags, std::string> cullMode = vk::CullModeFlagBits::eNone;
+    std::variant<vk::FrontFace, std::string> frontFace = vk::FrontFace::eCounterClockwise;
+    std::variant<float, std::string> lineWidth = 1.0f;
+
+    // Color blend
     bool alphaBlending = false;
 };
 
@@ -104,8 +118,13 @@ public:
     MeshShaderPipeline(const Context* context, MeshShaderPipelineCreateInfo createInfo);
 };
 
+struct ComputeState {
+    const Shader& shader;
+    std::string entryPoint = "main";
+};
+
 struct ComputePipelineCreateInfo {
-    const Shader& computeShader;
+    ComputeState compute;
 
     vk::DescriptorSetLayout descSetLayout = {};
     uint32_t pushSize = 0;
