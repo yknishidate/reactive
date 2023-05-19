@@ -26,9 +26,15 @@ public:
         : App({
               .width = 1280,
               .height = 720,
-              .title = "HelloGraphics",
+              .title = "HelloShaderObject",
               .enableShaderObject = true,
           }) {}
+
+    ~HelloApp() {
+        for (auto& shader : shaders) {
+            context.getDevice().destroyShaderEXT(shader);
+        }
+    }
 
     void onStart() override {
         Shader vertShader = context.createShader({
@@ -68,24 +74,27 @@ public:
                 .setPName("main")
                 .setSetLayouts(setLayout)};
 
-        shaders = context.getDevice().createShadersEXTUnique(shaderInfo);
+        shaders = context.getDevice().createShadersEXT(shaderInfo);
     }
 
     void onRender(const CommandBuffer& commandBuffer) override {
-        // ImGui::SliderInt("Test slider", &testInt, 0, 100);
-        // commandBuffer.clearColorImage(getCurrentImage(), {0.0f, 0.0f, 0.5f, 1.0f});
-        // commandBuffer.setViewport(width, height);
-        // commandBuffer.setScissor(width, height);
-        // commandBuffer.bindDescriptorSet(descSet, pipeline);
-        // commandBuffer.bindPipeline(pipeline);
-        // commandBuffer.beginRenderPass(getDefaultRenderPass(), getCurrentFramebuffer(), width,
-        //                               height);
-        // commandBuffer.draw(3, 1, 0, 0);
-        // commandBuffer.endRenderPass();
+        std::vector<vk::ShaderStageFlagBits> stages = {
+            vk::ShaderStageFlagBits::eVertex,
+            vk::ShaderStageFlagBits::eFragment,
+        };
+
+        commandBuffer.clearColorImage(getCurrentColorImage(), {0.0f, 0.0f, 0.5f, 1.0f});
+        commandBuffer.setViewport(width, height);
+        commandBuffer.setScissor(width, height);
+        commandBuffer.commandBuffer.bindShadersEXT(stages, shaders);
+        commandBuffer.beginRenderPass(getDefaultRenderPass(), getCurrentFramebuffer(), width,
+                                      height);
+        commandBuffer.draw(3, 1, 0, 0);
+        commandBuffer.endRenderPass();
     }
 
     DescriptorSet descSet;
-    std::vector<vk::UniqueShaderEXT> shaders;
+    std::vector<vk::ShaderEXT> shaders;
 };
 
 int main() {

@@ -81,7 +81,7 @@ public:
         commandBuffer.bindPipeline(pipeline);
         commandBuffer.pushConstants(pipeline, &pushConstants);
         commandBuffer.traceRays(pipeline, width, height, 1);
-        commandBuffer.copyImage(image.getImage(), getCurrentImage(), vk::ImageLayout::eGeneral,
+        commandBuffer.copyImage(image.getImage(), getCurrentColorImage(), vk::ImageLayout::eGeneral,
                                 vk::ImageLayout::ePresentSrcKHR, width, height);
     }
 

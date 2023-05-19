@@ -421,8 +421,8 @@ void App::createRenderPass() {
 
     vk::AttachmentDescription depthAttachment;
     depthAttachment.setFormat(vk::Format::eD32Sfloat);
-    depthAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
-    depthAttachment.setStoreOp(vk::AttachmentStoreOp::eDontCare);
+    depthAttachment.setLoadOp(vk::AttachmentLoadOp::eDontCare);
+    depthAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
     depthAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
     depthAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
     depthAttachment.setInitialLayout(vk::ImageLayout::eUndefined);

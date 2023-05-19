@@ -37,6 +37,7 @@ public:
                   uint32_t countZ) const;
 
     void clearColorImage(vk::Image image, std::array<float, 4> color) const;
+    void clearDepthStencilImage(vk::Image image, float depth, uint32_t stencil) const;
 
     // render pass
     void beginRenderPass(vk::RenderPass renderPass,

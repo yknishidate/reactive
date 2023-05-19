@@ -80,7 +80,7 @@ public:
     //     copyRegion.setDstSubresource({vk::ImageAspectFlagBits::eColor, 0, 0, 1});
     //     copyRegion.setExtent({width, height, 1});
 
-    //    vk::Image backImage = getCurrentImage();
+    //    vk::Image backImage = getCurrentColorImage();
     //    source.setImageLayout(commandBuffer, vk::ImageLayout::eTransferSrcOptimal);
     //    Image::setImageLayout(commandBuffer, backImage, vk::ImageLayout::eTransferDstOptimal);
     //    commandBuffer.copyImage(source.getImage(), vk::ImageLayout::eTransferSrcOptimal,
@@ -91,7 +91,8 @@ public:
     //}
 
     // Getter
-    vk::Image getCurrentImage() const { return swapchainImages[frameIndex]; }
+    vk::Image getCurrentColorImage() const { return swapchainImages[frameIndex]; }
+    vk::Image getDefaultDepthImage() const { return depthImage.get(); }
     vk::Framebuffer getCurrentFramebuffer() const { return *framebuffers[frameIndex]; }
     vk::RenderPass getDefaultRenderPass() const { return *renderPass; }
 
