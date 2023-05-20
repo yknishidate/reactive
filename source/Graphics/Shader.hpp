@@ -11,7 +11,7 @@
 #include "Image.hpp"
 
 struct ShaderCreateInfo {
-    const std::string& glslCode;
+    const std::vector<uint32_t>& code;
     vk::ShaderStageFlagBits stage;
 };
 

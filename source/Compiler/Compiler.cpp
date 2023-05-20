@@ -231,7 +231,6 @@ std::vector<uint32_t> compileToSPV(const std::string& glslCode, EShLanguage stag
 
 // Support include directive
 std::vector<uint32_t> compileToSPV(const std::string& filepath) {
-    spdlog::info("Compile shader: {}", filepath);
     std::string glslCode = File::readFile(filepath);
     EShLanguage stage = translateShaderStage(getShaderStage(filepath));
     std::string included = include(filepath, glslCode);
