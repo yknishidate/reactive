@@ -139,8 +139,8 @@ void DescriptorSet::bind(vk::CommandBuffer commandBuffer,
     }
 }
 
-void DescriptorSet::updateBindingMap(spirv_cross::Resource& resource,
-                                     spirv_cross::CompilerGLSL& glsl,
+void DescriptorSet::updateBindingMap(const spirv_cross::Resource& resource,
+                                     const spirv_cross::CompilerGLSL& glsl,
                                      vk::ShaderStageFlags stage,
                                      vk::DescriptorType type) {
     if (bindingMap.contains(resource.name)) {

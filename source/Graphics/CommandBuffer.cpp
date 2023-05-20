@@ -59,10 +59,11 @@ void CommandBuffer::clearColorImage(vk::Image image, std::array<float, 4> color)
 }
 
 void CommandBuffer::clearDepthStencilImage(vk::Image image, float depth, uint32_t stencil) const {
-    Image::setImageLayout(commandBuffer, image, vk::ImageLayout::eTransferDstOptimal);
+    Image::setImageLayout(commandBuffer, image, vk::ImageLayout::eTransferDstOptimal,
+                          vk::ImageAspectFlagBits::eDepth);
     commandBuffer.clearDepthStencilImage(
         image, vk::ImageLayout::eTransferDstOptimal, vk::ClearDepthStencilValue{depth, stencil},
-        vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1});
+        vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eDepth, 0, 1, 0, 1});
 }
 
 void CommandBuffer::beginRenderPass(vk::RenderPass renderPass,

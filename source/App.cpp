@@ -388,7 +388,7 @@ void App::createDepthImage() {
             .setExtent({width, height, 1})
             .setMipLevels(1)
             .setArrayLayers(1)
-            .setUsage(vk::ImageUsageFlagBits::eDepthStencilAttachment));
+            .setUsage(vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eTransferDst));
 
     vk::MemoryRequirements requirements =
         context.getDevice().getImageMemoryRequirements(*depthImage);

@@ -55,8 +55,8 @@ public:
     vk::DescriptorSetLayout getLayout() const { return *descSetLayout; }
 
 private:
-    void updateBindingMap(spirv_cross::Resource& resource,
-                          spirv_cross::CompilerGLSL& glsl,
+    void updateBindingMap(const spirv_cross::Resource& resource,
+                          const spirv_cross::CompilerGLSL& glsl,
                           vk::ShaderStageFlags stage,
                           vk::DescriptorType type);
 

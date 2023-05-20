@@ -57,6 +57,7 @@ public:
     void onRender(const CommandBuffer& commandBuffer) override {
         ImGui::SliderInt("Test slider", &testInt, 0, 100);
         commandBuffer.clearColorImage(getCurrentColorImage(), {0.0f, 0.0f, 0.5f, 1.0f});
+        commandBuffer.clearDepthStencilImage(getDefaultDepthImage(), 1.0f, 0);
         commandBuffer.setViewport(width, height);
         commandBuffer.setScissor(width, height);
         commandBuffer.bindDescriptorSet(descSet, pipeline);
