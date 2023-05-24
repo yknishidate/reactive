@@ -34,18 +34,6 @@ protected:
     uint32_t pushSize = 0;
 };
 
-struct VertexState {
-    const Shader& shader;
-    std::string entryPoint = "main";
-    uint32_t stride = 0;
-    ArrayProxy<VertexAttributeDescription> attributes = {};
-};
-
-struct FragmentState {
-    const Shader& shader;
-    std::string entryPoint = "main";
-};
-
 struct GraphicsPipelineCreateInfo {
     // Render pass
     vk::RenderPass renderPass = {};
@@ -55,8 +43,12 @@ struct GraphicsPipelineCreateInfo {
     uint32_t pushSize = 0;
 
     // Shader
-    VertexState vertex;
-    FragmentState fragment;
+    const Shader& vertexShader;
+    const Shader& fragmentShader;
+
+    // Vertex
+    uint32_t vertexStride = 0;
+    ArrayProxy<VertexAttributeDescription> vertexAttributes = {};
 
     // Viewport
     std::variant<vk::Viewport, std::string> viewport;
@@ -81,23 +73,14 @@ public:
     GraphicsPipeline(const Context* context, GraphicsPipelineCreateInfo createInfo);
 };
 
-struct TaskState {
-    const Shader& shader;
-    std::string entryPoint = "main";
-};
-
-struct MeshState {
-    const Shader& shader;
-    std::string entryPoint = "main";
-};
-
 struct MeshShaderPipelineCreateInfo {
     vk::RenderPass renderPass = {};
     vk::DescriptorSetLayout descSetLayout = {};
     uint32_t pushSize = 0;
-    TaskState task;
-    MeshState mesh;
-    FragmentState fragment;
+    const Shader& taskShader;
+    const Shader& meshShader;
+    const Shader& fragmentShader;
+
     // Viewport
     std::variant<vk::Viewport, std::string> viewport;
     std::variant<vk::Rect2D, std::string> scissor;
@@ -118,13 +101,8 @@ public:
     MeshShaderPipeline(const Context* context, MeshShaderPipelineCreateInfo createInfo);
 };
 
-struct ComputeState {
-    const Shader& shader;
-    std::string entryPoint = "main";
-};
-
 struct ComputePipelineCreateInfo {
-    ComputeState compute;
+    const Shader& computeShader;
 
     vk::DescriptorSetLayout descSetLayout = {};
     uint32_t pushSize = 0;
