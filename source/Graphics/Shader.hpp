@@ -4,11 +4,8 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
-#include "Accel.hpp"
-#include "Buffer.hpp"
 #include "Compiler/Compiler.hpp"
 #include "Context.hpp"
-#include "Image.hpp"
 
 struct ShaderCreateInfo {
     const std::vector<uint32_t>& code;

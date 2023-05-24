@@ -191,6 +191,27 @@ std::string include(const std::string& filepath, const std::string& sourceText) 
     return included;
 }
 
+// NOTE: Define = std::pair<std::string, std::string>
+void addDefines(std::string& glslCode, const std::vector<Define>& defines) {
+    auto versionPos = glslCode.find("#version");
+    if (versionPos == std::string::npos) {
+        throw std::runtime_error("Shader has no #version");
+    }
+
+    // NOTE: initial offset is next line position of the #version directive
+    size_t offset = glslCode.find('\n', versionPos) + 1;
+    for (const auto& [name, value] : defines) {
+        std::string defineString = "#define ";  // "#define "
+        defineString.append(name);              // "#define HOGE"
+        defineString.append(" ");               // "#define HOGE "
+        defineString.append(value);             // "#define HOGE 0"
+        defineString.append("\n");              // "#define HOGE 0\n"
+        glslCode.insert(offset, defineString);
+        offset += defineString.size();
+    }
+}
+
+// Main compile function
 std::vector<uint32_t> compileToSPV(const std::string& glslCode, EShLanguage stage) {
     glslang::InitializeProcess();
 
@@ -230,16 +251,20 @@ std::vector<uint32_t> compileToSPV(const std::string& glslCode, EShLanguage stag
 }
 
 // Support include directive
-std::vector<uint32_t> compileToSPV(const std::string& filepath) {
+std::vector<uint32_t> compileToSPV(const std::string& filepath,
+                                   const std::vector<Define>& defines) {
     std::string glslCode = File::readFile(filepath);
     EShLanguage stage = translateShaderStage(getShaderStage(filepath));
     std::string included = include(filepath, glslCode);
+    addDefines(included, defines);
     return compileToSPV(included, stage);
 }
 
 // Don't support include directive
+// This is for hardcoded shader in C++
 std::vector<uint32_t> compileToSPV(const std::string& glslCode,
-                                   vk::ShaderStageFlagBits shaderStage) {
+                                   vk::ShaderStageFlagBits shaderStage,
+                                   const std::vector<Define>& defines) {
     EShLanguage stage = translateShaderStage(shaderStage);
     return compileToSPV(glslCode, stage);
 }
