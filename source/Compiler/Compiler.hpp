@@ -7,6 +7,8 @@ std::string readFile(const std::string& path);
 }
 
 namespace Compiler {
+vk::ShaderStageFlagBits getShaderStage(const std::string& filepath);
+
 using Define = std::pair<std::string, std::string>;
 
 void addDefines(std::string& glslCode, const std::vector<Define>& defines);

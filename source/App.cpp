@@ -38,6 +38,10 @@ void App::run() {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
+        if (width == 0 && height == 0) {
+            continue;
+        }
+
         onUpdate();
 
         // Start ImGui
@@ -388,7 +392,8 @@ void App::createDepthImage() {
             .setExtent({width, height, 1})
             .setMipLevels(1)
             .setArrayLayers(1)
-            .setUsage(vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eTransferDst));
+            .setUsage(vk::ImageUsageFlagBits::eDepthStencilAttachment |
+                      vk::ImageUsageFlagBits::eTransferDst));
 
     vk::MemoryRequirements requirements =
         context.getDevice().getImageMemoryRequirements(*depthImage);
