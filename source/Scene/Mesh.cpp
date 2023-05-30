@@ -85,10 +85,10 @@ Mesh::Mesh(const Context* context, SphereMeshCreateInfo createInfo) : context{co
 
 Mesh::Mesh(const Context* context, PlaneMeshCreateInfo createInfo) : context{context} {
     vertices = std::vector<Vertex>{
-        {glm::vec3(-1.0, 0.0, -1.0)},
-        {glm::vec3(1.0, 0.0, -1.0)},
-        {glm::vec3(1.0, 0.0, 1.0)},
-        {glm::vec3(-1.0, 0.0, 1.0)},
+        {glm::vec3(-1.0, 0.0, -1.0), glm::vec3(0, 1, 0), glm::vec2(0, 0)},
+        {glm::vec3(1.0, 0.0, -1.0), glm::vec3(0, 1, 0), glm::vec2(1, 0)},
+        {glm::vec3(1.0, 0.0, 1.0), glm::vec3(0, 1, 0), glm::vec2(1, 1)},
+        {glm::vec3(-1.0, 0.0, 1.0), glm::vec3(0, 1, 0), glm::vec2(0, 1)},
     };
     indices = std::vector<uint32_t>{
         0, 1, 2, 0, 2, 3,
@@ -107,25 +107,57 @@ Mesh::Mesh(const Context* context, PlaneMeshCreateInfo createInfo) : context{con
 }
 
 Mesh::Mesh(const Context* context, CubeMeshCreateInfo createInfo) : context{context} {
+    std::vector<glm::vec3> positions{
+        {-1.0, -1.0, -1.0}, {1.0, -1.0, -1.0}, {1.0, -1.0, 1.0}, {-1.0, -1.0, 1.0},
+        {-1.0, 1.0, -1.0},  {1.0, 1.0, -1.0},  {1.0, 1.0, 1.0},  {-1.0, 1.0, 1.0},
+    };
+    std::vector<glm::vec3> normals{
+        {1, 0, 0},   // 0 +X
+        {0, 1, 0},   // 1 +Y
+        {0, 0, 1},   // 2 +Z
+        {-1, 0, 0},  // 3 -X
+        {0, -1, 0},  // 4 -Y
+        {0, 0, -1},  // 5 -Z
+    };
+    //      3           2
+    //      +-----------+
+    //     /|         / |
+    //   /  |        /  |
+    // 0+---+-------+1  |
+    //  |  7+-------+---+6
+    //  |  /        |  /
+    //  |/          |/
+    // 4+-----------+5
+
     vertices = std::vector<Vertex>{
-        {glm::vec3(-1.0, -1.0, -1.0)}, {glm::vec3(1.0, -1.0, -1.0)}, {glm::vec3(1.0, -1.0, 1.0)},
-        {glm::vec3(-1.0, -1.0, 1.0)},  {glm::vec3(-1.0, 1.0, -1.0)}, {glm::vec3(1.0, 1.0, -1.0)},
-        {glm::vec3(1.0, 1.0, 1.0)},    {glm::vec3(-1.0, 1.0, 1.0)},
+        {positions[0], normals[4]}, {positions[1], normals[4]},
+        {positions[2], normals[4]},  // Top -Y
+        {positions[0], normals[4]}, {positions[2], normals[4]},
+        {positions[3], normals[4]},  // Top -Y
+        {positions[2], normals[5]}, {positions[6], normals[5]},
+        {positions[7], normals[5]},  // Front -Z
+        {positions[2], normals[5]}, {positions[7], normals[5]},
+        {positions[3], normals[5]},  // Front -Z
+        {positions[3], normals[3]}, {positions[7], normals[3]},
+        {positions[4], normals[3]},  // Left -X
+        {positions[3], normals[3]}, {positions[4], normals[3]},
+        {positions[0], normals[3]},  // Left -X
+        {positions[0], normals[2]}, {positions[4], normals[2]},
+        {positions[5], normals[2]},  // Back +Z
+        {positions[0], normals[2]}, {positions[5], normals[2]},
+        {positions[1], normals[2]},  // Back +Z
+        {positions[1], normals[0]}, {positions[5], normals[0]},
+        {positions[6], normals[0]},  // Right +X
+        {positions[1], normals[0]}, {positions[6], normals[0]},
+        {positions[2], normals[0]},  // Right +X
+        {positions[5], normals[1]}, {positions[4], normals[1]},
+        {positions[7], normals[1]},  // Bottom Y
+        {positions[5], normals[1]}, {positions[7], normals[1]},
+        {positions[6], normals[1]},  // Bottom Y
     };
-    indices = std::vector<uint32_t>{
-        0, 1, 2,  // Top
-        0, 2, 3,  // Top
-        2, 6, 7,  // Front
-        2, 7, 3,  // Front
-        3, 7, 4,  // Left
-        3, 4, 0,  // Left
-        0, 4, 5,  // Back
-        0, 5, 1,  // Back
-        1, 5, 6,  // Right
-        1, 6, 2,  // Right
-        5, 4, 7,  // Bottom
-        5, 7, 6,  // Bottom
-    };
+    for (int i = 0; i < vertices.size(); i++) {
+        indices.push_back(i);
+    }
 
     vertexBuffer = context->createDeviceBuffer({
         .usage = BufferUsage::Vertex,
