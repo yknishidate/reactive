@@ -122,6 +122,20 @@ void CommandBuffer::drawMeshTasks(uint32_t groupCountX,
     commandBuffer.drawMeshTasksEXT(groupCountX, groupCountY, groupCountZ);
 }
 
+void CommandBuffer::drawIndirect(const Buffer& buffer,
+                                 vk::DeviceSize offset,
+                                 uint32_t drawCount,
+                                 uint32_t stride) const {
+    commandBuffer.drawIndirect(buffer.getBuffer(), offset, drawCount, stride);
+}
+
+void CommandBuffer::drawIndexedIndirect(const Buffer& buffer,
+                                        vk::DeviceSize offset,
+                                        uint32_t drawCount,
+                                        uint32_t stride) const {
+    commandBuffer.drawIndexedIndirect(buffer.getBuffer(), offset, drawCount, stride);
+}
+
 void CommandBuffer::pipelineBarrier(vk::PipelineStageFlags srcStageMask,
                                     vk::PipelineStageFlags dstStageMask,
                                     vk::DependencyFlags dependencyFlags,
