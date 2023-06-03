@@ -1,4 +1,5 @@
 #pragma once
+#include "Buffer.hpp"
 #include "Context.hpp"
 
 class App;
@@ -35,6 +36,8 @@ public:
                   uint32_t countX,
                   uint32_t countY,
                   uint32_t countZ) const;
+
+    void dispatchIndirect(const Buffer& buffer, vk::DeviceSize offset) const;
 
     void clearColorImage(vk::Image image, std::array<float, 4> color) const;
     void clearDepthStencilImage(vk::Image image, float depth, uint32_t stencil) const;

@@ -43,6 +43,10 @@ void CommandBuffer::dispatch(const ComputePipeline& pipeline,
     pipeline.dispatch(commandBuffer, countX, countY, countZ);
 }
 
+void CommandBuffer::dispatchIndirect(const Buffer& buffer, vk::DeviceSize offset) const {
+    commandBuffer.dispatchIndirect(buffer.getBuffer(), offset);
+}
+
 // void CommandBuffer::dispatch(ComputePipeline& compPipeline, uint32_t countX, uint32_t countY) {
 //     compPipeline.dispatch(commandBuffer, countX, countY);
 // }
