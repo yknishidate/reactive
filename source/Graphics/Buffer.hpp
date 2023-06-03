@@ -11,6 +11,7 @@ enum class BufferUsage {
     Staging,
     Storage,
     Uniform,
+    Indirect,
 };
 
 class Buffer {

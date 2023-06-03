@@ -54,6 +54,11 @@ Buffer::Buffer(const Context* context,
                         vk::BufferUsageFlagBits::eTransferDst |
                         vk::BufferUsageFlagBits::eShaderDeviceAddress;
             break;
+        case BufferUsage::Indirect:
+            usageFlag = vk::BufferUsageFlagBits::eStorageBuffer |
+                        vk::BufferUsageFlagBits::eTransferDst |
+                        vk::BufferUsageFlagBits::eIndirectBuffer;
+            break;
         default:
             assert(false);
     }

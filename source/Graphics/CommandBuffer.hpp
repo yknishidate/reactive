@@ -67,13 +67,13 @@ public:
 
     // Indirect draw
     void drawIndirect(const Buffer& buffer,
-                      vk::DeviceSize offset,
-                      uint32_t drawCount,
-                      uint32_t stride) const;
+                      vk::DeviceSize offset = 0,
+                      uint32_t drawCount = 1,
+                      uint32_t stride = sizeof(vk::DrawIndexedIndirectCommand)) const;
     void drawIndexedIndirect(const Buffer& buffer,
-                             vk::DeviceSize offset,
-                             uint32_t drawCount,
-                             uint32_t stride) const;
+                             vk::DeviceSize offset = 0,
+                             uint32_t drawCount = 1,
+                             uint32_t stride = sizeof(vk::DrawIndexedIndirectCommand)) const;
 
     // barrier
     void pipelineBarrier(
