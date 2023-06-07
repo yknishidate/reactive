@@ -77,6 +77,10 @@ public:
                              vk::DeviceSize offset = 0,
                              uint32_t drawCount = 1,
                              uint32_t stride = sizeof(vk::DrawIndexedIndirectCommand)) const;
+    void drawMeshTasksIndirect(const Buffer& buffer,
+                               vk::DeviceSize offset,
+                               uint32_t drawCount,
+                               uint32_t stride) const;
 
     // barrier
     void pipelineBarrier(
