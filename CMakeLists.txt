@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(Reactive LANGUAGES CXX)
+project(reactive LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 
 file(GLOB_RECURSE sources source/*.cpp)

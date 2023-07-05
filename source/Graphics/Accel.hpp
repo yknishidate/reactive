@@ -1,4 +1,5 @@
 #pragma once
+#include <glm/glm.hpp>
 #include "ArrayProxy.hpp"
 #include "Buffer.hpp"
 // #include "Geometry.hpp"
