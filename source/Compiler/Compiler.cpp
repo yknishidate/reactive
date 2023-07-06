@@ -6,12 +6,25 @@
 #include <regex>
 
 namespace File {
-std::string readFile(const std::string& path) {
+std::string readFile(const std::filesystem::path& path) {
     std::ifstream input_file{path};
     if (!input_file.is_open()) {
-        spdlog::error("Failed to open file: " + path);
+        spdlog::error("Failed to open file: " + path.string());
     }
     return {(std::istreambuf_iterator<char>{input_file}), std::istreambuf_iterator<char>{}};
+}
+
+std::filesystem::file_time_type getLastWriteTimeWithIncludeFiles(
+    const std::filesystem::path& filepath) {
+    auto writeTime = std::filesystem::last_write_time(filepath);
+    std::string code = File::readFile(filepath);
+    for (auto& include : Compiler::getAllIncludedFiles(code)) {
+        auto includeWriteTime = getLastWriteTimeWithIncludeFiles(include);
+        if (includeWriteTime > writeTime) {
+            writeTime = includeWriteTime;
+        }
+    }
+    return writeTime;
 }
 }  // namespace File
 
@@ -267,5 +280,28 @@ std::vector<uint32_t> compileToSPV(const std::string& glslCode,
                                    const std::vector<Define>& defines) {
     EShLanguage stage = translateShaderStage(shaderStage);
     return compileToSPV(glslCode, stage);
+}
+
+std::vector<std::string> getAllIncludedFiles(const std::string& code) {
+    std::string includePrefix = "#include \"";
+    std::string includeSuffix = "\"";
+    std::string::size_type startPos = 0;
+    std::vector<std::string> includes;
+    while (true) {
+        auto includeStartPos = code.find(includePrefix, startPos);
+        if (includeStartPos == std::string::npos)
+            break;
+
+        auto includeEndPos = code.find(includeSuffix, includeStartPos + includePrefix.length());
+        if (includeEndPos == std::string::npos)
+            break;
+
+        std::string include =
+            code.substr(includeStartPos + includePrefix.length(),
+                        includeEndPos - (includeStartPos + includePrefix.length()));
+        includes.push_back(include);
+        startPos = includeEndPos + includeSuffix.length();
+    }
+    return includes;
 }
 }  // namespace Compiler

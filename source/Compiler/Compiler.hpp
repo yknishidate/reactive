@@ -3,8 +3,33 @@
 #include <vector>
 
 namespace File {
-std::string readFile(const std::string& path);
+std::string readFile(const std::filesystem::path& path);
+
+std::filesystem::file_time_type getLastWriteTimeWithIncludeFiles(
+    const std::filesystem::path& filepath);
+
+template <typename T>
+void writeBinary(const std::filesystem::path& filepath, const std::vector<T>& vec) {
+    std::ofstream ofs(filepath, std::ios::out | std::ios::binary);
+    if (!ofs) {
+        throw std::runtime_error("Failed to open file: " + filepath.string());
+    }
+    ofs.write(reinterpret_cast<const char*>(vec.data()), vec.size() * sizeof(T));
+    ofs.close();
 }
+
+template <typename T>
+void readBinary(const std::filesystem::path& filepath, std::vector<T>& vec) {
+    std::uintmax_t size = std::filesystem::file_size(filepath);
+    vec.resize(size / sizeof(T));
+    std::ifstream ifs(filepath, std::ios::in | std::ios::binary);
+    if (!ifs) {
+        throw std::runtime_error("Failed to open file: " + filepath.string());
+    }
+    ifs.read(reinterpret_cast<char*>(vec.data()), vec.size() * sizeof(T));
+    ifs.close();
+}
+}  // namespace File
 
 namespace Compiler {
 vk::ShaderStageFlagBits getShaderStage(const std::string& filepath);
@@ -13,13 +38,15 @@ using Define = std::pair<std::string, std::string>;
 
 void addDefines(std::string& glslCode, const std::vector<Define>& defines);
 
-// Support include directive
+// This supports include directive
 std::vector<uint32_t> compileToSPV(const std::string& filepath,
                                    const std::vector<Define>& defines = {});
 
-// Don't support include directive
+// This doesn't support include directive
 // This is for hardcoded shader in C++
 std::vector<uint32_t> compileToSPV(const std::string& glslCode,
                                    vk::ShaderStageFlagBits shaderStage,
                                    const std::vector<Define>& defines = {});
+
+std::vector<std::string> getAllIncludedFiles(const std::string& code);
 }  // namespace Compiler

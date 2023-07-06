@@ -26,30 +26,6 @@
 #include "Timer/CPUTimer.hpp"
 #include "Timer/GPUTimer.hpp"
 
-namespace File {
-template <typename T>
-void writeBinary(const std::string& filepath, const std::vector<T>& vec) {
-    std::ofstream ofs(filepath, std::ios::out | std::ios::binary);
-    if (!ofs) {
-        throw std::runtime_error("Failed to open file: " + filepath);
-    }
-    ofs.write(reinterpret_cast<const char*>(vec.data()), vec.size() * sizeof(T));
-    ofs.close();
-}
-
-template <typename T>
-void readBinary(const std::string& filepath, std::vector<T>& vec) {
-    std::uintmax_t size = std::filesystem::file_size(filepath);
-    vec.resize(size / sizeof(T));
-    std::ifstream ifs(filepath, std::ios::in | std::ios::binary);
-    if (!ifs) {
-        throw std::runtime_error("Failed to open file: " + filepath);
-    }
-    ifs.read(reinterpret_cast<char*>(vec.data()), vec.size() * sizeof(T));
-    ifs.close();
-}
-}  // namespace File
-
 struct AppCreateInfo {
     // Window
     uint32_t width = 0;
