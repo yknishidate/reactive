@@ -16,10 +16,11 @@ std::string readFile(const std::filesystem::path& path) {
 
 std::filesystem::file_time_type getLastWriteTimeWithIncludeFiles(
     const std::filesystem::path& filepath) {
+    auto directory = filepath.parent_path();
     auto writeTime = std::filesystem::last_write_time(filepath);
     std::string code = File::readFile(filepath);
     for (auto& include : Compiler::getAllIncludedFiles(code)) {
-        auto includeWriteTime = getLastWriteTimeWithIncludeFiles(include);
+        auto includeWriteTime = getLastWriteTimeWithIncludeFiles(directory / include);
         if (includeWriteTime > writeTime) {
             writeTime = includeWriteTime;
         }
