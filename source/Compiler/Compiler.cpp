@@ -225,6 +225,18 @@ void addDefines(std::string& glslCode, const std::vector<Define>& defines) {
     }
 }
 
+std::string addLineNumbersToCode(const std::string& code) {
+    std::string addedCode;
+    int lineIndex = 1;
+    std::string line;
+    std::istringstream iss(code);
+    while (std::getline(iss, line)) {
+        addedCode += std::to_string(lineIndex) + ": " + line + "\n";
+        lineIndex++;
+    }
+    return addedCode;
+}
+
 // Main compile function
 std::vector<uint32_t> compileToSPV(const std::string& glslCode, EShLanguage stage) {
     glslang::InitializeProcess();
@@ -240,21 +252,21 @@ std::vector<uint32_t> compileToSPV(const std::string& glslCode, EShLanguage stag
     auto messages = static_cast<EShMessages>(EShMsgSpvRules | EShMsgVulkanRules);
     if (!shader.parse(&DefaultTBuiltInResource, 100, false, messages)) {
         std::string message = "Failed to parse:";
-        int lineIndex = 1;
-        std::string line;
-        std::istringstream iss(glslCode);
-        while (std::getline(iss, line)) {
-            message += std::to_string(lineIndex) + ": " + line + "\n";
-            lineIndex++;
-        }
+        message += addLineNumbersToCode(glslCode);
         message += "\n" + std::string(shader.getInfoLog());
+        message += "\n" + std::string(shader.getInfoDebugLog());
         throw std::runtime_error(message);
     }
 
     glslang::TProgram program;
     program.addShader(&shader);
     if (!program.link(messages)) {
-        throw std::runtime_error("Failed to link:\n" + glslCode + "\n" + shader.getInfoLog());
+        // throw std::runtime_error("Failed to link:\n" + glslCode + "\n" + shader.getInfoLog());
+        std::string message = "Failed to link:";
+        message += addLineNumbersToCode(glslCode);
+        message += "\n" + std::string(shader.getInfoLog());
+        message += "\n" + std::string(shader.getInfoDebugLog());
+        throw std::runtime_error(message);
     }
 
     std::vector<uint32_t> spvShader;
