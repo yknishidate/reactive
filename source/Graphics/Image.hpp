@@ -5,19 +5,14 @@
 class Buffer;
 class HostBuffer;
 
-enum class ImageUsage {
-    GeneralStorage,
-    ColorAttachment,
-    DepthStencilAttachment,
-};
-
 struct ImageCreateInfo {
-    ImageUsage usage;
+    vk::ImageUsageFlags usage;
+    vk::ImageLayout initialLayout;
+    vk::ImageAspectFlags aspect;
     uint32_t width;
     uint32_t height;
     uint32_t depth = 1;
     vk::Format format = vk::Format::eB8G8R8A8Unorm;
-    vk::ImageType type = vk::ImageType::e2D;
 };
 
 class Image {

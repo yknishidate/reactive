@@ -2,41 +2,19 @@
 #include "Buffer.hpp"
 
 Image::Image(const Context* context, ImageCreateInfo createInfo)
-    : context{context}, width{createInfo.width}, height{createInfo.height} {
-    vk::ImageLayout newLayout;
-    vk::ImageUsageFlags usage;
-    vk::ImageAspectFlags aspect;
-
-    switch (createInfo.usage) {
-        case ImageUsage::GeneralStorage:
-            usage = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled |
-                    vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst;
-            newLayout = vk::ImageLayout::eGeneral;
-            aspect = vk::ImageAspectFlagBits::eColor;
-            break;
-        case ImageUsage::ColorAttachment:
-            usage = vk::ImageUsageFlagBits::eColorAttachment |
-                    vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst;
-            newLayout = vk::ImageLayout::eColorAttachmentOptimal;
-            aspect = vk::ImageAspectFlagBits::eColor;
-            break;
-        case ImageUsage::DepthStencilAttachment:
-            usage = vk::ImageUsageFlagBits::eDepthStencilAttachment;
-            newLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
-            aspect = vk::ImageAspectFlagBits::eDepth;
-            break;
-        default:
-            assert(false);
-    }
-
+    : context{context},
+      width{createInfo.width},
+      height{createInfo.height},
+      depth{createInfo.depth} {
+    vk::ImageType type = createInfo.depth == 1 ? vk::ImageType::e2D : vk::ImageType::e3D;
     vk::ImageCreateInfo imageInfo;
-    imageInfo.setImageType(createInfo.type);
+    imageInfo.setImageType(type);
     imageInfo.setFormat(createInfo.format);
     imageInfo.setExtent({width, height, depth});
     imageInfo.setMipLevels(1);
     imageInfo.setArrayLayers(1);
     imageInfo.setSamples(vk::SampleCountFlagBits::e1);
-    imageInfo.setUsage(usage);
+    imageInfo.setUsage(createInfo.usage);
     image = context->getDevice().createImageUnique(imageInfo);
 
     vk::MemoryRequirements requirements = context->getDevice().getImageMemoryRequirements(*image);
@@ -52,14 +30,15 @@ Image::Image(const Context* context, ImageCreateInfo createInfo)
     vk::ImageViewCreateInfo viewInfo;
     viewInfo.setImage(*image);
     viewInfo.setFormat(createInfo.format);
-    viewInfo.setSubresourceRange({aspect, 0, 1, 0, 1});
-    if (createInfo.type == vk::ImageType::e2D) {
+    viewInfo.setSubresourceRange({createInfo.aspect, 0, 1, 0, 1});
+    if (type == vk::ImageType::e2D) {
         viewInfo.setViewType(vk::ImageViewType::e2D);
-    } else if (createInfo.type == vk::ImageType::e3D) {
+    } else if (type == vk::ImageType::e3D) {
         viewInfo.setViewType(vk::ImageViewType::e3D);
     } else {
         assert(false);
     }
+
     view = context->getDevice().createImageViewUnique(viewInfo);
 
     vk::SamplerCreateInfo samplerInfo;
@@ -74,9 +53,10 @@ Image::Image(const Context* context, ImageCreateInfo createInfo)
     samplerInfo.setAddressModeW(vk::SamplerAddressMode::eRepeat);
     sampler = context->getDevice().createSamplerUnique(samplerInfo);
 
-    context->oneTimeSubmit(
-        [&](vk::CommandBuffer commandBuffer) { setImageLayout(commandBuffer, *image, newLayout); });
-    layout = newLayout;
+    context->oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
+        setImageLayout(commandBuffer, *image, createInfo.initialLayout);
+    });
+    layout = createInfo.initialLayout;
 }
 
 // #define STB_IMAGE_IMPLEMENTATION
