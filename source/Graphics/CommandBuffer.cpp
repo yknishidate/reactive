@@ -147,12 +147,12 @@ void CommandBuffer::drawMeshTasksIndirect(const Buffer& buffer,
     commandBuffer.drawMeshTasksIndirectEXT(buffer.getBuffer(), offset, drawCount, stride);
 }
 
-void CommandBuffer::pipelineBarrier(vk::PipelineStageFlags srcStageMask,
-                                    vk::PipelineStageFlags dstStageMask,
-                                    vk::DependencyFlags dependencyFlags,
-                                    const Buffer& buffer,
-                                    vk::AccessFlags srcAccessMask,
-                                    vk::AccessFlags dstAccessMask) const {
+void CommandBuffer::bufferBarrier(vk::PipelineStageFlags srcStageMask,
+                                  vk::PipelineStageFlags dstStageMask,
+                                  vk::DependencyFlags dependencyFlags,
+                                  const Buffer& buffer,
+                                  vk::AccessFlags srcAccessMask,
+                                  vk::AccessFlags dstAccessMask) const {
     vk::BufferMemoryBarrier bufferMemoryBarrier;
     bufferMemoryBarrier.srcAccessMask = srcAccessMask;
     bufferMemoryBarrier.dstAccessMask = dstAccessMask;
@@ -164,6 +164,25 @@ void CommandBuffer::pipelineBarrier(vk::PipelineStageFlags srcStageMask,
 
     commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, nullptr,
                                   bufferMemoryBarrier, nullptr);
+}
+
+void CommandBuffer::imageBarrier(vk::PipelineStageFlags srcStageMask,
+                                 vk::PipelineStageFlags dstStageMask,
+                                 vk::DependencyFlags dependencyFlags,
+                                 const Image& image,
+                                 vk::AccessFlags srcAccessMask,
+                                 vk::AccessFlags dstAccessMask) const {
+    vk::ImageMemoryBarrier memoryBarrier;
+    memoryBarrier.srcAccessMask = srcAccessMask;
+    memoryBarrier.dstAccessMask = dstAccessMask;
+    memoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    memoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    memoryBarrier.image = image.getImage();
+    memoryBarrier.oldLayout = vk::ImageLayout::eGeneral;
+    memoryBarrier.newLayout = vk::ImageLayout::eGeneral;
+
+    commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, nullptr, nullptr,
+                                  memoryBarrier);
 }
 
 void CommandBuffer::copyImage(vk::Image srcImage,

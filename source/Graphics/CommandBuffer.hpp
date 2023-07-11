@@ -94,14 +94,14 @@ public:
                                       bufferMemoryBarriers, imageMemoryBarriers);
     }
 
-    void pipelineBarrier(vk::PipelineStageFlags srcStageMask,
-                         vk::PipelineStageFlags dstStageMask,
-                         vk::DependencyFlags dependencyFlags,
-                         const Buffer& buffer,
-                         vk::AccessFlags srcAccessMask,
-                         vk::AccessFlags dstAccessMask) const;
+    void bufferBarrier(vk::PipelineStageFlags srcStageMask,
+                       vk::PipelineStageFlags dstStageMask,
+                       vk::DependencyFlags dependencyFlags,
+                       const Buffer& buffer,
+                       vk::AccessFlags srcAccessMask,
+                       vk::AccessFlags dstAccessMask) const;
 
-    void pipelineBarrier(
+    void bufferBarrier(
         vk::PipelineStageFlags srcStageMask,
         vk::PipelineStageFlags dstStageMask,
         vk::DependencyFlags dependencyFlags,
@@ -110,7 +110,7 @@ public:
                                       bufferMemoryBarriers, nullptr);
     }
 
-    void pipelineBarrier(
+    void imageBarrier(
         vk::PipelineStageFlags srcStageMask,
         vk::PipelineStageFlags dstStageMask,
         vk::DependencyFlags dependencyFlags,
@@ -119,10 +119,17 @@ public:
                                       imageMemoryBarriers);
     }
 
-    void pipelineBarrier(vk::PipelineStageFlags srcStageMask,
-                         vk::PipelineStageFlags dstStageMask,
-                         vk::DependencyFlags dependencyFlags,
-                         vk::ArrayProxy<const vk::MemoryBarrier> const& memoryBarriers) const {
+    void imageBarrier(vk::PipelineStageFlags srcStageMask,
+                      vk::PipelineStageFlags dstStageMask,
+                      vk::DependencyFlags dependencyFlags,
+                      const Image& image,
+                      vk::AccessFlags srcAccessMask,
+                      vk::AccessFlags dstAccessMask) const;
+
+    void memoryBarrier(vk::PipelineStageFlags srcStageMask,
+                       vk::PipelineStageFlags dstStageMask,
+                       vk::DependencyFlags dependencyFlags,
+                       vk::ArrayProxy<const vk::MemoryBarrier> const& memoryBarriers) const {
         commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, memoryBarriers,
                                       nullptr, nullptr);
     }
