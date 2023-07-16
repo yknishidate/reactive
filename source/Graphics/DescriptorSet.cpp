@@ -46,7 +46,7 @@ WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding) {
 DescriptorSet::DescriptorSet(const Context* context, DescriptorSetCreateInfo createInfo)
     : context{context} {
     for (auto& shader : createInfo.shaders) {
-        addResources(*shader);
+        addResources(shader);
     }
     for (auto& [name, buffer] : createInfo.buffers) {
         assert(bindingMap.contains(name));

@@ -30,7 +30,7 @@ private:
 };
 
 struct DescriptorSetCreateInfo {
-    ArrayProxy<const Shader*> shaders;
+    ArrayProxy<Shader> shaders;
     ArrayProxy<std::pair<const char*, const Buffer&>> buffers;
     ArrayProxy<std::pair<const char*, const Image&>> images;
     ArrayProxy<std::pair<const char*, const TopAccel&>> accels;
