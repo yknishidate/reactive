@@ -122,9 +122,9 @@ private:
 };
 
 struct RayTracingPipelineCreateInfo {
-    const Shader* rgenShader = nullptr;
-    const Shader* missShader = nullptr;
-    const Shader* chitShader = nullptr;
+    const Shader& rgenShader;
+    const Shader& missShader;
+    const Shader& chitShader;
 
     vk::DescriptorSetLayout descSetLayout = {};
     uint32_t pushSize = 0;
@@ -137,7 +137,7 @@ public:
     RayTracingPipeline() = default;
     RayTracingPipeline(const Context* context, RayTracingPipelineCreateInfo createInfo);
 
-    void setShaders(const Shader* rgenShader, const Shader* missShader, const Shader* chitShader) {
+    void setShaders(const Shader& rgenShader, const Shader& missShader, const Shader& chitShader) {
         assert(rgenShader->getStage() == vk::ShaderStageFlagBits::eRaygenKHR);
         assert(missShader->getStage() == vk::ShaderStageFlagBits::eMissKHR);
         assert(chitShader->getStage() == vk::ShaderStageFlagBits::eClosestHitKHR);
@@ -146,9 +146,9 @@ public:
         missCount = 1;
         hitCount = 1;
 
-        shaderModules.push_back(rgenShader->getModule());
-        shaderModules.push_back(missShader->getModule());
-        shaderModules.push_back(chitShader->getModule());
+        shaderModules.push_back(rgenShader.getModule());
+        shaderModules.push_back(missShader.getModule());
+        shaderModules.push_back(chitShader.getModule());
 
         shaderStages.push_back({{}, vk::ShaderStageFlagBits::eRaygenKHR, shaderModules[0], "main"});
         shaderStages.push_back({{}, vk::ShaderStageFlagBits::eMissKHR, shaderModules[1], "main"});
