@@ -12,7 +12,7 @@ template <typename T>
 void writeBinary(const std::filesystem::path& filepath, const std::vector<T>& vec) {
     std::ofstream ofs(filepath, std::ios::out | std::ios::binary);
     if (!ofs) {
-        throw std::runtime_error("Failed to open file: " + filepath.string());
+        throw std::runtime_error("File::writeBinary | Failed to open file: " + filepath.string());
     }
     ofs.write(reinterpret_cast<const char*>(vec.data()), vec.size() * sizeof(T));
     ofs.close();
@@ -24,7 +24,7 @@ void readBinary(const std::filesystem::path& filepath, std::vector<T>& vec) {
     vec.resize(size / sizeof(T));
     std::ifstream ifs(filepath, std::ios::in | std::ios::binary);
     if (!ifs) {
-        throw std::runtime_error("Failed to open file: " + filepath.string());
+        throw std::runtime_error("File::readBinary | Failed to open file: " + filepath.string());
     }
     ifs.read(reinterpret_cast<char*>(vec.data()), vec.size() * sizeof(T));
     ifs.close();
