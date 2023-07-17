@@ -188,7 +188,7 @@ void App::initVulkan(bool enableValidation,
     if (enableValidation) {
         instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
-    std::vector layers{"VK_LAYER_LUNARG_monitor"};
+    std::vector<const char*> layers = {};
     if (enableValidation) {
         layers.push_back("VK_LAYER_KHRONOS_validation");
     }
