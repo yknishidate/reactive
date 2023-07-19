@@ -1,6 +1,7 @@
 #pragma once
 #include <spirv_glsl.hpp>
 #include <unordered_map>
+#include <variant>
 #include "Accel.hpp"
 #include "ArrayProxy.hpp"
 #include "Buffer.hpp"
@@ -9,14 +10,21 @@
 
 class WriteDescriptorSet {
 public:
+    // Buffer
     WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding, vk::DescriptorBufferInfo bufferInfo);
     WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
                        std::vector<vk::DescriptorBufferInfo> infos);
+
+    // Image
     WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding, vk::DescriptorImageInfo imageInfo);
     WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
                        std::vector<vk::DescriptorImageInfo> infos);
+
+    // TopAccel
     WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
                        vk::WriteDescriptorSetAccelerationStructureKHR accelInfo);
+    WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
+                       std::vector<vk::WriteDescriptorSetAccelerationStructureKHR> infos);
 
     vk::WriteDescriptorSet get() const { return write; }
 
@@ -31,9 +39,9 @@ private:
 
 struct DescriptorSetCreateInfo {
     ArrayProxy<Shader> shaders;
-    ArrayProxy<std::pair<const char*, const Buffer&>> buffers;
-    ArrayProxy<std::pair<const char*, const Image&>> images;
-    ArrayProxy<std::pair<const char*, const TopAccel&>> accels;
+    ArrayProxy<std::pair<const char*, ArrayProxy<const Buffer>>> buffers;
+    ArrayProxy<std::pair<const char*, ArrayProxy<const Image>>> images;
+    ArrayProxy<std::pair<const char*, ArrayProxy<const TopAccel>>> accels;
 };
 
 class DescriptorSet {
@@ -46,9 +54,6 @@ public:
     void bind(vk::CommandBuffer commandBuffer,
               vk::PipelineBindPoint bindPoint,
               vk::PipelineLayout pipelineLayout);
-
-    // void record(const std::string& name, const std::vector<Image>& images);
-    //  void record(const std::string& name, const TopAccel& accel);
 
     void addResources(const Shader& shader);
 

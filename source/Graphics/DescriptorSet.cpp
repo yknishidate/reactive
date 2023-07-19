@@ -37,6 +37,14 @@ WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
     write.setPNext(&accelInfos.front());
 }
 
+WriteDescriptorSet::WriteDescriptorSet(
+    vk::DescriptorSetLayoutBinding binding,
+    std::vector<vk::WriteDescriptorSetAccelerationStructureKHR> infos)
+    : WriteDescriptorSet(binding) {
+    accelInfos = {infos};
+    write.setPNext(accelInfos.data());
+}
+
 WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding) {
     write.setDescriptorType(binding.descriptorType);
     write.setDescriptorCount(binding.descriptorCount);
@@ -50,18 +58,36 @@ DescriptorSet::DescriptorSet(const Context* context, DescriptorSetCreateInfo cre
     }
     for (auto& [name, buffer] : createInfo.buffers) {
         assert(bindingMap.contains(name));
-        bindingMap[name].descriptorCount = 1;
-        writes.emplace_back(bindingMap[name], buffer.getInfo());
+        bindingMap[name].descriptorCount = buffer.size();
+
+        std::vector<vk::DescriptorBufferInfo> infos;
+        for (auto& b : buffer) {
+            infos.push_back(b.getInfo());
+        }
+
+        writes.emplace_back(bindingMap[name], infos);
     }
     for (auto& [name, image] : createInfo.images) {
         assert(bindingMap.contains(name));
-        bindingMap[name].descriptorCount = 1;
-        writes.emplace_back(bindingMap[name], image.getInfo());
+        bindingMap[name].descriptorCount = image.size();
+
+        std::vector<vk::DescriptorImageInfo> infos;
+        for (auto& i : image) {
+            infos.push_back(i.getInfo());
+        }
+
+        writes.emplace_back(bindingMap[name], infos);
     }
     for (auto& [name, accel] : createInfo.accels) {
         assert(bindingMap.contains(name));
-        bindingMap[name].descriptorCount = 1;
-        writes.emplace_back(bindingMap[name], accel.getInfo());
+        bindingMap[name].descriptorCount = accel.size();
+
+        std::vector<vk::WriteDescriptorSetAccelerationStructureKHR> infos;
+        for (auto& a : accel) {
+            infos.push_back(a.getInfo());
+        }
+
+        writes.emplace_back(bindingMap[name], infos);
     }
     allocate();
     update();
@@ -90,24 +116,6 @@ void DescriptorSet::update() {
     }
     context->getDevice().updateDescriptorSets(_writes, nullptr);
 }
-
-// void DescriptorSet::record(const std::string& name, const std::vector<Image>& images) {
-//     assert(bindingMap.contains(name));
-//     std::vector<vk::DescriptorImageInfo> infos;
-//     infos.reserve(images.size());
-//     for (auto& image : images) {
-//         infos.push_back(image.getInfo());
-//     }
-//
-//     bindingMap[name].descriptorCount = images.size();
-//     writes.emplace_back(bindingMap[name], infos);
-// }
-
-// void DescriptorSet::record(const std::string& name, const TopAccel& accel) {
-//     assert(bindingMap.contains(name));
-//     bindingMap[name].descriptorCount = 1;
-//     writes.emplace_back(bindingMap[name], accel.getInfo());
-// }
 
 void DescriptorSet::addResources(const Shader& shader) {
     vk::ShaderStageFlags stage = shader.getStage();
