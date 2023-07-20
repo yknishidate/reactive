@@ -5,8 +5,11 @@ Image::Image(const Context* context, ImageCreateInfo createInfo)
     : context{context},
       width{createInfo.width},
       height{createInfo.height},
-      depth{createInfo.depth} {
+      depth{createInfo.depth},
+      layout{createInfo.initialLayout} {
     vk::ImageType type = createInfo.depth == 1 ? vk::ImageType::e2D : vk::ImageType::e3D;
+
+    uint32_t queueFamily = context->getQueueFamily();
     vk::ImageCreateInfo imageInfo;
     imageInfo.setImageType(type);
     imageInfo.setFormat(createInfo.format);
@@ -15,6 +18,8 @@ Image::Image(const Context* context, ImageCreateInfo createInfo)
     imageInfo.setArrayLayers(1);
     imageInfo.setSamples(vk::SampleCountFlagBits::e1);
     imageInfo.setUsage(createInfo.usage);
+    imageInfo.setQueueFamilyIndices(queueFamily);
+    imageInfo.setInitialLayout(layout);
     image = context->getDevice().createImageUnique(imageInfo);
 
     vk::MemoryRequirements requirements = context->getDevice().getImageMemoryRequirements(*image);
@@ -52,11 +57,6 @@ Image::Image(const Context* context, ImageCreateInfo createInfo)
     samplerInfo.setAddressModeV(vk::SamplerAddressMode::eRepeat);
     samplerInfo.setAddressModeW(vk::SamplerAddressMode::eRepeat);
     sampler = context->getDevice().createSamplerUnique(samplerInfo);
-
-    context->oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
-        setImageLayout(commandBuffer, *image, createInfo.initialLayout);
-    });
-    layout = createInfo.initialLayout;
 }
 
 // #define STB_IMAGE_IMPLEMENTATION
