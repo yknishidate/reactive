@@ -6,8 +6,8 @@
 struct BottomAccelCreateInfo {
     const DeviceBuffer& vertexBuffer;
     const DeviceBuffer& indexBuffer;
-    uint32_t vertexCount;
     uint32_t vertexStride;
+    uint32_t vertexCount;
     uint32_t triangleCount;
     vk::GeometryFlagsKHR geometryFlags = vk::GeometryFlagBitsKHR::eOpaque;
     vk::BuildAccelerationStructureFlagsKHR buildFlags =
