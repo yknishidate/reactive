@@ -1,39 +1,17 @@
 #include "Accel.hpp"
-#include "Scene/Mesh.hpp"
-
-// namespace {
-// vk::UniqueAccelerationStructureKHR createAccel(vk::Buffer buffer,
-//                                                vk::DeviceSize size,
-//                                                vk::AccelerationStructureTypeKHR type) {
-//     vk::AccelerationStructureCreateInfoKHR accelInfo;
-//     accelInfo.setBuffer(buffer);
-//     accelInfo.setSize(size);
-//     accelInfo.setType(type);
-//     return Context::getDevice().createAccelerationStructureKHRUnique(accelInfo);
-// }
-//
-// void buildAccel(vk::AccelerationStructureKHR accel,
-//                 vk::DeviceSize size,
-//                 uint32_t primitiveCount,
-//                 vk::AccelerationStructureBuildGeometryInfoKHR geometryInfo) {
-//     DeviceBuffer scratchBuffer{BufferUsage::Scratch, size};
-//
-//     geometryInfo.setScratchData(scratchBuffer.getAddress());
-//     geometryInfo.setDstAccelerationStructure(accel);
-//
-//     Context::oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
-//         vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo{primitiveCount, 0, 0, 0};
-//         commandBuffer.buildAccelerationStructuresKHR(geometryInfo, &buildRangeInfo);
-//     });
-// }
-// }  // namespace
 
 BottomAccel::BottomAccel(const Context* context, BottomAccelCreateInfo createInfo)
     : context{context} {
-    const Mesh* mesh = createInfo.mesh;
+    vk::AccelerationStructureGeometryTrianglesDataKHR trianglesData;
+    trianglesData.setVertexFormat(vk::Format::eR32G32B32Sfloat);
+    trianglesData.setVertexData(createInfo.vertexBuffer.getAddress());
+    trianglesData.setVertexStride(createInfo.vertexStride);
+    trianglesData.setMaxVertex(createInfo.vertexCount);
+    trianglesData.setIndexType(vk::IndexType::eUint32);
+    trianglesData.setIndexData(createInfo.indexBuffer.getAddress());
 
     vk::AccelerationStructureGeometryDataKHR geometryData;
-    geometryData.setTriangles(mesh->getTrianglesData());
+    geometryData.setTriangles(trianglesData);
 
     vk::AccelerationStructureGeometryKHR geometry;
     geometry.setGeometryType(vk::GeometryTypeKHR::eTriangles);
@@ -45,7 +23,7 @@ BottomAccel::BottomAccel(const Context* context, BottomAccelCreateInfo createInf
     buildGeometryInfo.setFlags(createInfo.buildFlags);
     buildGeometryInfo.setGeometries(geometry);
 
-    size_t primitiveCount = mesh->getTriangleCount();
+    size_t primitiveCount = createInfo.triangleCount;
     auto buildSizesInfo = context->getDevice().getAccelerationStructureBuildSizesKHR(
         createInfo.buildType, buildGeometryInfo, primitiveCount);
 
