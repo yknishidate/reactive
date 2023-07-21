@@ -191,14 +191,3 @@ Mesh::Mesh(const Context* context, CubeLineMeshCreateInfo createInfo) : context{
         .data = indices.data(),
     });
 }
-
-vk::AccelerationStructureGeometryTrianglesDataKHR Mesh::getTrianglesData() const {
-    vk::AccelerationStructureGeometryTrianglesDataKHR trianglesData;
-    trianglesData.setVertexFormat(vk::Format::eR32G32B32Sfloat);
-    trianglesData.setVertexData(vertexBuffer.getAddress());
-    trianglesData.setVertexStride(sizeof(Vertex));
-    trianglesData.setMaxVertex(vertices.size());
-    trianglesData.setIndexType(vk::IndexType::eUint32);
-    trianglesData.setIndexData(indexBuffer.getAddress());
-    return trianglesData;
-}

@@ -81,8 +81,6 @@ struct Mesh {
     uint32_t getIndicesCount() const { return indices.size(); }
     uint32_t getTriangleCount() const { return indices.size() / 3; }
 
-    vk::AccelerationStructureGeometryTrianglesDataKHR getTrianglesData() const;
-
     void drawIndexed(vk::CommandBuffer commandBuffer, uint32_t instanceCount) const {
         vk::DeviceSize offsets{0};
         commandBuffer.bindVertexBuffers(0, vertexBuffer.getBuffer(), offsets);
