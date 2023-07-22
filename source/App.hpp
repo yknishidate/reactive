@@ -125,6 +125,15 @@ protected:
     void createRenderPass();
     void createFramebuffers();
 
+    void listSurfaceFormats() {
+        auto surfaceFormats = context.getPhysicalDevice().getSurfaceFormatsKHR(*surface);
+        std::cout << "Supported formats:\n";
+        for (const auto& surfaceFormat : surfaceFormats) {
+            std::cout << "  - Format: " << vk::to_string(surfaceFormat.format)
+                      << ", Color Space: " << vk::to_string(surfaceFormat.colorSpace) << "\n";
+        }
+    }
+
     // GLFW
     GLFWwindow* window;
     glm::vec2 mouseWheel{0.0};

@@ -13,6 +13,8 @@ struct ImageCreateInfo {
     uint32_t height;
     uint32_t depth = 1;
     vk::Format format = vk::Format::eB8G8R8A8Unorm;
+    // if mipLevels is std::numeric_limits<uint32_t>::max(), then it's set to max level
+    uint32_t mipLevels = 1;
 };
 
 class Image {
@@ -28,6 +30,18 @@ public:
     vk::ImageView getView() const { return *view; }
     vk::Sampler getSampler() const { return *sampler; }
     vk::DescriptorImageInfo getInfo() const { return {*sampler, *view, layout}; }
+    uint32_t getMipLevels() const { return mipLevels; }
+
+    static Image loadFromFile(const Context& context,
+                              const std::string& filepath,
+                              uint32_t mipLevels);
+
+    // mipmap is not supported
+    static Image loadFromFileHDR(const Context& context, const std::string& filepath);
+
+    // Ensure that data is pre-filled
+    // ImageLayout is implicitly shifted to ShaderReadOnlyOptimal
+    void generateMipmaps();
 
     // void setImageLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout newLayout);
     // void copyToImage(vk::CommandBuffer commandBuffer, const Image& dst) const;
@@ -47,8 +61,10 @@ public:
 
     static void setImageLayout(vk::CommandBuffer commandBuffer,
                                vk::Image image,
+                               vk::ImageLayout oldLayout,
                                vk::ImageLayout newLayout,
-                               vk::ImageAspectFlags aspect = vk::ImageAspectFlagBits::eColor);
+                               vk::ImageAspectFlags aspect,
+                               uint32_t mipLevels);
 
 private:
     // void createImage();
@@ -64,7 +80,9 @@ private:
     vk::UniqueSampler sampler;
 
     vk::ImageLayout layout = vk::ImageLayout::eUndefined;
+    vk::Format format;
     uint32_t width;
     uint32_t height;
     uint32_t depth = 1;
+    uint32_t mipLevels = 1;
 };
