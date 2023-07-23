@@ -57,7 +57,11 @@ BottomAccel::BottomAccel(const Context* context, BottomAccelCreateInfo createInf
     });
 }
 
-TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo) {
+TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo)
+    : context{context},
+      geometryFlags{createInfo.geometryFlags},
+      buildFlags{createInfo.buildFlags},
+      buildType{createInfo.buildType} {
     std::vector<vk::AccelerationStructureInstanceKHR> instances;
     for (auto& [bottomAccel, transform] : createInfo.bottomAccels) {
         // Convert glm::mat4 to vk::TransformMatrixKHR
@@ -89,21 +93,24 @@ TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo) {
     vk::AccelerationStructureGeometryKHR geometry;
     geometry.setGeometryType(vk::GeometryTypeKHR::eInstances);
     geometry.setGeometry({instancesData});
-    geometry.setFlags(createInfo.geometryFlags);
+    geometry.setFlags(geometryFlags);
 
     vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
     buildGeometryInfo.setType(vk::AccelerationStructureTypeKHR::eTopLevel);
-    buildGeometryInfo.setFlags(vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace);
+    buildGeometryInfo.setFlags(buildFlags);
     buildGeometryInfo.setGeometries(geometry);
 
     const uint32_t primitiveCount = instances.size();
     auto buildSizesInfo = context->getDevice().getAccelerationStructureBuildSizesKHR(
-        createInfo.buildType, buildGeometryInfo, primitiveCount);
+        buildType, buildGeometryInfo, primitiveCount);
 
     buffer = context->createDeviceBuffer({
         .usage = BufferUsage::AccelStorage,
         .size = buildSizesInfo.accelerationStructureSize,
     });
+
+    spdlog::info("buildSizesInfo.accelerationStructureSize: {}",
+                 buildSizesInfo.accelerationStructureSize);
 
     accel = context->getDevice().createAccelerationStructureKHRUnique(
         vk::AccelerationStructureCreateInfoKHR{}
@@ -111,7 +118,7 @@ TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo) {
             .setSize(buildSizesInfo.accelerationStructureSize)
             .setType(vk::AccelerationStructureTypeKHR::eTopLevel));
 
-    Buffer scratchBuffer = context->createHostBuffer({
+    scratchBuffer = context->createHostBuffer({
         .usage = BufferUsage::Scratch,
         .size = buildSizesInfo.buildScratchSize,
     });
@@ -152,23 +159,65 @@ TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo) {
 //     accel = createAccel(buffer.getBuffer(), size, vk::AccelerationStructureTypeKHR::eTopLevel);
 //     buildAccel(*accel, size, primitiveCount, geometry.getInfo());
 // }
-//
-// void TopAccel::rebuild(const ArrayProxy<Object>& objects) {
-//     // Gather instances
-//     std::vector<vk::AccelerationStructureInstanceKHR> instances;
-//     for (auto& object : objects) {
-//         instances.push_back(object.createInstance());
-//     }
-//
-//     // Copy to buffer
-//     instanceBuffer.copy(instances.data());
-//
-//     vk::AccelerationStructureGeometryInstancesDataKHR instancesData;
-//     instancesData.setArrayOfPointers(false);
-//     instancesData.setData(instanceBuffer.getAddress());
-//
-//     uint32_t primitiveCount = objects.size();
-//     geometry.update(instancesData);
-//     auto size = geometry.getAccelSize();
-//     buildAccel(*accel, size, primitiveCount, geometry.getInfo());
-// }
+
+void TopAccel::update(vk::CommandBuffer commandBuffer,
+                      ArrayProxy<std::pair<const BottomAccel*, glm::mat4>> bottomAccels) {
+    std::vector<vk::AccelerationStructureInstanceKHR> instances;
+    for (auto& [bottomAccel, transform] : bottomAccels) {
+        // Convert glm::mat4 to vk::TransformMatrixKHR
+        const glm::mat4 transposedMatrix = glm::transpose(transform);
+        // TODO: direct to vk::Transform
+        std::array<std::array<float, 4>, 3> data;
+        std::memcpy(&data, &transposedMatrix, sizeof(vk::TransformMatrixKHR));
+
+        instances.push_back(
+            vk::AccelerationStructureInstanceKHR()
+                .setTransform({data})
+                .setInstanceCustomIndex(0)
+                .setMask(0xFF)
+                .setInstanceShaderBindingTableRecordOffset(0)
+                .setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable)
+                .setAccelerationStructureReference(bottomAccel->getBufferAddress()));
+    }
+
+    instanceBuffer.copy(instances.data());
+
+    vk::AccelerationStructureGeometryInstancesDataKHR instancesData;
+    instancesData.setArrayOfPointers(false);
+    instancesData.setData(instanceBuffer.getAddress());
+
+    vk::AccelerationStructureGeometryKHR geometry;
+    geometry.setGeometryType(vk::GeometryTypeKHR::eInstances);
+    geometry.setGeometry({instancesData});
+    geometry.setFlags(geometryFlags);
+
+    vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
+    buildGeometryInfo.setType(vk::AccelerationStructureTypeKHR::eTopLevel);
+    buildGeometryInfo.setFlags(buildFlags);
+    buildGeometryInfo.setGeometries(geometry);
+
+    buildGeometryInfo.setMode(vk::BuildAccelerationStructureModeKHR::eUpdate);  // Not build
+    // buildGeometryInfo.setMode(vk::BuildAccelerationStructureModeKHR::eBuild);  // Not build
+    buildGeometryInfo.setDstAccelerationStructure(*accel);
+    buildGeometryInfo.setScratchData(scratchBuffer.getAddress());
+
+    vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo{};
+    buildRangeInfo.setPrimitiveCount(instances.size());
+    buildRangeInfo.setPrimitiveOffset(0);
+    buildRangeInfo.setFirstVertex(0);
+    buildRangeInfo.setTransformOffset(0);
+    commandBuffer.buildAccelerationStructuresKHR(buildGeometryInfo, &buildRangeInfo);
+
+    // Create a memory barrier for the acceleration structure
+    vk::MemoryBarrier2 memoryBarrier{};
+    memoryBarrier.setSrcStageMask(vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR);
+    memoryBarrier.setDstStageMask(vk::PipelineStageFlagBits2::eRayTracingShaderKHR);
+    memoryBarrier.setSrcAccessMask(vk::AccessFlagBits2::eAccelerationStructureWriteKHR);
+    memoryBarrier.setDstAccessMask(vk::AccessFlagBits2::eAccelerationStructureReadKHR);
+
+    // Pipeline barrier to ensure that the build has finished before the ray tracing shader starts
+    vk::DependencyInfoKHR dependencyInfo{};
+    dependencyInfo.setMemoryBarrierCount(1);
+    dependencyInfo.setPMemoryBarriers(&memoryBarrier);
+    commandBuffer.pipelineBarrier2(dependencyInfo);
+}

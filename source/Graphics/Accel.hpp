@@ -20,7 +20,8 @@ struct TopAccelCreateInfo {
     ArrayProxy<std::pair<const BottomAccel*, glm::mat4>> bottomAccels;
     vk::GeometryFlagsKHR geometryFlags = vk::GeometryFlagBitsKHR::eOpaque;
     vk::BuildAccelerationStructureFlagsKHR buildFlags =
-        vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace;
+        vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace |
+        vk::BuildAccelerationStructureFlagBitsKHR::eAllowUpdate;
     vk::AccelerationStructureBuildTypeKHR buildType =
         vk::AccelerationStructureBuildTypeKHR::eDevice;
 };
@@ -43,7 +44,8 @@ public:
     TopAccel() = default;
     TopAccel(const Context* context, TopAccelCreateInfo createInfo);
 
-    //     void rebuild(const ArrayProxy<Object>& objects);
+    void update(vk::CommandBuffer commandBuffer,
+                ArrayProxy<std::pair<const BottomAccel*, glm::mat4>> bottomAccels);
 
     vk::AccelerationStructureKHR getAccel() const { return *accel; }
     vk::WriteDescriptorSetAccelerationStructureKHR getInfo() const { return {*accel}; }
@@ -53,5 +55,9 @@ private:
     vk::UniqueAccelerationStructureKHR accel;
     DeviceBuffer buffer;
     DeviceBuffer instanceBuffer;
-    //     InstancesGeometry geometry;
+    HostBuffer scratchBuffer;
+
+    vk::GeometryFlagsKHR geometryFlags;
+    vk::BuildAccelerationStructureFlagsKHR buildFlags;
+    vk::AccelerationStructureBuildTypeKHR buildType;
 };
