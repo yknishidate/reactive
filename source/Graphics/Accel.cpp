@@ -16,7 +16,7 @@ BottomAccel::BottomAccel(const Context* context, BottomAccelCreateInfo createInf
     trianglesData.setVertexData(createInfo.vertexBuffer.getAddress());
     trianglesData.setVertexStride(createInfo.vertexStride);
     trianglesData.setMaxVertex(createInfo.vertexCount);
-    trianglesData.setIndexType(vk::IndexType::eUint32);
+    trianglesData.setIndexType(vk::IndexTypeValue<uint32_t>::value);
     trianglesData.setIndexData(createInfo.indexBuffer.getAddress());
 
     vk::AccelerationStructureGeometryDataKHR geometryData;
