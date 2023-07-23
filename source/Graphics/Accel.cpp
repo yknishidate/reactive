@@ -199,6 +199,7 @@ void TopAccel::update(vk::CommandBuffer commandBuffer,
     buildGeometryInfo.setMode(vk::BuildAccelerationStructureModeKHR::eUpdate);  // Not build
     // buildGeometryInfo.setMode(vk::BuildAccelerationStructureModeKHR::eBuild);  // Not build
     buildGeometryInfo.setDstAccelerationStructure(*accel);
+    buildGeometryInfo.setSrcAccelerationStructure(*accel);
     buildGeometryInfo.setScratchData(scratchBuffer.getAddress());
 
     vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo{};

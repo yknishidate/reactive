@@ -13,7 +13,8 @@ Image::Image(const Context* context, ImageCreateInfo createInfo)
       depth{createInfo.depth},
       layout{createInfo.initialLayout},
       format{createInfo.format},
-      mipLevels{createInfo.mipLevels} {
+      mipLevels{createInfo.mipLevels},
+      aspectMask{createInfo.aspect} {
     vk::ImageType type = createInfo.depth == 1 ? vk::ImageType::e2D : vk::ImageType::e3D;
 
     // Compute mipmap level
@@ -45,7 +46,7 @@ Image::Image(const Context* context, ImageCreateInfo createInfo)
     context->getDevice().bindImageMemory(*image, *memory, 0);
 
     vk::ImageSubresourceRange subresourceRange;
-    subresourceRange.setAspectMask(createInfo.aspect);
+    subresourceRange.setAspectMask(aspectMask);
     subresourceRange.setBaseMipLevel(0);
     subresourceRange.setLevelCount(mipLevels);
     subresourceRange.setBaseArrayLayer(0);
@@ -198,6 +199,7 @@ Image Image::loadFromFileHDR(const Context& context, const std::string& filepath
         Image::setImageLayout(commandBuffer, image.getImage(), vk::ImageLayout::eTransferDstOptimal,
                               vk::ImageLayout::eShaderReadOnlyOptimal,
                               vk::ImageAspectFlagBits::eColor, image.getMipLevels());
+        image.layout = vk::ImageLayout::eShaderReadOnlyOptimal;
     });
 
     stbi_image_free(pixels);

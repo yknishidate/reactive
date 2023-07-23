@@ -31,6 +31,7 @@ public:
     vk::Sampler getSampler() const { return *sampler; }
     vk::DescriptorImageInfo getInfo() const { return {*sampler, *view, layout}; }
     uint32_t getMipLevels() const { return mipLevels; }
+    vk::ImageAspectFlags getAspectMask() const { return aspectMask; }
 
     static Image loadFromFile(const Context& context,
                               const std::string& filepath,
@@ -85,4 +86,5 @@ private:
     uint32_t height;
     uint32_t depth = 1;
     uint32_t mipLevels = 1;
+    vk::ImageAspectFlags aspectMask;
 };

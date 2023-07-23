@@ -244,12 +244,15 @@ void App::initVulkan(bool enableValidation,
 
     vk::PhysicalDeviceShaderObjectFeaturesEXT shaderObjectFeatures{true};
 
+    vk::PhysicalDeviceSynchronization2Features synchronization2Features{true};
+
     StructureChain featuresChain;
     featuresChain.add(descFeatures);
     featuresChain.add(storage8BitFeatures);
     featuresChain.add(shaderFloat16Int8Features);
     featuresChain.add(bufferDeviceAddressFeatures);
     featuresChain.add(shaderObjectFeatures);
+    featuresChain.add(synchronization2Features);
 
     vk::PhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures{true};
     vk::PhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures{true};

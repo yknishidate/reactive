@@ -183,6 +183,11 @@ void CommandBuffer::imageBarrier(vk::PipelineStageFlags srcStageMask,
     memoryBarrier.image = image.getImage();
     memoryBarrier.oldLayout = vk::ImageLayout::eGeneral;
     memoryBarrier.newLayout = vk::ImageLayout::eGeneral;
+    memoryBarrier.subresourceRange.aspectMask = image.getAspectMask();
+    memoryBarrier.subresourceRange.baseMipLevel = 0;
+    memoryBarrier.subresourceRange.baseArrayLayer = 0;
+    memoryBarrier.subresourceRange.layerCount = 1;
+    memoryBarrier.subresourceRange.levelCount = 1;
 
     commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, nullptr, nullptr,
                                   memoryBarrier);
