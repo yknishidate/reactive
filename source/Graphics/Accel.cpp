@@ -138,29 +138,6 @@ TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo)
     });
 }
 
-// TopAccel::TopAccel(const ArrayProxy<Object>& objects, vk::GeometryFlagBitsKHR geometryFlag) {
-//     // Gather instances
-//     std::vector<vk::AccelerationStructureInstanceKHR> instances;
-//     for (auto& object : objects) {
-//         instances.push_back(object.createInstance());
-//     }
-//
-//     // Create instance buffer
-//     instanceBuffer = DeviceBuffer{BufferUsage::AccelInput, instances};
-//
-//     vk::AccelerationStructureGeometryInstancesDataKHR instancesData;
-//     instancesData.setArrayOfPointers(false);
-//     instancesData.setData(instanceBuffer.getAddress());
-//
-//     uint32_t primitiveCount = objects.size();
-//     geometry = InstancesGeometry{instancesData, geometryFlag, primitiveCount};
-//     auto size = geometry.getAccelSize();
-//
-//     buffer = geometry.createAccelBuffer();
-//     accel = createAccel(buffer.getBuffer(), size, vk::AccelerationStructureTypeKHR::eTopLevel);
-//     buildAccel(*accel, size, primitiveCount, geometry.getInfo());
-// }
-
 void TopAccel::update(vk::CommandBuffer commandBuffer,
                       ArrayProxy<std::pair<const BottomAccel*, glm::mat4>> bottomAccels) {
     std::vector<vk::AccelerationStructureInstanceKHR> instances;
@@ -191,8 +168,7 @@ void TopAccel::update(vk::CommandBuffer commandBuffer,
     buildGeometryInfo.setFlags(buildFlags);
     buildGeometryInfo.setGeometries(geometry);
 
-    buildGeometryInfo.setMode(vk::BuildAccelerationStructureModeKHR::eUpdate);  // Not build
-    // buildGeometryInfo.setMode(vk::BuildAccelerationStructureModeKHR::eBuild);  // Not build
+    buildGeometryInfo.setMode(vk::BuildAccelerationStructureModeKHR::eUpdate);
     buildGeometryInfo.setDstAccelerationStructure(*accel);
     buildGeometryInfo.setSrcAccelerationStructure(*accel);
     buildGeometryInfo.setScratchData(scratchBuffer.getAddress());
