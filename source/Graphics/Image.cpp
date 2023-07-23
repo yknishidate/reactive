@@ -22,7 +22,8 @@ Image::Image(const Context* context, ImageCreateInfo createInfo)
         spdlog::info("MipLevels: {}", mipLevels);
     }
 
-    uint32_t queueFamily = context->getQueueFamily();
+    // NOTE: initialLayout must be Undefined or PreInitialized
+    // NOTE: queueFamily is ignored if sharingMode is not concurrent
     vk::ImageCreateInfo imageInfo;
     imageInfo.setImageType(type);
     imageInfo.setFormat(createInfo.format);
@@ -31,8 +32,6 @@ Image::Image(const Context* context, ImageCreateInfo createInfo)
     imageInfo.setArrayLayers(1);
     imageInfo.setSamples(vk::SampleCountFlagBits::e1);
     imageInfo.setUsage(createInfo.usage);
-    imageInfo.setQueueFamilyIndices(queueFamily);
-    imageInfo.setInitialLayout(layout);
     image = context->getDevice().createImageUnique(imageInfo);
 
     vk::MemoryRequirements requirements = context->getDevice().getImageMemoryRequirements(*image);
@@ -80,6 +79,11 @@ Image::Image(const Context* context, ImageCreateInfo createInfo)
     samplerInfo.setAddressModeV(vk::SamplerAddressMode::eRepeat);
     samplerInfo.setAddressModeW(vk::SamplerAddressMode::eRepeat);
     sampler = context->getDevice().createSamplerUnique(samplerInfo);
+
+    context->oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
+        setImageLayout(commandBuffer, *image, vk::ImageLayout::eUndefined, layout,
+                       createInfo.aspect, mipLevels);
+    });
 }
 
 Image Image::loadFromFile(const Context& context, const std::string& filepath, uint32_t mipLevels) {
@@ -149,7 +153,7 @@ Image Image::loadFromFile(const Context& context, const std::string& filepath, u
 Image Image::loadFromFileHDR(const Context& context, const std::string& filepath) {
     int width;
     int height;
-    int comp = 3;
+    int comp = 4;
     float* pixels = stbi_loadf(filepath.c_str(), &width, &height, nullptr, comp);
     if (!pixels) {
         throw std::runtime_error("Failed to load image: " + filepath);
@@ -163,7 +167,7 @@ Image Image::loadFromFileHDR(const Context& context, const std::string& filepath
         .width = static_cast<uint32_t>(width),
         .height = static_cast<uint32_t>(height),
         .depth = 1,
-        .format = vk::Format::eR32G32B32Sfloat,
+        .format = vk::Format::eR32G32B32A32Sfloat,
     });
 
     // Copy to image

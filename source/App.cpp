@@ -340,6 +340,7 @@ void App::initImGui() {
     ImGui_ImplVulkan_Init(&initInfo, *renderPass);
 
     // Setup font
+    // TODO: Fix this
     std::string fontFile = ASSET_DIR + "Roboto-Medium.ttf";
     io.Fonts->AddFontFromFileTTF(fontFile.c_str(), 24.0f);
     {
