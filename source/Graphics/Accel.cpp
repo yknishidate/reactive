@@ -1,5 +1,12 @@
 #include "Accel.hpp"
 
+vk::TransformMatrixKHR toVkMatrix(const glm::mat4& matrix) {
+    const glm::mat4 transposedMatrix = glm::transpose(matrix);
+    vk::TransformMatrixKHR vkMatrix;
+    std::memcpy(&vkMatrix, &transposedMatrix, sizeof(vk::TransformMatrixKHR));
+    return vkMatrix;
+}
+
 BottomAccel::BottomAccel(const Context* context, BottomAccelCreateInfo createInfo)
     : context{context} {
     vk::AccelerationStructureGeometryTrianglesDataKHR trianglesData;
@@ -64,15 +71,9 @@ TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo)
       buildType{createInfo.buildType} {
     std::vector<vk::AccelerationStructureInstanceKHR> instances;
     for (auto& [bottomAccel, transform] : createInfo.bottomAccels) {
-        // Convert glm::mat4 to vk::TransformMatrixKHR
-        const glm::mat4 transposedMatrix = glm::transpose(transform);
-        // TODO: direct to vk::Transform
-        std::array<std::array<float, 4>, 3> data;
-        std::memcpy(&data, &transposedMatrix, sizeof(vk::TransformMatrixKHR));
-
         instances.push_back(
             vk::AccelerationStructureInstanceKHR()
-                .setTransform({data})
+                .setTransform(toVkMatrix(transform))
                 .setInstanceCustomIndex(0)
                 .setMask(0xFF)
                 .setInstanceShaderBindingTableRecordOffset(0)
@@ -164,15 +165,9 @@ void TopAccel::update(vk::CommandBuffer commandBuffer,
                       ArrayProxy<std::pair<const BottomAccel*, glm::mat4>> bottomAccels) {
     std::vector<vk::AccelerationStructureInstanceKHR> instances;
     for (auto& [bottomAccel, transform] : bottomAccels) {
-        // Convert glm::mat4 to vk::TransformMatrixKHR
-        const glm::mat4 transposedMatrix = glm::transpose(transform);
-        // TODO: direct to vk::Transform
-        std::array<std::array<float, 4>, 3> data;
-        std::memcpy(&data, &transposedMatrix, sizeof(vk::TransformMatrixKHR));
-
         instances.push_back(
             vk::AccelerationStructureInstanceKHR()
-                .setTransform({data})
+                .setTransform(toVkMatrix(transform))
                 .setInstanceCustomIndex(0)
                 .setMask(0xFF)
                 .setInstanceShaderBindingTableRecordOffset(0)
