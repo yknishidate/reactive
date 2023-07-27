@@ -485,19 +485,6 @@ void App::createFramebuffers() {
 // Callbacks
 void App::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     ImGuiIO& io = ImGui::GetIO();
-    if (key >= 0 && key < IM_ARRAYSIZE(io.KeysDown)) {
-        if (action == GLFW_PRESS) {
-            io.KeysDown[key] = true;
-        } else if (action == GLFW_RELEASE) {
-            io.KeysDown[key] = false;
-        }
-    }
-
-    io.KeyCtrl = io.KeysDown[GLFW_KEY_LEFT_CONTROL] || io.KeysDown[GLFW_KEY_RIGHT_CONTROL];
-    io.KeyShift = io.KeysDown[GLFW_KEY_LEFT_SHIFT] || io.KeysDown[GLFW_KEY_RIGHT_SHIFT];
-    io.KeyAlt = io.KeysDown[GLFW_KEY_LEFT_ALT] || io.KeysDown[GLFW_KEY_RIGHT_ALT];
-    io.KeySuper = io.KeysDown[GLFW_KEY_LEFT_SUPER] || io.KeysDown[GLFW_KEY_RIGHT_SUPER];
-
     if (!io.WantCaptureKeyboard) {
         App* app = (App*)glfwGetWindowUserPointer(window);
         app->onKey(key, scancode, action, mods);
@@ -518,14 +505,6 @@ void App::charModsCallback(GLFWwindow* window, unsigned int codepoint, int mods)
 
 void App::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
     ImGuiIO& io = ImGui::GetIO();
-    if (button >= 0 && button < IM_ARRAYSIZE(io.MouseDown)) {
-        if (action == GLFW_PRESS) {
-            io.MouseDown[button] = true;
-        } else if (action == GLFW_RELEASE) {
-            io.MouseDown[button] = false;
-        }
-    }
-
     if (!io.WantCaptureMouse) {
         App* app = (App*)glfwGetWindowUserPointer(window);
         app->onMouseButton(button, action, mods);
@@ -544,9 +523,6 @@ void App::cursorEnterCallback(GLFWwindow* window, int entered) {
 
 void App::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
     ImGuiIO& io = ImGui::GetIO();
-    io.MouseWheelH += (float)xoffset;
-    io.MouseWheel += (float)yoffset;
-
     if (!io.WantCaptureMouse) {
         App* app = (App*)glfwGetWindowUserPointer(window);
         app->mouseWheel.x += (float)xoffset;
