@@ -45,7 +45,7 @@ public:
                       const std::vector<const char*>& instanceExtensions,
                       uint32_t apiVersion);
 
-    void initPhysicalDevice(vk::SurfaceKHR surface);
+    void initPhysicalDevice(vk::SurfaceKHR surface = {});
 
     void initDevice(const std::vector<const char*>& deviceExtensions,
                     const vk::PhysicalDeviceFeatures& deviceFeatures,
