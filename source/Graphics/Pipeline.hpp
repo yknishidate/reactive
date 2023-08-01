@@ -122,9 +122,10 @@ private:
 };
 
 struct RayTracingPipelineCreateInfo {
-    const Shader& rgenShader;
-    const Shader& missShader;
-    const Shader& chitShader;
+    ArrayProxy<Shader> rgenShaders;
+    ArrayProxy<Shader> missShaders;
+    ArrayProxy<Shader> chitShaders;
+    ArrayProxy<Shader> ahitShaders;  // not supported
 
     vk::DescriptorSetLayout descSetLayout = {};
     uint32_t pushSize = 0;
@@ -219,7 +220,7 @@ private:
     DeviceBuffer missSBT;
     DeviceBuffer hitSBT;
 
-    int rgenCount = 0;
-    int missCount = 0;
-    int hitCount = 0;
+    uint32_t rgenCount = 0;
+    uint32_t missCount = 0;
+    uint32_t hitCount = 0;
 };

@@ -345,7 +345,41 @@ RayTracingPipeline::RayTracingPipeline(const Context* context,
     bindPoint = vk::PipelineBindPoint::eRayTracingKHR;
     pushSize = createInfo.pushSize;
 
-    setShaders(createInfo.rgenShader, createInfo.missShader, createInfo.chitShader);
+    rgenCount = createInfo.rgenShaders.size();
+    missCount = createInfo.missShaders.size();
+    hitCount = createInfo.chitShaders.size() + createInfo.ahitShaders.size();
+
+    for (auto& shader : createInfo.rgenShaders) {
+        uint32_t index = shaderModules.size();
+        shaderModules.push_back(shader.getModule());
+
+        shaderStages.push_back(
+            {{}, vk::ShaderStageFlagBits::eRaygenKHR, shaderModules[index], "main"});
+
+        shaderGroups.push_back({vk::RayTracingShaderGroupTypeKHR::eGeneral, index,
+                                VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR});
+    }
+    for (auto& shader : createInfo.missShaders) {
+        uint32_t index = shaderModules.size();
+        shaderModules.push_back(shader.getModule());
+
+        shaderStages.push_back(
+            {{}, vk::ShaderStageFlagBits::eMissKHR, shaderModules.back(), "main"});
+
+        shaderGroups.push_back({vk::RayTracingShaderGroupTypeKHR::eGeneral, index,
+                                VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR});
+    }
+    for (auto& shader : createInfo.chitShaders) {
+        uint32_t index = shaderModules.size();
+        shaderModules.push_back(shader.getModule());
+        shaderStages.push_back(
+            {{}, vk::ShaderStageFlagBits::eClosestHitKHR, shaderModules.back(), "main"});
+
+        shaderGroups.push_back({vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup,
+                                VK_SHADER_UNUSED_KHR, index, VK_SHADER_UNUSED_KHR,
+                                VK_SHADER_UNUSED_KHR});
+    }
+    // TODO: support any hit shader
 
     vk::PushConstantRange pushRange;
     pushRange.setOffset(0);
@@ -400,12 +434,12 @@ RayTracingPipeline::RayTracingPipeline(const Context* context,
     missSBT = context->createDeviceBuffer({
         .usage = BufferUsage::ShaderBindingTable,
         .size = handleSize * missCount,
-        .data = shaderHandleStorage.data() + 1 * handleSizeAligned,
+        .data = shaderHandleStorage.data() + (rgenCount)*handleSizeAligned,
     });
     hitSBT = context->createDeviceBuffer({
         .usage = BufferUsage::ShaderBindingTable,
         .size = handleSize * hitCount,
-        .data = shaderHandleStorage.data() + 2 * handleSizeAligned,
+        .data = shaderHandleStorage.data() + (rgenCount + missCount) * handleSizeAligned,
     });
 
     raygenRegion.setDeviceAddress(raygenSBT.getAddress());
