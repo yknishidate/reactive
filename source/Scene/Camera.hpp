@@ -12,10 +12,10 @@ struct Camera {
     virtual void processInput() = 0;
     virtual glm::mat4 getView() const = 0;
     virtual glm::mat4 getProj() const = 0;
-    glm::mat4 getInvView() const { return glm::inverse(getView()); }
-    glm::mat4 getInvProj() const { return glm::inverse(getProj()); }
+    virtual glm::mat4 getInvView() const { return glm::inverse(getView()); }
+    virtual glm::mat4 getInvProj() const { return glm::inverse(getProj()); }
 
-    const App* app;
+    const App* app = nullptr;
     float aspect = 1.0f;
     float zNear = 0.01f;
     float zFar = 10000.0f;

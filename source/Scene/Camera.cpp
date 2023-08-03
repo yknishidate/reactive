@@ -2,10 +2,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
-#include "common.hpp"
-
 void FPSCamera::processInput() {
-    RV_ASSERT(app, "app is nullptr");
+    if (!app) {
+        return;
+    }
 
     static glm::vec2 lastCursorPos{0.0f};
     glm::vec2 cursorPos = app->getCursorPos();
@@ -51,7 +51,9 @@ glm::vec3 FPSCamera::getFront() const {
 }
 
 void OrbitalCamera::processInput() {
-    RV_ASSERT(app, "app is nullptr");
+    if (!app) {
+        return;
+    }
 
     static glm::vec2 lastCursorPos{0.0f};
     glm::vec2 cursorPos = app->getCursorPos();
