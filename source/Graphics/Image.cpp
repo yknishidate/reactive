@@ -210,7 +210,7 @@ Image Image::loadFromFileHDR(const Context& context, const std::string& filepath
 }
 
 void Image::generateMipmaps() {
-    REACTIVE_ASSERT(mipLevels > 1,
+    RV_ASSERT(mipLevels > 1,
                     "mipLevels is not set greater than 1 when the image is created.");
 
     // Check if image format supports linear blitting
@@ -223,10 +223,10 @@ void Image::generateMipmaps() {
         filter = vk::Filter::eNearest;
     }
     if (!(formatProperties.optimalTilingFeatures & vk::FormatFeatureFlagBits::eBlitSrc)) {
-        REACTIVE_ASSERT(false, "This format does not suppoprt blitting: {}", vk::to_string(format));
+        RV_ASSERT(false, "This format does not suppoprt blitting: {}", vk::to_string(format));
     }
     if (!(formatProperties.optimalTilingFeatures & vk::FormatFeatureFlagBits::eBlitDst)) {
-        REACTIVE_ASSERT(false, "This format does not suppoprt blitting: {}", vk::to_string(format));
+        RV_ASSERT(false, "This format does not suppoprt blitting: {}", vk::to_string(format));
     }
 
     // TODO: support 3D

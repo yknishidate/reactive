@@ -6,9 +6,9 @@ constexpr char YELLOW_COLOR[] = "\033[33m";
 constexpr char RESET_COLOR[] = "\033[0m";
 
 #ifdef NDEBUG
-#define REACTIVE_ASSERT(condition, ...)
+#define RV_ASSERT(condition, ...)
 #else
-#define REACTIVE_ASSERT(condition, ...)                                                     \
+#define RV_ASSERT(condition, ...)                                                     \
     if (!(condition)) {                                                                     \
         spdlog::critical("Assertion {}`" #condition                                         \
                          "`{} failed. {}{}{}\n           File: {}\n           Line: {}",    \

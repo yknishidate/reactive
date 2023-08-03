@@ -50,22 +50,6 @@ public:
     virtual void onUpdate() {}
     virtual void onRender(const CommandBuffer& commandBuffer) {}
 
-    // void copyToBackImage(vk::CommandBuffer commandBuffer, Image& source) {
-    //     vk::ImageCopy copyRegion;
-    //     copyRegion.setSrcSubresource({vk::ImageAspectFlagBits::eColor, 0, 0, 1});
-    //     copyRegion.setDstSubresource({vk::ImageAspectFlagBits::eColor, 0, 0, 1});
-    //     copyRegion.setExtent({width, height, 1});
-
-    //    vk::Image backImage = getCurrentColorImage();
-    //    source.setImageLayout(commandBuffer, vk::ImageLayout::eTransferSrcOptimal);
-    //    Image::setImageLayout(commandBuffer, backImage, vk::ImageLayout::eTransferDstOptimal);
-    //    commandBuffer.copyImage(source.getImage(), vk::ImageLayout::eTransferSrcOptimal,
-    //    backImage,
-    //                            vk::ImageLayout::eTransferDstOptimal, copyRegion);
-    //    source.setImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
-    //    Image::setImageLayout(commandBuffer, backImage, vk::ImageLayout::ePresentSrcKHR);
-    //}
-
     // Getter
     vk::Image getCurrentColorImage() const { return swapchainImages[frameIndex]; }
     vk::Image getDefaultDepthImage() const { return depthImage.get(); }
@@ -135,7 +119,7 @@ protected:
     }
 
     // GLFW
-    GLFWwindow* window;
+    GLFWwindow* window = nullptr;
     glm::vec2 mouseWheel{0.0};
 
     // Context

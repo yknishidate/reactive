@@ -58,7 +58,7 @@ DescriptorSet::DescriptorSet(const Context* context, DescriptorSetCreateInfo cre
         addResources(shader);
     }
     for (auto& [name, buffer] : createInfo.buffers) {
-        REACTIVE_ASSERT(bindingMap.contains(name), "bindingMap does not contain key: {}", name);
+        RV_ASSERT(bindingMap.contains(name), "bindingMap does not contain key: {}", name);
         bindingMap[name].descriptorCount = buffer.size();
 
         std::vector<vk::DescriptorBufferInfo> infos;
@@ -69,7 +69,7 @@ DescriptorSet::DescriptorSet(const Context* context, DescriptorSetCreateInfo cre
         writes.emplace_back(bindingMap[name], infos);
     }
     for (auto& [name, image] : createInfo.images) {
-        REACTIVE_ASSERT(bindingMap.contains(name), "bindingMap does not contain key: {}", name);
+        RV_ASSERT(bindingMap.contains(name), "bindingMap does not contain key: {}", name);
         bindingMap[name].descriptorCount = image.size();
 
         std::vector<vk::DescriptorImageInfo> infos;
@@ -80,7 +80,7 @@ DescriptorSet::DescriptorSet(const Context* context, DescriptorSetCreateInfo cre
         writes.emplace_back(bindingMap[name], infos);
     }
     for (auto& [name, accel] : createInfo.accels) {
-        REACTIVE_ASSERT(bindingMap.contains(name), "bindingMap does not contain key: {}", name);
+        RV_ASSERT(bindingMap.contains(name), "bindingMap does not contain key: {}", name);
         bindingMap[name].descriptorCount = accel.size();
 
         std::vector<vk::WriteDescriptorSetAccelerationStructureKHR> infos;
