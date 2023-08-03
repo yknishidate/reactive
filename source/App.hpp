@@ -26,6 +26,21 @@
 #include "Timer/CPUTimer.hpp"
 #include "Timer/GPUTimer.hpp"
 
+struct StructureChain {
+    template <typename T>
+    void add(T& structure) {
+        if (!pFirst) {
+            pFirst = &structure;
+        } else {
+            *ppNext = &structure;
+        }
+        ppNext = &structure.pNext;
+    }
+
+    void* pFirst = nullptr;
+    void** ppNext = nullptr;
+};
+
 struct AppCreateInfo {
     // Window
     uint32_t width = 0;

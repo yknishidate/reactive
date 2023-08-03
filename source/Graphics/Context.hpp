@@ -69,7 +69,7 @@ public:
                                  vk::MemoryPropertyFlags memoryProp) const;
 
     template <typename T>
-    T getPhysicalDeviceProperties2() {
+    T getPhysicalDeviceProperties2() const {
         vk::PhysicalDeviceProperties2 props2;
         T props;
         props2.pNext = &props;
