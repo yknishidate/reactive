@@ -86,20 +86,15 @@ HostBuffer::HostBuffer(const Context* context, BufferCreateInfo createInfo)
 }
 
 void HostBuffer::copy(const void* data) {
-    map();
-    std::memcpy(mapped, data, size);
+    std::memcpy(map(), data, size);
 }
 
 void* HostBuffer::map() {
-    if (!mapped) {
-        mapped = context->getDevice().mapMemory(*memory, 0, VK_WHOLE_SIZE);
-    }
-    return mapped;
+    return context->getDevice().mapMemory(*memory, 0, VK_WHOLE_SIZE);
 }
 
 void HostBuffer::unmap() {
     context->getDevice().unmapMemory(*memory);
-    mapped = nullptr;
 }
 
 DeviceBuffer::DeviceBuffer(const Context* context, BufferCreateInfo createInfo)
