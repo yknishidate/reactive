@@ -112,9 +112,6 @@ TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo)
         .size = buildSizesInfo.accelerationStructureSize,
     });
 
-    spdlog::info("buildSizesInfo.accelerationStructureSize: {}",
-                 buildSizesInfo.accelerationStructureSize);
-
     accel = context->getDevice().createAccelerationStructureKHRUnique(
         vk::AccelerationStructureCreateInfoKHR{}
             .setBuffer(buffer.getBuffer())

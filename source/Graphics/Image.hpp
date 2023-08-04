@@ -9,8 +9,8 @@ struct ImageCreateInfo {
     vk::ImageUsageFlags usage;
     vk::ImageLayout initialLayout;
     vk::ImageAspectFlags aspect;
-    uint32_t width;
-    uint32_t height;
+    uint32_t width = 1;
+    uint32_t height = 1;
     uint32_t depth = 1;
     vk::Format format = vk::Format::eB8G8R8A8Unorm;
     // if mipLevels is std::numeric_limits<uint32_t>::max(), then it's set to max level
