@@ -9,7 +9,7 @@ namespace File {
 std::string readFile(const std::filesystem::path& path) {
     std::ifstream input_file{path};
     if (!input_file.is_open()) {
-        spdlog::error("Failed to open file: " + path.string());
+        throw std::runtime_error("Failed to open file: " + path.string());
     }
     return {(std::istreambuf_iterator<char>{input_file}), std::istreambuf_iterator<char>{}};
 }
