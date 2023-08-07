@@ -72,15 +72,15 @@ TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo)
       buildFlags{createInfo.buildFlags},
       buildType{createInfo.buildType} {
     std::vector<vk::AccelerationStructureInstanceKHR> instances;
-    for (auto& [bottomAccel, transform] : createInfo.bottomAccels) {
+    for (auto& instance : createInfo.accelInstances) {
         instances.push_back(
             vk::AccelerationStructureInstanceKHR()
-                .setTransform(toVkMatrix(transform))
+                .setTransform(toVkMatrix(instance.transform))
                 .setInstanceCustomIndex(0)
                 .setMask(0xFF)
-                .setInstanceShaderBindingTableRecordOffset(0)
+                .setInstanceShaderBindingTableRecordOffset(instance.sbtOffset)
                 .setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable)
-                .setAccelerationStructureReference(bottomAccel->getBufferAddress()));
+                .setAccelerationStructureReference(instance.bottomAccel.getBufferAddress()));
     }
 
     instanceBuffer = context->createDeviceBuffer({
@@ -137,18 +137,17 @@ TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo)
     });
 }
 
-void TopAccel::update(vk::CommandBuffer commandBuffer,
-                      ArrayProxy<std::pair<const BottomAccel*, glm::mat4>> bottomAccels) {
+void TopAccel::update(vk::CommandBuffer commandBuffer, ArrayProxy<AccelInstance> accelInstances) {
     std::vector<vk::AccelerationStructureInstanceKHR> instances;
-    for (auto& [bottomAccel, transform] : bottomAccels) {
+    for (auto& instance : accelInstances) {
         instances.push_back(
             vk::AccelerationStructureInstanceKHR()
-                .setTransform(toVkMatrix(transform))
+                .setTransform(toVkMatrix(instance.transform))
                 .setInstanceCustomIndex(0)
                 .setMask(0xFF)
-                .setInstanceShaderBindingTableRecordOffset(0)
+                .setInstanceShaderBindingTableRecordOffset(instance.sbtOffset)
                 .setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable)
-                .setAccelerationStructureReference(bottomAccel->getBufferAddress()));
+                .setAccelerationStructureReference(instance.bottomAccel.getBufferAddress()));
     }
 
     instanceBuffer.copy(instances.data());
