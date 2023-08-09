@@ -10,11 +10,11 @@ add_executable(${TARGET_NAME} ${sources} ${headers} ${shaders})
 source_group("Shader Files" FILES ${shaders})
 
 target_link_libraries(${TARGET_NAME} PRIVATE 
-    Reactive
+    reactive
 )
 
 target_include_directories(${TARGET_NAME} PUBLIC
-    ${PROJECT_SOURCE_DIR}/source
+    ${PROJECT_SOURCE_DIR}/include
 )
 
 target_compile_definitions(${TARGET_NAME} PRIVATE
