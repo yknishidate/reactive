@@ -1,4 +1,6 @@
-#include "App.hpp"
+#include <reactive/App.hpp>
+
+using namespace rv;
 
 std::string vertCode = R"(
 #version 450
@@ -30,25 +32,26 @@ public:
           }) {}
 
     void onStart() override {
-        Shader vertShader = context.createShader({
-            .glslCode = vertCode,
+        std::vector<Shader> shaders(2);
+        shaders[0] = context.createShader({
+            .code = Compiler::compileToSPV(vertCode, vk::ShaderStageFlagBits::eVertex),
             .stage = vk::ShaderStageFlagBits::eVertex,
         });
 
-        Shader fragShader = context.createShader({
-            .glslCode = fragCode,
+        shaders[1] = context.createShader({
+            .code = Compiler::compileToSPV(fragCode, vk::ShaderStageFlagBits::eFragment),
             .stage = vk::ShaderStageFlagBits::eFragment,
         });
 
         descSet = context.createDescriptorSet({
-            .shaders = {&vertShader, &fragShader},
+            .shaders = shaders,
         });
 
         pipeline = context.createGraphicsPipeline({
             .renderPass = getDefaultRenderPass(),
             .descSetLayout = descSet.getLayout(),
-            .vertex = {.shader = vertShader},
-            .fragment = {.shader = fragShader},
+            .vertexShader = shaders[0],
+            .fragmentShader = shaders[1],
             .viewport = "dynamic",
             .scissor = "dynamic",
         });
