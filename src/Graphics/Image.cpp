@@ -1,5 +1,5 @@
-#include "Image.hpp"
-#include "Buffer.hpp"
+#include "Graphics/Image.hpp"
+#include "Graphics/Buffer.hpp"
 #include "common.hpp"
 
 namespace {
@@ -210,8 +210,7 @@ Image Image::loadFromFileHDR(const Context& context, const std::string& filepath
 }
 
 void Image::generateMipmaps() {
-    RV_ASSERT(mipLevels > 1,
-                    "mipLevels is not set greater than 1 when the image is created.");
+    RV_ASSERT(mipLevels > 1, "mipLevels is not set greater than 1 when the image is created.");
 
     // Check if image format supports linear blitting
     vk::Filter filter = vk::Filter::eLinear;

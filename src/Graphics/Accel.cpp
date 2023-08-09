@@ -1,4 +1,4 @@
-#include "Accel.hpp"
+#include "Graphics/Accel.hpp"
 
 namespace {
 vk::TransformMatrixKHR toVkMatrix(const glm::mat4& matrix) {

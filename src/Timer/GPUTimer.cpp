@@ -1,4 +1,4 @@
-#include "GPUTimer.hpp"
+#include "Timer/GPUTimer.hpp"
 
 GPUTimer::GPUTimer(const Context* context, GPUTimerCreateInfo createInfo) : context{context} {
     vk::QueryPoolCreateInfo queryPoolInfo;

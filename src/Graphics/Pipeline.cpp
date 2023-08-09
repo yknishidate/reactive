@@ -1,10 +1,12 @@
-#include "Pipeline.hpp"
+#include "Graphics/Pipeline.hpp"
+
 #include <spdlog/spdlog.h>
 #include <regex>
+
 #include "Compiler/Compiler.hpp"
 #include "Graphics/ArrayProxy.hpp"
-#include "Image.hpp"
-#include "RenderPass.hpp"
+#include "Graphics/Image.hpp"
+#include "Graphics/RenderPass.hpp"
 #include "Scene/Mesh.hpp"
 #include "Scene/Object.hpp"
 

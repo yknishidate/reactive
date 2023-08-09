@@ -1,4 +1,4 @@
-#include "Buffer.hpp"
+#include "Graphics/Buffer.hpp"
 
 Buffer::Buffer(const Context* context,
                BufferUsage usage,

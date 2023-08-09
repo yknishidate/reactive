@@ -3,11 +3,11 @@ cmake_minimum_required(VERSION 3.16)
 project(reactive LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 
-file(GLOB_RECURSE sources source/*.cpp)
-file(GLOB_RECURSE headers source/*.hpp)
+file(GLOB_RECURSE sources src/*.cpp)
+file(GLOB_RECURSE headers include/reactive/*.hpp)
 add_library(${PROJECT_NAME} ${sources} ${headers})
 
-target_precompile_headers(${PROJECT_NAME} PUBLIC source/pch.h)
+target_precompile_headers(${PROJECT_NAME} PUBLIC include/reactive/pch.h)
 
 find_package(glm CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
@@ -63,7 +63,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${VULKAN_INCLUDE}/
     ${VULKAN_INCLUDE}/spirv_cross
     ${VULKAN_INCLUDE}/glslang/SPIRV
-    ${PROJECT_SOURCE_DIR}/source
+    ${PROJECT_SOURCE_DIR}/include/reactive
 )
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE

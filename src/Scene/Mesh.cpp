@@ -1,4 +1,4 @@
-#include "Mesh.hpp"
+#include "Scene/Mesh.hpp"
 
 Mesh::Mesh(const Context* context, MeshCreateInfo createInfo)
     : context{context}, vertices{createInfo.vertices}, indices{createInfo.indices} {

@@ -1,4 +1,4 @@
-#include "Shader.hpp"
+#include "Graphics/Shader.hpp"
 
 Shader::Shader(const Context* context, ShaderCreateInfo createInfo)
     : shaderStage{createInfo.stage}, spvCode(createInfo.code) {
