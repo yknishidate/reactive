@@ -5,6 +5,7 @@
 #include <fstream>
 #include <regex>
 
+namespace rv {
 namespace File {
 std::string readFile(const std::filesystem::path& path) {
     std::ifstream input_file{path};
@@ -318,3 +319,4 @@ std::vector<std::string> getAllIncludedFiles(const std::string& code) {
     return includes;
 }
 }  // namespace Compiler
+}  // namespace rv

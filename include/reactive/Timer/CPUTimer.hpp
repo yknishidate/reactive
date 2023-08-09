@@ -1,6 +1,7 @@
 #pragma once
 #include <chrono>
 
+namespace rv {
 class CPUTimer {
 public:
     CPUTimer() { startTime = std::chrono::steady_clock::now(); }
@@ -15,3 +16,4 @@ public:
 private:
     std::chrono::time_point<std::chrono::steady_clock> startTime;
 };
+}  // namespace rv

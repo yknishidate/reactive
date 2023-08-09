@@ -9,6 +9,7 @@ vk::TransformMatrixKHR toVkMatrix(const glm::mat4& matrix) {
 }
 }  // namespace
 
+namespace rv {
 BottomAccel::BottomAccel(const Context* context, BottomAccelCreateInfo createInfo)
     : context{context} {
     vk::AccelerationStructureGeometryTrianglesDataKHR trianglesData;
@@ -191,3 +192,4 @@ void TopAccel::update(vk::CommandBuffer commandBuffer, ArrayProxy<AccelInstance>
     dependencyInfo.setPMemoryBarriers(&memoryBarrier);
     commandBuffer.pipelineBarrier2(dependencyInfo);
 }
+}  // namespace rv

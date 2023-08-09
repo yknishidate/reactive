@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include "App.hpp"
 
+namespace rv {
 struct Camera {
     Camera() = default;
     Camera(const App* app, uint32_t width, uint32_t height)
@@ -57,3 +58,4 @@ struct OrbitalCamera : public Camera {
     float phi = 0;
     float theta = 0;
 };
+}  // namespace rv

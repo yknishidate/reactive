@@ -1,5 +1,6 @@
 #include "Timer/GPUTimer.hpp"
 
+namespace rv {
 GPUTimer::GPUTimer(const Context* context, GPUTimerCreateInfo createInfo) : context{context} {
     vk::QueryPoolCreateInfo queryPoolInfo;
     queryPoolInfo.setQueryType(vk::QueryType::eTimestamp);
@@ -32,3 +33,4 @@ float GPUTimer::elapsedInNano() {
 float GPUTimer::elapsedInMilli() {
     return elapsedInNano() / 1000000.0f;
 }
+}  // namespace rv

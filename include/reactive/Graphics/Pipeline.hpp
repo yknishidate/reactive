@@ -6,8 +6,8 @@
 #include "DescriptorSet.hpp"
 #include "Scene/Mesh.hpp"
 
+namespace rv {
 class Image;
-class Scene;
 
 class Pipeline {
 public:
@@ -224,3 +224,4 @@ private:
     uint32_t missCount = 0;
     uint32_t hitCount = 0;
 };
+}  // namespace rv

@@ -1,5 +1,6 @@
 #include "Scene/Mesh.hpp"
 
+namespace rv {
 Mesh::Mesh(const Context* context, MeshCreateInfo createInfo)
     : context{context}, vertices{createInfo.vertices}, indices{createInfo.indices} {
     vertexBuffer = context->createDeviceBuffer({
@@ -191,3 +192,4 @@ Mesh::Mesh(const Context* context, CubeLineMeshCreateInfo createInfo) : context{
         .data = indices.data(),
     });
 }
+}  // namespace rv

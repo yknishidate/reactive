@@ -8,6 +8,7 @@
 #include "Image.hpp"
 #include "Shader.hpp"
 
+namespace rv {
 class WriteDescriptorSet {
 public:
     // Buffer
@@ -71,3 +72,4 @@ private:
     std::unordered_map<std::string, vk::DescriptorSetLayoutBinding> bindingMap;
     std::vector<WriteDescriptorSet> writes;
 };
+}  // namespace rv

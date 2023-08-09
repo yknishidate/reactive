@@ -3,6 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
+namespace rv {
 void FPSCamera::processInput() {
     if (!app) {
         return;
@@ -77,3 +78,4 @@ glm::vec3 OrbitalCamera::getPosition() const {
     glm::mat4 rotY = glm::rotate(glm::radians(phi), glm::vec3(0, 1, 0));
     return glm::vec3(rotY * rotX * glm::vec4{0, 0, distance, 1});
 }
+}  // namespace rv

@@ -3,6 +3,7 @@
 #include "ArrayProxy.hpp"
 #include "Buffer.hpp"
 
+namespace rv {
 struct BottomAccelCreateInfo {
     const DeviceBuffer& vertexBuffer;
     const DeviceBuffer& indexBuffer;
@@ -66,3 +67,4 @@ private:
     vk::BuildAccelerationStructureFlagsKHR buildFlags;
     vk::AccelerationStructureBuildTypeKHR buildType;
 };
+}  // namespace rv

@@ -8,6 +8,7 @@ uint32_t calculateMipLevels(uint32_t width, uint32_t height) {
 }
 }  // namespace
 
+namespace rv {
 Image::Image(const Context* context, ImageCreateInfo createInfo)
     : context{context},
       width{createInfo.width},
@@ -660,3 +661,4 @@ void Image::setImageLayout(vk::CommandBuffer commandBuffer,
 //     height = h;
 //     return data;
 // }
+}  // namespace rv

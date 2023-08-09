@@ -1,6 +1,7 @@
 #pragma once
 #include <spdlog/spdlog.h>
 
+namespace rv {
 constexpr char RED_COLOR[] = "\033[31m";
 constexpr char YELLOW_COLOR[] = "\033[33m";
 constexpr char RESET_COLOR[] = "\033[0m";
@@ -8,7 +9,7 @@ constexpr char RESET_COLOR[] = "\033[0m";
 #ifdef NDEBUG
 #define RV_ASSERT(condition, ...)
 #else
-#define RV_ASSERT(condition, ...)                                                     \
+#define RV_ASSERT(condition, ...)                                                           \
     if (!(condition)) {                                                                     \
         spdlog::critical("Assertion {}`" #condition                                         \
                          "`{} failed. {}{}{}\n           File: {}\n           Line: {}",    \
@@ -17,3 +18,4 @@ constexpr char RESET_COLOR[] = "\033[0m";
         std::terminate();                                                                   \
     }
 #endif
+}  // namespace rv

@@ -11,6 +11,7 @@
 #include "Scene/Mesh.hpp"
 #include "Timer/GPUTimer.hpp"
 
+namespace rv {
 void CommandBuffer::bindDescriptorSet(DescriptorSet& descSet, const Pipeline& pipeline) const {
     descSet.bind(commandBuffer, pipeline.getPipelineBindPoint(), pipeline.getPipelineLayout());
 }
@@ -235,3 +236,4 @@ void CommandBuffer::beginTimestamp(const GPUTimer& gpuTimer) const {
 void CommandBuffer::endTimestamp(const GPUTimer& gpuTimer) const {
     gpuTimer.endTimestamp(commandBuffer);
 }
+}  // namespace rv

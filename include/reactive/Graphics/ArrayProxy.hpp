@@ -1,5 +1,6 @@
 #pragma once
 
+namespace rv {
 template <typename T>
 class ArrayProxy {
 public:
@@ -70,3 +71,4 @@ private:
     uint32_t m_count;
     T const* m_ptr;
 };
+}  // namespace rv

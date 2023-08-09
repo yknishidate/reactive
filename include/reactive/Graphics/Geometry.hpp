@@ -1,6 +1,7 @@
 #pragma once
 #include "Buffer.hpp"
 
+namespace rv {
 class Geometry {
 public:
     Geometry() = default;
@@ -34,3 +35,4 @@ public:
 
     void update(vk::AccelerationStructureGeometryInstancesDataKHR instances);
 };
+}  // namespace rv

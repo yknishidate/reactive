@@ -5,6 +5,7 @@
 #include "Compiler/Compiler.hpp"
 #include "common.hpp"
 
+namespace rv {
 WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
                                        vk::DescriptorBufferInfo bufferInfo)
     : WriteDescriptorSet{binding} {
@@ -169,3 +170,4 @@ void DescriptorSet::updateBindingMap(const spirv_cross::Resource& resource,
                 .setStageFlags(stage);
     }
 }
+}  // namespace rv

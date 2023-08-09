@@ -2,6 +2,7 @@
 #include <vulkan/vulkan.hpp>
 #include "Context.hpp"
 
+namespace rv {
 class Buffer;
 class HostBuffer;
 
@@ -88,3 +89,4 @@ private:
     uint32_t mipLevels = 1;
     vk::ImageAspectFlags aspectMask;
 };
+}  // namespace rv

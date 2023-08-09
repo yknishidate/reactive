@@ -9,6 +9,7 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
 
+namespace rv {
 App::App(AppCreateInfo createInfo) : width{createInfo.width}, height{createInfo.height} {
     spdlog::set_pattern("[%^%l%$] %v");
 
@@ -527,3 +528,4 @@ void App::windowSizeCallback(GLFWwindow* window, int width, int height) {
     app->height = height;
     app->onWindowSize(width, height);
 }
+}  // namespace rv

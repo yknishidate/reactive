@@ -10,6 +10,7 @@
 #include "Scene/Mesh.hpp"
 #include "Scene/Object.hpp"
 
+namespace rv {
 GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreateInfo createInfo)
     : Pipeline{context} {
     shaderStageFlags = vk::ShaderStageFlagBits::eAllGraphics;
@@ -461,3 +462,4 @@ void RayTracingPipeline::traceRays(vk::CommandBuffer commandBuffer,
                                    uint32_t countZ) const {
     commandBuffer.traceRaysKHR(raygenRegion, missRegion, hitRegion, {}, countX, countY, countZ);
 }
+}  // namespace rv

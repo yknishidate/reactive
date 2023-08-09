@@ -1,5 +1,6 @@
 #include "Graphics/Buffer.hpp"
 
+namespace rv {
 Buffer::Buffer(const Context* context,
                BufferUsage usage,
                vk::MemoryPropertyFlags memoryProp,
@@ -120,3 +121,4 @@ void DeviceBuffer::copy(const void* data) {
         commandBuffer.copyBuffer(stagingBuffer.getBuffer(), *buffer, region);
     });
 }
+}  // namespace rv

@@ -9,6 +9,7 @@
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
+namespace rv {
 void Context::initInstance(bool enableValidation,
                            const std::vector<const char*>& layers,
                            const std::vector<const char*>& instanceExtensions,
@@ -224,3 +225,4 @@ TopAccel Context::createTopAccel(TopAccelCreateInfo createInfo) const {
 GPUTimer Context::createGPUTimer(GPUTimerCreateInfo createInfo) const {
     return {this, createInfo};
 }
+}  // namespace rv

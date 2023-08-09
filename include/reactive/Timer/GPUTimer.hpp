@@ -1,6 +1,7 @@
 #pragma once
 #include "Graphics/Context.hpp"
 
+namespace rv {
 struct GPUTimerCreateInfo {};
 
 class GPUTimer {
@@ -18,3 +19,4 @@ private:
     vk::UniqueQueryPool queryPool;
     float timestampPeriod;
 };
+}  // namespace rv

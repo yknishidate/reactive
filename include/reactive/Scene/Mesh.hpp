@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_SWIZZLE
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -8,6 +10,7 @@
 
 #include "Graphics/Buffer.hpp"
 
+namespace rv {
 struct VertexAttributeDescription {
     uint32_t offset;
     vk::Format format;
@@ -30,16 +33,6 @@ struct Vertex {
         return pos == other.pos && normal == other.normal && texCoord == other.texCoord;
     }
 };
-
-namespace std {
-template <>
-struct hash<Vertex> {
-    size_t operator()(const Vertex& vertex) const {
-        return ((hash<glm::vec3>()(vertex.pos) ^ (hash<glm::vec3>()(vertex.normal) << 1)) >> 1) ^
-               (hash<glm::vec2>()(vertex.texCoord) << 1);
-    }
-};
-}  // namespace std
 
 // struct Material {
 //     glm::vec3 ambient{1.0};
@@ -94,3 +87,14 @@ struct Mesh {
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
 };
+}  // namespace rv
+
+namespace std {
+template <>
+struct hash<rv::Vertex> {
+    size_t operator()(const rv::Vertex& vertex) const {
+        return ((hash<glm::vec3>()(vertex.pos) ^ (hash<glm::vec3>()(vertex.normal) << 1)) >> 1) ^
+               (hash<glm::vec2>()(vertex.texCoord) << 1);
+    }
+};
+}  // namespace std

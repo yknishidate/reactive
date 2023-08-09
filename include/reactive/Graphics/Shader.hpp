@@ -7,6 +7,7 @@
 #include "Compiler/Compiler.hpp"
 #include "Context.hpp"
 
+namespace rv {
 struct ShaderCreateInfo {
     const std::vector<uint32_t>& code;
     vk::ShaderStageFlagBits stage;
@@ -27,3 +28,4 @@ private:
     std::vector<uint32_t> spvCode;
     vk::ShaderStageFlagBits shaderStage;
 };
+}  // namespace rv

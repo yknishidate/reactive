@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 
+namespace rv {
 namespace File {
 std::string readFile(const std::filesystem::path& path);
 
@@ -50,3 +51,4 @@ std::vector<uint32_t> compileToSPV(const std::string& glslCode,
 
 std::vector<std::string> getAllIncludedFiles(const std::string& code);
 }  // namespace Compiler
+}  // namespace rv

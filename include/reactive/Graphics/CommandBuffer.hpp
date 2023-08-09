@@ -2,6 +2,7 @@
 #include "Buffer.hpp"
 #include "Context.hpp"
 
+namespace rv {
 class App;
 class Image;
 class Pipeline;
@@ -173,3 +174,4 @@ public:
     const Context* context;
     vk::CommandBuffer commandBuffer;
 };
+}  // namespace rv

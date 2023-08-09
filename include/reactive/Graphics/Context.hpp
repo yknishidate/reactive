@@ -8,6 +8,7 @@
 
 #include <vulkan/vulkan.hpp>
 
+namespace rv {
 struct ImageCreateInfo;
 struct BufferCreateInfo;
 struct MeshCreateInfo;
@@ -121,3 +122,4 @@ private:
     vk::UniqueCommandPool commandPool;
     vk::UniqueDescriptorPool descriptorPool;
 };
+}  // namespace rv

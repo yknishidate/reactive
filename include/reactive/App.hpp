@@ -26,6 +26,7 @@
 #include "Timer/CPUTimer.hpp"
 #include "Timer/GPUTimer.hpp"
 
+namespace rv {
 struct StructureChain {
     template <typename T>
     void add(T& structure) {
@@ -165,3 +166,4 @@ protected:
     std::vector<vk::UniqueFramebuffer> framebuffers{};
     std::vector<vk::UniqueFence> fences{};
 };
+}  // namespace rv

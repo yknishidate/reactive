@@ -1,6 +1,7 @@
 #pragma once
 #include "Context.hpp"
 
+namespace rv {
 enum class BufferUsage {
     Vertex,
     Index,
@@ -64,3 +65,4 @@ public:
 
     void copy(const void* data);
 };
+}  // namespace rv
