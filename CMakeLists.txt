@@ -63,6 +63,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${VULKAN_INCLUDE}/
     ${VULKAN_INCLUDE}/spirv_cross
     ${VULKAN_INCLUDE}/glslang/SPIRV
+)
+
+target_include_directories(${PROJECT_NAME} PRIVATE
     ${PROJECT_SOURCE_DIR}/include/reactive
 )
 
