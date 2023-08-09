@@ -1,4 +1,6 @@
-#include "App.hpp"
+#include <reactive/App.hpp>
+
+using namespace rv;
 
 class HelloApp : public App {
 public:
@@ -11,23 +13,25 @@ public:
 
     void onStart() override {
         image = context.createImage({
-            .usage = ImageUsage::GeneralStorage,
+            .usage = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferSrc,
+            .initialLayout = vk::ImageLayout::eGeneral,
+            .aspect = vk::ImageAspectFlagBits::eColor,
             .width = width,
             .height = height,
         });
 
         Shader compShader = context.createShader({
-            .glslCode = File::readFile(SHADER_DIR + "hello_compute.comp"),
+            .code = Compiler::compileToSPV(SHADER_DIR + "hello_compute.comp"),
             .stage = vk::ShaderStageFlagBits::eCompute,
         });
 
         descSet = context.createDescriptorSet({
-            .shaders = {&compShader},
+            .shaders = compShader,
             .images = {{"outputImage", image}},
         });
 
         pipeline = context.createComputePipeline({
-            .compute = {.shader = compShader},
+            .computeShader = compShader,
             .descSetLayout = descSet.getLayout(),
             .pushSize = sizeof(int),
         });
