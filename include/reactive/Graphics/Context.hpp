@@ -113,6 +113,26 @@ private:
         return VK_FALSE;
     }
 
+    void checkDeviceExtensionSupport(const std::vector<const char*>& requiredExtensions) const {
+        std::vector<vk::ExtensionProperties> availableExtensions =
+            physicalDevice.enumerateDeviceExtensionProperties();
+        std::vector<std::string> requiredExtensionNames(requiredExtensions.begin(),
+                                                        requiredExtensions.end());
+
+        for (const auto& extension : availableExtensions) {
+            std::erase(requiredExtensionNames, extension.extensionName);
+        }
+
+        if (!requiredExtensionNames.empty()) {
+            std::string message =
+                "The following required extensions are not supported by the device:\n";
+            for (const auto& name : requiredExtensionNames) {
+                message.append("\t" + name + "\n");
+            }
+            throw std::runtime_error(message);
+        }
+    }
+
     vk::UniqueInstance instance;
     vk::UniqueDebugUtilsMessengerEXT debugMessenger;
     vk::UniqueDevice device;

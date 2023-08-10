@@ -77,6 +77,8 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
     queueInfo.setQueueCount(1);
     queueInfo.setPQueuePriorities(&queuePriority);
 
+    checkDeviceExtensionSupport(deviceExtensions);
+
     vk::DeviceCreateInfo deviceInfo;
     deviceInfo.setQueueCreateInfos(queueInfo);
     deviceInfo.setPEnabledExtensionNames(deviceExtensions);
