@@ -15,7 +15,8 @@ public:
               .height = 720,
               .title = "HelloRayTracing",
               .windowResizable = false,
-              .enableRayTracing = true,
+              .layers = {Layer::Validation},
+              .extensions = {Extension::RayTracing},
           }) {}
 
     void onStart() override {

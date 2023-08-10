@@ -67,6 +67,15 @@ public:
 
     T const* data() const noexcept { return m_ptr; }
 
+    bool contains(const T& x) const noexcept {
+        for (int i = 0; i < m_count; i++) {
+            if (x == m_ptr[i]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 private:
     uint32_t m_count;
     T const* m_ptr;

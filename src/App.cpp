@@ -14,8 +14,7 @@ App::App(AppCreateInfo createInfo) : width{createInfo.width}, height{createInfo.
     spdlog::set_pattern("[%^%l%$] %v");
 
     initGLFW(createInfo.windowResizable, createInfo.title);
-    initVulkan(createInfo.enableValidation, createInfo.enableRayTracing,
-               createInfo.enableMeshShader, createInfo.enableShaderObject);
+    initVulkan(createInfo.layers, createInfo.extensions);
     initImGui();
 }
 
@@ -164,10 +163,9 @@ void App::initGLFW(bool resizable, const char* title) {
     glfwSetWindowSizeCallback(window, windowSizeCallback);
 }
 
-void App::initVulkan(bool enableValidation,
-                     bool enableRayTracing,
-                     bool enableMeshShader,
-                     bool enableShaderObject) {
+void App::initVulkan(ArrayProxy<Layer> requiredLayers, ArrayProxy<Extension> requiredExtensions) {
+    bool enableValidation = requiredLayers.contains(Layer::Validation);
+
     uint32_t glfwExtensionCount = 0;
     const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
     std::vector instanceExtensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
@@ -195,17 +193,17 @@ void App::initVulkan(bool enableValidation,
     std::vector deviceExtensions{
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     };
-    if (enableRayTracing) {
+    if (requiredExtensions.contains(Extension::RayTracing)) {
         deviceExtensions.push_back(VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME);
         deviceExtensions.push_back(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME);
         deviceExtensions.push_back(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
         deviceExtensions.push_back(VK_KHR_RAY_QUERY_EXTENSION_NAME);
         deviceExtensions.push_back(VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME);
     }
-    if (enableMeshShader) {
+    if (requiredExtensions.contains(Extension::MeshShader)) {
         deviceExtensions.push_back(VK_EXT_MESH_SHADER_EXTENSION_NAME);
     }
-    if (enableShaderObject) {
+    if (requiredExtensions.contains(Extension::ShaderObject)) {
         deviceExtensions.push_back(VK_EXT_SHADER_OBJECT_EXTENSION_NAME);
     }
 
@@ -243,18 +241,19 @@ void App::initVulkan(bool enableValidation,
     vk::PhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures{true};
     vk::PhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures{true};
     vk::PhysicalDeviceRayQueryFeaturesKHR rayQueryFeatures{true};
-    if (enableRayTracing) {
+    if (requiredExtensions.contains(Extension::RayTracing)) {
         featuresChain.add(rayTracingPipelineFeatures);
         featuresChain.add(accelerationStructureFeatures);
         featuresChain.add(rayQueryFeatures);
     }
 
     vk::PhysicalDeviceMeshShaderFeaturesEXT meshShaderFeatures{true, true};
-    if (enableMeshShader) {
+    if (requiredExtensions.contains(Extension::MeshShader)) {
         featuresChain.add(meshShaderFeatures);
     }
 
-    context.initDevice(deviceExtensions, deviceFeatures, featuresChain.pFirst, enableRayTracing);
+    context.initDevice(deviceExtensions, deviceFeatures, featuresChain.pFirst,
+                       requiredExtensions.contains(Extension::RayTracing));
 
     createSwapchain();
     createDepthImage();

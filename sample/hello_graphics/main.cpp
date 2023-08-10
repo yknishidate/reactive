@@ -29,6 +29,7 @@ public:
               .width = 1280,
               .height = 720,
               .title = "HelloGraphics",
+              .layers = {Layer::Validation},
           }) {}
 
     void onStart() override {

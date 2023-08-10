@@ -42,6 +42,16 @@ struct StructureChain {
     void** ppNext = nullptr;
 };
 
+enum class Extension {
+    RayTracing,
+    MeshShader,
+    ShaderObject,
+};
+
+enum class Layer {
+    Validation,
+};
+
 struct AppCreateInfo {
     // Window
     uint32_t width = 0;
@@ -50,10 +60,8 @@ struct AppCreateInfo {
     bool windowResizable = true;
 
     // Vulkan
-    bool enableValidation = true;
-    bool enableRayTracing = false;
-    bool enableMeshShader = false;
-    bool enableShaderObject = false;
+    ArrayProxy<Layer> layers;
+    ArrayProxy<Extension> extensions;
 };
 
 class App {
@@ -114,10 +122,7 @@ protected:
     static void windowSizeCallback(GLFWwindow* window, int width, int height);
 
     void initGLFW(bool resizable, const char* title);
-    void initVulkan(bool enableValidation,
-                    bool enableRayTracing,
-                    bool enableMeshShader,
-                    bool enableShaderObject);
+    void initVulkan(ArrayProxy<Layer> requiredLayers, ArrayProxy<Extension> requiredExtensions);
     void initImGui();
 
     void createSwapchain();
