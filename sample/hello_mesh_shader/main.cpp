@@ -1,4 +1,6 @@
-#include "App.hpp"
+#include <reactive/App.hpp>
+
+using namespace rv;
 
 std::string meshCode = R"(
 #version 450
@@ -52,30 +54,32 @@ public:
               .width = 1280,
               .height = 720,
               .title = "HelloGraphics",
-              .enableMeshShader = true,
+              .layers = {Layer::Validation},
+              .extensions = {Extension::MeshShader},
           }) {}
 
     void onStart() override {
-        Shader meshShader = context.createShader({
-            .glslCode = meshCode,
+        std::vector<Shader> shaders(2);
+        shaders[0] = context.createShader({
+            .code = Compiler::compileToSPV(meshCode, vk::ShaderStageFlagBits::eMeshEXT),
             .stage = vk::ShaderStageFlagBits::eMeshEXT,
         });
 
-        Shader fragShader = context.createShader({
-            .glslCode = fragCode,
+        shaders[1] = context.createShader({
+            .code = Compiler::compileToSPV(fragCode, vk::ShaderStageFlagBits::eFragment),
             .stage = vk::ShaderStageFlagBits::eFragment,
         });
 
         descSet = context.createDescriptorSet({
-            .shaders = {&meshShader, &fragShader},
+            .shaders = shaders,
         });
 
         pipeline = context.createMeshShaderPipeline({
             .renderPass = getDefaultRenderPass(),
             .descSetLayout = descSet.getLayout(),
-            .task = {.shader = {}},
-            .mesh = {.shader = meshShader},
-            .fragment = {.shader = fragShader},
+            .taskShader = {},
+            .meshShader = shaders[0],
+            .fragmentShader = shaders[1],
             .viewport = "dynamic",
             .scissor = "dynamic",
         });
