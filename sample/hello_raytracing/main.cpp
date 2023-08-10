@@ -1,4 +1,6 @@
-#include "App.hpp"
+#include <reactive/App.hpp>
+
+using namespace rv;
 
 struct PushConstants {
     glm::mat4 invView{1};
@@ -25,44 +27,49 @@ public:
         });
 
         bottomAccel = context.createBottomAccel({
-            .mesh = &mesh,
+            .vertexBuffer = mesh.vertexBuffer,
+            .indexBuffer = mesh.indexBuffer,
+            .vertexStride = sizeof(Vertex),
+            .vertexCount = static_cast<uint32_t>(mesh.vertices.size()),
+            .triangleCount = mesh.getTriangleCount(),
         });
 
-        topAccel = context.createTopAccel({
-            .bottomAccels = {{&bottomAccel, glm::mat4{1.0}}},
-        });
+        topAccel = context.createTopAccel({.accelInstances = {{bottomAccel}}});
 
         image = context.createImage({
-            .usage = ImageUsage::GeneralStorage,
+            .usage = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferSrc,
+            .initialLayout = vk::ImageLayout::eGeneral,
+            .aspect = vk::ImageAspectFlagBits::eColor,
             .width = width,
             .height = height,
         });
 
-        Shader rgenShader = context.createShader({
-            .glslCode = File::readFile(SHADER_DIR + "hello_raytracing.rgen"),
+        std::vector<Shader> shaders(3);
+        shaders[0] = context.createShader({
+            .code = Compiler::compileToSPV(SHADER_DIR + "hello_raytracing.rgen"),
             .stage = vk::ShaderStageFlagBits::eRaygenKHR,
         });
 
-        Shader missShader = context.createShader({
-            .glslCode = File::readFile(SHADER_DIR + "hello_raytracing.rmiss"),
+        shaders[1] = context.createShader({
+            .code = Compiler::compileToSPV(SHADER_DIR + "hello_raytracing.rmiss"),
             .stage = vk::ShaderStageFlagBits::eMissKHR,
         });
 
-        Shader chitShader = context.createShader({
-            .glslCode = File::readFile(SHADER_DIR + "hello_raytracing.rchit"),
+        shaders[2] = context.createShader({
+            .code = Compiler::compileToSPV(SHADER_DIR + "hello_raytracing.rchit"),
             .stage = vk::ShaderStageFlagBits::eClosestHitKHR,
         });
 
         descSet = context.createDescriptorSet({
-            .shaders = {&rgenShader, &missShader, &chitShader},
+            .shaders = shaders,
             .images = {{"outputImage", image}},
             .accels = {{"topLevelAS", topAccel}},
         });
 
         pipeline = context.createRayTracingPipeline({
-            .rgenShader = &rgenShader,
-            .missShader = &missShader,
-            .chitShader = &chitShader,
+            .rgenShaders = shaders[0],
+            .missShaders = shaders[1],
+            .chitShaders = shaders[2],
             .descSetLayout = descSet.getLayout(),
             .pushSize = sizeof(PushConstants),
         });
