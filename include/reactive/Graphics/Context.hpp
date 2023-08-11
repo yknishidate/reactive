@@ -102,13 +102,10 @@ private:
                   VkDebugUtilsMessageTypeFlagsEXT messageTypes,
                   VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData,
                   void* pUserData) {
-        const std::string message{pCallbackData->pMessage};
-        const std::regex regex{"The Vulkan spec states: "};
-        std::smatch result;
-        if (std::regex_search(message, result, regex)) {
-            spdlog::error("{}\n", message.substr(0, result.position()));
-        } else {
-            spdlog::error("{}\n", message);
+        if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
+            spdlog::warn(pCallbackData->pMessage);
+        } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
+            spdlog::error(pCallbackData->pMessage);
         }
         return VK_FALSE;
     }
