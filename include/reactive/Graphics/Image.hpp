@@ -19,13 +19,22 @@ public:
 
     Image(vk::Image image, vk::ImageView view) : image{image}, view{view} {}
 
-    vk::Image getImage() const { return *image; }
+    ~Image() {
+        if (hasOwnership) {
+            context->getDevice().destroySampler(sampler);
+            context->getDevice().destroyImageView(view);
+            context->getDevice().freeMemory(memory);
+            context->getDevice().destroyImage(image);
+        }
+    }
 
-    vk::ImageView getView() const { return *view; }
+    vk::Image getImage() const { return image; }
 
-    vk::Sampler getSampler() const { return *sampler; }
+    vk::ImageView getView() const { return view; }
 
-    vk::DescriptorImageInfo getInfo() const { return {*sampler, *view, layout}; }
+    vk::Sampler getSampler() const { return sampler; }
+
+    vk::DescriptorImageInfo getInfo() const { return {sampler, view, layout}; }
 
     uint32_t getMipLevels() const { return mipLevels; }
 
@@ -53,10 +62,11 @@ public:
 
 private:
     const Context* context;
-    vk::UniqueImage image;
-    vk::UniqueDeviceMemory memory;
-    vk::UniqueImageView view;
-    vk::UniqueSampler sampler;
+    vk::Image image;
+    vk::DeviceMemory memory;
+    vk::ImageView view;
+    vk::Sampler sampler;
+    bool hasOwnership = false;
 
     vk::ImageLayout layout = vk::ImageLayout::eUndefined;
     vk::Format format;

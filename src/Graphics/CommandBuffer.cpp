@@ -57,28 +57,29 @@ void CommandBuffer::dispatchIndirect(BufferHandle buffer, vk::DeviceSize offset)
 //     image.clearColor(commandBuffer, color);
 // }
 
-void CommandBuffer::clearColorImage(vk::Image image, std::array<float, 4> color) const {
+void CommandBuffer::clearColorImage(ImageHandle image, std::array<float, 4> color) const {
     // TODO: Fix vk::ImageLayout::eUndefined
-    Image::transitionLayout(commandBuffer, image, vk::ImageLayout::eUndefined,
-                                 vk::ImageLayout::eTransferDstOptimal,
-                                 vk::ImageAspectFlagBits::eColor, 1);
+    Image::transitionLayout(commandBuffer, image->getImage(), vk::ImageLayout::eUndefined,
+                            vk::ImageLayout::eTransferDstOptimal, vk::ImageAspectFlagBits::eColor,
+                            1);
     commandBuffer.clearColorImage(
-        image, vk::ImageLayout::eTransferDstOptimal, vk::ClearColorValue{color},
+        image->getImage(), vk::ImageLayout::eTransferDstOptimal, vk::ClearColorValue{color},
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1});
 }
 
-void CommandBuffer::clearDepthStencilImage(vk::Image image, float depth, uint32_t stencil) const {
+void CommandBuffer::clearDepthStencilImage(ImageHandle image, float depth, uint32_t stencil) const {
     // TODO: Fix vk::ImageLayout::eUndefined
-    Image::transitionLayout(commandBuffer, image, vk::ImageLayout::eUndefined,
-                                 vk::ImageLayout::eTransferDstOptimal,
-                                 vk::ImageAspectFlagBits::eDepth, 1);
+    Image::transitionLayout(commandBuffer, image->getImage(), vk::ImageLayout::eUndefined,
+                            vk::ImageLayout::eTransferDstOptimal, vk::ImageAspectFlagBits::eDepth,
+                            1);
     commandBuffer.clearDepthStencilImage(
-        image, vk::ImageLayout::eTransferDstOptimal, vk::ClearDepthStencilValue{depth, stencil},
+        image->getImage(), vk::ImageLayout::eTransferDstOptimal,
+        vk::ClearDepthStencilValue{depth, stencil},
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eDepth, 0, 1, 0, 1});
 }
 
-void CommandBuffer::beginRendering(vk::ImageView colorImageView,
-                                   vk::ImageView depthImageView,
+void CommandBuffer::beginRendering(ImageHandle colorImage,
+                                   ImageHandle depthImage,
                                    vk::Rect2D renderArea) const {
     vk::RenderingInfo renderingInfo;
     renderingInfo.setRenderArea(renderArea);
@@ -87,14 +88,14 @@ void CommandBuffer::beginRendering(vk::ImageView colorImageView,
     // NOTE: Attachments support only explicit clear commands.
     // Therefore, clearing is not performed within beginRendering.
     vk::RenderingAttachmentInfo colorAttachment;
-    colorAttachment.setImageView(colorImageView);
+    colorAttachment.setImageView(colorImage->getView());
     colorAttachment.setImageLayout(vk::ImageLayout::eAttachmentOptimal);
     renderingInfo.setColorAttachments(colorAttachment);
 
     // Depth attachment
-    if (depthImageView) {
+    if (depthImage) {
         vk::RenderingAttachmentInfo depthStencilAttachment;
-        depthStencilAttachment.setImageView(depthImageView);
+        depthStencilAttachment.setImageView(depthImage->getView());
         depthStencilAttachment.setImageLayout(vk::ImageLayout::eAttachmentOptimal);
         renderingInfo.setPDepthAttachment(&depthStencilAttachment);
     }
@@ -204,10 +205,10 @@ void CommandBuffer::imageBarrier(vk::PipelineStageFlags srcStageMask,
 }
 
 void CommandBuffer::transitionLayout(vk::Image image,
-                                          vk::ImageLayout oldLayout,
-                                          vk::ImageLayout newLayout,
-                                          vk::ImageAspectFlagBits aspect,
-                                          uint32_t mipLevels) const {
+                                     vk::ImageLayout oldLayout,
+                                     vk::ImageLayout newLayout,
+                                     vk::ImageAspectFlagBits aspect,
+                                     uint32_t mipLevels) const {
     Image::transitionLayout(commandBuffer, image, oldLayout, newLayout, aspect, mipLevels);
 }
 
@@ -219,11 +220,11 @@ void CommandBuffer::copyImage(vk::Image srcImage,
                               uint32_t height) const {
     // TODO: Fix vk::ImageLayout::eUndefined
     Image::transitionLayout(commandBuffer, srcImage, vk::ImageLayout::eUndefined,
-                                 vk::ImageLayout::eTransferSrcOptimal,
-                                 vk::ImageAspectFlagBits::eColor, 1);
+                            vk::ImageLayout::eTransferSrcOptimal, vk::ImageAspectFlagBits::eColor,
+                            1);
     Image::transitionLayout(commandBuffer, dstImage, vk::ImageLayout::eUndefined,
-                                 vk::ImageLayout::eTransferDstOptimal,
-                                 vk::ImageAspectFlagBits::eColor, 1);
+                            vk::ImageLayout::eTransferDstOptimal, vk::ImageAspectFlagBits::eColor,
+                            1);
 
     vk::ImageCopy copyRegion;
     copyRegion.setSrcSubresource({vk::ImageAspectFlagBits::eColor, 0, 0, 1});
@@ -234,9 +235,9 @@ void CommandBuffer::copyImage(vk::Image srcImage,
                             copyRegion);
 
     Image::transitionLayout(commandBuffer, srcImage, vk::ImageLayout::eTransferSrcOptimal,
-                                 newSrcLayout, vk::ImageAspectFlagBits::eColor, 1);
+                            newSrcLayout, vk::ImageAspectFlagBits::eColor, 1);
     Image::transitionLayout(commandBuffer, dstImage, vk::ImageLayout::eTransferDstOptimal,
-                                 newDstLayout, vk::ImageAspectFlagBits::eColor, 1);
+                            newDstLayout, vk::ImageAspectFlagBits::eColor, 1);
 }
 
 void CommandBuffer::fillBuffer(BufferHandle dstBuffer,

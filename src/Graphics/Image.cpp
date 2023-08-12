@@ -25,7 +25,8 @@ Image::Image(const Context* context,
       layout{layout},
       format{format},
       mipLevels{mipLevels},
-      aspect{aspect} {
+      aspect{aspect},
+      hasOwnership{true} {
     vk::ImageType type = depth == 1 ? vk::ImageType::e2D : vk::ImageType::e3D;
 
     // Compute mipmap level
@@ -43,17 +44,17 @@ Image::Image(const Context* context,
     imageInfo.setArrayLayers(1);
     imageInfo.setSamples(vk::SampleCountFlagBits::e1);
     imageInfo.setUsage(usage);
-    image = context->getDevice().createImageUnique(imageInfo);
+    image = context->getDevice().createImage(imageInfo);
 
-    vk::MemoryRequirements requirements = context->getDevice().getImageMemoryRequirements(*image);
+    vk::MemoryRequirements requirements = context->getDevice().getImageMemoryRequirements(image);
     uint32_t memoryTypeIndex =
         context->findMemoryTypeIndex(requirements, vk::MemoryPropertyFlagBits::eDeviceLocal);
     vk::MemoryAllocateInfo memoryInfo;
     memoryInfo.setAllocationSize(requirements.size);
     memoryInfo.setMemoryTypeIndex(memoryTypeIndex);
-    memory = context->getDevice().allocateMemoryUnique(memoryInfo);
+    memory = context->getDevice().allocateMemory(memoryInfo);
 
-    context->getDevice().bindImageMemory(*image, *memory, 0);
+    context->getDevice().bindImageMemory(image, memory, 0);
 
     vk::ImageSubresourceRange subresourceRange;
     subresourceRange.setAspectMask(aspect);
@@ -63,7 +64,7 @@ Image::Image(const Context* context,
     subresourceRange.setLayerCount(1);
 
     vk::ImageViewCreateInfo viewInfo;
-    viewInfo.setImage(*image);
+    viewInfo.setImage(image);
     viewInfo.setFormat(format);
     viewInfo.setSubresourceRange(subresourceRange);
     if (type == vk::ImageType::e2D) {
@@ -74,7 +75,7 @@ Image::Image(const Context* context,
         assert(false);
     }
 
-    view = context->getDevice().createImageViewUnique(viewInfo);
+    view = context->getDevice().createImageView(viewInfo);
 
     vk::SamplerCreateInfo samplerInfo;
     samplerInfo.setMagFilter(vk::Filter::eLinear);
@@ -89,10 +90,10 @@ Image::Image(const Context* context,
     samplerInfo.setAddressModeU(vk::SamplerAddressMode::eRepeat);
     samplerInfo.setAddressModeV(vk::SamplerAddressMode::eRepeat);
     samplerInfo.setAddressModeW(vk::SamplerAddressMode::eRepeat);
-    sampler = context->getDevice().createSamplerUnique(samplerInfo);
+    sampler = context->getDevice().createSampler(samplerInfo);
 
     context->oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
-        transitionLayout(commandBuffer, *image, vk::ImageLayout::eUndefined, layout, aspect,
+        transitionLayout(commandBuffer, image, vk::ImageLayout::eUndefined, layout, aspect,
                          mipLevels);
     });
 }
@@ -241,7 +242,7 @@ void Image::generateMipmaps() {
     // TODO: support 3D
     context->oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
         vk::ImageMemoryBarrier barrier{};
-        barrier.image = *image;
+        barrier.image = image;
         barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
@@ -278,7 +279,7 @@ void Image::generateMipmaps() {
             blit.dstSubresource.baseArrayLayer = 0;
             blit.dstSubresource.layerCount = 1;
 
-            commandBuffer.blitImage(*image, vk::ImageLayout::eTransferSrcOptimal, *image,
+            commandBuffer.blitImage(image, vk::ImageLayout::eTransferSrcOptimal, image,
                                     vk::ImageLayout::eTransferDstOptimal, blit, filter);
 
             barrier.oldLayout = vk::ImageLayout::eTransferSrcOptimal;

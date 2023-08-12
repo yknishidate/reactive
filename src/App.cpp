@@ -63,8 +63,7 @@ void App::run() {
         // Draw GUI
         {
             // Begin render pass
-            commandBuffer.beginRendering(*swapchainImageViews[frameIndex], {},
-                                         {{0, 0}, {width, height}});
+            commandBuffer.beginRendering(getCurrentColorImage(), {}, {{0, 0}, {width, height}});
 
             // Render
             ImGui::Render();
@@ -75,8 +74,8 @@ void App::run() {
             commandBuffer.endRendering();
         }
 
-        commandBuffer.transitionLayout(getCurrentColorImage(), vk::ImageLayout::eUndefined,
-                                            vk::ImageLayout::ePresentSrcKHR);
+        commandBuffer.transitionLayout(swapchainImages[frameIndex], vk::ImageLayout::eUndefined,
+                                       vk::ImageLayout::ePresentSrcKHR);
 
         // End command buffer
         commandBuffers[frameIndex]->end();
@@ -381,33 +380,14 @@ void App::createSwapchain() {
 }
 
 void App::createDepthImage() {
-    depthImage = context.getDevice().createImageUnique(
-        vk::ImageCreateInfo()
-            .setImageType(vk::ImageType::e2D)
-            .setFormat(vk::Format::eD32Sfloat)
-            .setExtent({width, height, 1})
-            .setMipLevels(1)
-            .setArrayLayers(1)
-            .setUsage(vk::ImageUsageFlagBits::eDepthStencilAttachment |
-                      vk::ImageUsageFlagBits::eTransferDst));
-
-    vk::MemoryRequirements requirements =
-        context.getDevice().getImageMemoryRequirements(*depthImage);
-    uint32_t memoryTypeIndex =
-        context.findMemoryTypeIndex(requirements, vk::MemoryPropertyFlagBits::eDeviceLocal);
-    depthImageMemory =
-        context.getDevice().allocateMemoryUnique(vk::MemoryAllocateInfo()
-                                                     .setAllocationSize(requirements.size)
-                                                     .setMemoryTypeIndex(memoryTypeIndex));
-
-    context.getDevice().bindImageMemory(*depthImage, *depthImageMemory, 0);
-
-    depthImageView = context.getDevice().createImageViewUnique(
-        vk::ImageViewCreateInfo()
-            .setImage(*depthImage)
-            .setViewType(vk::ImageViewType::e2D)
-            .setFormat(vk::Format::eD32Sfloat)
-            .setSubresourceRange({vk::ImageAspectFlagBits::eDepth, 0, 1, 0, 1}));
+    depthImage = context.createImage({
+        .usage = ImageUsage::DepthAttachment,
+        .width = width,
+        .height = height,
+        .depth = 1,
+        .format = Format::D32Sfloat,
+        .layout = ImageLayout::DepthAttachment,
+    });
 }
 
 // Callbacks

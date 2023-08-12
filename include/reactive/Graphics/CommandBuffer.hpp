@@ -40,11 +40,11 @@ public:
 
     void dispatchIndirect(BufferHandle buffer, vk::DeviceSize offset) const;
 
-    void clearColorImage(vk::Image image, std::array<float, 4> color) const;
-    void clearDepthStencilImage(vk::Image image, float depth, uint32_t stencil) const;
+    void clearColorImage(ImageHandle image, std::array<float, 4> color) const;
+    void clearDepthStencilImage(ImageHandle image, float depth, uint32_t stencil) const;
 
-    void beginRendering(vk::ImageView colorImageView,
-                        vk::ImageView depthImageView,
+    void beginRendering(ImageHandle colorImage,
+                        ImageHandle depthImage,
                         vk::Rect2D renderArea) const;
 
     void endRendering() const { commandBuffer.endRendering(); }
@@ -127,10 +127,10 @@ public:
                       vk::AccessFlags dstAccessMask) const;
 
     void transitionLayout(vk::Image image,
-                               vk::ImageLayout oldLayout,
-                               vk::ImageLayout newLayout,
-                               vk::ImageAspectFlagBits aspect = vk::ImageAspectFlagBits::eColor,
-                               uint32_t mipLevels = 1) const;
+                          vk::ImageLayout oldLayout,
+                          vk::ImageLayout newLayout,
+                          vk::ImageAspectFlagBits aspect = vk::ImageAspectFlagBits::eColor,
+                          uint32_t mipLevels = 1) const;
 
     void memoryBarrier(vk::PipelineStageFlags srcStageMask,
                        vk::PipelineStageFlags dstStageMask,

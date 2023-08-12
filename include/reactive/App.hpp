@@ -74,11 +74,11 @@ public:
     virtual void onRender(const CommandBuffer& commandBuffer) {}
 
     // Getter
-    vk::Image getCurrentColorImage() const { return swapchainImages[frameIndex]; }
-    vk::Image getDefaultDepthImage() const { return depthImage.get(); }
-
-    vk::ImageView getCurrentColorImageView() const { return *swapchainImageViews[frameIndex]; }
-    vk::ImageView getDefaultDepthImageView() const { return *depthImageView; }
+    ImageHandle getCurrentColorImage() const {
+        return std::make_shared<Image>(swapchainImages[frameIndex],
+                                       *swapchainImageViews[frameIndex]);
+    }
+    ImageHandle getDefaultDepthImage() const { return depthImage; }
 
     // Input
     bool isKeyDown(int key) const;
@@ -97,9 +97,7 @@ public:
     virtual void onWindowSize(int width, int height) {
         context.getDevice().waitIdle();
 
-        depthImageView.reset();
         depthImage.reset();
-        depthImageMemory.reset();
         swapchainImageViews.clear();
         swapchainImages.clear();
         swapchain.reset();
@@ -150,9 +148,10 @@ protected:
     uint32_t width = 0;
     uint32_t height = 0;
 
-    vk::UniqueImage depthImage;
-    vk::UniqueImageView depthImageView;
-    vk::UniqueDeviceMemory depthImageMemory;
+    ImageHandle depthImage;
+    // vk::UniqueImage depthImage;
+    // vk::UniqueImageView depthImageView;
+    // vk::UniqueDeviceMemory depthImageMemory;
 
     bool swapchainRebuild = false;
     int minImageCount = 3;
