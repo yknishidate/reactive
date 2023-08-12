@@ -80,9 +80,10 @@ void CommandBuffer::clearDepthStencilImage(ImageHandle image, float depth, uint3
 
 void CommandBuffer::beginRendering(ImageHandle colorImage,
                                    ImageHandle depthImage,
-                                   vk::Rect2D renderArea) const {
+                                   std::array<int32_t, 2> offset,
+                                   std::array<uint32_t, 2> extent) const {
     vk::RenderingInfo renderingInfo;
-    renderingInfo.setRenderArea(renderArea);
+    renderingInfo.setRenderArea({{offset[0], offset[1]}, {extent[0], extent[1]}});
     renderingInfo.setLayerCount(1);
 
     // NOTE: Attachments support only explicit clear commands.

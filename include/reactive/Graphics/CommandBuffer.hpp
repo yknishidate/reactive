@@ -45,7 +45,8 @@ public:
 
     void beginRendering(ImageHandle colorImage,
                         ImageHandle depthImage,
-                        vk::Rect2D renderArea) const;
+                        std::array<int32_t, 2> offset,
+                        std::array<uint32_t, 2> extent) const;
 
     void endRendering() const { commandBuffer.endRendering(); }
 

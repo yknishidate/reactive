@@ -63,7 +63,7 @@ void App::run() {
         // Draw GUI
         {
             // Begin render pass
-            commandBuffer.beginRendering(getCurrentColorImage(), {}, {{0, 0}, {width, height}});
+            commandBuffer.beginRendering(getCurrentColorImage(), {}, {0, 0}, {width, height});
 
             // Render
             ImGui::Render();
