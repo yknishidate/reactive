@@ -40,8 +40,8 @@ struct GraphicsPipelineCreateInfo {
     uint32_t pushSize = 0;
 
     // Shader
-    const Shader& vertexShader;
-    const Shader& fragmentShader;
+    ShaderHandle vertexShader;
+    ShaderHandle fragmentShader;
 
     // Vertex
     uint32_t vertexStride = 0;
@@ -73,9 +73,9 @@ public:
 struct MeshShaderPipelineCreateInfo {
     vk::DescriptorSetLayout descSetLayout = {};
     uint32_t pushSize = 0;
-    const Shader& taskShader;
-    const Shader& meshShader;
-    const Shader& fragmentShader;
+    ShaderHandle taskShader;
+    ShaderHandle meshShader;
+    ShaderHandle fragmentShader;
 
     // Viewport
     std::variant<vk::Viewport, std::string> viewport;
@@ -98,7 +98,7 @@ public:
 };
 
 struct ComputePipelineCreateInfo {
-    const Shader& computeShader;
+    ShaderHandle computeShader;
 
     vk::DescriptorSetLayout descSetLayout = {};
     uint32_t pushSize = 0;
@@ -118,10 +118,10 @@ private:
 };
 
 struct RayTracingPipelineCreateInfo {
-    ArrayProxy<Shader> rgenShaders;
-    ArrayProxy<Shader> missShaders;
-    ArrayProxy<Shader> chitShaders;
-    ArrayProxy<Shader> ahitShaders;  // not supported
+    ArrayProxy<ShaderHandle> rgenShaders;
+    ArrayProxy<ShaderHandle> missShaders;
+    ArrayProxy<ShaderHandle> chitShaders;
+    ArrayProxy<ShaderHandle> ahitShaders;  // not supported
 
     vk::DescriptorSetLayout descSetLayout = {};
     uint32_t pushSize = 0;
@@ -134,14 +134,14 @@ public:
     RayTracingPipeline() = default;
     RayTracingPipeline(const Context* context, RayTracingPipelineCreateInfo createInfo);
 
-    void setShaders(const Shader& rgenShader, const Shader& missShader, const Shader& chitShader) {
+    void setShaders(ShaderHandle rgenShader, ShaderHandle missShader, ShaderHandle chitShader) {
         rgenCount = 1;
         missCount = 1;
         hitCount = 1;
 
-        shaderModules.push_back(rgenShader.getModule());
-        shaderModules.push_back(missShader.getModule());
-        shaderModules.push_back(chitShader.getModule());
+        shaderModules.push_back(rgenShader->getModule());
+        shaderModules.push_back(missShader->getModule());
+        shaderModules.push_back(chitShader->getModule());
 
         shaderStages.push_back({{}, vk::ShaderStageFlagBits::eRaygenKHR, shaderModules[0], "main"});
         shaderStages.push_back({{}, vk::ShaderStageFlagBits::eMissKHR, shaderModules[1], "main"});
@@ -203,9 +203,9 @@ private:
     vk::StridedDeviceAddressRegionKHR missRegion;
     vk::StridedDeviceAddressRegionKHR hitRegion;
 
-    Buffer raygenSBT;
-    Buffer missSBT;
-    Buffer hitSBT;
+    BufferHandle raygenSBT;
+    BufferHandle missSBT;
+    BufferHandle hitSBT;
 
     uint32_t rgenCount = 0;
     uint32_t missCount = 0;

@@ -7,47 +7,46 @@
 #include "Graphics/Context.hpp"
 #include "Graphics/Image.hpp"
 #include "Graphics/Pipeline.hpp"
-#include "Graphics/RenderPass.hpp"
 #include "Scene/Mesh.hpp"
 #include "Timer/GPUTimer.hpp"
 
 namespace rv {
-void CommandBuffer::bindDescriptorSet(DescriptorSet& descSet, const Pipeline& pipeline) const {
-    descSet.bind(commandBuffer, pipeline.getPipelineBindPoint(), pipeline.getPipelineLayout());
+void CommandBuffer::bindDescriptorSet(DescriptorSetHandle descSet, PipelineHandle pipeline) const {
+    descSet->bind(commandBuffer, pipeline->getPipelineBindPoint(), pipeline->getPipelineLayout());
 }
 
-void CommandBuffer::bindPipeline(Pipeline& pipeline) const {
-    pipeline.bind(commandBuffer);
+void CommandBuffer::bindPipeline(PipelineHandle pipeline) const {
+    pipeline->bind(commandBuffer);
 }
 
-void CommandBuffer::pushConstants(Pipeline& pipeline, const void* pushData) const {
-    pipeline.pushConstants(commandBuffer, pushData);
+void CommandBuffer::pushConstants(PipelineHandle pipeline, const void* pushData) const {
+    pipeline->pushConstants(commandBuffer, pushData);
 }
 
-void CommandBuffer::bindVertexBuffer(const Buffer& buffer, vk::DeviceSize offset) const {
-    commandBuffer.bindVertexBuffers(0, buffer.getBuffer(), offset);
+void CommandBuffer::bindVertexBuffer(BufferHandle buffer, vk::DeviceSize offset) const {
+    commandBuffer.bindVertexBuffers(0, buffer->getBuffer(), offset);
 }
 
-void CommandBuffer::bindIndexBuffer(const Buffer& buffer, vk::DeviceSize offset) const {
-    commandBuffer.bindIndexBuffer(buffer.getBuffer(), 0, vk::IndexType::eUint32);
+void CommandBuffer::bindIndexBuffer(BufferHandle buffer, vk::DeviceSize offset) const {
+    commandBuffer.bindIndexBuffer(buffer->getBuffer(), 0, vk::IndexType::eUint32);
 }
 
-void CommandBuffer::traceRays(const RayTracingPipeline& pipeline,
+void CommandBuffer::traceRays(RayTracingPipelineHandle pipeline,
                               uint32_t countX,
                               uint32_t countY,
                               uint32_t countZ) const {
-    pipeline.traceRays(commandBuffer, countX, countY, countZ);
+    pipeline->traceRays(commandBuffer, countX, countY, countZ);
 }
 
-void CommandBuffer::dispatch(const ComputePipeline& pipeline,
+void CommandBuffer::dispatch(ComputePipelineHandle pipeline,
                              uint32_t countX,
                              uint32_t countY,
                              uint32_t countZ) const {
-    pipeline.dispatch(commandBuffer, countX, countY, countZ);
+    pipeline->dispatch(commandBuffer, countX, countY, countZ);
 }
 
-void CommandBuffer::dispatchIndirect(const Buffer& buffer, vk::DeviceSize offset) const {
-    commandBuffer.dispatchIndirect(buffer.getBuffer(), offset);
+void CommandBuffer::dispatchIndirect(BufferHandle buffer, vk::DeviceSize offset) const {
+    commandBuffer.dispatchIndirect(buffer->getBuffer(), offset);
 }
 
 // void CommandBuffer::dispatch(ComputePipeline& compPipeline, uint32_t countX, uint32_t countY) {
@@ -116,15 +115,15 @@ void CommandBuffer::drawIndexed(uint32_t indexCount,
     commandBuffer.drawIndexed(indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 }
 
-void CommandBuffer::drawIndexed(const Buffer& vertexBuffer,
-                                const Buffer& indexBuffer,
+void CommandBuffer::drawIndexed(BufferHandle vertexBuffer,
+                                BufferHandle indexBuffer,
                                 uint32_t indexCount,
                                 uint32_t firstIndex,
                                 uint32_t instanceCount,
                                 uint32_t firstInstance) const {
     vk::DeviceSize offsets{0};
-    commandBuffer.bindVertexBuffers(0, vertexBuffer.getBuffer(), offsets);
-    commandBuffer.bindIndexBuffer(indexBuffer.getBuffer(), 0, vk::IndexType::eUint32);
+    commandBuffer.bindVertexBuffers(0, vertexBuffer->getBuffer(), offsets);
+    commandBuffer.bindIndexBuffer(indexBuffer->getBuffer(), 0, vk::IndexType::eUint32);
     commandBuffer.drawIndexed(indexCount, instanceCount, firstIndex, 0, firstInstance);
 }
 
@@ -138,31 +137,31 @@ void CommandBuffer::drawMeshTasks(uint32_t groupCountX,
     commandBuffer.drawMeshTasksEXT(groupCountX, groupCountY, groupCountZ);
 }
 
-void CommandBuffer::drawIndirect(const Buffer& buffer,
+void CommandBuffer::drawIndirect(BufferHandle buffer,
                                  vk::DeviceSize offset,
                                  uint32_t drawCount,
                                  uint32_t stride) const {
-    commandBuffer.drawIndirect(buffer.getBuffer(), offset, drawCount, stride);
+    commandBuffer.drawIndirect(buffer->getBuffer(), offset, drawCount, stride);
 }
 
-void CommandBuffer::drawIndexedIndirect(const Buffer& buffer,
+void CommandBuffer::drawIndexedIndirect(BufferHandle buffer,
                                         vk::DeviceSize offset,
                                         uint32_t drawCount,
                                         uint32_t stride) const {
-    commandBuffer.drawIndexedIndirect(buffer.getBuffer(), offset, drawCount, stride);
+    commandBuffer.drawIndexedIndirect(buffer->getBuffer(), offset, drawCount, stride);
 }
 
-void CommandBuffer::drawMeshTasksIndirect(const Buffer& buffer,
+void CommandBuffer::drawMeshTasksIndirect(BufferHandle buffer,
                                           vk::DeviceSize offset,
                                           uint32_t drawCount,
                                           uint32_t stride) const {
-    commandBuffer.drawMeshTasksIndirectEXT(buffer.getBuffer(), offset, drawCount, stride);
+    commandBuffer.drawMeshTasksIndirectEXT(buffer->getBuffer(), offset, drawCount, stride);
 }
 
 void CommandBuffer::bufferBarrier(vk::PipelineStageFlags srcStageMask,
                                   vk::PipelineStageFlags dstStageMask,
                                   vk::DependencyFlags dependencyFlags,
-                                  const Buffer& buffer,
+                                  BufferHandle buffer,
                                   vk::AccessFlags srcAccessMask,
                                   vk::AccessFlags dstAccessMask) const {
     vk::BufferMemoryBarrier bufferMemoryBarrier;
@@ -170,7 +169,7 @@ void CommandBuffer::bufferBarrier(vk::PipelineStageFlags srcStageMask,
     bufferMemoryBarrier.dstAccessMask = dstAccessMask;
     bufferMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     bufferMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    bufferMemoryBarrier.buffer = buffer.getBuffer();
+    bufferMemoryBarrier.buffer = buffer->getBuffer();
     bufferMemoryBarrier.offset = 0;
     bufferMemoryBarrier.size = VK_WHOLE_SIZE;
 
@@ -241,11 +240,11 @@ void CommandBuffer::copyImage(vk::Image srcImage,
                           newDstLayout, vk::ImageAspectFlagBits::eColor, 1);
 }
 
-void CommandBuffer::fillBuffer(const Buffer& dstBuffer,
+void CommandBuffer::fillBuffer(BufferHandle dstBuffer,
                                vk::DeviceSize dstOffset,
                                vk::DeviceSize size,
                                uint32_t data) const {
-    commandBuffer.fillBuffer(dstBuffer.getBuffer(), dstOffset, size, data);
+    commandBuffer.fillBuffer(dstBuffer->getBuffer(), dstOffset, size, data);
 }
 
 void CommandBuffer::beginTimestamp(const GPUTimer& gpuTimer) const {

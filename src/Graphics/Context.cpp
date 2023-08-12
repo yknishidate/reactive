@@ -158,69 +158,70 @@ uint32_t Context::findMemoryTypeIndex(vk::MemoryRequirements requirements,
     throw std::runtime_error("Failed to find memory type index.");
 }
 
-Shader Context::createShader(ShaderCreateInfo createInfo) const {
-    return {this, createInfo};
+ShaderHandle Context::createShader(ShaderCreateInfo createInfo) const {
+    return std::make_shared<Shader>(this, createInfo);
 }
 
-DescriptorSet Context::createDescriptorSet(DescriptorSetCreateInfo createInfo) const {
-    return {this, createInfo};
+DescriptorSetHandle Context::createDescriptorSet(DescriptorSetCreateInfo createInfo) const {
+    return std::make_shared<DescriptorSet>(this, createInfo);
 }
 
-GraphicsPipeline Context::createGraphicsPipeline(GraphicsPipelineCreateInfo createInfo) const {
-    return {this, std::move(createInfo)};
+GraphicsPipelineHandle Context::createGraphicsPipeline(
+    GraphicsPipelineCreateInfo createInfo) const {
+    return std::make_shared<GraphicsPipeline>(this, createInfo);
 }
 
-MeshShaderPipeline Context::createMeshShaderPipeline(
+MeshShaderPipelineHandle Context::createMeshShaderPipeline(
     MeshShaderPipelineCreateInfo createInfo) const {
-    return {this, std::move(createInfo)};
+    return std::make_shared<MeshShaderPipeline>(this, createInfo);
 }
 
-ComputePipeline Context::createComputePipeline(ComputePipelineCreateInfo createInfo) const {
-    return {this, createInfo};
+ComputePipelineHandle Context::createComputePipeline(ComputePipelineCreateInfo createInfo) const {
+    return std::make_shared<ComputePipeline>(this, createInfo);
 }
 
-RayTracingPipeline Context::createRayTracingPipeline(
+RayTracingPipelineHandle Context::createRayTracingPipeline(
     RayTracingPipelineCreateInfo createInfo) const {
-    return {this, createInfo};
+    return std::make_shared<RayTracingPipeline>(this, createInfo);
 }
 
-Image Context::createImage(ImageCreateInfo createInfo) const {
-    return {this, createInfo};
+ImageHandle Context::createImage(ImageCreateInfo createInfo) const {
+    return std::make_shared<Image>(this, createInfo);
 }
 
-Buffer Context::createBuffer(BufferCreateInfo createInfo) const {
-    return {this, createInfo};
+BufferHandle Context::createBuffer(BufferCreateInfo createInfo) const {
+    return std::make_shared<Buffer>(this, createInfo);
 }
 
-Mesh Context::createMesh(MeshCreateInfo createInfo) const {
-    return {this, createInfo};
+MeshHandle Context::createMesh(MeshCreateInfo createInfo) const {
+    return std::make_shared<Mesh>(this, createInfo);
 }
 
-Mesh Context::createSphereMesh(SphereMeshCreateInfo createInfo) const {
-    return {this, createInfo};
+MeshHandle Context::createSphereMesh(SphereMeshCreateInfo createInfo) const {
+    return std::make_shared<Mesh>(this, createInfo);
 }
 
-Mesh Context::createPlaneMesh(PlaneMeshCreateInfo createInfo) const {
-    return {this, createInfo};
+MeshHandle Context::createPlaneMesh(PlaneMeshCreateInfo createInfo) const {
+    return std::make_shared<Mesh>(this, createInfo);
 }
 
-Mesh Context::createCubeMesh(CubeMeshCreateInfo createInfo) const {
-    return {this, createInfo};
+MeshHandle Context::createCubeMesh(CubeMeshCreateInfo createInfo) const {
+    return std::make_shared<Mesh>(this, createInfo);
 }
 
-Mesh Context::createCubeLineMesh(CubeLineMeshCreateInfo createInfo) const {
-    return {this, createInfo};
+MeshHandle Context::createCubeLineMesh(CubeLineMeshCreateInfo createInfo) const {
+    return std::make_shared<Mesh>(this, createInfo);
 }
 
-BottomAccel Context::createBottomAccel(BottomAccelCreateInfo createInfo) const {
-    return {this, createInfo};
+BottomAccelHandle Context::createBottomAccel(BottomAccelCreateInfo createInfo) const {
+    return std::make_shared<BottomAccel>(this, createInfo);
 }
 
-TopAccel Context::createTopAccel(TopAccelCreateInfo createInfo) const {
-    return {this, createInfo};
+TopAccelHandle Context::createTopAccel(TopAccelCreateInfo createInfo) const {
+    return std::make_shared<TopAccel>(this, createInfo);
 }
 
-GPUTimer Context::createGPUTimer(GPUTimerCreateInfo createInfo) const {
-    return {this, createInfo};
+GPUTimerHandle Context::createGPUTimer(GPUTimerCreateInfo createInfo) const {
+    return std::make_shared<GPUTimer>(this, createInfo);
 }
 }  // namespace rv

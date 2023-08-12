@@ -5,8 +5,8 @@
 
 namespace rv {
 struct BottomAccelCreateInfo {
-    const Buffer& vertexBuffer;
-    const Buffer& indexBuffer;
+    BufferHandle vertexBuffer;
+    BufferHandle indexBuffer;
     uint32_t vertexStride;
     uint32_t vertexCount;
     uint32_t triangleCount;
@@ -18,7 +18,7 @@ struct BottomAccelCreateInfo {
 };
 
 struct AccelInstance {
-    const BottomAccel& bottomAccel;
+    BottomAccelHandle bottomAccel;
     glm::mat4 transform = glm::mat4{1.0};
     uint32_t sbtOffset = 0;
 };
@@ -38,12 +38,12 @@ public:
     BottomAccel() = default;
     BottomAccel(const Context* context, BottomAccelCreateInfo createInfo);
 
-    uint64_t getBufferAddress() const { return buffer.getAddress(); }
+    uint64_t getBufferAddress() const { return buffer->getAddress(); }
 
 private:
     const Context* context;
     vk::UniqueAccelerationStructureKHR accel;
-    Buffer buffer;
+    BufferHandle buffer;
 };
 
 class TopAccel {
@@ -59,9 +59,9 @@ public:
 private:
     const Context* context;
     vk::UniqueAccelerationStructureKHR accel;
-    Buffer buffer;
-    Buffer instanceBuffer;
-    Buffer scratchBuffer;
+    BufferHandle buffer;
+    BufferHandle instanceBuffer;
+    BufferHandle scratchBuffer;
 
     vk::GeometryFlagsKHR geometryFlags;
     vk::BuildAccelerationStructureFlagsKHR buildFlags;

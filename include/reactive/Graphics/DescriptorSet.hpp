@@ -39,10 +39,10 @@ private:
 };
 
 struct DescriptorSetCreateInfo {
-    ArrayProxy<Shader> shaders;
-    ArrayProxy<std::pair<const char*, ArrayProxy<const Buffer>>> buffers;
-    ArrayProxy<std::pair<const char*, ArrayProxy<const Image>>> images;
-    ArrayProxy<std::pair<const char*, ArrayProxy<const TopAccel>>> accels;
+    ArrayProxy<ShaderHandle> shaders;
+    ArrayProxy<std::pair<const char*, ArrayProxy<BufferHandle>>> buffers;
+    ArrayProxy<std::pair<const char*, ArrayProxy<ImageHandle>>> images;
+    ArrayProxy<std::pair<const char*, ArrayProxy<TopAccelHandle>>> accels;
 };
 
 class DescriptorSet {
@@ -56,7 +56,7 @@ public:
               vk::PipelineBindPoint bindPoint,
               vk::PipelineLayout pipelineLayout);
 
-    void addResources(const Shader& shader);
+    void addResources(ShaderHandle shader);
 
     vk::DescriptorSetLayout getLayout() const { return *descSetLayout; }
 

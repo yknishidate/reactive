@@ -122,7 +122,9 @@ Image::Image(const Context* context, ImageCreateInfo createInfo)
     });
 }
 
-Image Image::loadFromFile(const Context& context, const std::string& filepath, uint32_t mipLevels) {
+ImageHandle Image::loadFromFile(const Context& context,
+                                const std::string& filepath,
+                                uint32_t mipLevels) {
     int width;
     int height;
     int comp = 4;
@@ -131,7 +133,7 @@ Image Image::loadFromFile(const Context& context, const std::string& filepath, u
         throw std::runtime_error("Failed to load image: " + filepath);
     }
 
-    Image image = context.createImage({
+    ImageHandle image = context.createImage({
         .usage = ImageUsage::Sampled,
         .width = static_cast<uint32_t>(width),
         .height = static_cast<uint32_t>(height),
@@ -142,7 +144,7 @@ Image Image::loadFromFile(const Context& context, const std::string& filepath, u
     });
 
     // Copy to image
-    Buffer stagingBuffer = context.createBuffer({
+    BufferHandle stagingBuffer = context.createBuffer({
         .usage = BufferUsage::Staging,
         .memory = MemoryUsage::Host,
         .size = width * height * comp * sizeof(unsigned char*),
@@ -165,19 +167,20 @@ Image Image::loadFromFile(const Context& context, const std::string& filepath, u
         region.imageSubresource = subresourceLayers;
         region.imageExtent = extent;
 
-        commandBuffer.copyBufferToImage(stagingBuffer.getBuffer(), image.getImage(),
+        commandBuffer.copyBufferToImage(stagingBuffer->getBuffer(), image->getImage(),
                                         vk::ImageLayout::eTransferDstOptimal, region);
 
         vk::ImageLayout newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
         if (mipLevels > 1) {
             newLayout = vk::ImageLayout::eTransferSrcOptimal;
         }
-        Image::setImageLayout(commandBuffer, image.getImage(), vk::ImageLayout::eTransferDstOptimal,
-                              newLayout, vk::ImageAspectFlagBits::eColor, image.getMipLevels());
+        Image::setImageLayout(commandBuffer, image->getImage(),
+                              vk::ImageLayout::eTransferDstOptimal, newLayout,
+                              vk::ImageAspectFlagBits::eColor, image->getMipLevels());
     });
 
     if (mipLevels > 1) {
-        image.generateMipmaps();
+        image->generateMipmaps();
     }
 
     stbi_image_free(pixels);
@@ -185,7 +188,7 @@ Image Image::loadFromFile(const Context& context, const std::string& filepath, u
     return image;
 }
 
-Image Image::loadFromFileHDR(const Context& context, const std::string& filepath) {
+ImageHandle Image::loadFromFileHDR(const Context& context, const std::string& filepath) {
     int width;
     int height;
     int comp = 4;
@@ -194,7 +197,7 @@ Image Image::loadFromFileHDR(const Context& context, const std::string& filepath
         throw std::runtime_error("Failed to load image: " + filepath);
     }
 
-    Image image = context.createImage({
+    ImageHandle image = context.createImage({
         .usage = ImageUsage::Sampled,
         .width = static_cast<uint32_t>(width),
         .height = static_cast<uint32_t>(height),
@@ -204,7 +207,7 @@ Image Image::loadFromFileHDR(const Context& context, const std::string& filepath
     });
 
     // Copy to image
-    Buffer stagingBuffer = context.createBuffer({
+    BufferHandle stagingBuffer = context.createBuffer({
         .usage = BufferUsage::Staging,
         .memory = MemoryUsage::Host,
         .size = width * height * comp * sizeof(float),
@@ -227,12 +230,13 @@ Image Image::loadFromFileHDR(const Context& context, const std::string& filepath
         region.imageSubresource = subresourceLayers;
         region.imageExtent = extent;
 
-        commandBuffer.copyBufferToImage(stagingBuffer.getBuffer(), image.getImage(),
+        commandBuffer.copyBufferToImage(stagingBuffer->getBuffer(), image->getImage(),
                                         vk::ImageLayout::eTransferDstOptimal, region);
-        Image::setImageLayout(commandBuffer, image.getImage(), vk::ImageLayout::eTransferDstOptimal,
+        Image::setImageLayout(commandBuffer, image->getImage(),
+                              vk::ImageLayout::eTransferDstOptimal,
                               vk::ImageLayout::eShaderReadOnlyOptimal,
-                              vk::ImageAspectFlagBits::eColor, image.getMipLevels());
-        image.layout = vk::ImageLayout::eShaderReadOnlyOptimal;
+                              vk::ImageAspectFlagBits::eColor, image->getMipLevels());
+        image->layout = vk::ImageLayout::eShaderReadOnlyOptimal;
     });
 
     stbi_image_free(pixels);
@@ -391,7 +395,7 @@ void Image::generateMipmaps() {
 //         region.imageSubresource.aspectMask = aspect;
 //
 //         setImageLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);
-//         commandBuffer.copyBufferToImage(staging.getBuffer(), *image,
+//         commandBuffer.copyBufferToImage(staging->getBuffer(), *image,
 //                                         vk::ImageLayout::eTransferDstOptimal, region);
 //         setImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
 //     });
@@ -418,7 +422,7 @@ void Image::generateMipmaps() {
 //         region.setImageSubresource({aspect, 0, 0, 1});
 //
 //         setImageLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);
-//         commandBuffer.copyBufferToImage(buffer.getBuffer(), *image,
+//         commandBuffer.copyBufferToImage(buffer->getBuffer(), *image,
 //                                         vk::ImageLayout::eTransferDstOptimal, region);
 //         setImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
 //     });
@@ -462,7 +466,7 @@ void Image::generateMipmaps() {
 //         region.imageSubresource.aspectMask = aspect;
 //
 //         setImageLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);
-//         commandBuffer.copyBufferToImage(staging.getBuffer(), *image,
+//         commandBuffer.copyBufferToImage(staging->getBuffer(), *image,
 //                                         vk::ImageLayout::eTransferDstOptimal, region);
 //         setImageLayout(commandBuffer, vk::ImageLayout::eGeneral);
 //     });
@@ -503,7 +507,7 @@ void Image::generateMipmaps() {
 //     auto oldLayout = layout;
 //     setImageLayout(commandBuffer, vk::ImageLayout::eTransferSrcOptimal);
 //     commandBuffer.copyImageToBuffer(*image, vk::ImageLayout::eTransferSrcOptimal,
-//     dst.getBuffer(),
+//     dst->getBuffer(),
 //                                     copyInfo);
 //     setImageLayout(commandBuffer, oldLayout);
 // }

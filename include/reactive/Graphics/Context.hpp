@@ -30,6 +30,7 @@ class Image;
 class Mesh;
 class Shader;
 class DescriptorSet;
+class Pipeline;
 class GraphicsPipeline;
 class MeshShaderPipeline;
 class ComputePipeline;
@@ -37,6 +38,20 @@ class RayTracingPipeline;
 class BottomAccel;
 class TopAccel;
 class GPUTimer;
+
+using BufferHandle = std::shared_ptr<Buffer>;
+using ImageHandle = std::shared_ptr<Image>;
+using MeshHandle = std::shared_ptr<Mesh>;
+using ShaderHandle = std::shared_ptr<Shader>;
+using DescriptorSetHandle = std::shared_ptr<DescriptorSet>;
+using PipelineHandle = std::shared_ptr<Pipeline>;
+using GraphicsPipelineHandle = std::shared_ptr<GraphicsPipeline>;
+using MeshShaderPipelineHandle = std::shared_ptr<MeshShaderPipeline>;
+using ComputePipelineHandle = std::shared_ptr<ComputePipeline>;
+using RayTracingPipelineHandle = std::shared_ptr<RayTracingPipeline>;
+using BottomAccelHandle = std::shared_ptr<BottomAccel>;
+using TopAccelHandle = std::shared_ptr<TopAccel>;
+using GPUTimerHandle = std::shared_ptr<GPUTimer>;
 
 class Context {
 public:
@@ -77,22 +92,24 @@ public:
         return props;
     }
 
-    Shader createShader(ShaderCreateInfo createInfo) const;
-    DescriptorSet createDescriptorSet(DescriptorSetCreateInfo createInfo) const;
-    GraphicsPipeline createGraphicsPipeline(GraphicsPipelineCreateInfo createInfo) const;
-    MeshShaderPipeline createMeshShaderPipeline(MeshShaderPipelineCreateInfo createInfo) const;
-    ComputePipeline createComputePipeline(ComputePipelineCreateInfo createInfo) const;
-    RayTracingPipeline createRayTracingPipeline(RayTracingPipelineCreateInfo createInfo) const;
-    Image createImage(ImageCreateInfo createInfo) const;
-    Buffer createBuffer(BufferCreateInfo createInfo) const;
-    Mesh createMesh(MeshCreateInfo createInfo) const;
-    Mesh createSphereMesh(SphereMeshCreateInfo createInfo) const;
-    Mesh createPlaneMesh(PlaneMeshCreateInfo createInfo) const;
-    Mesh createCubeMesh(CubeMeshCreateInfo createInfo) const;
-    Mesh createCubeLineMesh(CubeLineMeshCreateInfo createInfo) const;
-    BottomAccel createBottomAccel(BottomAccelCreateInfo createInfo) const;
-    TopAccel createTopAccel(TopAccelCreateInfo createInfo) const;
-    GPUTimer createGPUTimer(GPUTimerCreateInfo createInfo) const;
+    ShaderHandle createShader(ShaderCreateInfo createInfo) const;
+    DescriptorSetHandle createDescriptorSet(DescriptorSetCreateInfo createInfo) const;
+    GraphicsPipelineHandle createGraphicsPipeline(GraphicsPipelineCreateInfo createInfo) const;
+    MeshShaderPipelineHandle createMeshShaderPipeline(
+        MeshShaderPipelineCreateInfo createInfo) const;
+    ComputePipelineHandle createComputePipeline(ComputePipelineCreateInfo createInfo) const;
+    RayTracingPipelineHandle createRayTracingPipeline(
+        RayTracingPipelineCreateInfo createInfo) const;
+    ImageHandle createImage(ImageCreateInfo createInfo) const;
+    BufferHandle createBuffer(BufferCreateInfo createInfo) const;
+    MeshHandle createMesh(MeshCreateInfo createInfo) const;
+    MeshHandle createSphereMesh(SphereMeshCreateInfo createInfo) const;
+    MeshHandle createPlaneMesh(PlaneMeshCreateInfo createInfo) const;
+    MeshHandle createCubeMesh(CubeMeshCreateInfo createInfo) const;
+    MeshHandle createCubeLineMesh(CubeLineMeshCreateInfo createInfo) const;
+    BottomAccelHandle createBottomAccel(BottomAccelCreateInfo createInfo) const;
+    TopAccelHandle createTopAccel(TopAccelCreateInfo createInfo) const;
+    GPUTimerHandle createGPUTimer(GPUTimerCreateInfo createInfo) const;
 
 private:
     static VKAPI_ATTR VkBool32 VKAPI_CALL

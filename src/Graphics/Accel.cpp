@@ -14,11 +14,11 @@ BottomAccel::BottomAccel(const Context* context, BottomAccelCreateInfo createInf
     : context{context} {
     vk::AccelerationStructureGeometryTrianglesDataKHR trianglesData;
     trianglesData.setVertexFormat(vk::Format::eR32G32B32Sfloat);
-    trianglesData.setVertexData(createInfo.vertexBuffer.getAddress());
+    trianglesData.setVertexData(createInfo.vertexBuffer->getAddress());
     trianglesData.setVertexStride(createInfo.vertexStride);
     trianglesData.setMaxVertex(createInfo.vertexCount);
     trianglesData.setIndexType(vk::IndexTypeValue<uint32_t>::value);
-    trianglesData.setIndexData(createInfo.indexBuffer.getAddress());
+    trianglesData.setIndexData(createInfo.indexBuffer->getAddress());
 
     vk::AccelerationStructureGeometryDataKHR geometryData;
     geometryData.setTriangles(trianglesData);
@@ -45,11 +45,11 @@ BottomAccel::BottomAccel(const Context* context, BottomAccelCreateInfo createInf
 
     accel = context->getDevice().createAccelerationStructureKHRUnique(
         vk::AccelerationStructureCreateInfoKHR{}
-            .setBuffer(buffer.getBuffer())
+            .setBuffer(buffer->getBuffer())
             .setSize(buildSizesInfo.accelerationStructureSize)
             .setType(vk::AccelerationStructureTypeKHR::eBottomLevel));
 
-    Buffer scratchBuffer = context->createBuffer({
+    BufferHandle scratchBuffer = context->createBuffer({
         .usage = BufferUsage::Scratch,
         .memory = MemoryUsage::Host,
         .size = buildSizesInfo.buildScratchSize,
@@ -57,7 +57,7 @@ BottomAccel::BottomAccel(const Context* context, BottomAccelCreateInfo createInf
 
     buildGeometryInfo.setMode(vk::BuildAccelerationStructureModeKHR::eBuild);
     buildGeometryInfo.setDstAccelerationStructure(*accel);
-    buildGeometryInfo.setScratchData(scratchBuffer.getAddress());
+    buildGeometryInfo.setScratchData(scratchBuffer->getAddress());
 
     context->oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
         vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo{};
@@ -83,7 +83,7 @@ TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo)
                 .setMask(0xFF)
                 .setInstanceShaderBindingTableRecordOffset(instance.sbtOffset)
                 .setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable)
-                .setAccelerationStructureReference(instance.bottomAccel.getBufferAddress()));
+                .setAccelerationStructureReference(instance.bottomAccel->getBufferAddress()));
     }
 
     instanceBuffer = context->createBuffer({
@@ -95,7 +95,7 @@ TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo)
 
     vk::AccelerationStructureGeometryInstancesDataKHR instancesData;
     instancesData.setArrayOfPointers(false);
-    instancesData.setData(instanceBuffer.getAddress());
+    instancesData.setData(instanceBuffer->getAddress());
 
     vk::AccelerationStructureGeometryKHR geometry;
     geometry.setGeometryType(vk::GeometryTypeKHR::eInstances);
@@ -119,7 +119,7 @@ TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo)
 
     accel = context->getDevice().createAccelerationStructureKHRUnique(
         vk::AccelerationStructureCreateInfoKHR{}
-            .setBuffer(buffer.getBuffer())
+            .setBuffer(buffer->getBuffer())
             .setSize(buildSizesInfo.accelerationStructureSize)
             .setType(vk::AccelerationStructureTypeKHR::eTopLevel));
 
@@ -131,7 +131,7 @@ TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo)
 
     buildGeometryInfo.setMode(vk::BuildAccelerationStructureModeKHR::eBuild);
     buildGeometryInfo.setDstAccelerationStructure(*accel);
-    buildGeometryInfo.setScratchData(scratchBuffer.getAddress());
+    buildGeometryInfo.setScratchData(scratchBuffer->getAddress());
 
     context->oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
         vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo{};
@@ -153,14 +153,14 @@ void TopAccel::update(vk::CommandBuffer commandBuffer, ArrayProxy<AccelInstance>
                 .setMask(0xFF)
                 .setInstanceShaderBindingTableRecordOffset(instance.sbtOffset)
                 .setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable)
-                .setAccelerationStructureReference(instance.bottomAccel.getBufferAddress()));
+                .setAccelerationStructureReference(instance.bottomAccel->getBufferAddress()));
     }
 
-    instanceBuffer.copy(instances.data());
+    instanceBuffer->copy(instances.data());
 
     vk::AccelerationStructureGeometryInstancesDataKHR instancesData;
     instancesData.setArrayOfPointers(false);
-    instancesData.setData(instanceBuffer.getAddress());
+    instancesData.setData(instanceBuffer->getAddress());
 
     vk::AccelerationStructureGeometryKHR geometry;
     geometry.setGeometryType(vk::GeometryTypeKHR::eInstances);
@@ -175,7 +175,7 @@ void TopAccel::update(vk::CommandBuffer commandBuffer, ArrayProxy<AccelInstance>
     buildGeometryInfo.setMode(vk::BuildAccelerationStructureModeKHR::eUpdate);
     buildGeometryInfo.setDstAccelerationStructure(*accel);
     buildGeometryInfo.setSrcAccelerationStructure(*accel);
-    buildGeometryInfo.setScratchData(scratchBuffer.getAddress());
+    buildGeometryInfo.setScratchData(scratchBuffer->getAddress());
 
     vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo{};
     buildRangeInfo.setPrimitiveCount(instances.size());

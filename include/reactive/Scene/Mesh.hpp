@@ -76,14 +76,14 @@ struct Mesh {
 
     void drawIndexed(vk::CommandBuffer commandBuffer, uint32_t instanceCount) const {
         vk::DeviceSize offsets{0};
-        commandBuffer.bindVertexBuffers(0, vertexBuffer.getBuffer(), offsets);
-        commandBuffer.bindIndexBuffer(indexBuffer.getBuffer(), 0, vk::IndexType::eUint32);
+        commandBuffer.bindVertexBuffers(0, vertexBuffer->getBuffer(), offsets);
+        commandBuffer.bindIndexBuffer(indexBuffer->getBuffer(), 0, vk::IndexType::eUint32);
         commandBuffer.drawIndexed(static_cast<uint32_t>(indices.size()), instanceCount, 0, 0, 0);
     }
 
     const Context* context;
-    Buffer vertexBuffer;
-    Buffer indexBuffer;
+    BufferHandle vertexBuffer;
+    BufferHandle indexBuffer;
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
 };

@@ -37,7 +37,7 @@
 //         return vk::AccelerationStructureInstanceKHR()
 //             .setTransform(transform.getVkMatrix())
 //             .setMask(0xFF)
-//             .setAccelerationStructureReference(mesh->getAccel().getBufferAddress())
+//             .setAccelerationStructureReference(mesh->getAccel()->getBufferAddress())
 //             .setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);
 //     }
 //

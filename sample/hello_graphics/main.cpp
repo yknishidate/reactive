@@ -31,7 +31,7 @@ public:
           }) {}
 
     void onStart() override {
-        std::vector<Shader> shaders(2);
+        std::vector<ShaderHandle> shaders(2);
         shaders[0] = context.createShader({
             .code = Compiler::compileToSPV(vertCode, ShaderStage::Vertex),
             .stage = ShaderStage::Vertex,
@@ -47,7 +47,7 @@ public:
         });
 
         pipeline = context.createGraphicsPipeline({
-            .descSetLayout = descSet.getLayout(),
+            .descSetLayout = descSet->getLayout(),
             .vertexShader = shaders[0],
             .fragmentShader = shaders[1],
             .viewport = "dynamic",
@@ -69,8 +69,8 @@ public:
         commandBuffer.endRendering();
     }
 
-    DescriptorSet descSet;
-    GraphicsPipeline pipeline;
+    DescriptorSetHandle descSet;
+    GraphicsPipelineHandle pipeline;
     int testInt = 0;
 };
 

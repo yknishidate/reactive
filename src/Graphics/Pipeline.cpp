@@ -6,7 +6,6 @@
 #include "Compiler/Compiler.hpp"
 #include "Graphics/ArrayProxy.hpp"
 #include "Graphics/Image.hpp"
-#include "Graphics/RenderPass.hpp"
 #include "Scene/Mesh.hpp"
 #include "Scene/Object.hpp"
 
@@ -30,11 +29,11 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
     pipelineLayout = context->getDevice().createPipelineLayoutUnique(layoutInfo);
 
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages(2);
-    shaderStages[0].setModule(createInfo.vertexShader.getModule());
-    shaderStages[0].setStage(createInfo.vertexShader.getStage());
+    shaderStages[0].setModule(createInfo.vertexShader->getModule());
+    shaderStages[0].setStage(createInfo.vertexShader->getStage());
     shaderStages[0].setPName("main");
-    shaderStages[1].setModule(createInfo.fragmentShader.getModule());
-    shaderStages[1].setStage(createInfo.fragmentShader.getStage());
+    shaderStages[1].setModule(createInfo.fragmentShader->getModule());
+    shaderStages[1].setStage(createInfo.fragmentShader->getStage());
     shaderStages[1].setPName("main");
 
     // Pipeline states
@@ -187,24 +186,24 @@ MeshShaderPipeline::MeshShaderPipeline(const Context* context,
     pipelineLayout = context->getDevice().createPipelineLayoutUnique(layoutInfo);
 
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
-    if (createInfo.taskShader.getModule()) {
+    if (createInfo.taskShader->getModule()) {
         shaderStages.resize(3);
-        shaderStages[0].setModule(createInfo.taskShader.getModule());
-        shaderStages[0].setStage(createInfo.taskShader.getStage());
+        shaderStages[0].setModule(createInfo.taskShader->getModule());
+        shaderStages[0].setStage(createInfo.taskShader->getStage());
         shaderStages[0].setPName("main");
-        shaderStages[1].setModule(createInfo.meshShader.getModule());
-        shaderStages[1].setStage(createInfo.meshShader.getStage());
+        shaderStages[1].setModule(createInfo.meshShader->getModule());
+        shaderStages[1].setStage(createInfo.meshShader->getStage());
         shaderStages[1].setPName("main");
-        shaderStages[2].setModule(createInfo.fragmentShader.getModule());
-        shaderStages[2].setStage(createInfo.fragmentShader.getStage());
+        shaderStages[2].setModule(createInfo.fragmentShader->getModule());
+        shaderStages[2].setStage(createInfo.fragmentShader->getStage());
         shaderStages[2].setPName("main");
     } else {
         shaderStages.resize(2);
-        shaderStages[0].setModule(createInfo.meshShader.getModule());
-        shaderStages[0].setStage(createInfo.meshShader.getStage());
+        shaderStages[0].setModule(createInfo.meshShader->getModule());
+        shaderStages[0].setStage(createInfo.meshShader->getStage());
         shaderStages[0].setPName("main");
-        shaderStages[1].setModule(createInfo.fragmentShader.getModule());
-        shaderStages[1].setStage(createInfo.fragmentShader.getStage());
+        shaderStages[1].setModule(createInfo.fragmentShader->getModule());
+        shaderStages[1].setStage(createInfo.fragmentShader->getStage());
         shaderStages[1].setPName("main");
     }
 
@@ -329,8 +328,8 @@ ComputePipeline::ComputePipeline(const Context* context, ComputePipelineCreateIn
     pipelineLayout = context->getDevice().createPipelineLayoutUnique(layoutInfo);
 
     vk::PipelineShaderStageCreateInfo stage;
-    stage.setStage(createInfo.computeShader.getStage());
-    stage.setModule(createInfo.computeShader.getModule());
+    stage.setStage(createInfo.computeShader->getStage());
+    stage.setModule(createInfo.computeShader->getModule());
     stage.setPName("main");
 
     vk::ComputePipelineCreateInfo pipelineInfo;
@@ -366,7 +365,7 @@ RayTracingPipeline::RayTracingPipeline(const Context* context,
 
     for (auto& shader : createInfo.rgenShaders) {
         uint32_t index = shaderModules.size();
-        shaderModules.push_back(shader.getModule());
+        shaderModules.push_back(shader->getModule());
 
         shaderStages.push_back(
             {{}, vk::ShaderStageFlagBits::eRaygenKHR, shaderModules[index], "main"});
@@ -376,7 +375,7 @@ RayTracingPipeline::RayTracingPipeline(const Context* context,
     }
     for (auto& shader : createInfo.missShaders) {
         uint32_t index = shaderModules.size();
-        shaderModules.push_back(shader.getModule());
+        shaderModules.push_back(shader->getModule());
 
         shaderStages.push_back(
             {{}, vk::ShaderStageFlagBits::eMissKHR, shaderModules.back(), "main"});
@@ -386,7 +385,7 @@ RayTracingPipeline::RayTracingPipeline(const Context* context,
     }
     for (auto& shader : createInfo.chitShaders) {
         uint32_t index = shaderModules.size();
-        shaderModules.push_back(shader.getModule());
+        shaderModules.push_back(shader->getModule());
         shaderStages.push_back(
             {{}, vk::ShaderStageFlagBits::eClosestHitKHR, shaderModules.back(), "main"});
 
@@ -458,15 +457,15 @@ RayTracingPipeline::RayTracingPipeline(const Context* context,
         .data = shaderHandleStorage.data() + (rgenCount + missCount) * handleSizeAligned,
     });
 
-    raygenRegion.setDeviceAddress(raygenSBT.getAddress());
+    raygenRegion.setDeviceAddress(raygenSBT->getAddress());
     raygenRegion.setStride(rtProperties.shaderGroupHandleAlignment);
     raygenRegion.setSize(rtProperties.shaderGroupHandleAlignment);
 
-    missRegion.setDeviceAddress(missSBT.getAddress());
+    missRegion.setDeviceAddress(missSBT->getAddress());
     missRegion.setStride(rtProperties.shaderGroupHandleAlignment);
     missRegion.setSize(rtProperties.shaderGroupHandleAlignment);
 
-    hitRegion.setDeviceAddress(hitSBT.getAddress());
+    hitRegion.setDeviceAddress(hitSBT->getAddress());
     hitRegion.setStride(rtProperties.shaderGroupHandleAlignment);
     hitRegion.setSize(rtProperties.shaderGroupHandleAlignment);
 }

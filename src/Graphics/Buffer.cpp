@@ -100,7 +100,7 @@ void Buffer::copy(const void* data) {
         map();
         std::memcpy(mapped, data, size);
     } else {
-        Buffer stagingBuffer = context->createBuffer({
+        BufferHandle stagingBuffer = context->createBuffer({
             .usage = BufferUsage::Staging,
             .memory = MemoryUsage::Host,
             .size = size,
@@ -108,7 +108,7 @@ void Buffer::copy(const void* data) {
         });
         context->oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
             vk::BufferCopy region{0, 0, size};
-            commandBuffer.copyBuffer(stagingBuffer.getBuffer(), *buffer, region);
+            commandBuffer.copyBuffer(stagingBuffer->getBuffer(), *buffer, region);
         });
     }
 }

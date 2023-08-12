@@ -22,23 +22,23 @@ public:
     CommandBuffer(const Context* context, vk::CommandBuffer commandBuffer)
         : context{context}, commandBuffer{commandBuffer} {}
 
-    void bindDescriptorSet(DescriptorSet& descSet, const Pipeline& pipeline) const;
-    void bindPipeline(Pipeline& pipeline) const;
-    void pushConstants(Pipeline& pipeline, const void* pushData) const;
+    void bindDescriptorSet(DescriptorSetHandle descSet, PipelineHandle pipeline) const;
+    void bindPipeline(PipelineHandle pipeline) const;
+    void pushConstants(PipelineHandle pipeline, const void* pushData) const;
 
-    void bindVertexBuffer(const Buffer& buffer, vk::DeviceSize offset = 0) const;
-    void bindIndexBuffer(const Buffer& buffer, vk::DeviceSize offset = 0) const;
+    void bindVertexBuffer(BufferHandle buffer, vk::DeviceSize offset = 0) const;
+    void bindIndexBuffer(BufferHandle buffer, vk::DeviceSize offset = 0) const;
 
-    void traceRays(const RayTracingPipeline& pipeline,
+    void traceRays(RayTracingPipelineHandle pipeline,
                    uint32_t countX,
                    uint32_t countY,
                    uint32_t countZ) const;
-    void dispatch(const ComputePipeline& pipeline,
+    void dispatch(ComputePipelineHandle pipeline,
                   uint32_t countX,
                   uint32_t countY,
                   uint32_t countZ) const;
 
-    void dispatchIndirect(const Buffer& buffer, vk::DeviceSize offset) const;
+    void dispatchIndirect(BufferHandle buffer, vk::DeviceSize offset) const;
 
     void clearColorImage(vk::Image image, std::array<float, 4> color) const;
     void clearDepthStencilImage(vk::Image image, float depth, uint32_t stencil) const;
@@ -59,8 +59,8 @@ public:
                      uint32_t firstIndex = 0,
                      int32_t vertexOffset = 0,
                      uint32_t firstInstance = 0) const;
-    void drawIndexed(const Buffer& vertexBuffer,
-                     const Buffer& indexBuffer,
+    void drawIndexed(BufferHandle vertexBuffer,
+                     BufferHandle indexBuffer,
                      uint32_t indexCount,
                      uint32_t firstIndex = 0,
                      uint32_t instanceCount = 1,
@@ -69,15 +69,15 @@ public:
     void drawMeshTasks(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ) const;
 
     // Indirect draw
-    void drawIndirect(const Buffer& buffer,
+    void drawIndirect(BufferHandle buffer,
                       vk::DeviceSize offset = 0,
                       uint32_t drawCount = 1,
                       uint32_t stride = sizeof(vk::DrawIndexedIndirectCommand)) const;
-    void drawIndexedIndirect(const Buffer& buffer,
+    void drawIndexedIndirect(BufferHandle buffer,
                              vk::DeviceSize offset = 0,
                              uint32_t drawCount = 1,
                              uint32_t stride = sizeof(vk::DrawIndexedIndirectCommand)) const;
-    void drawMeshTasksIndirect(const Buffer& buffer,
+    void drawMeshTasksIndirect(BufferHandle buffer,
                                vk::DeviceSize offset,
                                uint32_t drawCount,
                                uint32_t stride) const;
@@ -97,7 +97,7 @@ public:
     void bufferBarrier(vk::PipelineStageFlags srcStageMask,
                        vk::PipelineStageFlags dstStageMask,
                        vk::DependencyFlags dependencyFlags,
-                       const Buffer& buffer,
+                       BufferHandle buffer,
                        vk::AccessFlags srcAccessMask,
                        vk::AccessFlags dstAccessMask) const;
 
@@ -149,7 +149,7 @@ public:
                    uint32_t width,
                    uint32_t height) const;
 
-    void fillBuffer(const Buffer& dstBuffer,
+    void fillBuffer(BufferHandle dstBuffer,
                     vk::DeviceSize dstOffset,
                     vk::DeviceSize size,
                     uint32_t data) const;

@@ -66,7 +66,7 @@ DescriptorSet::DescriptorSet(const Context* context, DescriptorSetCreateInfo cre
 
         std::vector<vk::DescriptorBufferInfo> infos;
         for (auto& b : buffer) {
-            infos.push_back(b.getInfo());
+            infos.push_back(b->getInfo());
         }
 
         writes.emplace_back(bindingMap[name], infos);
@@ -77,7 +77,7 @@ DescriptorSet::DescriptorSet(const Context* context, DescriptorSetCreateInfo cre
 
         std::vector<vk::DescriptorImageInfo> infos;
         for (auto& i : image) {
-            infos.push_back(i.getInfo());
+            infos.push_back(i->getInfo());
         }
 
         writes.emplace_back(bindingMap[name], infos);
@@ -88,7 +88,7 @@ DescriptorSet::DescriptorSet(const Context* context, DescriptorSetCreateInfo cre
 
         std::vector<vk::WriteDescriptorSetAccelerationStructureKHR> infos;
         for (auto& a : accel) {
-            infos.push_back(a.getInfo());
+            infos.push_back(a->getInfo());
         }
 
         writes.emplace_back(bindingMap[name], infos);
@@ -121,9 +121,9 @@ void DescriptorSet::update() {
     context->getDevice().updateDescriptorSets(_writes, nullptr);
 }
 
-void DescriptorSet::addResources(const Shader& shader) {
-    vk::ShaderStageFlags stage = shader.getStage();
-    spirv_cross::CompilerGLSL glsl{shader.getSpvCode()};
+void DescriptorSet::addResources(ShaderHandle shader) {
+    vk::ShaderStageFlags stage = shader->getStage();
+    spirv_cross::CompilerGLSL glsl{shader->getSpvCode()};
     spirv_cross::ShaderResources resources = glsl.get_shader_resources();
 
     for (auto& resource : resources.uniform_buffers) {

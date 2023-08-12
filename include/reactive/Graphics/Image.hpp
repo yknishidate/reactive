@@ -59,12 +59,12 @@ public:
     vk::ImageAspectFlags getAspectMask() const { return aspect; }
     vk::ImageLayout getLayout() const { return layout; }
 
-    static Image loadFromFile(const Context& context,
-                              const std::string& filepath,
-                              uint32_t mipLevels);
+    static ImageHandle loadFromFile(const Context& context,
+                                    const std::string& filepath,
+                                    uint32_t mipLevels);
 
     // mipmap is not supported
-    static Image loadFromFileHDR(const Context& context, const std::string& filepath);
+    static ImageHandle loadFromFileHDR(const Context& context, const std::string& filepath);
 
     // Ensure that data is pre-filled
     // ImageLayout is implicitly shifted to ShaderReadOnlyOptimal
