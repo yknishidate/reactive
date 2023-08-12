@@ -2,34 +2,13 @@
 #include "Context.hpp"
 
 namespace rv {
-enum class BufferUsage {
-    Uniform,
-    Storage,
-    Staging,
-    Vertex,
-    Index,
-    Indirect,
-    AccelStorage,
-    AccelInput,
-    ShaderBindingTable,
-    Scratch,
-};
-
-enum class MemoryUsage {
-    Device,
-    Host,
-};
-
-struct BufferCreateInfo {
-    BufferUsage usage;
-    MemoryUsage memory;
-    size_t size = 0;
-    const void* data = nullptr;
-};
-
 class Buffer {
 public:
-    Buffer(const Context* context, BufferCreateInfo createInfo);
+    Buffer(const Context* context,
+           vk::BufferUsageFlags usage,
+           vk::MemoryPropertyFlags memoryProp,
+           vk::DeviceSize size,
+           const void* data);
 
     vk::Buffer getBuffer() const { return *buffer; }
 
@@ -37,10 +16,7 @@ public:
 
     vk::DescriptorBufferInfo getInfo() const { return {*buffer, 0, size}; }
 
-    uint64_t getAddress() const {
-        vk::BufferDeviceAddressInfo bufferDeviceAI{*buffer};
-        return context->getDevice().getBufferAddress(&bufferDeviceAI);
-    }
+    vk::DeviceAddress getAddress() const;
 
     void* map();
 
@@ -48,12 +24,12 @@ public:
 
     void copy(const void* data);
 
-protected:
+private:
     const Context* context = nullptr;
     vk::UniqueBuffer buffer;
     vk::UniqueDeviceMemory memory;
     vk::DeviceSize size = 0u;
     void* mapped = nullptr;
-    MemoryUsage memoryUsage;
+    bool isHostVisible;
 };
 }  // namespace rv

@@ -53,6 +53,31 @@ using BottomAccelHandle = std::shared_ptr<BottomAccel>;
 using TopAccelHandle = std::shared_ptr<TopAccel>;
 using GPUTimerHandle = std::shared_ptr<GPUTimer>;
 
+enum class BufferUsage {
+    Uniform,
+    Storage,
+    Staging,
+    Vertex,
+    Index,
+    Indirect,
+    AccelStorage,
+    AccelInput,
+    ShaderBindingTable,
+    Scratch,
+};
+
+enum class MemoryUsage {
+    Device,
+    Host,
+};
+
+struct BufferCreateInfo {
+    BufferUsage usage;
+    MemoryUsage memory;
+    size_t size = 0;
+    const void* data = nullptr;
+};
+
 class Context {
 public:
     void initInstance(bool enableValidation,

@@ -9,6 +9,59 @@
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
+namespace {
+vk::BufferUsageFlags getBufferUsage(rv::BufferUsage usage) {
+    switch (usage) {
+        case rv::BufferUsage::Uniform:
+            return vk::BufferUsageFlagBits::eUniformBuffer | vk::BufferUsageFlagBits::eTransferDst |
+                   vk::BufferUsageFlagBits::eShaderDeviceAddress;
+        case rv::BufferUsage::Storage:
+            return vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst |
+                   vk::BufferUsageFlagBits::eShaderDeviceAddress;
+        case rv::BufferUsage::Staging:
+            return vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst;
+        case rv::BufferUsage::Vertex:
+            return vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
+                   vk::BufferUsageFlagBits::eStorageBuffer |
+                   vk::BufferUsageFlagBits::eShaderDeviceAddress |
+                   vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst;
+        case rv::BufferUsage::Index:
+            return vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
+                   vk::BufferUsageFlagBits::eStorageBuffer |
+                   vk::BufferUsageFlagBits::eShaderDeviceAddress |
+                   vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst;
+        case rv::BufferUsage::Indirect:
+            return vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst |
+                   vk::BufferUsageFlagBits::eIndirectBuffer;
+        case rv::BufferUsage::AccelStorage:
+            return vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR |
+                   vk::BufferUsageFlagBits::eShaderDeviceAddress;
+        case rv::BufferUsage::AccelInput:
+            return vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
+                   vk::BufferUsageFlagBits::eStorageBuffer |
+                   vk::BufferUsageFlagBits::eShaderDeviceAddress |
+                   vk::BufferUsageFlagBits::eTransferDst;
+        case rv::BufferUsage::ShaderBindingTable:
+            return vk::BufferUsageFlagBits::eShaderBindingTableKHR |
+                   vk::BufferUsageFlagBits::eShaderDeviceAddress |
+                   vk::BufferUsageFlagBits::eTransferDst;
+        case rv::BufferUsage::Scratch:
+            return vk::BufferUsageFlagBits::eStorageBuffer |
+                   vk::BufferUsageFlagBits::eShaderDeviceAddress;
+    }
+}
+
+vk::MemoryPropertyFlags getMemoryProperty(rv::MemoryUsage usage) {
+    switch (usage) {
+        case rv::MemoryUsage::Device:
+            return vk::MemoryPropertyFlagBits::eDeviceLocal;
+        case rv::MemoryUsage::Host:
+            return vk::MemoryPropertyFlagBits::eHostVisible |
+                   vk::MemoryPropertyFlagBits::eHostCoherent;
+    }
+}
+}  // namespace
+
 namespace rv {
 void Context::initInstance(bool enableValidation,
                            const std::vector<const char*>& layers,
@@ -190,7 +243,9 @@ ImageHandle Context::createImage(ImageCreateInfo createInfo) const {
 }
 
 BufferHandle Context::createBuffer(BufferCreateInfo createInfo) const {
-    return std::make_shared<Buffer>(this, createInfo);
+    vk::BufferUsageFlags usage = getBufferUsage(createInfo.usage);
+    vk::MemoryPropertyFlags memory = getMemoryProperty(createInfo.memory);
+    return std::make_shared<Buffer>(this, usage, memory, createInfo.size, createInfo.data);
 }
 
 MeshHandle Context::createMesh(MeshCreateInfo createInfo) const {
