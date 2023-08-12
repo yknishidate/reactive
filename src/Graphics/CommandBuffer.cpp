@@ -59,7 +59,7 @@ void CommandBuffer::dispatchIndirect(BufferHandle buffer, vk::DeviceSize offset)
 
 void CommandBuffer::clearColorImage(vk::Image image, std::array<float, 4> color) const {
     // TODO: Fix vk::ImageLayout::eUndefined
-    Image::transitionImageLayout(commandBuffer, image, vk::ImageLayout::eUndefined,
+    Image::transitionLayout(commandBuffer, image, vk::ImageLayout::eUndefined,
                                  vk::ImageLayout::eTransferDstOptimal,
                                  vk::ImageAspectFlagBits::eColor, 1);
     commandBuffer.clearColorImage(
@@ -69,7 +69,7 @@ void CommandBuffer::clearColorImage(vk::Image image, std::array<float, 4> color)
 
 void CommandBuffer::clearDepthStencilImage(vk::Image image, float depth, uint32_t stencil) const {
     // TODO: Fix vk::ImageLayout::eUndefined
-    Image::transitionImageLayout(commandBuffer, image, vk::ImageLayout::eUndefined,
+    Image::transitionLayout(commandBuffer, image, vk::ImageLayout::eUndefined,
                                  vk::ImageLayout::eTransferDstOptimal,
                                  vk::ImageAspectFlagBits::eDepth, 1);
     commandBuffer.clearDepthStencilImage(
@@ -203,12 +203,12 @@ void CommandBuffer::imageBarrier(vk::PipelineStageFlags srcStageMask,
                                   memoryBarrier);
 }
 
-void CommandBuffer::transitionImageLayout(vk::Image image,
+void CommandBuffer::transitionLayout(vk::Image image,
                                           vk::ImageLayout oldLayout,
                                           vk::ImageLayout newLayout,
                                           vk::ImageAspectFlagBits aspect,
                                           uint32_t mipLevels) const {
-    Image::transitionImageLayout(commandBuffer, image, oldLayout, newLayout, aspect, mipLevels);
+    Image::transitionLayout(commandBuffer, image, oldLayout, newLayout, aspect, mipLevels);
 }
 
 void CommandBuffer::copyImage(vk::Image srcImage,
@@ -218,10 +218,10 @@ void CommandBuffer::copyImage(vk::Image srcImage,
                               uint32_t width,
                               uint32_t height) const {
     // TODO: Fix vk::ImageLayout::eUndefined
-    Image::transitionImageLayout(commandBuffer, srcImage, vk::ImageLayout::eUndefined,
+    Image::transitionLayout(commandBuffer, srcImage, vk::ImageLayout::eUndefined,
                                  vk::ImageLayout::eTransferSrcOptimal,
                                  vk::ImageAspectFlagBits::eColor, 1);
-    Image::transitionImageLayout(commandBuffer, dstImage, vk::ImageLayout::eUndefined,
+    Image::transitionLayout(commandBuffer, dstImage, vk::ImageLayout::eUndefined,
                                  vk::ImageLayout::eTransferDstOptimal,
                                  vk::ImageAspectFlagBits::eColor, 1);
 
@@ -233,9 +233,9 @@ void CommandBuffer::copyImage(vk::Image srcImage,
                             dstImage, vk::ImageLayout::eTransferDstOptimal,  // dst
                             copyRegion);
 
-    Image::transitionImageLayout(commandBuffer, srcImage, vk::ImageLayout::eTransferSrcOptimal,
+    Image::transitionLayout(commandBuffer, srcImage, vk::ImageLayout::eTransferSrcOptimal,
                                  newSrcLayout, vk::ImageAspectFlagBits::eColor, 1);
-    Image::transitionImageLayout(commandBuffer, dstImage, vk::ImageLayout::eTransferDstOptimal,
+    Image::transitionLayout(commandBuffer, dstImage, vk::ImageLayout::eTransferDstOptimal,
                                  newDstLayout, vk::ImageAspectFlagBits::eColor, 1);
 }
 

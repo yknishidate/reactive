@@ -126,7 +126,7 @@ public:
                       vk::AccessFlags srcAccessMask,
                       vk::AccessFlags dstAccessMask) const;
 
-    void transitionImageLayout(vk::Image image,
+    void transitionLayout(vk::Image image,
                                vk::ImageLayout oldLayout,
                                vk::ImageLayout newLayout,
                                vk::ImageAspectFlagBits aspect = vk::ImageAspectFlagBits::eColor,

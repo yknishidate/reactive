@@ -78,6 +78,47 @@ struct BufferCreateInfo {
     const void* data = nullptr;
 };
 
+enum class ImageUsage {
+    ColorAttachment,
+    DepthAttachment,
+    DepthStencilAttachment,
+    Storage,
+    Sampled,
+};
+
+enum class ImageLayout {
+    Undefined,
+    General,
+    ColorAttachment,
+    DepthAttachment,
+    StencilAttachment,
+    DepthStencilAttachment,
+    ShaderReadOnly,
+    TransferSrc,
+    TransferDst,
+    PresentSrc,
+};
+
+enum class Format {
+    BGRA8Unorm,
+    RGBA8Unorm,
+    RGB16Sfloat,
+    RGB32Sfloat,
+    RGBA32Sfloat,
+    D32Sfloat,
+};
+
+struct ImageCreateInfo {
+    ImageUsage usage;
+    uint32_t width = 1;
+    uint32_t height = 1;
+    uint32_t depth = 1;
+    Format format;
+    ImageLayout layout;
+    // if mipLevels is std::numeric_limits<uint32_t>::max(), then it's set to max level
+    uint32_t mipLevels = 1;
+};
+
 class Context {
 public:
     void initInstance(bool enableValidation,

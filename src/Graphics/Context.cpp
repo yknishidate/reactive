@@ -60,6 +60,81 @@ vk::MemoryPropertyFlags getMemoryProperty(rv::MemoryUsage usage) {
                    vk::MemoryPropertyFlagBits::eHostCoherent;
     }
 }
+
+vk::ImageUsageFlags getImageUsage(rv::ImageUsage usage) {
+    switch (usage) {
+        case rv::ImageUsage::ColorAttachment:
+            return vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc |
+                   vk::ImageUsageFlagBits::eTransferDst;
+        case rv::ImageUsage::DepthAttachment:
+            return vk::ImageUsageFlagBits::eDepthStencilAttachment;
+        case rv::ImageUsage::DepthStencilAttachment:
+            return vk::ImageUsageFlagBits::eDepthStencilAttachment;
+        case rv::ImageUsage::Sampled:
+            return vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst |
+                   vk::ImageUsageFlagBits::eTransferSrc;
+        case rv::ImageUsage::Storage:
+            return vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferDst |
+                   vk::ImageUsageFlagBits::eTransferSrc;
+    }
+}
+
+vk::ImageAspectFlags getImageAspect(rv::ImageUsage usage) {
+    switch (usage) {
+        case rv::ImageUsage::ColorAttachment:
+            return vk::ImageAspectFlagBits::eColor;
+        case rv::ImageUsage::DepthAttachment:
+            return vk::ImageAspectFlagBits::eDepth;
+        case rv::ImageUsage::DepthStencilAttachment:
+            return vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
+        case rv::ImageUsage::Sampled:
+            return vk::ImageAspectFlagBits::eColor;
+        case rv::ImageUsage::Storage:
+            return vk::ImageAspectFlagBits::eColor;
+    }
+}
+
+vk::ImageLayout getImageLayout(rv::ImageLayout layout) {
+    switch (layout) {
+        case rv::ImageLayout::Undefined:
+            return vk::ImageLayout::eUndefined;
+        case rv::ImageLayout::General:
+            return vk::ImageLayout::eGeneral;
+        case rv::ImageLayout::ColorAttachment:
+            return vk::ImageLayout::eColorAttachmentOptimal;
+        case rv::ImageLayout::DepthAttachment:
+            return vk::ImageLayout::eDepthAttachmentOptimal;
+        case rv::ImageLayout::StencilAttachment:
+            return vk::ImageLayout::eStencilAttachmentOptimal;
+        case rv::ImageLayout::DepthStencilAttachment:
+            return vk::ImageLayout::eDepthStencilAttachmentOptimal;
+        case rv::ImageLayout::ShaderReadOnly:
+            return vk::ImageLayout::eShaderReadOnlyOptimal;
+        case rv::ImageLayout::TransferSrc:
+            return vk::ImageLayout::eTransferSrcOptimal;
+        case rv::ImageLayout::TransferDst:
+            return vk::ImageLayout::eTransferDstOptimal;
+        case rv::ImageLayout::PresentSrc:
+            return vk::ImageLayout::ePresentSrcKHR;
+    }
+}
+
+vk::Format getFormat(rv::Format format) {
+    switch (format) {
+        case rv::Format::BGRA8Unorm:
+            return vk::Format::eB8G8R8A8Unorm;
+        case rv::Format::RGBA8Unorm:
+            return vk::Format::eR8G8B8A8Unorm;
+        case rv::Format::RGB16Sfloat:
+            return vk::Format::eR16G16B16Sfloat;
+        case rv::Format::RGB32Sfloat:
+            return vk::Format::eR32G32B32Sfloat;
+        case rv::Format::RGBA32Sfloat:
+            return vk::Format::eR32G32B32A32Sfloat;
+        case rv::Format::D32Sfloat:
+            return vk::Format::eD32Sfloat;
+    }
+}
 }  // namespace
 
 namespace rv {
@@ -239,7 +314,12 @@ RayTracingPipelineHandle Context::createRayTracingPipeline(
 }
 
 ImageHandle Context::createImage(ImageCreateInfo createInfo) const {
-    return std::make_shared<Image>(this, createInfo);
+    vk::ImageUsageFlags usage = getImageUsage(createInfo.usage);
+    vk::Format format = getFormat(createInfo.format);
+    vk::ImageLayout layout = getImageLayout(createInfo.layout);
+    vk::ImageAspectFlags aspect = getImageAspect(createInfo.usage);
+    return std::make_shared<Image>(this, usage, createInfo.width, createInfo.height,
+                                   createInfo.depth, format, layout, aspect, createInfo.mipLevels);
 }
 
 BufferHandle Context::createBuffer(BufferCreateInfo createInfo) const {

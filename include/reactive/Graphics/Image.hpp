@@ -5,58 +5,37 @@
 namespace rv {
 class Buffer;
 
-enum class ImageUsage {
-    ColorAttachment,
-    DepthAttachment,
-    DepthStencilAttachment,
-    Storage,
-    Sampled,
-};
-
-enum class ImageLayout {
-    Undefined,
-    General,
-    ColorAttachment,
-    DepthAttachment,
-    StencilAttachment,
-    DepthStencilAttachment,
-    ShaderReadOnly,
-    TransferSrc,
-    TransferDst,
-    PresentSrc,
-};
-
-enum class Format {
-    BGRA8Unorm,
-    RGBA8Unorm,
-    RGB16Sfloat,
-    RGB32Sfloat,
-    RGBA32Sfloat,
-    D32Sfloat,
-};
-
-struct ImageCreateInfo {
-    ImageUsage usage;
-    uint32_t width = 1;
-    uint32_t height = 1;
-    uint32_t depth = 1;
-    Format format;
-    ImageLayout layout;
-    // if mipLevels is std::numeric_limits<uint32_t>::max(), then it's set to max level
-    uint32_t mipLevels = 1;
-};
-
 class Image {
 public:
-    Image(const Context* context, ImageCreateInfo createInfo);
+    Image(const Context* context,
+          vk::ImageUsageFlags usage,
+          uint32_t width,
+          uint32_t height,
+          uint32_t depth,
+          vk::Format format,
+          vk::ImageLayout layout,
+          vk::ImageAspectFlags aspect,
+          uint32_t mipLevels);
+
+    Image(vk::Image image, vk::ImageView view) : image{image}, view{view} {}
 
     vk::Image getImage() const { return *image; }
+
     vk::ImageView getView() const { return *view; }
+
     vk::Sampler getSampler() const { return *sampler; }
+
     vk::DescriptorImageInfo getInfo() const { return {*sampler, *view, layout}; }
+
     uint32_t getMipLevels() const { return mipLevels; }
+
     vk::ImageAspectFlags getAspectMask() const { return aspect; }
+
     vk::ImageLayout getLayout() const { return layout; }
+
+    // Ensure that data is pre-filled
+    // ImageLayout is implicitly shifted to ShaderReadOnlyOptimal
+    void generateMipmaps();
 
     static ImageHandle loadFromFile(const Context& context,
                                     const std::string& filepath,
@@ -65,16 +44,12 @@ public:
     // mipmap is not supported
     static ImageHandle loadFromFileHDR(const Context& context, const std::string& filepath);
 
-    // Ensure that data is pre-filled
-    // ImageLayout is implicitly shifted to ShaderReadOnlyOptimal
-    void generateMipmaps();
-
-    static void transitionImageLayout(vk::CommandBuffer commandBuffer,
-                                      vk::Image image,
-                                      vk::ImageLayout oldLayout,
-                                      vk::ImageLayout newLayout,
-                                      vk::ImageAspectFlags aspect,
-                                      uint32_t mipLevels);
+    static void transitionLayout(vk::CommandBuffer commandBuffer,
+                                 vk::Image image,
+                                 vk::ImageLayout oldLayout,
+                                 vk::ImageLayout newLayout,
+                                 vk::ImageAspectFlags aspect,
+                                 uint32_t mipLevels);
 
 private:
     const Context* context;

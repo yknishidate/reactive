@@ -6,98 +6,31 @@ namespace {
 uint32_t calculateMipLevels(uint32_t width, uint32_t height) {
     return static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
 }
-vk::ImageUsageFlags getImageUsage(rv::ImageUsage usage) {
-    switch (usage) {
-        case rv::ImageUsage::ColorAttachment:
-            return vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc |
-                   vk::ImageUsageFlagBits::eTransferDst;
-        case rv::ImageUsage::DepthAttachment:
-            return vk::ImageUsageFlagBits::eDepthStencilAttachment;
-        case rv::ImageUsage::DepthStencilAttachment:
-            return vk::ImageUsageFlagBits::eDepthStencilAttachment;
-        case rv::ImageUsage::Sampled:
-            return vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst |
-                   vk::ImageUsageFlagBits::eTransferSrc;
-        case rv::ImageUsage::Storage:
-            return vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferDst |
-                   vk::ImageUsageFlagBits::eTransferSrc;
-    }
-}
-
-vk::ImageAspectFlags getImageAspect(rv::ImageUsage usage) {
-    switch (usage) {
-        case rv::ImageUsage::ColorAttachment:
-            return vk::ImageAspectFlagBits::eColor;
-        case rv::ImageUsage::DepthAttachment:
-            return vk::ImageAspectFlagBits::eDepth;
-        case rv::ImageUsage::DepthStencilAttachment:
-            return vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
-        case rv::ImageUsage::Sampled:
-            return vk::ImageAspectFlagBits::eColor;
-        case rv::ImageUsage::Storage:
-            return vk::ImageAspectFlagBits::eColor;
-    }
-}
-
-vk::ImageLayout getImageLayout(rv::ImageLayout layout) {
-    switch (layout) {
-        case rv::ImageLayout::Undefined:
-            return vk::ImageLayout::eUndefined;
-        case rv::ImageLayout::General:
-            return vk::ImageLayout::eGeneral;
-        case rv::ImageLayout::ColorAttachment:
-            return vk::ImageLayout::eColorAttachmentOptimal;
-        case rv::ImageLayout::DepthAttachment:
-            return vk::ImageLayout::eDepthAttachmentOptimal;
-        case rv::ImageLayout::StencilAttachment:
-            return vk::ImageLayout::eStencilAttachmentOptimal;
-        case rv::ImageLayout::DepthStencilAttachment:
-            return vk::ImageLayout::eDepthStencilAttachmentOptimal;
-        case rv::ImageLayout::ShaderReadOnly:
-            return vk::ImageLayout::eShaderReadOnlyOptimal;
-        case rv::ImageLayout::TransferSrc:
-            return vk::ImageLayout::eTransferSrcOptimal;
-        case rv::ImageLayout::TransferDst:
-            return vk::ImageLayout::eTransferDstOptimal;
-        case rv::ImageLayout::PresentSrc:
-            return vk::ImageLayout::ePresentSrcKHR;
-    }
-}
-
-vk::Format getFormat(rv::Format format) {
-    switch (format) {
-        case rv::Format::BGRA8Unorm:
-            return vk::Format::eB8G8R8A8Unorm;
-        case rv::Format::RGBA8Unorm:
-            return vk::Format::eR8G8B8A8Unorm;
-        case rv::Format::RGB16Sfloat:
-            return vk::Format::eR16G16B16Sfloat;
-        case rv::Format::RGB32Sfloat:
-            return vk::Format::eR32G32B32Sfloat;
-        case rv::Format::RGBA32Sfloat:
-            return vk::Format::eR32G32B32A32Sfloat;
-        case rv::Format::D32Sfloat:
-            return vk::Format::eD32Sfloat;
-    }
-}
 }  // namespace
 
 namespace rv {
-Image::Image(const Context* context, ImageCreateInfo createInfo)
+Image::Image(const Context* context,
+             vk::ImageUsageFlags usage,
+             uint32_t width,
+             uint32_t height,
+             uint32_t depth,
+             vk::Format format,
+             vk::ImageLayout layout,
+             vk::ImageAspectFlags aspect,
+             uint32_t mipLevels)
     : context{context},
-      width{createInfo.width},
-      height{createInfo.height},
-      depth{createInfo.depth},
-      layout{getImageLayout(createInfo.layout)},
-      format{getFormat(createInfo.format)},
-      mipLevels{createInfo.mipLevels},
-      aspect{getImageAspect(createInfo.usage)} {
-    vk::ImageType type = createInfo.depth == 1 ? vk::ImageType::e2D : vk::ImageType::e3D;
+      width{width},
+      height{height},
+      depth{depth},
+      layout{layout},
+      format{format},
+      mipLevels{mipLevels},
+      aspect{aspect} {
+    vk::ImageType type = depth == 1 ? vk::ImageType::e2D : vk::ImageType::e3D;
 
     // Compute mipmap level
-    if (createInfo.mipLevels == std::numeric_limits<uint32_t>::max()) {
+    if (mipLevels == std::numeric_limits<uint32_t>::max()) {
         mipLevels = calculateMipLevels(width, height);
-        spdlog::info("MipLevels: {}", mipLevels);
     }
 
     // NOTE: initialLayout must be Undefined or PreInitialized
@@ -109,7 +42,7 @@ Image::Image(const Context* context, ImageCreateInfo createInfo)
     imageInfo.setMipLevels(mipLevels);
     imageInfo.setArrayLayers(1);
     imageInfo.setSamples(vk::SampleCountFlagBits::e1);
-    imageInfo.setUsage(getImageUsage(createInfo.usage));
+    imageInfo.setUsage(usage);
     image = context->getDevice().createImageUnique(imageInfo);
 
     vk::MemoryRequirements requirements = context->getDevice().getImageMemoryRequirements(*image);
@@ -159,8 +92,8 @@ Image::Image(const Context* context, ImageCreateInfo createInfo)
     sampler = context->getDevice().createSamplerUnique(samplerInfo);
 
     context->oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
-        transitionImageLayout(commandBuffer, *image, vk::ImageLayout::eUndefined, layout, aspect,
-                              mipLevels);
+        transitionLayout(commandBuffer, *image, vk::ImageLayout::eUndefined, layout, aspect,
+                         mipLevels);
     });
 }
 
@@ -216,9 +149,9 @@ ImageHandle Image::loadFromFile(const Context& context,
         if (mipLevels > 1) {
             newLayout = vk::ImageLayout::eTransferSrcOptimal;
         }
-        Image::transitionImageLayout(commandBuffer, image->getImage(),
-                                     vk::ImageLayout::eTransferDstOptimal, newLayout,
-                                     vk::ImageAspectFlagBits::eColor, image->getMipLevels());
+        Image::transitionLayout(commandBuffer, image->getImage(),
+                                vk::ImageLayout::eTransferDstOptimal, newLayout,
+                                vk::ImageAspectFlagBits::eColor, image->getMipLevels());
     });
 
     if (mipLevels > 1) {
@@ -274,10 +207,10 @@ ImageHandle Image::loadFromFileHDR(const Context& context, const std::string& fi
 
         commandBuffer.copyBufferToImage(stagingBuffer->getBuffer(), image->getImage(),
                                         vk::ImageLayout::eTransferDstOptimal, region);
-        Image::transitionImageLayout(commandBuffer, image->getImage(),
-                                     vk::ImageLayout::eTransferDstOptimal,
-                                     vk::ImageLayout::eShaderReadOnlyOptimal,
-                                     vk::ImageAspectFlagBits::eColor, image->getMipLevels());
+        Image::transitionLayout(commandBuffer, image->getImage(),
+                                vk::ImageLayout::eTransferDstOptimal,
+                                vk::ImageLayout::eShaderReadOnlyOptimal,
+                                vk::ImageAspectFlagBits::eColor, image->getMipLevels());
         image->layout = vk::ImageLayout::eShaderReadOnlyOptimal;
     });
 
@@ -375,12 +308,12 @@ void Image::generateMipmaps() {
     });
 }
 
-void Image::transitionImageLayout(vk::CommandBuffer commandBuffer,
-                                  vk::Image image,
-                                  vk::ImageLayout oldLayout,
-                                  vk::ImageLayout newLayout,
-                                  vk::ImageAspectFlags aspect,
-                                  uint32_t mipLevels) {
+void Image::transitionLayout(vk::CommandBuffer commandBuffer,
+                             vk::Image image,
+                             vk::ImageLayout oldLayout,
+                             vk::ImageLayout newLayout,
+                             vk::ImageAspectFlags aspect,
+                             uint32_t mipLevels) {
     vk::PipelineStageFlags srcStageMask = vk::PipelineStageFlagBits::eAllCommands;
     vk::PipelineStageFlags dstStageMask = vk::PipelineStageFlagBits::eAllCommands;
 
