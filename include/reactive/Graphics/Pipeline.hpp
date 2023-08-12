@@ -9,30 +9,6 @@
 namespace rv {
 class Image;
 
-class Pipeline {
-public:
-    Pipeline(const Context* context) : context{context} {}
-
-    vk::PipelineBindPoint getPipelineBindPoint() const { return bindPoint; }
-    vk::PipelineLayout getPipelineLayout() const { return *pipelineLayout; }
-
-protected:
-    friend class CommandBuffer;
-
-    void bind(vk::CommandBuffer commandBuffer) { commandBuffer.bindPipeline(bindPoint, *pipeline); }
-
-    void pushConstants(vk::CommandBuffer commandBuffer, const void* pushData) {
-        commandBuffer.pushConstants(*pipelineLayout, shaderStageFlags, 0, pushSize, pushData);
-    }
-
-    const Context* context;
-    vk::UniquePipelineLayout pipelineLayout;
-    vk::UniquePipeline pipeline;
-    vk::ShaderStageFlags shaderStageFlags;
-    vk::PipelineBindPoint bindPoint;
-    uint32_t pushSize = 0;
-};
-
 struct GraphicsPipelineCreateInfo {
     // Layout
     vk::DescriptorSetLayout descSetLayout = {};
@@ -63,9 +39,11 @@ struct GraphicsPipelineCreateInfo {
     bool alphaBlending = false;
 };
 
-class GraphicsPipeline : public Pipeline {
-public:
-    GraphicsPipeline(const Context* context, GraphicsPipelineCreateInfo createInfo);
+struct ComputePipelineCreateInfo {
+    ShaderHandle computeShader;
+
+    vk::DescriptorSetLayout descSetLayout = {};
+    uint32_t pushSize = 0;
 };
 
 struct MeshShaderPipelineCreateInfo {
@@ -89,16 +67,55 @@ struct MeshShaderPipelineCreateInfo {
     bool alphaBlending = false;
 };
 
-class MeshShaderPipeline : public Pipeline {
-public:
-    MeshShaderPipeline(const Context* context, MeshShaderPipelineCreateInfo createInfo);
-};
-
-struct ComputePipelineCreateInfo {
-    ShaderHandle computeShader;
+struct RayTracingPipelineCreateInfo {
+    ArrayProxy<ShaderHandle> rgenShaders;
+    ArrayProxy<ShaderHandle> missShaders;
+    ArrayProxy<ShaderHandle> chitShaders;
+    ArrayProxy<ShaderHandle> ahitShaders;  // not supported
 
     vk::DescriptorSetLayout descSetLayout = {};
     uint32_t pushSize = 0;
+
+    uint32_t maxRayRecursionDepth = 4;
+};
+
+class Pipeline {
+public:
+    Pipeline(const Context* context) : context{context} {}
+
+    vk::PipelineBindPoint getPipelineBindPoint() const { return bindPoint; }
+    vk::PipelineLayout getPipelineLayout() const { return *pipelineLayout; }
+
+protected:
+    friend class CommandBuffer;
+
+    void bind(vk::CommandBuffer commandBuffer) { commandBuffer.bindPipeline(bindPoint, *pipeline); }
+
+    void pushConstants(vk::CommandBuffer commandBuffer, const void* pushData) {
+        commandBuffer.pushConstants(*pipelineLayout, shaderStageFlags, 0, pushSize, pushData);
+    }
+
+    void dispatch(vk::CommandBuffer commandBuffer,
+                  uint32_t groupCountX,
+                  uint32_t groupCountY,
+                  uint32_t groupCountZ) const;
+
+    const Context* context;
+    vk::UniquePipelineLayout pipelineLayout;
+    vk::UniquePipeline pipeline;
+    vk::ShaderStageFlags shaderStageFlags;
+    vk::PipelineBindPoint bindPoint;
+    uint32_t pushSize = 0;
+};
+
+class GraphicsPipeline : public Pipeline {
+public:
+    GraphicsPipeline(const Context* context, GraphicsPipelineCreateInfo createInfo);
+};
+
+class MeshShaderPipeline : public Pipeline {
+public:
+    MeshShaderPipeline(const Context* context, MeshShaderPipelineCreateInfo createInfo);
 };
 
 class ComputePipeline : public Pipeline {
@@ -113,76 +130,10 @@ private:
                   uint32_t groupCountZ) const;
 };
 
-struct RayTracingPipelineCreateInfo {
-    ArrayProxy<ShaderHandle> rgenShaders;
-    ArrayProxy<ShaderHandle> missShaders;
-    ArrayProxy<ShaderHandle> chitShaders;
-    ArrayProxy<ShaderHandle> ahitShaders;  // not supported
-
-    vk::DescriptorSetLayout descSetLayout = {};
-    uint32_t pushSize = 0;
-
-    uint32_t maxRayRecursionDepth = 4;
-};
-
 class RayTracingPipeline : public Pipeline {
 public:
     RayTracingPipeline() = default;
     RayTracingPipeline(const Context* context, RayTracingPipelineCreateInfo createInfo);
-
-    void setShaders(ShaderHandle rgenShader, ShaderHandle missShader, ShaderHandle chitShader) {
-        rgenCount = 1;
-        missCount = 1;
-        hitCount = 1;
-
-        shaderModules.push_back(rgenShader->getModule());
-        shaderModules.push_back(missShader->getModule());
-        shaderModules.push_back(chitShader->getModule());
-
-        shaderStages.push_back({{}, vk::ShaderStageFlagBits::eRaygenKHR, shaderModules[0], "main"});
-        shaderStages.push_back({{}, vk::ShaderStageFlagBits::eMissKHR, shaderModules[1], "main"});
-        shaderStages.push_back(
-            {{}, vk::ShaderStageFlagBits::eClosestHitKHR, shaderModules[2], "main"});
-
-        shaderGroups.push_back({vk::RayTracingShaderGroupTypeKHR::eGeneral, 0, VK_SHADER_UNUSED_KHR,
-                                VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR});
-
-        shaderGroups.push_back({vk::RayTracingShaderGroupTypeKHR::eGeneral, 1, VK_SHADER_UNUSED_KHR,
-                                VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR});
-
-        shaderGroups.push_back({vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup,
-                                VK_SHADER_UNUSED_KHR, 2, VK_SHADER_UNUSED_KHR,
-                                VK_SHADER_UNUSED_KHR});
-    }
-
-    void setShaders(ShaderHandle rgenShader,
-                    ShaderHandle missShader,
-                    ShaderHandle chitShader,
-                    ShaderHandle ahitShader) {
-        rgenCount = 1;
-        missCount = 1;
-        hitCount = 2;
-
-        shaderModules.push_back(rgenShader->getModule());
-        shaderModules.push_back(missShader->getModule());
-        shaderModules.push_back(chitShader->getModule());
-        shaderModules.push_back(ahitShader->getModule());
-
-        shaderStages.push_back({{}, vk::ShaderStageFlagBits::eRaygenKHR, shaderModules[0], "main"});
-        shaderStages.push_back({{}, vk::ShaderStageFlagBits::eMissKHR, shaderModules[1], "main"});
-        shaderStages.push_back(
-            {{}, vk::ShaderStageFlagBits::eClosestHitKHR, shaderModules[2], "main"});
-        shaderStages.push_back({{}, vk::ShaderStageFlagBits::eAnyHitKHR, shaderModules[3], "main"});
-
-        shaderGroups.push_back({vk::RayTracingShaderGroupTypeKHR::eGeneral, 0, VK_SHADER_UNUSED_KHR,
-                                VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR});
-
-        shaderGroups.push_back({vk::RayTracingShaderGroupTypeKHR::eGeneral, 1, VK_SHADER_UNUSED_KHR,
-                                VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR});
-
-        shaderGroups.push_back({vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup,
-                                VK_SHADER_UNUSED_KHR, 2, 3, VK_SHADER_UNUSED_KHR});
-    }
 
 private:
     friend class CommandBuffer;
