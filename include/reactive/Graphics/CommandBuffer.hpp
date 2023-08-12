@@ -43,12 +43,11 @@ public:
     void clearColorImage(vk::Image image, std::array<float, 4> color) const;
     void clearDepthStencilImage(vk::Image image, float depth, uint32_t stencil) const;
 
-    // render pass
-    void beginRenderPass(vk::RenderPass renderPass,
-                         vk::Framebuffer framebuffer,
-                         uint32_t width,
-                         uint32_t height) const;
-    void endRenderPass() const { commandBuffer.endRenderPass(); }
+    void beginRendering(vk::ImageView colorImageView,
+                        vk::ImageView depthImageView,
+                        vk::Rect2D renderArea) const;
+
+    void endRendering() const { commandBuffer.endRendering(); }
 
     // draw
     void draw(uint32_t vertexCount,
@@ -126,6 +125,14 @@ public:
                       const Image& image,
                       vk::AccessFlags srcAccessMask,
                       vk::AccessFlags dstAccessMask) const;
+
+    void transitionImageLayout(const Image& image, vk::ImageLayout newLayout) const;
+
+    void transitionImageLayout(vk::Image image,
+                               vk::ImageLayout oldLayout,
+                               vk::ImageLayout newLayout,
+                               vk::ImageAspectFlagBits aspect = vk::ImageAspectFlagBits::eColor,
+                               uint32_t mipLevels = 1) const;
 
     void memoryBarrier(vk::PipelineStageFlags srcStageMask,
                        vk::PipelineStageFlags dstStageMask,

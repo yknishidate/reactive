@@ -57,6 +57,7 @@ public:
     vk::DescriptorImageInfo getInfo() const { return {*sampler, *view, layout}; }
     uint32_t getMipLevels() const { return mipLevels; }
     vk::ImageAspectFlags getAspectMask() const { return aspect; }
+    vk::ImageLayout getLayout() const { return layout; }
 
     static Image loadFromFile(const Context& context,
                               const std::string& filepath,

@@ -77,8 +77,9 @@ public:
     // Getter
     vk::Image getCurrentColorImage() const { return swapchainImages[frameIndex]; }
     vk::Image getDefaultDepthImage() const { return depthImage.get(); }
-    vk::Framebuffer getCurrentFramebuffer() const { return *framebuffers[frameIndex]; }
-    vk::RenderPass getDefaultRenderPass() const { return *renderPass; }
+
+    vk::ImageView getCurrentColorImageView() const { return *swapchainImageViews[frameIndex]; }
+    vk::ImageView getDefaultDepthImageView() const { return *depthImageView; }
 
     // Input
     bool isKeyDown(int key) const;
@@ -97,7 +98,6 @@ public:
     virtual void onWindowSize(int width, int height) {
         context.getDevice().waitIdle();
 
-        framebuffers.clear();
         depthImageView.reset();
         depthImage.reset();
         depthImageMemory.reset();
@@ -107,7 +107,6 @@ public:
 
         createSwapchain();
         createDepthImage();
-        createFramebuffers();
     }
 
 protected:
@@ -127,8 +126,6 @@ protected:
 
     void createSwapchain();
     void createDepthImage();
-    void createRenderPass();
-    void createFramebuffers();
 
     void listSurfaceFormats() {
         auto surfaceFormats = context.getPhysicalDevice().getSurfaceFormatsKHR(*surface);
@@ -164,11 +161,9 @@ protected:
     uint32_t imageCount = 0;
     uint32_t semaphoreIndex = 0;
 
-    vk::UniqueRenderPass renderPass;
     vk::UniqueSemaphore imageAcquiredSemaphore;
     vk::UniqueSemaphore renderCompleteSemaphore;
     std::vector<vk::UniqueCommandBuffer> commandBuffers{};
-    std::vector<vk::UniqueFramebuffer> framebuffers{};
     std::vector<vk::UniqueFence> fences{};
 };
 }  // namespace rv

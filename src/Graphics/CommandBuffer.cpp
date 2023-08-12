@@ -76,23 +76,38 @@ void CommandBuffer::clearDepthStencilImage(vk::Image image, float depth, uint32_
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eDepth, 0, 1, 0, 1});
 }
 
-void CommandBuffer::beginRenderPass(vk::RenderPass renderPass,
-                                    vk::Framebuffer framebuffer,
-                                    uint32_t width,
-                                    uint32_t height) const {
-    vk::Rect2D renderArea;
-    renderArea.setExtent({width, height});
+void CommandBuffer::beginRendering(vk::ImageView colorImageView,
+                                   vk::ImageView depthImageView,
+                                   vk::Rect2D renderArea) const {
+    vk::ClearValue clearColorValue;
+    clearColorValue.setColor(vk::ClearColorValue{std::array{0.0f, 0.0f, 0.0f, 1.0f}});
 
-    std::array<vk::ClearValue, 2> clearValues;
-    clearValues[0].color = {std::array{0.0f, 0.0f, 0.0f, 1.0f}};
-    clearValues[1].depthStencil = vk::ClearDepthStencilValue{1.0f, 0};
+    vk::RenderingAttachmentInfoKHR colorAttachment;
+    colorAttachment.setImageView(colorImageView);
+    colorAttachment.setImageLayout(vk::ImageLayout::eAttachmentOptimal);
+    colorAttachment.setClearValue(clearColorValue);
+    colorAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
+    colorAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
 
-    vk::RenderPassBeginInfo beginInfo;
-    beginInfo.setRenderPass(renderPass);
-    beginInfo.setClearValues(clearValues);
-    beginInfo.setFramebuffer(framebuffer);
-    beginInfo.setRenderArea(renderArea);
-    commandBuffer.beginRenderPass(beginInfo, vk::SubpassContents::eInline);
+    vk::ClearValue clearDepthStencilValue;
+    clearDepthStencilValue.setDepthStencil(vk::ClearDepthStencilValue{1.0f, 0});
+
+    vk::RenderingAttachmentInfo depthStencilAttachment;
+    depthStencilAttachment.setImageView(depthImageView);
+    depthStencilAttachment.setImageLayout(vk::ImageLayout::eAttachmentOptimal);
+    depthStencilAttachment.setClearValue(clearDepthStencilValue);
+    depthStencilAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
+    depthStencilAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
+
+    vk::RenderingInfo renderingInfo;
+    renderingInfo.setRenderArea(renderArea);
+    renderingInfo.setLayerCount(1);
+    renderingInfo.setColorAttachments(colorAttachment);
+    if (depthImageView) {
+        renderingInfo.setPDepthAttachment(&depthStencilAttachment);
+    }
+
+    commandBuffer.beginRendering(renderingInfo);
 }
 
 void CommandBuffer::draw(uint32_t vertexCount,
@@ -194,6 +209,19 @@ void CommandBuffer::imageBarrier(vk::PipelineStageFlags srcStageMask,
 
     commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, nullptr, nullptr,
                                   memoryBarrier);
+}
+
+void CommandBuffer::transitionImageLayout(const Image& image, vk::ImageLayout newLayout) const {
+    Image::setImageLayout(commandBuffer, image.getImage(), image.getLayout(), newLayout,
+                          image.getAspectMask(), image.getMipLevels());
+}
+
+void CommandBuffer::transitionImageLayout(vk::Image image,
+                                          vk::ImageLayout oldLayout,
+                                          vk::ImageLayout newLayout,
+                                          vk::ImageAspectFlagBits aspect,
+                                          uint32_t mipLevels) const {
+    Image::setImageLayout(commandBuffer, image, oldLayout, newLayout, aspect, mipLevels);
 }
 
 void CommandBuffer::copyImage(vk::Image srcImage,

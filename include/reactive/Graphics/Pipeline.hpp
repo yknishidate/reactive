@@ -35,9 +35,6 @@ protected:
 };
 
 struct GraphicsPipelineCreateInfo {
-    // Render pass
-    vk::RenderPass renderPass = {};
-
     // Layout
     vk::DescriptorSetLayout descSetLayout = {};
     uint32_t pushSize = 0;

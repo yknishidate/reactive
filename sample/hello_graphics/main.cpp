@@ -47,7 +47,6 @@ public:
         });
 
         pipeline = context.createGraphicsPipeline({
-            .renderPass = getDefaultRenderPass(),
             .descSetLayout = descSet.getLayout(),
             .vertexShader = shaders[0],
             .fragmentShader = shaders[1],
@@ -64,10 +63,13 @@ public:
         commandBuffer.setScissor(width, height);
         commandBuffer.bindDescriptorSet(descSet, pipeline);
         commandBuffer.bindPipeline(pipeline);
-        commandBuffer.beginRenderPass(getDefaultRenderPass(), getCurrentFramebuffer(), width,
-                                      height);
+        commandBuffer.beginRendering(getCurrentColorImageView(), getDefaultDepthImageView(),
+                                     {{0, 0}, {width, height}});
         commandBuffer.draw(3, 1, 0, 0);
-        commandBuffer.endRenderPass();
+        commandBuffer.endRendering();
+        commandBuffer.transitionImageLayout(getCurrentColorImage(),
+                                            vk::ImageLayout::eUndefined,
+                                            vk::ImageLayout::ePresentSrcKHR);
     }
 
     DescriptorSet descSet;

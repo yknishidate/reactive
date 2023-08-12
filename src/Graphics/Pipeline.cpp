@@ -112,6 +112,12 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
     depthStencil.setDepthBoundsTestEnable(VK_FALSE);
     depthStencil.setStencilTestEnable(VK_FALSE);
 
+    vk::Format colorFormat = vk::Format::eB8G8R8A8Unorm;
+    vk::Format depthFormat = vk::Format::eD32Sfloat;
+    vk::PipelineRenderingCreateInfo renderingInfo;
+    renderingInfo.setColorAttachmentFormats(colorFormat);
+    renderingInfo.setDepthAttachmentFormat(depthFormat);
+
     vk::GraphicsPipelineCreateInfo pipelineInfo;
     pipelineInfo.setStages(shaderStages);
     pipelineInfo.setPViewportState(&viewportState);
@@ -121,7 +127,7 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
     pipelineInfo.setPColorBlendState(&colorBlending);
     pipelineInfo.setLayout(*pipelineLayout);
     pipelineInfo.setSubpass(0);
-    pipelineInfo.setRenderPass(createInfo.renderPass);
+    pipelineInfo.setPNext(&renderingInfo);
 
     vk::PipelineDynamicStateCreateInfo dynamicStateInfo;
     vk::VertexInputBindingDescription bindingDescription;

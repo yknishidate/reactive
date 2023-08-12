@@ -63,7 +63,8 @@ void App::run() {
         // Draw GUI
         {
             // Begin render pass
-            commandBuffer.beginRenderPass(*renderPass, *framebuffers[frameIndex], width, height);
+            commandBuffer.beginRendering(*swapchainImageViews[frameIndex], {},
+                                         {{0, 0}, {width, height}});
 
             // Render
             ImGui::Render();
@@ -71,7 +72,7 @@ void App::run() {
             ImGui_ImplVulkan_RenderDrawData(drawData, *commandBuffers[frameIndex]);
 
             // End render pass
-            commandBuffer.endRenderPass();
+            commandBuffer.endRendering();
         }
 
         // End command buffer
@@ -230,6 +231,8 @@ void App::initVulkan(ArrayProxy<Layer> requiredLayers, ArrayProxy<Extension> req
 
     vk::PhysicalDeviceSynchronization2Features synchronization2Features{true};
 
+    vk::PhysicalDeviceDynamicRenderingFeatures dynamicRenderingFeatures{true};
+
     StructureChain featuresChain;
     featuresChain.add(descFeatures);
     featuresChain.add(storage8BitFeatures);
@@ -237,6 +240,7 @@ void App::initVulkan(ArrayProxy<Layer> requiredLayers, ArrayProxy<Extension> req
     featuresChain.add(bufferDeviceAddressFeatures);
     featuresChain.add(shaderObjectFeatures);
     featuresChain.add(synchronization2Features);
+    featuresChain.add(dynamicRenderingFeatures);
 
     vk::PhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures{true};
     vk::PhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures{true};
@@ -257,8 +261,6 @@ void App::initVulkan(ArrayProxy<Layer> requiredLayers, ArrayProxy<Extension> req
 
     createSwapchain();
     createDepthImage();
-    createRenderPass();
-    createFramebuffers();
 
     // Allocate command buffers
     size_t imageCount = swapchainImages.size();
@@ -325,7 +327,9 @@ void App::initImGui() {
     initInfo.ImageCount = swapchainImages.size();
     initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
     initInfo.Allocator = nullptr;
-    ImGui_ImplVulkan_Init(&initInfo, *renderPass);
+    initInfo.UseDynamicRendering = true;
+    initInfo.ColorAttachmentFormat = VK_FORMAT_B8G8R8A8_UNORM;
+    ImGui_ImplVulkan_Init(&initInfo, {});
 
     // Setup font
     // TODO: Fix this
@@ -401,70 +405,6 @@ void App::createDepthImage() {
             .setViewType(vk::ImageViewType::e2D)
             .setFormat(vk::Format::eD32Sfloat)
             .setSubresourceRange({vk::ImageAspectFlagBits::eDepth, 0, 1, 0, 1}));
-}
-
-void App::createRenderPass() {
-    vk::AttachmentDescription colorAttachment;
-    colorAttachment.setFormat(vk::Format::eB8G8R8A8Unorm);
-    colorAttachment.setSamples(vk::SampleCountFlagBits::e1);
-    colorAttachment.setLoadOp(vk::AttachmentLoadOp::eDontCare);
-    colorAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
-    colorAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
-    colorAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
-    colorAttachment.setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
-
-    vk::AttachmentDescription depthAttachment;
-    depthAttachment.setFormat(vk::Format::eD32Sfloat);
-    depthAttachment.setLoadOp(vk::AttachmentLoadOp::eDontCare);
-    depthAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
-    depthAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
-    depthAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
-    depthAttachment.setInitialLayout(vk::ImageLayout::eUndefined);
-    depthAttachment.setFinalLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
-
-    vk::AttachmentReference colorAttachmentRef;
-    colorAttachmentRef.setAttachment(0);
-    colorAttachmentRef.setLayout(vk::ImageLayout::eColorAttachmentOptimal);
-
-    vk::AttachmentReference depthAttachmentRef;
-    depthAttachmentRef.setAttachment(1);
-    depthAttachmentRef.setLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
-
-    vk::SubpassDescription subpass;
-    subpass.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics);
-    subpass.setColorAttachments(colorAttachmentRef);
-    subpass.setPDepthStencilAttachment(&depthAttachmentRef);
-
-    vk::SubpassDependency dependency;
-    dependency.setSrcSubpass(VK_SUBPASS_EXTERNAL);
-    dependency.setDstSubpass(0);
-    dependency.setSrcStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput |
-                               vk::PipelineStageFlagBits::eEarlyFragmentTests);
-    dependency.setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput |
-                               vk::PipelineStageFlagBits::eEarlyFragmentTests);
-    dependency.setDstAccessMask(vk::AccessFlagBits::eColorAttachmentWrite |
-                                vk::AccessFlagBits::eDepthStencilAttachmentWrite);
-
-    std::array attachments{colorAttachment, depthAttachment};
-
-    renderPass = context.getDevice().createRenderPassUnique(vk::RenderPassCreateInfo()
-                                                                .setAttachments(attachments)
-                                                                .setSubpasses(subpass)
-                                                                .setDependencies(dependency));
-}
-
-void App::createFramebuffers() {
-    framebuffers.resize(swapchainImages.size());
-    for (uint32_t i = 0; i < swapchainImages.size(); i++) {
-        std::array attachments{*swapchainImageViews[i], *depthImageView};
-        framebuffers[i] =
-            context.getDevice().createFramebufferUnique(vk::FramebufferCreateInfo()
-                                                            .setRenderPass(*renderPass)
-                                                            .setAttachments(attachments)
-                                                            .setWidth(width)
-                                                            .setHeight(height)
-                                                            .setLayers(1));
-    }
 }
 
 // Callbacks
