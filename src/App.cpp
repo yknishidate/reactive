@@ -75,6 +75,9 @@ void App::run() {
             commandBuffer.endRendering();
         }
 
+        commandBuffer.transitionImageLayout(getCurrentColorImage(), vk::ImageLayout::eUndefined,
+                                            vk::ImageLayout::ePresentSrcKHR);
+
         // End command buffer
         commandBuffers[frameIndex]->end();
 

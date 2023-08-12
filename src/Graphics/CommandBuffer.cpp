@@ -79,31 +79,22 @@ void CommandBuffer::clearDepthStencilImage(vk::Image image, float depth, uint32_
 void CommandBuffer::beginRendering(vk::ImageView colorImageView,
                                    vk::ImageView depthImageView,
                                    vk::Rect2D renderArea) const {
-    vk::ClearValue clearColorValue;
-    clearColorValue.setColor(vk::ClearColorValue{std::array{0.0f, 0.0f, 0.0f, 1.0f}});
-
-    vk::RenderingAttachmentInfoKHR colorAttachment;
-    colorAttachment.setImageView(colorImageView);
-    colorAttachment.setImageLayout(vk::ImageLayout::eAttachmentOptimal);
-    colorAttachment.setClearValue(clearColorValue);
-    colorAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
-    colorAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
-
-    vk::ClearValue clearDepthStencilValue;
-    clearDepthStencilValue.setDepthStencil(vk::ClearDepthStencilValue{1.0f, 0});
-
-    vk::RenderingAttachmentInfo depthStencilAttachment;
-    depthStencilAttachment.setImageView(depthImageView);
-    depthStencilAttachment.setImageLayout(vk::ImageLayout::eAttachmentOptimal);
-    depthStencilAttachment.setClearValue(clearDepthStencilValue);
-    depthStencilAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
-    depthStencilAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
-
     vk::RenderingInfo renderingInfo;
     renderingInfo.setRenderArea(renderArea);
     renderingInfo.setLayerCount(1);
+
+    // NOTE: Attachments support only explicit clear commands.
+    // Therefore, clearing is not performed within beginRendering.
+    vk::RenderingAttachmentInfo colorAttachment;
+    colorAttachment.setImageView(colorImageView);
+    colorAttachment.setImageLayout(vk::ImageLayout::eAttachmentOptimal);
     renderingInfo.setColorAttachments(colorAttachment);
+
+    // Depth attachment
     if (depthImageView) {
+        vk::RenderingAttachmentInfo depthStencilAttachment;
+        depthStencilAttachment.setImageView(depthImageView);
+        depthStencilAttachment.setImageLayout(vk::ImageLayout::eAttachmentOptimal);
         renderingInfo.setPDepthAttachment(&depthStencilAttachment);
     }
 

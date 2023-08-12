@@ -67,9 +67,6 @@ public:
                                      {{0, 0}, {width, height}});
         commandBuffer.draw(3, 1, 0, 0);
         commandBuffer.endRendering();
-        commandBuffer.transitionImageLayout(getCurrentColorImage(),
-                                            vk::ImageLayout::eUndefined,
-                                            vk::ImageLayout::ePresentSrcKHR);
     }
 
     DescriptorSet descSet;
