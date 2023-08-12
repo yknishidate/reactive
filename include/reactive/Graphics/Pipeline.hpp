@@ -159,10 +159,10 @@ public:
                                 VK_SHADER_UNUSED_KHR});
     }
 
-    void setShaders(const Shader* rgenShader,
-                    const Shader* missShader,
-                    const Shader* chitShader,
-                    const Shader* ahitShader) {
+    void setShaders(ShaderHandle rgenShader,
+                    ShaderHandle missShader,
+                    ShaderHandle chitShader,
+                    ShaderHandle ahitShader) {
         rgenCount = 1;
         missCount = 1;
         hitCount = 2;

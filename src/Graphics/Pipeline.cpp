@@ -186,7 +186,7 @@ MeshShaderPipeline::MeshShaderPipeline(const Context* context,
     pipelineLayout = context->getDevice().createPipelineLayoutUnique(layoutInfo);
 
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
-    if (createInfo.taskShader->getModule()) {
+    if (createInfo.taskShader && createInfo.taskShader->getModule()) {
         shaderStages.resize(3);
         shaderStages[0].setModule(createInfo.taskShader->getModule());
         shaderStages[0].setStage(createInfo.taskShader->getStage());

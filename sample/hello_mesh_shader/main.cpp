@@ -60,7 +60,7 @@ public:
           }) {}
 
     void onStart() override {
-        std::vector<Shader> shaders(2);
+        std::vector<ShaderHandle> shaders(2);
         shaders[0] = context.createShader({
             .code = Compiler::compileToSPV(meshCode, ShaderStage::Mesh),
             .stage = ShaderStage::Mesh,
@@ -76,7 +76,7 @@ public:
         });
 
         pipeline = context.createMeshShaderPipeline({
-            .descSetLayout = descSet.getLayout(),
+            .descSetLayout = descSet->getLayout(),
             .taskShader = {},
             .meshShader = shaders[0],
             .fragmentShader = shaders[1],
@@ -99,8 +99,8 @@ public:
         commandBuffer.endRendering();
     }
 
-    DescriptorSet descSet;
-    MeshShaderPipeline pipeline;
+    DescriptorSetHandle descSet;
+    MeshShaderPipelineHandle pipeline;
     int testInt = 0;
 };
 

@@ -28,11 +28,11 @@ public:
         });
 
         bottomAccel = context.createBottomAccel({
-            .vertexBuffer = mesh.vertexBuffer,
-            .indexBuffer = mesh.indexBuffer,
+            .vertexBuffer = mesh->vertexBuffer,
+            .indexBuffer = mesh->indexBuffer,
             .vertexStride = sizeof(Vertex),
-            .vertexCount = static_cast<uint32_t>(mesh.vertices.size()),
-            .triangleCount = mesh.getTriangleCount(),
+            .vertexCount = static_cast<uint32_t>(mesh->vertices.size()),
+            .triangleCount = mesh->getTriangleCount(),
         });
 
         topAccel = context.createTopAccel({.accelInstances = {{bottomAccel}}});
@@ -45,7 +45,7 @@ public:
             .layout = ImageLayout::General,
         });
 
-        std::vector<Shader> shaders(3);
+        std::vector<ShaderHandle> shaders(3);
         shaders[0] = context.createShader({
             .code = Compiler::compileToSPV(SHADER_DIR + "hello_raytracing.rgen"),
             .stage = ShaderStage::Raygen,
@@ -71,7 +71,7 @@ public:
             .rgenShaders = shaders[0],
             .missShaders = shaders[1],
             .chitShaders = shaders[2],
-            .descSetLayout = descSet.getLayout(),
+            .descSetLayout = descSet->getLayout(),
             .pushSize = sizeof(PushConstants),
         });
     }
@@ -89,19 +89,20 @@ public:
         commandBuffer.bindPipeline(pipeline);
         commandBuffer.pushConstants(pipeline, &pushConstants);
         commandBuffer.traceRays(pipeline, width, height, 1);
-        commandBuffer.copyImage(image.getImage(), getCurrentColorImage(), vk::ImageLayout::eGeneral,
-                                vk::ImageLayout::ePresentSrcKHR, width, height);
+        commandBuffer.copyImage(image->getImage(), getCurrentColorImage(),
+                                vk::ImageLayout::eGeneral, vk::ImageLayout::ePresentSrcKHR, width,
+                                height);
     }
 
     std::vector<Vertex> vertices{{{-1, 0, 0}}, {{0, -1, 0}}, {{1, 0, 0}}};
     std::vector<uint32_t> indices{0, 1, 2};
-    Mesh mesh;
-    BottomAccel bottomAccel;
-    TopAccel topAccel;
-    Image image;
+    MeshHandle mesh;
+    BottomAccelHandle bottomAccel;
+    TopAccelHandle topAccel;
+    ImageHandle image;
 
-    DescriptorSet descSet;
-    RayTracingPipeline pipeline;
+    DescriptorSetHandle descSet;
+    RayTracingPipelineHandle pipeline;
 
     OrbitalCamera camera;
     PushConstants pushConstants;

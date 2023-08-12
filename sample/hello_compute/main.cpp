@@ -21,7 +21,7 @@ public:
             .layout = ImageLayout::General,
         });
 
-        Shader compShader = context.createShader({
+        ShaderHandle compShader = context.createShader({
             .code = Compiler::compileToSPV(SHADER_DIR + "hello_compute.comp"),
             .stage = ShaderStage::Compute,
         });
@@ -33,7 +33,7 @@ public:
 
         pipeline = context.createComputePipeline({
             .computeShader = compShader,
-            .descSetLayout = descSet.getLayout(),
+            .descSetLayout = descSet->getLayout(),
             .pushSize = sizeof(int),
         });
     }
@@ -46,13 +46,14 @@ public:
         commandBuffer.bindPipeline(pipeline);
         commandBuffer.pushConstants(pipeline, &frame);
         commandBuffer.dispatch(pipeline, width, height, 1);
-        commandBuffer.copyImage(image.getImage(), getCurrentColorImage(), vk::ImageLayout::eGeneral,
-                                vk::ImageLayout::ePresentSrcKHR, width, height);
+        commandBuffer.copyImage(image->getImage(), getCurrentColorImage(),
+                                vk::ImageLayout::eGeneral, vk::ImageLayout::ePresentSrcKHR, width,
+                                height);
     }
 
-    Image image;
-    DescriptorSet descSet;
-    ComputePipeline pipeline;
+    ImageHandle image;
+    DescriptorSetHandle descSet;
+    ComputePipelineHandle pipeline;
     int testInt = 0;
     int frame = 0;
 };
