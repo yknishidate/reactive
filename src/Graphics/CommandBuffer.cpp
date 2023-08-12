@@ -110,8 +110,8 @@ void CommandBuffer::drawIndexed(uint32_t indexCount,
     commandBuffer.drawIndexed(indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 }
 
-void CommandBuffer::drawIndexed(const DeviceBuffer& vertexBuffer,
-                                const DeviceBuffer& indexBuffer,
+void CommandBuffer::drawIndexed(const Buffer& vertexBuffer,
+                                const Buffer& indexBuffer,
                                 uint32_t indexCount,
                                 uint32_t firstIndex,
                                 uint32_t instanceCount,

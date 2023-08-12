@@ -32,11 +32,7 @@ Personal Vulkan wrapper using
 ## Run cmake
 
 ```sh
-mkdir build
-cd build
-
-# change to your vcpkg path
-cmake .. -D CMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake
+cmake . -B build -D CMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake
 ```
 
 ## Usage (in your project)

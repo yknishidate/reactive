@@ -82,8 +82,8 @@ struct Mesh {
     }
 
     const Context* context;
-    DeviceBuffer vertexBuffer;
-    DeviceBuffer indexBuffer;
+    Buffer vertexBuffer;
+    Buffer indexBuffer;
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
 };

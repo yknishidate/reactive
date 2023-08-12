@@ -3,13 +3,15 @@
 namespace rv {
 Mesh::Mesh(const Context* context, MeshCreateInfo createInfo)
     : context{context}, vertices{createInfo.vertices}, indices{createInfo.indices} {
-    vertexBuffer = context->createDeviceBuffer({
+    vertexBuffer = context->createBuffer({
         .usage = BufferUsage::Vertex,
+        .memory = MemoryUsage::Device,
         .size = sizeof(Vertex) * vertices.size(),
         .data = vertices.data(),
     });
-    indexBuffer = context->createDeviceBuffer({
+    indexBuffer = context->createBuffer({
         .usage = BufferUsage::Index,
+        .memory = MemoryUsage::Device,
         .size = sizeof(uint32_t) * indices.size(),
         .data = indices.data(),
     });
@@ -72,12 +74,12 @@ Mesh::Mesh(const Context* context, SphereMeshCreateInfo createInfo) : context{co
         }
     }
 
-    vertexBuffer = context->createDeviceBuffer({
+    vertexBuffer = context->createBuffer({
         .usage = BufferUsage::Vertex,
         .size = sizeof(Vertex) * vertices.size(),
         .data = vertices.data(),
     });
-    indexBuffer = context->createDeviceBuffer({
+    indexBuffer = context->createBuffer({
         .usage = BufferUsage::Index,
         .size = sizeof(uint32_t) * indices.size(),
         .data = indices.data(),
@@ -95,13 +97,15 @@ Mesh::Mesh(const Context* context, PlaneMeshCreateInfo createInfo) : context{con
         0, 1, 2, 0, 2, 3,
     };
 
-    vertexBuffer = context->createDeviceBuffer({
+    vertexBuffer = context->createBuffer({
         .usage = BufferUsage::Vertex,
+        .memory = MemoryUsage::Device,
         .size = sizeof(Vertex) * vertices.size(),
         .data = vertices.data(),
     });
-    indexBuffer = context->createDeviceBuffer({
+    indexBuffer = context->createBuffer({
         .usage = BufferUsage::Index,
+        .memory = MemoryUsage::Device,
         .size = sizeof(uint32_t) * indices.size(),
         .data = indices.data(),
     });
@@ -160,13 +164,15 @@ Mesh::Mesh(const Context* context, CubeMeshCreateInfo createInfo) : context{cont
         indices.push_back(i);
     }
 
-    vertexBuffer = context->createDeviceBuffer({
+    vertexBuffer = context->createBuffer({
         .usage = BufferUsage::Vertex,
+        .memory = MemoryUsage::Device,
         .size = sizeof(Vertex) * vertices.size(),
         .data = vertices.data(),
     });
-    indexBuffer = context->createDeviceBuffer({
+    indexBuffer = context->createBuffer({
         .usage = BufferUsage::Index,
+        .memory = MemoryUsage::Device,
         .size = sizeof(uint32_t) * indices.size(),
         .data = indices.data(),
     });
@@ -181,13 +187,15 @@ Mesh::Mesh(const Context* context, CubeLineMeshCreateInfo createInfo) : context{
     indices = std::vector<uint32_t>{0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6,
                                     6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7};
 
-    vertexBuffer = context->createDeviceBuffer({
+    vertexBuffer = context->createBuffer({
         .usage = BufferUsage::Vertex,
+        .memory = MemoryUsage::Device,
         .size = sizeof(Vertex) * vertices.size(),
         .data = vertices.data(),
     });
-    indexBuffer = context->createDeviceBuffer({
+    indexBuffer = context->createBuffer({
         .usage = BufferUsage::Index,
+        .memory = MemoryUsage::Device,
         .size = sizeof(uint32_t) * indices.size(),
         .data = indices.data(),
     });

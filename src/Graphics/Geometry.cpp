@@ -14,7 +14,7 @@
 //     return geometryInfo;
 // }
 //
-// DeviceBuffer Geometry::createAccelBuffer() const {
+// Buffer Geometry::createAccelBuffer() const {
 //     return {BufferUsage::AccelStorage, getAccelSize()};
 // }
 //

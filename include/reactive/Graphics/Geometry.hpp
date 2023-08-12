@@ -9,7 +9,7 @@ public:
 
     vk::DeviceSize getAccelSize() const;
     vk::AccelerationStructureBuildGeometryInfoKHR getInfo() const;
-    DeviceBuffer createAccelBuffer() const;
+    Buffer createAccelBuffer() const;
 
 protected:
     vk::AccelerationStructureGeometryKHR geometry;

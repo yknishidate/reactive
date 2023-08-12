@@ -216,9 +216,9 @@ private:
     vk::StridedDeviceAddressRegionKHR missRegion;
     vk::StridedDeviceAddressRegionKHR hitRegion;
 
-    DeviceBuffer raygenSBT;
-    DeviceBuffer missSBT;
-    DeviceBuffer hitSBT;
+    Buffer raygenSBT;
+    Buffer missSBT;
+    Buffer hitSBT;
 
     uint32_t rgenCount = 0;
     uint32_t missCount = 0;

@@ -112,8 +112,9 @@ Image Image::loadFromFile(const Context& context, const std::string& filepath, u
     });
 
     // Copy to image
-    Buffer stagingBuffer = context.createHostBuffer({
+    Buffer stagingBuffer = context.createBuffer({
         .usage = BufferUsage::Staging,
+        .memory = MemoryUsage::Host,
         .size = width * height * comp * sizeof(unsigned char*),
         .data = reinterpret_cast<void*>(pixels),
     });
@@ -175,8 +176,9 @@ Image Image::loadFromFileHDR(const Context& context, const std::string& filepath
     });
 
     // Copy to image
-    Buffer stagingBuffer = context.createHostBuffer({
+    Buffer stagingBuffer = context.createBuffer({
         .usage = BufferUsage::Staging,
+        .memory = MemoryUsage::Host,
         .size = width * height * comp * sizeof(float),
         .data = reinterpret_cast<void*>(pixels),
     });
@@ -352,7 +354,7 @@ void Image::generateMipmaps() {
 //     createImageView();
 //     createSampler();
 //
-//     HostBuffer staging{BufferUsage::Staging, static_cast<size_t>(width * height * depth * 4)};
+//     Buffer staging{BufferUsage::Staging, static_cast<size_t>(width * height * depth * 4)};
 //     staging.copy(data);
 //     Context::oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
 //         vk::BufferImageCopy region;
@@ -369,7 +371,7 @@ void Image::generateMipmaps() {
 //     stbi_image_free(data);
 // }
 //
-// Image::Image(uint32_t width, uint32_t height, HostBuffer& buffer, size_t offset)
+// Image::Image(uint32_t width, uint32_t height, Buffer& buffer, size_t offset)
 //     : width{width}, height{height} {
 //     format = vk::Format::eR8G8B8A8Unorm;
 //     usage = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled |
@@ -423,7 +425,7 @@ void Image::generateMipmaps() {
 //     createImageView();
 //     createSampler();
 //
-//     HostBuffer staging{BufferUsage::Staging, static_cast<size_t>(width * height * depth * 4)};
+//     Buffer staging{BufferUsage::Staging, static_cast<size_t>(width * height * depth * 4)};
 //     staging.copy(allData.data());
 //     Context::oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
 //         vk::BufferImageCopy region;
@@ -480,7 +482,7 @@ void Image::generateMipmaps() {
 //
 // void Image::save(const std::string& filepath) {
 //     static vk::DeviceSize size = width * height * 4;
-//     static HostBuffer buffer{BufferUsage::Staging, size};
+//     static Buffer buffer{BufferUsage::Staging, size};
 //     static uint8_t* pixels = static_cast<uint8_t*>(buffer.map());
 //
 //     Context::oneTimeSubmit(

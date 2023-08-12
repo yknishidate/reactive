@@ -3,29 +3,52 @@
 
 namespace rv {
 enum class BufferUsage {
+    Uniform,
+    Storage,
+    Staging,
     Vertex,
     Index,
-    AccelInput,
-    AccelStorage,
-    Scratch,
-    ShaderBindingTable,
-    Staging,
-    Storage,
-    Uniform,
     Indirect,
+    AccelStorage,
+    AccelInput,
+    ShaderBindingTable,
+    Scratch,
+};
+
+enum class MemoryUsage {
+    Device,
+    Host,
+};
+
+struct BufferCreateInfo {
+    BufferUsage usage;
+    MemoryUsage memory;
+    size_t size = 0;
+    const void* data = nullptr;
 };
 
 class Buffer {
 public:
     Buffer() = default;
 
+    Buffer(const Context* context, BufferCreateInfo createInfo);
+
     vk::Buffer getBuffer() const { return *buffer; }
+
     vk::DeviceSize getSize() const { return size; }
+
+    vk::DescriptorBufferInfo getInfo() const { return {*buffer, 0, size}; }
+
     uint64_t getAddress() const {
         vk::BufferDeviceAddressInfo bufferDeviceAI{*buffer};
         return context->getDevice().getBufferAddress(&bufferDeviceAI);
     }
-    vk::DescriptorBufferInfo getInfo() const { return {*buffer, 0, size}; }
+
+    void* map();
+
+    void unmap();
+
+    void copy(const void* data);
 
 protected:
     Buffer(const Context* context,
@@ -37,32 +60,7 @@ protected:
     vk::UniqueBuffer buffer;
     vk::UniqueDeviceMemory memory;
     vk::DeviceSize size = 0u;
-};
-
-struct BufferCreateInfo {
-    BufferUsage usage;
-    size_t size = 0;
-    const void* data = nullptr;
-};
-
-class HostBuffer : public Buffer {
-public:
-    HostBuffer() = default;
-    HostBuffer(const Context* context, BufferCreateInfo createInfo);
-
-    void copy(const void* data);
-    void* map();
-    void unmap();
-
-private:
     void* mapped = nullptr;
-};
-
-class DeviceBuffer : public Buffer {
-public:
-    DeviceBuffer() = default;
-    DeviceBuffer(const Context* context, BufferCreateInfo createInfo);
-
-    void copy(const void* data);
+    MemoryUsage memoryUsage;
 };
 }  // namespace rv

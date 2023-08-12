@@ -12,7 +12,7 @@ class RayTracingPipeline;
 class Swapchain;
 class Mesh;
 class RenderPass;
-class DeviceBuffer;
+class Buffer;
 class GPUTimer;
 class Buffer;
 class DescriptorSet;
@@ -60,8 +60,8 @@ public:
                      uint32_t firstIndex = 0,
                      int32_t vertexOffset = 0,
                      uint32_t firstInstance = 0) const;
-    void drawIndexed(const DeviceBuffer& vertexBuffer,
-                     const DeviceBuffer& indexBuffer,
+    void drawIndexed(const Buffer& vertexBuffer,
+                     const Buffer& indexBuffer,
                      uint32_t indexCount,
                      uint32_t firstIndex = 0,
                      uint32_t instanceCount = 1,

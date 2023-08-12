@@ -5,8 +5,8 @@
 
 namespace rv {
 struct BottomAccelCreateInfo {
-    const DeviceBuffer& vertexBuffer;
-    const DeviceBuffer& indexBuffer;
+    const Buffer& vertexBuffer;
+    const Buffer& indexBuffer;
     uint32_t vertexStride;
     uint32_t vertexCount;
     uint32_t triangleCount;
@@ -43,7 +43,7 @@ public:
 private:
     const Context* context;
     vk::UniqueAccelerationStructureKHR accel;
-    DeviceBuffer buffer;
+    Buffer buffer;
 };
 
 class TopAccel {
@@ -59,9 +59,9 @@ public:
 private:
     const Context* context;
     vk::UniqueAccelerationStructureKHR accel;
-    DeviceBuffer buffer;
-    DeviceBuffer instanceBuffer;
-    HostBuffer scratchBuffer;
+    Buffer buffer;
+    Buffer instanceBuffer;
+    Buffer scratchBuffer;
 
     vk::GeometryFlagsKHR geometryFlags;
     vk::BuildAccelerationStructureFlagsKHR buildFlags;

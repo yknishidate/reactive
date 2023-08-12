@@ -37,8 +37,9 @@ BottomAccel::BottomAccel(const Context* context, BottomAccelCreateInfo createInf
     auto buildSizesInfo = context->getDevice().getAccelerationStructureBuildSizesKHR(
         createInfo.buildType, buildGeometryInfo, primitiveCount);
 
-    buffer = context->createDeviceBuffer({
+    buffer = context->createBuffer({
         .usage = BufferUsage::AccelStorage,
+        .memory = MemoryUsage::Device,
         .size = buildSizesInfo.accelerationStructureSize,
     });
 
@@ -48,8 +49,9 @@ BottomAccel::BottomAccel(const Context* context, BottomAccelCreateInfo createInf
             .setSize(buildSizesInfo.accelerationStructureSize)
             .setType(vk::AccelerationStructureTypeKHR::eBottomLevel));
 
-    Buffer scratchBuffer = context->createHostBuffer({
+    Buffer scratchBuffer = context->createBuffer({
         .usage = BufferUsage::Scratch,
+        .memory = MemoryUsage::Host,
         .size = buildSizesInfo.buildScratchSize,
     });
 
@@ -84,8 +86,9 @@ TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo)
                 .setAccelerationStructureReference(instance.bottomAccel.getBufferAddress()));
     }
 
-    instanceBuffer = context->createDeviceBuffer({
+    instanceBuffer = context->createBuffer({
         .usage = BufferUsage::AccelInput,
+        .memory = MemoryUsage::Device,
         .size = sizeof(vk::AccelerationStructureInstanceKHR) * instances.size(),
         .data = instances.data(),
     });
@@ -108,8 +111,9 @@ TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo)
     auto buildSizesInfo = context->getDevice().getAccelerationStructureBuildSizesKHR(
         buildType, buildGeometryInfo, primitiveCount);
 
-    buffer = context->createDeviceBuffer({
+    buffer = context->createBuffer({
         .usage = BufferUsage::AccelStorage,
+        .memory = MemoryUsage::Device,
         .size = buildSizesInfo.accelerationStructureSize,
     });
 
@@ -119,8 +123,9 @@ TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo)
             .setSize(buildSizesInfo.accelerationStructureSize)
             .setType(vk::AccelerationStructureTypeKHR::eTopLevel));
 
-    scratchBuffer = context->createHostBuffer({
+    scratchBuffer = context->createBuffer({
         .usage = BufferUsage::Scratch,
+        .memory = MemoryUsage::Device,
         .size = buildSizesInfo.buildScratchSize,
     });
 

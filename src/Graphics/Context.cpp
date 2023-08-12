@@ -188,11 +188,7 @@ Image Context::createImage(ImageCreateInfo createInfo) const {
     return {this, createInfo};
 }
 
-HostBuffer Context::createHostBuffer(BufferCreateInfo createInfo) const {
-    return {this, createInfo};
-}
-
-DeviceBuffer Context::createDeviceBuffer(BufferCreateInfo createInfo) const {
+Buffer Context::createBuffer(BufferCreateInfo createInfo) const {
     return {this, createInfo};
 }
 

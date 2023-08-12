@@ -427,18 +427,21 @@ RayTracingPipeline::RayTracingPipeline(const Context* context,
     }
 
     // Create shader binding table
-    raygenSBT = context->createDeviceBuffer({
+    raygenSBT = context->createBuffer({
         .usage = BufferUsage::ShaderBindingTable,
+        .memory = MemoryUsage::Device,
         .size = handleSize * rgenCount,
         .data = shaderHandleStorage.data() + 0 * handleSizeAligned,
     });
-    missSBT = context->createDeviceBuffer({
+    missSBT = context->createBuffer({
         .usage = BufferUsage::ShaderBindingTable,
+        .memory = MemoryUsage::Device,
         .size = handleSize * missCount,
         .data = shaderHandleStorage.data() + (rgenCount)*handleSizeAligned,
     });
-    hitSBT = context->createDeviceBuffer({
+    hitSBT = context->createBuffer({
         .usage = BufferUsage::ShaderBindingTable,
+        .memory = MemoryUsage::Device,
         .size = handleSize * hitCount,
         .data = shaderHandleStorage.data() + (rgenCount + missCount) * handleSizeAligned,
     });
