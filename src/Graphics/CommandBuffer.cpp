@@ -178,14 +178,14 @@ void CommandBuffer::imageBarrier(vk::PipelineStageFlags srcStageMask,
                                  const Image& image,
                                  vk::AccessFlags srcAccessMask,
                                  vk::AccessFlags dstAccessMask) const {
+    // NOTE: Since layout transition is not required,
+    // oldLayout and newLayout are not specified.
     vk::ImageMemoryBarrier memoryBarrier;
     memoryBarrier.srcAccessMask = srcAccessMask;
     memoryBarrier.dstAccessMask = dstAccessMask;
     memoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     memoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     memoryBarrier.image = image.getImage();
-    memoryBarrier.oldLayout = vk::ImageLayout::eGeneral;
-    memoryBarrier.newLayout = vk::ImageLayout::eGeneral;
     memoryBarrier.subresourceRange.aspectMask = image.getAspectMask();
     memoryBarrier.subresourceRange.baseMipLevel = 0;
     memoryBarrier.subresourceRange.baseArrayLayer = 0;
