@@ -35,7 +35,6 @@ struct TopAccelCreateInfo {
 
 class BottomAccel {
 public:
-    BottomAccel() = default;
     BottomAccel(const Context* context, BottomAccelCreateInfo createInfo);
 
     uint64_t getBufferAddress() const { return buffer->getAddress(); }
@@ -48,7 +47,6 @@ private:
 
 class TopAccel {
 public:
-    TopAccel() = default;
     TopAccel(const Context* context, TopAccelCreateInfo createInfo);
 
     void update(vk::CommandBuffer commandBuffer, ArrayProxy<AccelInstance> accelInstances);

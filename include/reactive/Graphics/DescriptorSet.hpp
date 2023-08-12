@@ -47,7 +47,6 @@ struct DescriptorSetCreateInfo {
 
 class DescriptorSet {
 public:
-    DescriptorSet() = default;
     DescriptorSet(const Context* context, DescriptorSetCreateInfo createInfo);
 
     void allocate();

@@ -29,8 +29,6 @@ struct BufferCreateInfo {
 
 class Buffer {
 public:
-    Buffer() = default;
-
     Buffer(const Context* context, BufferCreateInfo createInfo);
 
     vk::Buffer getBuffer() const { return *buffer; }
@@ -51,11 +49,6 @@ public:
     void copy(const void* data);
 
 protected:
-    Buffer(const Context* context,
-           BufferUsage usage,
-           vk::MemoryPropertyFlags memoryProp,
-           size_t size);
-
     const Context* context = nullptr;
     vk::UniqueBuffer buffer;
     vk::UniqueDeviceMemory memory;

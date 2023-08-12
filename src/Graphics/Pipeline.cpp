@@ -310,7 +310,8 @@ MeshShaderPipeline::MeshShaderPipeline(const Context* context,
     pipeline = std::move(result.value);
 }
 
-ComputePipeline::ComputePipeline(const Context* context, ComputePipelineCreateInfo createInfo) {
+ComputePipeline::ComputePipeline(const Context* context, ComputePipelineCreateInfo createInfo)
+    : Pipeline{context} {
     shaderStageFlags = vk::ShaderStageFlagBits::eCompute;
     bindPoint = vk::PipelineBindPoint::eCompute;
     pushSize = createInfo.pushSize;

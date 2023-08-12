@@ -15,7 +15,6 @@ struct ShaderCreateInfo {
 
 class Shader {
 public:
-    Shader() = default;
     Shader(const Context* context, ShaderCreateInfo createInfo);
 
     auto getSpvCode() const { return spvCode; }

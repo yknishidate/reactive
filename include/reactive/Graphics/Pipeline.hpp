@@ -11,7 +11,6 @@ class Image;
 
 class Pipeline {
 public:
-    Pipeline() = default;
     Pipeline(const Context* context) : context{context} {}
 
     vk::PipelineBindPoint getPipelineBindPoint() const { return bindPoint; }
@@ -66,7 +65,6 @@ struct GraphicsPipelineCreateInfo {
 
 class GraphicsPipeline : public Pipeline {
 public:
-    GraphicsPipeline() = default;
     GraphicsPipeline(const Context* context, GraphicsPipelineCreateInfo createInfo);
 };
 
@@ -93,7 +91,6 @@ struct MeshShaderPipelineCreateInfo {
 
 class MeshShaderPipeline : public Pipeline {
 public:
-    MeshShaderPipeline() = default;
     MeshShaderPipeline(const Context* context, MeshShaderPipelineCreateInfo createInfo);
 };
 
@@ -106,7 +103,6 @@ struct ComputePipelineCreateInfo {
 
 class ComputePipeline : public Pipeline {
 public:
-    ComputePipeline() = default;
     ComputePipeline(const Context* context, ComputePipelineCreateInfo createInfo);
 
 private:

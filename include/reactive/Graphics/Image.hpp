@@ -48,7 +48,6 @@ struct ImageCreateInfo {
 
 class Image {
 public:
-    Image() = default;
     Image(const Context* context, ImageCreateInfo createInfo);
 
     vk::Image getImage() const { return *image; }
