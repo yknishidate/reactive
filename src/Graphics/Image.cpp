@@ -38,6 +38,48 @@ vk::ImageAspectFlags getImageAspect(rv::ImageUsage usage) {
             return vk::ImageAspectFlagBits::eColor;
     }
 }
+
+vk::ImageLayout getImageLayout(rv::ImageLayout layout) {
+    switch (layout) {
+        case rv::ImageLayout::Undefined:
+            return vk::ImageLayout::eUndefined;
+        case rv::ImageLayout::General:
+            return vk::ImageLayout::eGeneral;
+        case rv::ImageLayout::ColorAttachment:
+            return vk::ImageLayout::eColorAttachmentOptimal;
+        case rv::ImageLayout::DepthAttachment:
+            return vk::ImageLayout::eDepthAttachmentOptimal;
+        case rv::ImageLayout::StencilAttachment:
+            return vk::ImageLayout::eStencilAttachmentOptimal;
+        case rv::ImageLayout::DepthStencilAttachment:
+            return vk::ImageLayout::eDepthStencilAttachmentOptimal;
+        case rv::ImageLayout::ShaderReadOnly:
+            return vk::ImageLayout::eShaderReadOnlyOptimal;
+        case rv::ImageLayout::TransferSrc:
+            return vk::ImageLayout::eTransferSrcOptimal;
+        case rv::ImageLayout::TransferDst:
+            return vk::ImageLayout::eTransferDstOptimal;
+        case rv::ImageLayout::PresentSrc:
+            return vk::ImageLayout::ePresentSrcKHR;
+    }
+}
+
+vk::Format getFormat(rv::Format format) {
+    switch (format) {
+        case rv::Format::BGRA8Unorm:
+            return vk::Format::eB8G8R8A8Unorm;
+        case rv::Format::RGBA8Unorm:
+            return vk::Format::eR8G8B8A8Unorm;
+        case rv::Format::RGB16Sfloat:
+            return vk::Format::eR16G16B16Sfloat;
+        case rv::Format::RGB32Sfloat:
+            return vk::Format::eR32G32B32Sfloat;
+        case rv::Format::RGBA32Sfloat:
+            return vk::Format::eR32G32B32A32Sfloat;
+        case rv::Format::D32Sfloat:
+            return vk::Format::eD32Sfloat;
+    }
+}
 }  // namespace
 
 namespace rv {
@@ -46,8 +88,8 @@ Image::Image(const Context* context, ImageCreateInfo createInfo)
       width{createInfo.width},
       height{createInfo.height},
       depth{createInfo.depth},
-      layout{static_cast<vk::ImageLayout>(createInfo.layout)},
-      format{static_cast<vk::Format>(createInfo.format)},
+      layout{getImageLayout(createInfo.layout)},
+      format{getFormat(createInfo.format)},
       mipLevels{createInfo.mipLevels},
       aspect{getImageAspect(createInfo.usage)} {
     vk::ImageType type = createInfo.depth == 1 ? vk::ImageType::e2D : vk::ImageType::e3D;

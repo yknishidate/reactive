@@ -14,25 +14,25 @@ enum class ImageUsage {
 };
 
 enum class ImageLayout {
-    Undefined = vk::ImageLayout::eUndefined,
-    General = vk::ImageLayout::eGeneral,
-    ColorAttachment = vk::ImageLayout::eColorAttachmentOptimal,
-    DepthAttachment = vk::ImageLayout::eDepthAttachmentOptimal,
-    StencilAttachment = vk::ImageLayout::eStencilAttachmentOptimal,
-    DepthStencilAttachment = vk::ImageLayout::eDepthStencilAttachmentOptimal,
-    ShaderReadOnly = vk::ImageLayout::eShaderReadOnlyOptimal,
-    TransferSrc = vk::ImageLayout::eTransferSrcOptimal,
-    TransferDst = vk::ImageLayout::eTransferDstOptimal,
-    PresentSrc = vk::ImageLayout::ePresentSrcKHR,
+    Undefined,
+    General,
+    ColorAttachment,
+    DepthAttachment,
+    StencilAttachment,
+    DepthStencilAttachment,
+    ShaderReadOnly,
+    TransferSrc,
+    TransferDst,
+    PresentSrc,
 };
 
 enum class Format {
-    BGRA8Unorm = vk::Format::eB8G8R8A8Unorm,
-    RGBA8Unorm = vk::Format::eR8G8B8A8Unorm,
-    RGB16Sfloat = vk::Format::eR16G16B16Sfloat,
-    RGB32Sfloat = vk::Format::eR32G32B32Sfloat,
-    RGBA32Sfloat = vk::Format::eR32G32B32A32Sfloat,
-    D32Sfloat = vk::Format::eD32Sfloat,
+    BGRA8Unorm,
+    RGBA8Unorm,
+    RGB16Sfloat,
+    RGB32Sfloat,
+    RGBA32Sfloat,
+    D32Sfloat,
 };
 
 struct ImageCreateInfo {

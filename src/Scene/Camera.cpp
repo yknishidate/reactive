@@ -4,6 +4,22 @@
 #include <glm/gtx/transform.hpp>
 
 namespace rv {
+glm::mat4 Camera::getInvView() const {
+    return glm::inverse(getView());
+}
+
+glm::mat4 Camera::getInvProj() const {
+    return glm::inverse(getProj());
+}
+
+glm::vec3 Camera::getUp() const {
+    return up;
+}
+
+glm::vec3 Camera::getRight() const {
+    return glm::normalize(glm::cross(-getUp(), getFront()));
+}
+
 void FPSCamera::processInput() {
     if (!app) {
         return;
@@ -45,6 +61,10 @@ glm::mat4 FPSCamera::getProj() const {
     return glm::perspective(fovY, aspect, zNear, zFar);
 }
 
+glm::vec3 FPSCamera::getPosition() const {
+    return position;
+}
+
 glm::vec3 FPSCamera::getFront() const {
     glm::mat4 rotation{1.0};
     rotation *= glm::rotate(glm::radians(yaw), glm::vec3{0, 1, 0});
@@ -73,9 +93,21 @@ void OrbitalCamera::processInput() {
     distance = std::max(distance - wheelOffset, 0.001f);
 }
 
+glm::mat4 OrbitalCamera::getView() const {
+    return glm::lookAt(getPosition(), target, up);
+}
+
+glm::mat4 OrbitalCamera::getProj() const {
+    return glm::perspective(fovY, aspect, zNear, zFar);
+}
+
 glm::vec3 OrbitalCamera::getPosition() const {
     glm::mat4 rotX = glm::rotate(glm::radians(theta), glm::vec3(1, 0, 0));
     glm::mat4 rotY = glm::rotate(glm::radians(phi), glm::vec3(0, 1, 0));
     return glm::vec3(rotY * rotX * glm::vec4{0, 0, distance, 1});
+}
+
+glm::vec3 OrbitalCamera::getFront() const {
+    return glm::normalize(getPosition() - target);
 }
 }  // namespace rv

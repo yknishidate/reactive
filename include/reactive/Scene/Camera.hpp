@@ -11,16 +11,23 @@ struct Camera {
         : app{app}, aspect{static_cast<float>(width) / static_cast<float>(height)} {}
 
     virtual void processInput() = 0;
+
     virtual glm::mat4 getView() const = 0;
     virtual glm::mat4 getProj() const = 0;
-    virtual glm::mat4 getInvView() const { return glm::inverse(getView()); }
-    virtual glm::mat4 getInvProj() const { return glm::inverse(getProj()); }
+    virtual glm::mat4 getInvView() const;
+    virtual glm::mat4 getInvProj() const;
+
+    virtual glm::vec3 getPosition() const = 0;
+    virtual glm::vec3 getFront() const = 0;
+    virtual glm::vec3 getUp() const;
+    virtual glm::vec3 getRight() const;
 
     const App* app = nullptr;
     float aspect = 1.0f;
     float zNear = 0.01f;
     float zFar = 10000.0f;
     float fovY = glm::radians(45.0f);
+    glm::vec3 up = {0.0f, 1.0f, 0.0f};
 };
 
 struct FPSCamera : public Camera {
@@ -31,11 +38,10 @@ struct FPSCamera : public Camera {
     void processInput() override;
     glm::mat4 getView() const override;
     glm::mat4 getProj() const override;
-
-    glm::vec3 getFront() const;
+    glm::vec3 getPosition() const override;
+    glm::vec3 getFront() const override;
 
     glm::vec3 position = {0.0f, 0.0f, 5.0f};
-    glm::vec3 up = {0.0f, 1.0f, 0.0f};
     float speed = 1.0f;
     float yaw = 0.0f;
     float pitch = 0.0f;
@@ -47,13 +53,12 @@ struct OrbitalCamera : public Camera {
 
     // Override
     void processInput() override;
-    glm::mat4 getView() const override { return glm::lookAt(getPosition(), target, up); }
-    glm::mat4 getProj() const override { return glm::perspective(fovY, aspect, zNear, zFar); }
-
-    glm::vec3 getPosition() const;
+    glm::mat4 getView() const override;
+    glm::mat4 getProj() const override;
+    glm::vec3 getPosition() const override;
+    glm::vec3 getFront() const override;
 
     glm::vec3 target = {0.0f, 0.0f, 0.0f};
-    glm::vec3 up = {0.0f, 1.0f, 0.0f};
     float distance = 5.0f;
     float phi = 0;
     float theta = 0;
