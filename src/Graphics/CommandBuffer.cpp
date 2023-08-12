@@ -213,17 +213,17 @@ void CommandBuffer::transitionLayout(vk::Image image,
     Image::transitionLayout(commandBuffer, image, oldLayout, newLayout, aspect, mipLevels);
 }
 
-void CommandBuffer::copyImage(vk::Image srcImage,
-                              vk::Image dstImage,
-                              vk::ImageLayout newSrcLayout,
-                              vk::ImageLayout newDstLayout,
+void CommandBuffer::copyImage(ImageHandle srcImage,
+                              ImageHandle dstImage,
+                              ImageLayout newSrcLayout,
+                              ImageLayout newDstLayout,
                               uint32_t width,
                               uint32_t height) const {
     // TODO: Fix vk::ImageLayout::eUndefined
-    Image::transitionLayout(commandBuffer, srcImage, vk::ImageLayout::eUndefined,
+    Image::transitionLayout(commandBuffer, srcImage->getImage(), vk::ImageLayout::eUndefined,
                             vk::ImageLayout::eTransferSrcOptimal, vk::ImageAspectFlagBits::eColor,
                             1);
-    Image::transitionLayout(commandBuffer, dstImage, vk::ImageLayout::eUndefined,
+    Image::transitionLayout(commandBuffer, dstImage->getImage(), vk::ImageLayout::eUndefined,
                             vk::ImageLayout::eTransferDstOptimal, vk::ImageAspectFlagBits::eColor,
                             1);
 
@@ -231,14 +231,16 @@ void CommandBuffer::copyImage(vk::Image srcImage,
     copyRegion.setSrcSubresource({vk::ImageAspectFlagBits::eColor, 0, 0, 1});
     copyRegion.setDstSubresource({vk::ImageAspectFlagBits::eColor, 0, 0, 1});
     copyRegion.setExtent({width, height, 1});
-    commandBuffer.copyImage(srcImage, vk::ImageLayout::eTransferSrcOptimal,  // src
-                            dstImage, vk::ImageLayout::eTransferDstOptimal,  // dst
+    commandBuffer.copyImage(srcImage->getImage(), vk::ImageLayout::eTransferSrcOptimal,  // src
+                            dstImage->getImage(), vk::ImageLayout::eTransferDstOptimal,  // dst
                             copyRegion);
 
-    Image::transitionLayout(commandBuffer, srcImage, vk::ImageLayout::eTransferSrcOptimal,
-                            newSrcLayout, vk::ImageAspectFlagBits::eColor, 1);
-    Image::transitionLayout(commandBuffer, dstImage, vk::ImageLayout::eTransferDstOptimal,
-                            newDstLayout, vk::ImageAspectFlagBits::eColor, 1);
+    Image::transitionLayout(commandBuffer, srcImage->getImage(),
+                            vk::ImageLayout::eTransferSrcOptimal, getImageLayout(newSrcLayout),
+                            vk::ImageAspectFlagBits::eColor, 1);
+    Image::transitionLayout(commandBuffer, dstImage->getImage(),
+                            vk::ImageLayout::eTransferDstOptimal, getImageLayout(newDstLayout),
+                            vk::ImageAspectFlagBits::eColor, 1);
 }
 
 void CommandBuffer::fillBuffer(BufferHandle dstBuffer,

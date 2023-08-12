@@ -141,10 +141,10 @@ public:
                                       nullptr, nullptr);
     }
 
-    void copyImage(vk::Image srcImage,
-                   vk::Image dstImage,
-                   vk::ImageLayout newSrcLayout,
-                   vk::ImageLayout newDstLayout,
+    void copyImage(ImageHandle srcImage,
+                   ImageHandle dstImage,
+                   ImageLayout newSrcLayout,
+                   ImageLayout newDstLayout,
                    uint32_t width,
                    uint32_t height) const;
 

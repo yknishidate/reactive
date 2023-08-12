@@ -119,6 +119,18 @@ struct ImageCreateInfo {
     uint32_t mipLevels = 1;
 };
 
+vk::BufferUsageFlags getBufferUsage(rv::BufferUsage usage);
+
+vk::MemoryPropertyFlags getMemoryProperty(rv::MemoryUsage usage);
+
+vk::ImageUsageFlags getImageUsage(rv::ImageUsage usage);
+
+vk::ImageAspectFlags getImageAspect(rv::ImageUsage usage);
+
+vk::ImageLayout getImageLayout(rv::ImageLayout layout);
+
+vk::Format getFormat(rv::Format format);
+
 class Context {
 public:
     void initInstance(bool enableValidation,

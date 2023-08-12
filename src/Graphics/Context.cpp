@@ -9,7 +9,7 @@
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
-namespace {
+namespace rv {
 vk::BufferUsageFlags getBufferUsage(rv::BufferUsage usage) {
     switch (usage) {
         case rv::BufferUsage::Uniform:
@@ -135,9 +135,7 @@ vk::Format getFormat(rv::Format format) {
             return vk::Format::eD32Sfloat;
     }
 }
-}  // namespace
 
-namespace rv {
 void Context::initInstance(bool enableValidation,
                            const std::vector<const char*>& layers,
                            const std::vector<const char*>& instanceExtensions,

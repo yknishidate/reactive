@@ -46,9 +46,8 @@ public:
         commandBuffer.bindPipeline(pipeline);
         commandBuffer.pushConstants(pipeline, &frame);
         commandBuffer.dispatch(pipeline, width, height, 1);
-        commandBuffer.copyImage(image->getImage(), getCurrentColorImage(),
-                                vk::ImageLayout::eGeneral, vk::ImageLayout::ePresentSrcKHR, width,
-                                height);
+        commandBuffer.copyImage(image, getCurrentColorImage(), ImageLayout::General,
+                                ImageLayout::PresentSrc, width, height);
     }
 
     ImageHandle image;
