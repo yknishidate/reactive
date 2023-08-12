@@ -59,8 +59,9 @@ void CommandBuffer::dispatchIndirect(BufferHandle buffer, vk::DeviceSize offset)
 
 void CommandBuffer::clearColorImage(vk::Image image, std::array<float, 4> color) const {
     // TODO: Fix vk::ImageLayout::eUndefined
-    Image::setImageLayout(commandBuffer, image, vk::ImageLayout::eUndefined,
-                          vk::ImageLayout::eTransferDstOptimal, vk::ImageAspectFlagBits::eColor, 1);
+    Image::transitionImageLayout(commandBuffer, image, vk::ImageLayout::eUndefined,
+                                 vk::ImageLayout::eTransferDstOptimal,
+                                 vk::ImageAspectFlagBits::eColor, 1);
     commandBuffer.clearColorImage(
         image, vk::ImageLayout::eTransferDstOptimal, vk::ClearColorValue{color},
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1});
@@ -68,8 +69,9 @@ void CommandBuffer::clearColorImage(vk::Image image, std::array<float, 4> color)
 
 void CommandBuffer::clearDepthStencilImage(vk::Image image, float depth, uint32_t stencil) const {
     // TODO: Fix vk::ImageLayout::eUndefined
-    Image::setImageLayout(commandBuffer, image, vk::ImageLayout::eUndefined,
-                          vk::ImageLayout::eTransferDstOptimal, vk::ImageAspectFlagBits::eDepth, 1);
+    Image::transitionImageLayout(commandBuffer, image, vk::ImageLayout::eUndefined,
+                                 vk::ImageLayout::eTransferDstOptimal,
+                                 vk::ImageAspectFlagBits::eDepth, 1);
     commandBuffer.clearDepthStencilImage(
         image, vk::ImageLayout::eTransferDstOptimal, vk::ClearDepthStencilValue{depth, stencil},
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eDepth, 0, 1, 0, 1});
@@ -201,17 +203,12 @@ void CommandBuffer::imageBarrier(vk::PipelineStageFlags srcStageMask,
                                   memoryBarrier);
 }
 
-void CommandBuffer::transitionImageLayout(const Image& image, vk::ImageLayout newLayout) const {
-    Image::setImageLayout(commandBuffer, image.getImage(), image.getLayout(), newLayout,
-                          image.getAspectMask(), image.getMipLevels());
-}
-
 void CommandBuffer::transitionImageLayout(vk::Image image,
                                           vk::ImageLayout oldLayout,
                                           vk::ImageLayout newLayout,
                                           vk::ImageAspectFlagBits aspect,
                                           uint32_t mipLevels) const {
-    Image::setImageLayout(commandBuffer, image, oldLayout, newLayout, aspect, mipLevels);
+    Image::transitionImageLayout(commandBuffer, image, oldLayout, newLayout, aspect, mipLevels);
 }
 
 void CommandBuffer::copyImage(vk::Image srcImage,
@@ -221,10 +218,12 @@ void CommandBuffer::copyImage(vk::Image srcImage,
                               uint32_t width,
                               uint32_t height) const {
     // TODO: Fix vk::ImageLayout::eUndefined
-    Image::setImageLayout(commandBuffer, srcImage, vk::ImageLayout::eUndefined,
-                          vk::ImageLayout::eTransferSrcOptimal, vk::ImageAspectFlagBits::eColor, 1);
-    Image::setImageLayout(commandBuffer, dstImage, vk::ImageLayout::eUndefined,
-                          vk::ImageLayout::eTransferDstOptimal, vk::ImageAspectFlagBits::eColor, 1);
+    Image::transitionImageLayout(commandBuffer, srcImage, vk::ImageLayout::eUndefined,
+                                 vk::ImageLayout::eTransferSrcOptimal,
+                                 vk::ImageAspectFlagBits::eColor, 1);
+    Image::transitionImageLayout(commandBuffer, dstImage, vk::ImageLayout::eUndefined,
+                                 vk::ImageLayout::eTransferDstOptimal,
+                                 vk::ImageAspectFlagBits::eColor, 1);
 
     vk::ImageCopy copyRegion;
     copyRegion.setSrcSubresource({vk::ImageAspectFlagBits::eColor, 0, 0, 1});
@@ -234,10 +233,10 @@ void CommandBuffer::copyImage(vk::Image srcImage,
                             dstImage, vk::ImageLayout::eTransferDstOptimal,  // dst
                             copyRegion);
 
-    Image::setImageLayout(commandBuffer, srcImage, vk::ImageLayout::eTransferSrcOptimal,
-                          newSrcLayout, vk::ImageAspectFlagBits::eColor, 1);
-    Image::setImageLayout(commandBuffer, dstImage, vk::ImageLayout::eTransferDstOptimal,
-                          newDstLayout, vk::ImageAspectFlagBits::eColor, 1);
+    Image::transitionImageLayout(commandBuffer, srcImage, vk::ImageLayout::eTransferSrcOptimal,
+                                 newSrcLayout, vk::ImageAspectFlagBits::eColor, 1);
+    Image::transitionImageLayout(commandBuffer, dstImage, vk::ImageLayout::eTransferDstOptimal,
+                                 newDstLayout, vk::ImageAspectFlagBits::eColor, 1);
 }
 
 void CommandBuffer::fillBuffer(BufferHandle dstBuffer,

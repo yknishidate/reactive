@@ -126,8 +126,6 @@ public:
                       vk::AccessFlags srcAccessMask,
                       vk::AccessFlags dstAccessMask) const;
 
-    void transitionImageLayout(const Image& image, vk::ImageLayout newLayout) const;
-
     void transitionImageLayout(vk::Image image,
                                vk::ImageLayout oldLayout,
                                vk::ImageLayout newLayout,
