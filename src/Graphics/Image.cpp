@@ -133,11 +133,11 @@ Image Image::loadFromFile(const Context& context, const std::string& filepath, u
 
     Image image = context.createImage({
         .usage = ImageUsage::Sampled,
-        .layout = ImageLayout::TransferDst,
         .width = static_cast<uint32_t>(width),
         .height = static_cast<uint32_t>(height),
         .depth = 1,
         .format = Format::RGBA8Unorm,
+        .layout = ImageLayout::TransferDst,
         .mipLevels = mipLevels,
     });
 
@@ -196,11 +196,11 @@ Image Image::loadFromFileHDR(const Context& context, const std::string& filepath
 
     Image image = context.createImage({
         .usage = ImageUsage::Sampled,
-        .layout = ImageLayout::TransferDst,
         .width = static_cast<uint32_t>(width),
         .height = static_cast<uint32_t>(height),
         .depth = 1,
         .format = Format::RGBA32Sfloat,
+        .layout = ImageLayout::TransferDst,
     });
 
     // Copy to image

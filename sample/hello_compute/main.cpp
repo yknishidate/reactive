@@ -15,10 +15,10 @@ public:
     void onStart() override {
         image = context.createImage({
             .usage = ImageUsage::Storage,
-            .layout = ImageLayout::General,
             .width = width,
             .height = height,
             .format = Format::BGRA8Unorm,
+            .layout = ImageLayout::General,
         });
 
         Shader compShader = context.createShader({

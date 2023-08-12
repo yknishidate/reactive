@@ -37,11 +37,11 @@ enum class Format {
 
 struct ImageCreateInfo {
     ImageUsage usage;
-    ImageLayout layout;
     uint32_t width = 1;
     uint32_t height = 1;
     uint32_t depth = 1;
     Format format;
+    ImageLayout layout;
     // if mipLevels is std::numeric_limits<uint32_t>::max(), then it's set to max level
     uint32_t mipLevels = 1;
 };
