@@ -71,7 +71,6 @@ public:
 };
 
 struct MeshShaderPipelineCreateInfo {
-    vk::RenderPass renderPass = {};
     vk::DescriptorSetLayout descSetLayout = {};
     uint32_t pushSize = 0;
     const Shader& taskShader;

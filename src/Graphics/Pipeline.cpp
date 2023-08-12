@@ -286,6 +286,12 @@ MeshShaderPipeline::MeshShaderPipeline(const Context* context,
     depthStencil.setDepthBoundsTestEnable(VK_FALSE);
     depthStencil.setStencilTestEnable(VK_FALSE);
 
+    vk::Format colorFormat = vk::Format::eB8G8R8A8Unorm;
+    vk::Format depthFormat = vk::Format::eD32Sfloat;
+    vk::PipelineRenderingCreateInfo renderingInfo;
+    renderingInfo.setColorAttachmentFormats(colorFormat);
+    renderingInfo.setDepthAttachmentFormat(depthFormat);
+
     vk::GraphicsPipelineCreateInfo pipelineInfo;
     pipelineInfo.setStages(shaderStages);
     pipelineInfo.setPViewportState(&viewportState);
@@ -295,8 +301,8 @@ MeshShaderPipeline::MeshShaderPipeline(const Context* context,
     pipelineInfo.setPColorBlendState(&colorBlending);
     pipelineInfo.setLayout(*pipelineLayout);
     pipelineInfo.setSubpass(0);
-    pipelineInfo.setRenderPass(createInfo.renderPass);
     pipelineInfo.setPDynamicState(&dynamicStateInfo);
+    pipelineInfo.setPNext(&renderingInfo);
 
     auto result = context->getDevice().createGraphicsPipelineUnique({}, pipelineInfo);
     if (result.result != vk::Result::eSuccess) {

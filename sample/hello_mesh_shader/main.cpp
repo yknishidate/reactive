@@ -76,7 +76,6 @@ public:
         });
 
         pipeline = context.createMeshShaderPipeline({
-            .renderPass = getDefaultRenderPass(),
             .descSetLayout = descSet.getLayout(),
             .taskShader = {},
             .meshShader = shaders[0],
@@ -94,10 +93,10 @@ public:
         commandBuffer.setScissor(width, height);
         commandBuffer.bindDescriptorSet(descSet, pipeline);
         commandBuffer.bindPipeline(pipeline);
-        commandBuffer.beginRenderPass(getDefaultRenderPass(), getCurrentFramebuffer(), width,
-                                      height);
+        commandBuffer.beginRendering(getCurrentColorImageView(), getDefaultDepthImageView(),
+                                     {{0, 0}, {width, height}});
         commandBuffer.drawMeshTasks(1, 1, 1);
-        commandBuffer.endRenderPass();
+        commandBuffer.endRendering();
     }
 
     DescriptorSet descSet;
