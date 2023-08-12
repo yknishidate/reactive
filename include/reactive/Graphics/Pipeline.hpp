@@ -139,10 +139,6 @@ public:
     RayTracingPipeline(const Context* context, RayTracingPipelineCreateInfo createInfo);
 
     void setShaders(const Shader& rgenShader, const Shader& missShader, const Shader& chitShader) {
-        assert(rgenShader.getStage() == vk::ShaderStageFlagBits::eRaygenKHR);
-        assert(missShader.getStage() == vk::ShaderStageFlagBits::eMissKHR);
-        assert(chitShader.getStage() == vk::ShaderStageFlagBits::eClosestHitKHR);
-
         rgenCount = 1;
         missCount = 1;
         hitCount = 1;
@@ -171,11 +167,6 @@ public:
                     const Shader* missShader,
                     const Shader* chitShader,
                     const Shader* ahitShader) {
-        assert(rgenShader->getStage() == vk::ShaderStageFlagBits::eRaygenKHR);
-        assert(missShader->getStage() == vk::ShaderStageFlagBits::eMissKHR);
-        assert(chitShader->getStage() == vk::ShaderStageFlagBits::eClosestHitKHR);
-        assert(ahitShader->getStage() == vk::ShaderStageFlagBits::eAnyHitKHR);
-
         rgenCount = 1;
         missCount = 1;
         hitCount = 2;

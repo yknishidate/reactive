@@ -62,13 +62,13 @@ public:
     void onStart() override {
         std::vector<Shader> shaders(2);
         shaders[0] = context.createShader({
-            .code = Compiler::compileToSPV(meshCode, vk::ShaderStageFlagBits::eMeshEXT),
-            .stage = vk::ShaderStageFlagBits::eMeshEXT,
+            .code = Compiler::compileToSPV(meshCode, ShaderStage::Mesh),
+            .stage = ShaderStage::Mesh,
         });
 
         shaders[1] = context.createShader({
-            .code = Compiler::compileToSPV(fragCode, vk::ShaderStageFlagBits::eFragment),
-            .stage = vk::ShaderStageFlagBits::eFragment,
+            .code = Compiler::compileToSPV(fragCode, ShaderStage::Fragment),
+            .stage = ShaderStage::Fragment,
         });
 
         descSet = context.createDescriptorSet({

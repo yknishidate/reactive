@@ -48,17 +48,17 @@ public:
         std::vector<Shader> shaders(3);
         shaders[0] = context.createShader({
             .code = Compiler::compileToSPV(SHADER_DIR + "hello_raytracing.rgen"),
-            .stage = vk::ShaderStageFlagBits::eRaygenKHR,
+            .stage = ShaderStage::Raygen,
         });
 
         shaders[1] = context.createShader({
             .code = Compiler::compileToSPV(SHADER_DIR + "hello_raytracing.rmiss"),
-            .stage = vk::ShaderStageFlagBits::eMissKHR,
+            .stage = ShaderStage::Miss,
         });
 
         shaders[2] = context.createShader({
             .code = Compiler::compileToSPV(SHADER_DIR + "hello_raytracing.rchit"),
-            .stage = vk::ShaderStageFlagBits::eClosestHitKHR,
+            .stage = ShaderStage::ClosestHit,
         });
 
         descSet = context.createDescriptorSet({

@@ -32,8 +32,22 @@ void readBinary(const std::filesystem::path& filepath, std::vector<T>& vec) {
 }
 }  // namespace File
 
+enum class ShaderStage {
+    Vertex,
+    Fragment,
+    Compute,
+    Raygen,
+    AnyHit,
+    ClosestHit,
+    Miss,
+    Intersection,
+    Callable,
+    Task,
+    Mesh,
+};
+
 namespace Compiler {
-vk::ShaderStageFlagBits getShaderStage(const std::string& filepath);
+ShaderStage getShaderStage(const std::string& filepath);
 
 using Define = std::pair<std::string, std::string>;
 
@@ -46,7 +60,7 @@ std::vector<uint32_t> compileToSPV(const std::string& filepath,
 // This doesn't support include directive
 // This is for hardcoded shader in C++
 std::vector<uint32_t> compileToSPV(const std::string& glslCode,
-                                   vk::ShaderStageFlagBits shaderStage,
+                                   ShaderStage shaderStage,
                                    const std::vector<Define>& defines = {});
 
 std::vector<std::string> getAllIncludedFiles(const std::string& code);

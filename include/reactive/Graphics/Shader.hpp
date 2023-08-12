@@ -10,7 +10,7 @@
 namespace rv {
 struct ShaderCreateInfo {
     const std::vector<uint32_t>& code;
-    vk::ShaderStageFlagBits stage;
+    ShaderStage stage;
 };
 
 class Shader {
@@ -20,12 +20,12 @@ public:
 
     auto getSpvCode() const { return spvCode; }
     auto getModule() const { return *shaderModule; }
-    auto getStage() const { return shaderStage; }
+    auto getStage() const { return stage; }
 
 private:
     vk::UniqueShaderModule shaderModule;
     vk::UniqueShaderEXT shader;
     std::vector<uint32_t> spvCode;
-    vk::ShaderStageFlagBits shaderStage;
+    vk::ShaderStageFlagBits stage;
 };
 }  // namespace rv

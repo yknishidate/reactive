@@ -23,7 +23,7 @@ public:
 
         Shader compShader = context.createShader({
             .code = Compiler::compileToSPV(SHADER_DIR + "hello_compute.comp"),
-            .stage = vk::ShaderStageFlagBits::eCompute,
+            .stage = ShaderStage::Compute,
         });
 
         descSet = context.createDescriptorSet({
