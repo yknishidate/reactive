@@ -6,6 +6,38 @@ namespace {
 uint32_t calculateMipLevels(uint32_t width, uint32_t height) {
     return static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
 }
+vk::ImageUsageFlags getImageUsage(rv::ImageUsage usage) {
+    switch (usage) {
+        case rv::ImageUsage::ColorAttachment:
+            return vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc |
+                   vk::ImageUsageFlagBits::eTransferDst;
+        case rv::ImageUsage::DepthAttachment:
+            return vk::ImageUsageFlagBits::eDepthStencilAttachment;
+        case rv::ImageUsage::DepthStencilAttachment:
+            return vk::ImageUsageFlagBits::eDepthStencilAttachment;
+        case rv::ImageUsage::Sampled:
+            return vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst |
+                   vk::ImageUsageFlagBits::eTransferSrc;
+        case rv::ImageUsage::Storage:
+            return vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferDst |
+                   vk::ImageUsageFlagBits::eTransferSrc;
+    }
+}
+
+vk::ImageAspectFlags getImageAspect(rv::ImageUsage usage) {
+    switch (usage) {
+        case rv::ImageUsage::ColorAttachment:
+            return vk::ImageAspectFlagBits::eColor;
+        case rv::ImageUsage::DepthAttachment:
+            return vk::ImageAspectFlagBits::eDepth;
+        case rv::ImageUsage::DepthStencilAttachment:
+            return vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
+        case rv::ImageUsage::Sampled:
+            return vk::ImageAspectFlagBits::eColor;
+        case rv::ImageUsage::Storage:
+            return vk::ImageAspectFlagBits::eColor;
+    }
+}
 }  // namespace
 
 namespace rv {
@@ -14,10 +46,10 @@ Image::Image(const Context* context, ImageCreateInfo createInfo)
       width{createInfo.width},
       height{createInfo.height},
       depth{createInfo.depth},
-      layout{createInfo.initialLayout},
-      format{createInfo.format},
+      layout{static_cast<vk::ImageLayout>(createInfo.layout)},
+      format{static_cast<vk::Format>(createInfo.format)},
       mipLevels{createInfo.mipLevels},
-      aspectMask{createInfo.aspect} {
+      aspect{getImageAspect(createInfo.usage)} {
     vk::ImageType type = createInfo.depth == 1 ? vk::ImageType::e2D : vk::ImageType::e3D;
 
     // Compute mipmap level
@@ -30,12 +62,12 @@ Image::Image(const Context* context, ImageCreateInfo createInfo)
     // NOTE: queueFamily is ignored if sharingMode is not concurrent
     vk::ImageCreateInfo imageInfo;
     imageInfo.setImageType(type);
-    imageInfo.setFormat(createInfo.format);
+    imageInfo.setFormat(format);
     imageInfo.setExtent({width, height, depth});
     imageInfo.setMipLevels(mipLevels);
     imageInfo.setArrayLayers(1);
     imageInfo.setSamples(vk::SampleCountFlagBits::e1);
-    imageInfo.setUsage(createInfo.usage);
+    imageInfo.setUsage(getImageUsage(createInfo.usage));
     image = context->getDevice().createImageUnique(imageInfo);
 
     vk::MemoryRequirements requirements = context->getDevice().getImageMemoryRequirements(*image);
@@ -49,7 +81,7 @@ Image::Image(const Context* context, ImageCreateInfo createInfo)
     context->getDevice().bindImageMemory(*image, *memory, 0);
 
     vk::ImageSubresourceRange subresourceRange;
-    subresourceRange.setAspectMask(aspectMask);
+    subresourceRange.setAspectMask(aspect);
     subresourceRange.setBaseMipLevel(0);
     subresourceRange.setLevelCount(mipLevels);
     subresourceRange.setBaseArrayLayer(0);
@@ -57,7 +89,7 @@ Image::Image(const Context* context, ImageCreateInfo createInfo)
 
     vk::ImageViewCreateInfo viewInfo;
     viewInfo.setImage(*image);
-    viewInfo.setFormat(createInfo.format);
+    viewInfo.setFormat(format);
     viewInfo.setSubresourceRange(subresourceRange);
     if (type == vk::ImageType::e2D) {
         viewInfo.setViewType(vk::ImageViewType::e2D);
@@ -85,8 +117,8 @@ Image::Image(const Context* context, ImageCreateInfo createInfo)
     sampler = context->getDevice().createSamplerUnique(samplerInfo);
 
     context->oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
-        setImageLayout(commandBuffer, *image, vk::ImageLayout::eUndefined, layout,
-                       createInfo.aspect, mipLevels);
+        setImageLayout(commandBuffer, *image, vk::ImageLayout::eUndefined, layout, aspect,
+                       mipLevels);
     });
 }
 
@@ -100,14 +132,12 @@ Image Image::loadFromFile(const Context& context, const std::string& filepath, u
     }
 
     Image image = context.createImage({
-        .usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage |
-                 vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc,
-        .initialLayout = vk::ImageLayout::eTransferDstOptimal,
-        .aspect = vk::ImageAspectFlagBits::eColor,
+        .usage = ImageUsage::Sampled,
+        .layout = ImageLayout::TransferDst,
         .width = static_cast<uint32_t>(width),
         .height = static_cast<uint32_t>(height),
         .depth = 1,
-        .format = vk::Format::eR8G8B8A8Unorm,
+        .format = Format::RGBA8Unorm,
         .mipLevels = mipLevels,
     });
 
@@ -165,14 +195,12 @@ Image Image::loadFromFileHDR(const Context& context, const std::string& filepath
     }
 
     Image image = context.createImage({
-        .usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage |
-                 vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc,
-        .initialLayout = vk::ImageLayout::eTransferDstOptimal,
-        .aspect = vk::ImageAspectFlagBits::eColor,
+        .usage = ImageUsage::Sampled,
+        .layout = ImageLayout::TransferDst,
         .width = static_cast<uint32_t>(width),
         .height = static_cast<uint32_t>(height),
         .depth = 1,
-        .format = vk::Format::eR32G32B32A32Sfloat,
+        .format = Format::RGBA32Sfloat,
     });
 
     // Copy to image

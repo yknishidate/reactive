@@ -14,11 +14,11 @@ public:
 
     void onStart() override {
         image = context.createImage({
-            .usage = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferSrc,
-            .initialLayout = vk::ImageLayout::eGeneral,
-            .aspect = vk::ImageAspectFlagBits::eColor,
+            .usage = ImageUsage::Storage,
+            .layout = ImageLayout::General,
             .width = width,
             .height = height,
+            .format = Format::BGRA8Unorm,
         });
 
         Shader compShader = context.createShader({

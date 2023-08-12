@@ -5,14 +5,43 @@
 namespace rv {
 class Buffer;
 
+enum class ImageUsage {
+    ColorAttachment,
+    DepthAttachment,
+    DepthStencilAttachment,
+    Storage,
+    Sampled,
+};
+
+enum class ImageLayout {
+    Undefined = vk::ImageLayout::eUndefined,
+    General = vk::ImageLayout::eGeneral,
+    ColorAttachment = vk::ImageLayout::eColorAttachmentOptimal,
+    DepthAttachment = vk::ImageLayout::eDepthAttachmentOptimal,
+    StencilAttachment = vk::ImageLayout::eStencilAttachmentOptimal,
+    DepthStencilAttachment = vk::ImageLayout::eDepthStencilAttachmentOptimal,
+    ShaderReadOnly = vk::ImageLayout::eShaderReadOnlyOptimal,
+    TransferSrc = vk::ImageLayout::eTransferSrcOptimal,
+    TransferDst = vk::ImageLayout::eTransferDstOptimal,
+    PresentSrc = vk::ImageLayout::ePresentSrcKHR,
+};
+
+enum class Format {
+    BGRA8Unorm = vk::Format::eB8G8R8A8Unorm,
+    RGBA8Unorm = vk::Format::eR8G8B8A8Unorm,
+    RGB16Sfloat = vk::Format::eR16G16B16Sfloat,
+    RGB32Sfloat = vk::Format::eR32G32B32Sfloat,
+    RGBA32Sfloat = vk::Format::eR32G32B32A32Sfloat,
+    D32Sfloat = vk::Format::eD32Sfloat,
+};
+
 struct ImageCreateInfo {
-    vk::ImageUsageFlags usage;
-    vk::ImageLayout initialLayout;
-    vk::ImageAspectFlags aspect;
+    ImageUsage usage;
+    ImageLayout layout;
     uint32_t width = 1;
     uint32_t height = 1;
     uint32_t depth = 1;
-    vk::Format format = vk::Format::eB8G8R8A8Unorm;
+    Format format;
     // if mipLevels is std::numeric_limits<uint32_t>::max(), then it's set to max level
     uint32_t mipLevels = 1;
 };
@@ -21,17 +50,13 @@ class Image {
 public:
     Image() = default;
     Image(const Context* context, ImageCreateInfo createInfo);
-    // Image(uint32_t width, uint32_t height, vk::Format format, ImageUsage usage);
-    // Image(const std::string& filepath);
-    // Image(uint32_t width, uint32_t height, Buffer& buffer, size_t offset);
-    // Image(const std::vector<std::string>& filepaths);
 
     vk::Image getImage() const { return *image; }
     vk::ImageView getView() const { return *view; }
     vk::Sampler getSampler() const { return *sampler; }
     vk::DescriptorImageInfo getInfo() const { return {*sampler, *view, layout}; }
     uint32_t getMipLevels() const { return mipLevels; }
-    vk::ImageAspectFlags getAspectMask() const { return aspectMask; }
+    vk::ImageAspectFlags getAspectMask() const { return aspect; }
 
     static Image loadFromFile(const Context& context,
                               const std::string& filepath,
@@ -68,12 +93,6 @@ public:
                                uint32_t mipLevels);
 
 private:
-    // void createImage();
-    // void allocateMemory();
-    // void createImageView();
-    // void bindImageMemory();
-    // void createSampler();
-    // unsigned char* loadFile(const std::string& filepath);
     const Context* context;
     vk::UniqueImage image;
     vk::UniqueDeviceMemory memory;
@@ -86,6 +105,6 @@ private:
     uint32_t height;
     uint32_t depth = 1;
     uint32_t mipLevels = 1;
-    vk::ImageAspectFlags aspectMask;
+    vk::ImageAspectFlags aspect;
 };
 }  // namespace rv
