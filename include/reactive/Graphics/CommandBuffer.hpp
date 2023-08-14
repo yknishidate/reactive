@@ -66,7 +66,7 @@ public:
                      uint32_t firstIndex = 0,
                      uint32_t instanceCount = 1,
                      uint32_t firstInstance = 0) const;
-    void drawIndexed(const Mesh& mesh, uint32_t instanceCount = 1) const;
+    void drawIndexed(MeshHandle mesh, uint32_t instanceCount = 1) const;
     void drawMeshTasks(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ) const;
 
     // Indirect draw
@@ -154,8 +154,8 @@ public:
                     uint32_t data) const;
 
     // timestamp
-    void beginTimestamp(const GPUTimer& gpuTimer) const;
-    void endTimestamp(const GPUTimer& gpuTimer) const;
+    void beginTimestamp(GPUTimerHandle gpuTimer) const;
+    void endTimestamp(GPUTimerHandle gpuTimer) const;
 
     // dynamic state
     void setLineWidth(float lineWidth) const { commandBuffer.setLineWidth(lineWidth); }

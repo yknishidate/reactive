@@ -131,8 +131,8 @@ void CommandBuffer::drawIndexed(BufferHandle vertexBuffer,
     commandBuffer.drawIndexed(indexCount, instanceCount, firstIndex, 0, firstInstance);
 }
 
-void CommandBuffer::drawIndexed(const Mesh& mesh, uint32_t instanceCount) const {
-    mesh.drawIndexed(commandBuffer, instanceCount);
+void CommandBuffer::drawIndexed(MeshHandle mesh, uint32_t instanceCount) const {
+    mesh->drawIndexed(commandBuffer, instanceCount);
 }
 
 void CommandBuffer::drawMeshTasks(uint32_t groupCountX,
@@ -250,11 +250,11 @@ void CommandBuffer::fillBuffer(BufferHandle dstBuffer,
     commandBuffer.fillBuffer(dstBuffer->getBuffer(), dstOffset, size, data);
 }
 
-void CommandBuffer::beginTimestamp(const GPUTimer& gpuTimer) const {
-    gpuTimer.beginTimestamp(commandBuffer);
+void CommandBuffer::beginTimestamp(GPUTimerHandle gpuTimer) const {
+    gpuTimer->beginTimestamp(commandBuffer);
 }
 
-void CommandBuffer::endTimestamp(const GPUTimer& gpuTimer) const {
-    gpuTimer.endTimestamp(commandBuffer);
+void CommandBuffer::endTimestamp(GPUTimerHandle gpuTimer) const {
+    gpuTimer->endTimestamp(commandBuffer);
 }
 }  // namespace rv
