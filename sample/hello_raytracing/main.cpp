@@ -89,9 +89,8 @@ public:
         commandBuffer.bindPipeline(pipeline);
         commandBuffer.pushConstants(pipeline, &pushConstants);
         commandBuffer.traceRays(pipeline, width, height, 1);
-        commandBuffer.copyImage(image->getImage(), getCurrentColorImage()->getImage(),
-                                vk::ImageLayout::eGeneral, vk::ImageLayout::ePresentSrcKHR, width,
-                                height);
+        commandBuffer.copyImage(image, getCurrentColorImage(), ImageLayout::General,
+                                ImageLayout::PresentSrc, width, height);
     }
 
     std::vector<Vertex> vertices{{{-1, 0, 0}}, {{0, -1, 0}}, {{1, 0, 0}}};

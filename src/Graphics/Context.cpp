@@ -67,9 +67,11 @@ vk::ImageUsageFlags getImageUsage(rv::ImageUsage usage) {
             return vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc |
                    vk::ImageUsageFlagBits::eTransferDst;
         case rv::ImageUsage::DepthAttachment:
-            return vk::ImageUsageFlagBits::eDepthStencilAttachment;
+            return vk::ImageUsageFlagBits::eDepthStencilAttachment |
+                   vk::ImageUsageFlagBits::eTransferDst;
         case rv::ImageUsage::DepthStencilAttachment:
-            return vk::ImageUsageFlagBits::eDepthStencilAttachment;
+            return vk::ImageUsageFlagBits::eDepthStencilAttachment |
+                   vk::ImageUsageFlagBits::eTransferDst;
         case rv::ImageUsage::Sampled:
             return vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst |
                    vk::ImageUsageFlagBits::eTransferSrc;

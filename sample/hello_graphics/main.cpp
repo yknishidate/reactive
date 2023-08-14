@@ -63,8 +63,8 @@ public:
         commandBuffer.setScissor(width, height);
         commandBuffer.bindDescriptorSet(descSet, pipeline);
         commandBuffer.bindPipeline(pipeline);
-        commandBuffer.beginRendering(getCurrentColorImageView(), getDefaultDepthImageView(),
-                                     {{0, 0}, {width, height}});
+        commandBuffer.beginRendering(getCurrentColorImage(), getDefaultDepthImage(), {0, 0},
+                                     {width, height});
         commandBuffer.draw(3, 1, 0, 0);
         commandBuffer.endRendering();
     }
