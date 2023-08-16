@@ -58,6 +58,10 @@ vk::MemoryPropertyFlags getMemoryProperty(rv::MemoryUsage usage) {
         case rv::MemoryUsage::Host:
             return vk::MemoryPropertyFlagBits::eHostVisible |
                    vk::MemoryPropertyFlagBits::eHostCoherent;
+        case rv::MemoryUsage::DeviceHost:
+            return vk::MemoryPropertyFlagBits::eDeviceLocal |
+                   vk::MemoryPropertyFlagBits::eHostVisible |
+                   vk::MemoryPropertyFlagBits::eHostCoherent;
     }
 }
 

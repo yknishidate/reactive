@@ -69,6 +69,7 @@ enum class BufferUsage {
 enum class MemoryUsage {
     Device,
     Host,
+    DeviceHost,
 };
 
 struct BufferCreateInfo {
