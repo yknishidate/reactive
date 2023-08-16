@@ -149,9 +149,6 @@ protected:
     uint32_t height = 0;
 
     ImageHandle depthImage;
-    // vk::UniqueImage depthImage;
-    // vk::UniqueImageView depthImageView;
-    // vk::UniqueDeviceMemory depthImageMemory;
 
     bool swapchainRebuild = false;
     int minImageCount = 3;
