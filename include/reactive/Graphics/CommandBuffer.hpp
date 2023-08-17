@@ -177,6 +177,14 @@ public:
         commandBuffer.setScissor(0, 1, &scissor);
     }
 
+    void beginDebugLabel(const char* labelName) const {
+        vk::DebugUtilsLabelEXT label;
+        label.setPLabelName(labelName);
+        commandBuffer.beginDebugUtilsLabelEXT(label);
+    }
+
+    void endDebugLabel() const { commandBuffer.endDebugUtilsLabelEXT(); }
+
     const Context* context;
     vk::CommandBuffer commandBuffer;
 };
