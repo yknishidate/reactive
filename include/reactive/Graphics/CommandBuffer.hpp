@@ -178,12 +178,18 @@ public:
     }
 
     void beginDebugLabel(const char* labelName) const {
-        vk::DebugUtilsLabelEXT label;
-        label.setPLabelName(labelName);
-        commandBuffer.beginDebugUtilsLabelEXT(label);
+        if (context->debugEnabled()) {
+            vk::DebugUtilsLabelEXT label;
+            label.setPLabelName(labelName);
+            commandBuffer.beginDebugUtilsLabelEXT(label);
+        }
     }
 
-    void endDebugLabel() const { commandBuffer.endDebugUtilsLabelEXT(); }
+    void endDebugLabel() const {
+        if (context->debugEnabled()) {
+            commandBuffer.endDebugUtilsLabelEXT();
+        }
+    }
 
     const Context* context;
     vk::CommandBuffer commandBuffer;
