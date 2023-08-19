@@ -192,14 +192,14 @@ void CommandBuffer::imageBarrier(vk::PipelineStageFlags srcStageMask,
                                   memoryBarrier);
 }
 
-void CommandBuffer::transitionLayout(ImageHandle image, rv::ImageLayout newLayout) const {
-    image->transitionLayout(commandBuffer, getImageLayout(newLayout));
+void CommandBuffer::transitionLayout(ImageHandle image, vk::ImageLayout newLayout) const {
+    image->transitionLayout(commandBuffer, newLayout);
 }
 
 void CommandBuffer::copyImage(ImageHandle srcImage,
                               ImageHandle dstImage,
-                              ImageLayout newSrcLayout,
-                              ImageLayout newDstLayout) const {
+                              vk::ImageLayout newSrcLayout,
+                              vk::ImageLayout newDstLayout) const {
     RV_ASSERT(srcImage->getExtent() == dstImage->getExtent(),
               "srcImage and dstImage must have same extents.");
 
@@ -214,8 +214,8 @@ void CommandBuffer::copyImage(ImageHandle srcImage,
                             dstImage->getImage(), vk::ImageLayout::eTransferDstOptimal,  // dst
                             copyRegion);
 
-    srcImage->transitionLayout(commandBuffer, getImageLayout(newSrcLayout));
-    dstImage->transitionLayout(commandBuffer, getImageLayout(newDstLayout));
+    srcImage->transitionLayout(commandBuffer, newSrcLayout);
+    dstImage->transitionLayout(commandBuffer, newDstLayout);
 }
 
 void CommandBuffer::copyImageToBuffer(ImageHandle srcImage, BufferHandle dstBuffer) const {

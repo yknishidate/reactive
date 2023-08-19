@@ -126,7 +126,7 @@ public:
                       vk::AccessFlags srcAccessMask,
                       vk::AccessFlags dstAccessMask) const;
 
-    void transitionLayout(ImageHandle image, rv::ImageLayout newLayout) const;
+    void transitionLayout(ImageHandle image, vk::ImageLayout newLayout) const;
 
     void memoryBarrier(vk::PipelineStageFlags srcStageMask,
                        vk::PipelineStageFlags dstStageMask,
@@ -138,8 +138,8 @@ public:
 
     void copyImage(ImageHandle srcImage,
                    ImageHandle dstImage,
-                   ImageLayout newSrcLayout,
-                   ImageLayout newDstLayout) const;
+                   vk::ImageLayout newSrcLayout,
+                   vk::ImageLayout newDstLayout) const;
 
     void copyImageToBuffer(ImageHandle srcImage, BufferHandle dstBuffer) const;
 

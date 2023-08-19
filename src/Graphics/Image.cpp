@@ -112,8 +112,8 @@ ImageHandle Image::loadFromFile(const Context& context,
         .width = static_cast<uint32_t>(width),
         .height = static_cast<uint32_t>(height),
         .depth = 1,
-        .format = Format::RGBA8Unorm,
-        .layout = ImageLayout::TransferDst,
+        .format = vk::Format::eR8G8B8A8Unorm,
+        .layout = vk::ImageLayout::eTransferDstOptimal,
         .mipLevels = mipLevels,
     });
 
@@ -175,8 +175,8 @@ ImageHandle Image::loadFromFileHDR(const Context& context, const std::string& fi
         .width = static_cast<uint32_t>(width),
         .height = static_cast<uint32_t>(height),
         .depth = 1,
-        .format = Format::RGBA32Sfloat,
-        .layout = ImageLayout::TransferDst,
+        .format = vk::Format::eR32G32B32A32Sfloat,
+        .layout = vk::ImageLayout::eTransferDstOptimal,
     });
 
     // Copy to image

@@ -72,13 +72,6 @@ enum class MemoryUsage {
     DeviceHost,
 };
 
-struct BufferCreateInfo {
-    BufferUsage usage;
-    MemoryUsage memory;
-    size_t size = 0;
-    const void* data = nullptr;
-};
-
 enum class ImageUsage {
     ColorAttachment,
     DepthAttachment,
@@ -87,26 +80,11 @@ enum class ImageUsage {
     Sampled,
 };
 
-enum class ImageLayout {
-    Undefined,
-    General,
-    ColorAttachment,
-    DepthAttachment,
-    StencilAttachment,
-    DepthStencilAttachment,
-    ShaderReadOnly,
-    TransferSrc,
-    TransferDst,
-    PresentSrc,
-};
-
-enum class Format {
-    BGRA8Unorm,
-    RGBA8Unorm,
-    RGB16Sfloat,
-    RGB32Sfloat,
-    RGBA32Sfloat,
-    D32Sfloat,
+struct BufferCreateInfo {
+    BufferUsage usage;
+    MemoryUsage memory;
+    size_t size = 0;
+    const void* data = nullptr;
 };
 
 struct ImageCreateInfo {
@@ -114,8 +92,8 @@ struct ImageCreateInfo {
     uint32_t width = 1;
     uint32_t height = 1;
     uint32_t depth = 1;
-    Format format;
-    ImageLayout layout;
+    vk::Format format;
+    vk::ImageLayout layout;
     // if mipLevels is std::numeric_limits<uint32_t>::max(), then it's set to max level
     uint32_t mipLevels = 1;
 };
@@ -127,10 +105,6 @@ vk::MemoryPropertyFlags getMemoryProperty(rv::MemoryUsage usage);
 vk::ImageUsageFlags getImageUsage(rv::ImageUsage usage);
 
 vk::ImageAspectFlags getImageAspect(rv::ImageUsage usage);
-
-vk::ImageLayout getImageLayout(rv::ImageLayout layout);
-
-vk::Format getFormat(rv::Format format);
 
 class Context {
 public:

@@ -100,48 +100,6 @@ vk::ImageAspectFlags getImageAspect(rv::ImageUsage usage) {
     }
 }
 
-vk::ImageLayout getImageLayout(rv::ImageLayout layout) {
-    switch (layout) {
-        case rv::ImageLayout::Undefined:
-            return vk::ImageLayout::eUndefined;
-        case rv::ImageLayout::General:
-            return vk::ImageLayout::eGeneral;
-        case rv::ImageLayout::ColorAttachment:
-            return vk::ImageLayout::eColorAttachmentOptimal;
-        case rv::ImageLayout::DepthAttachment:
-            return vk::ImageLayout::eDepthAttachmentOptimal;
-        case rv::ImageLayout::StencilAttachment:
-            return vk::ImageLayout::eStencilAttachmentOptimal;
-        case rv::ImageLayout::DepthStencilAttachment:
-            return vk::ImageLayout::eDepthStencilAttachmentOptimal;
-        case rv::ImageLayout::ShaderReadOnly:
-            return vk::ImageLayout::eShaderReadOnlyOptimal;
-        case rv::ImageLayout::TransferSrc:
-            return vk::ImageLayout::eTransferSrcOptimal;
-        case rv::ImageLayout::TransferDst:
-            return vk::ImageLayout::eTransferDstOptimal;
-        case rv::ImageLayout::PresentSrc:
-            return vk::ImageLayout::ePresentSrcKHR;
-    }
-}
-
-vk::Format getFormat(rv::Format format) {
-    switch (format) {
-        case rv::Format::BGRA8Unorm:
-            return vk::Format::eB8G8R8A8Unorm;
-        case rv::Format::RGBA8Unorm:
-            return vk::Format::eR8G8B8A8Unorm;
-        case rv::Format::RGB16Sfloat:
-            return vk::Format::eR16G16B16Sfloat;
-        case rv::Format::RGB32Sfloat:
-            return vk::Format::eR32G32B32Sfloat;
-        case rv::Format::RGBA32Sfloat:
-            return vk::Format::eR32G32B32A32Sfloat;
-        case rv::Format::D32Sfloat:
-            return vk::Format::eD32Sfloat;
-    }
-}
-
 void Context::initInstance(bool enableValidation,
                            const std::vector<const char*>& layers,
                            const std::vector<const char*>& instanceExtensions,
@@ -319,11 +277,10 @@ RayTracingPipelineHandle Context::createRayTracingPipeline(
 
 ImageHandle Context::createImage(ImageCreateInfo createInfo) const {
     vk::ImageUsageFlags usage = getImageUsage(createInfo.usage);
-    vk::Format format = getFormat(createInfo.format);
-    vk::ImageLayout layout = getImageLayout(createInfo.layout);
     vk::ImageAspectFlags aspect = getImageAspect(createInfo.usage);
     return std::make_shared<Image>(this, usage, createInfo.width, createInfo.height,
-                                   createInfo.depth, format, layout, aspect, createInfo.mipLevels);
+                                   createInfo.depth, createInfo.format, createInfo.layout, aspect,
+                                   createInfo.mipLevels);
 }
 
 BufferHandle Context::createBuffer(BufferCreateInfo createInfo) const {

@@ -74,7 +74,7 @@ void App::run() {
             commandBuffer.endRendering();
         }
 
-        commandBuffer.transitionLayout(getCurrentColorImage(), rv::ImageLayout::PresentSrc);
+        commandBuffer.transitionLayout(getCurrentColorImage(), vk::ImageLayout::ePresentSrcKHR);
 
         // End command buffer
         commandBuffers[frameIndex]->end();
@@ -384,8 +384,8 @@ void App::createDepthImage() {
         .width = width,
         .height = height,
         .depth = 1,
-        .format = Format::D32Sfloat,
-        .layout = ImageLayout::DepthAttachment,
+        .format = vk::Format::eD32Sfloat,
+        .layout = vk::ImageLayout::eDepthAttachmentOptimal,
     });
 }
 
