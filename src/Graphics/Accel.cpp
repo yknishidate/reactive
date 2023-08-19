@@ -88,7 +88,7 @@ TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo)
 
     instanceBuffer = context->createBuffer({
         .usage = BufferUsage::AccelInput,
-        .memory = MemoryUsage::Device,
+        .memory = MemoryUsage::DeviceHost,
         .size = sizeof(vk::AccelerationStructureInstanceKHR) * instances.size(),
         .data = instances.data(),
     });
