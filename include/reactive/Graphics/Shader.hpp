@@ -10,7 +10,7 @@
 namespace rv {
 struct ShaderCreateInfo {
     const std::vector<uint32_t>& code;
-    ShaderStage stage;
+    vk::ShaderStageFlagBits stage;
 };
 
 class Shader {

@@ -148,46 +148,46 @@ const TBuiltInResource DefaultTBuiltInResource = {
         /* .generalConstantMatrixVectorIndexing = */ 1,
     }};
 
-ShaderStage getShaderStage(const std::string& filepath) {
+vk::ShaderStageFlagBits getShaderStage(const std::string& filepath) {
     if (filepath.ends_with("vert"))
-        return ShaderStage::Vertex;
+        return vk::ShaderStageFlagBits::eVertex;
     if (filepath.ends_with("frag"))
-        return ShaderStage::Fragment;
+        return vk::ShaderStageFlagBits::eFragment;
     if (filepath.ends_with("comp"))
-        return ShaderStage::Compute;
+        return vk::ShaderStageFlagBits::eCompute;
     if (filepath.ends_with("rgen"))
-        return ShaderStage::Raygen;
+        return vk::ShaderStageFlagBits::eRaygenKHR;
     if (filepath.ends_with("rmiss"))
-        return ShaderStage::Miss;
+        return vk::ShaderStageFlagBits::eMissKHR;
     if (filepath.ends_with("rchit"))
-        return ShaderStage::ClosestHit;
+        return vk::ShaderStageFlagBits::eClosestHitKHR;
     if (filepath.ends_with("rahit"))
-        return ShaderStage::AnyHit;
+        return vk::ShaderStageFlagBits::eAnyHitKHR;
     if (filepath.ends_with("mesh"))
-        return ShaderStage::Mesh;
+        return vk::ShaderStageFlagBits::eMeshEXT;
     if (filepath.ends_with("task"))
-        return ShaderStage::Task;
+        return vk::ShaderStageFlagBits::eTaskEXT;
     assert(false && "Unknown shader stage");
 }
 
-EShLanguage translateShaderStage(ShaderStage shaderStage) {
-    if (shaderStage == ShaderStage::Vertex)
+EShLanguage translateShaderStage(vk::ShaderStageFlagBits shaderStage) {
+    if (shaderStage == vk::ShaderStageFlagBits::eVertex)
         return EShLangVertex;
-    if (shaderStage == ShaderStage::Fragment)
+    if (shaderStage == vk::ShaderStageFlagBits::eFragment)
         return EShLangFragment;
-    if (shaderStage == ShaderStage::Compute)
+    if (shaderStage == vk::ShaderStageFlagBits::eCompute)
         return EShLangCompute;
-    if (shaderStage == ShaderStage::Raygen)
+    if (shaderStage == vk::ShaderStageFlagBits::eRaygenKHR)
         return EShLangRayGenNV;
-    if (shaderStage == ShaderStage::Miss)
+    if (shaderStage == vk::ShaderStageFlagBits::eMissKHR)
         return EShLangMissNV;
-    if (shaderStage == ShaderStage::ClosestHit)
+    if (shaderStage == vk::ShaderStageFlagBits::eClosestHitKHR)
         return EShLangClosestHitNV;
-    if (shaderStage == ShaderStage::AnyHit)
+    if (shaderStage == vk::ShaderStageFlagBits::eAnyHitKHR)
         return EShLangAnyHitNV;
-    if (shaderStage == ShaderStage::Mesh)
+    if (shaderStage == vk::ShaderStageFlagBits::eMeshEXT)
         return EShLangMesh;
-    if (shaderStage == ShaderStage::Task)
+    if (shaderStage == vk::ShaderStageFlagBits::eTaskEXT)
         return EShLangTask;
     assert(false && "Unknown shader stage");
 }
@@ -290,7 +290,7 @@ std::vector<uint32_t> compileToSPV(const std::string& filepath,
 // Don't support include directive
 // This is for hardcoded shader in C++
 std::vector<uint32_t> compileToSPV(const std::string& glslCode,
-                                   ShaderStage shaderStage,
+                                   vk::ShaderStageFlagBits shaderStage,
                                    const std::vector<Define>& defines) {
     EShLanguage stage = translateShaderStage(shaderStage);
     return compileToSPV(glslCode, stage);
