@@ -123,7 +123,7 @@ public:
     void imageBarrier(vk::PipelineStageFlags srcStageMask,
                       vk::PipelineStageFlags dstStageMask,
                       vk::DependencyFlags dependencyFlags,
-                      const Image& image,
+                      ImageHandle image,
                       vk::AccessFlags srcAccessMask,
                       vk::AccessFlags dstAccessMask) const;
 
