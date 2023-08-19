@@ -4,7 +4,9 @@
 namespace rv {
 class CPUTimer {
 public:
-    CPUTimer() { startTime = std::chrono::steady_clock::now(); }
+    CPUTimer() { restart(); }
+
+    void restart() { startTime = std::chrono::steady_clock::now(); }
 
     double elapsedInNano() const {
         auto endTime = std::chrono::steady_clock::now();

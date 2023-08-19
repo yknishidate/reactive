@@ -171,6 +171,13 @@ public:
         return props;
     }
 
+    vk::PhysicalDeviceLimits getPhysicalDeviceLimits() const {
+        vk::PhysicalDeviceProperties props = physicalDevice.getProperties();
+        return props.limits;
+    }
+
+    bool debugEnabled() const { return debugMessenger.get(); }
+
     ShaderHandle createShader(ShaderCreateInfo createInfo) const;
     DescriptorSetHandle createDescriptorSet(DescriptorSetCreateInfo createInfo) const;
     GraphicsPipelineHandle createGraphicsPipeline(GraphicsPipelineCreateInfo createInfo) const;

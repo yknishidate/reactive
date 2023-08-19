@@ -67,7 +67,7 @@ class App {
 public:
     App(AppCreateInfo createInfo);
 
-    void run();
+    virtual void run();
 
     virtual void onStart() {}
     virtual void onUpdate() {}
