@@ -53,42 +53,93 @@ using BottomAccelHandle = std::shared_ptr<BottomAccel>;
 using TopAccelHandle = std::shared_ptr<TopAccel>;
 using GPUTimerHandle = std::shared_ptr<GPUTimer>;
 
-enum class BufferUsage {
-    Uniform,
-    Storage,
-    Staging,
-    Vertex,
-    Index,
-    Indirect,
-    AccelStorage,
-    AccelInput,
-    ShaderBindingTable,
-    Scratch,
-};
+namespace BufferUsage {
+static constexpr vk::BufferUsageFlags Uniform =  // break
+    vk::BufferUsageFlagBits::eUniformBuffer |    // break
+    vk::BufferUsageFlagBits::eTransferDst |      // break
+    vk::BufferUsageFlagBits::eShaderDeviceAddress;
+static constexpr vk::BufferUsageFlags Storage =  // break
+    vk::BufferUsageFlagBits::eStorageBuffer |    // break
+    vk::BufferUsageFlagBits::eTransferDst |      // break
+    vk::BufferUsageFlagBits::eShaderDeviceAddress;
+static constexpr vk::BufferUsageFlags Staging =  // break
+    vk::BufferUsageFlagBits::eTransferSrc |      // break
+    vk::BufferUsageFlagBits::eTransferDst;
+static constexpr vk::BufferUsageFlags Vertex =                              // break
+    vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |  // break
+    vk::BufferUsageFlagBits::eStorageBuffer |                               // break
+    vk::BufferUsageFlagBits::eShaderDeviceAddress |                         // break
+    vk::BufferUsageFlagBits::eVertexBuffer |                                // break
+    vk::BufferUsageFlagBits::eTransferDst;
+static constexpr vk::BufferUsageFlags Index =                               // break
+    vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |  // break
+    vk::BufferUsageFlagBits::eStorageBuffer |                               // break
+    vk::BufferUsageFlagBits::eShaderDeviceAddress |                         // break
+    vk::BufferUsageFlagBits::eIndexBuffer |                                 // break
+    vk::BufferUsageFlagBits::eTransferDst;
+static constexpr vk::BufferUsageFlags Indirect =  // break
+    vk::BufferUsageFlagBits::eStorageBuffer |     // break
+    vk::BufferUsageFlagBits::eTransferDst |       // break
+    vk::BufferUsageFlagBits::eIndirectBuffer;
+static constexpr vk::BufferUsageFlags AccelStorage =             // break
+    vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR |  // break
+    vk::BufferUsageFlagBits::eShaderDeviceAddress;
+static constexpr vk::BufferUsageFlags AccelInput =                          // break
+    vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |  // break
+    vk::BufferUsageFlagBits::eStorageBuffer |                               // break
+    vk::BufferUsageFlagBits::eShaderDeviceAddress |                         // break
+    vk::BufferUsageFlagBits::eTransferDst;
+static constexpr vk::BufferUsageFlags ShaderBindingTable =  // break
+    vk::BufferUsageFlagBits::eShaderBindingTableKHR |       // break
+    vk::BufferUsageFlagBits::eShaderDeviceAddress |         // break
+    vk::BufferUsageFlagBits::eTransferDst;
+static constexpr vk::BufferUsageFlags Scratch =  // break
+    vk::BufferUsageFlagBits::eStorageBuffer |    // break
+    vk::BufferUsageFlagBits::eShaderDeviceAddress;
+}  // namespace BufferUsage
 
-enum class MemoryUsage {
-    Device,
-    Host,
-    DeviceHost,
-};
+namespace MemoryUsage {
+static constexpr vk::MemoryPropertyFlags Device =  // break
+    vk::MemoryPropertyFlagBits::eDeviceLocal;
+static constexpr vk::MemoryPropertyFlags Host =  // break
+    vk::MemoryPropertyFlagBits::eHostVisible |   // break
+    vk::MemoryPropertyFlagBits::eHostCoherent;
+static constexpr vk::MemoryPropertyFlags DeviceHost =  // break
+    vk::MemoryPropertyFlagBits::eDeviceLocal |         // break
+    vk::MemoryPropertyFlagBits::eHostVisible |         // break
+    vk::MemoryPropertyFlagBits::eHostCoherent;
+};  // namespace MemoryUsage
 
-enum class ImageUsage {
-    ColorAttachment,
-    DepthAttachment,
-    DepthStencilAttachment,
-    Storage,
-    Sampled,
-};
+namespace ImageUsage {
+static vk::ImageUsageFlags ColorAttachment =    // break
+    vk::ImageUsageFlagBits::eColorAttachment |  // break
+    vk::ImageUsageFlagBits::eTransferSrc |      // break
+    vk::ImageUsageFlagBits::eTransferDst;
+static vk::ImageUsageFlags DepthAttachment =           // break
+    vk::ImageUsageFlagBits::eDepthStencilAttachment |  // break
+    vk::ImageUsageFlagBits::eTransferDst;
+static vk::ImageUsageFlags DepthStencilAttachment =    // break
+    vk::ImageUsageFlagBits::eDepthStencilAttachment |  // break
+    vk::ImageUsageFlagBits::eTransferDst;
+static vk::ImageUsageFlags Storage =        // break
+    vk::ImageUsageFlagBits::eSampled |      // break
+    vk::ImageUsageFlagBits::eTransferDst |  // break
+    vk::ImageUsageFlagBits::eTransferSrc;
+static vk::ImageUsageFlags Sampled =        // break
+    vk::ImageUsageFlagBits::eStorage |      // break
+    vk::ImageUsageFlagBits::eTransferDst |  // break
+    vk::ImageUsageFlagBits::eTransferSrc;
+};  // namespace ImageUsage
 
 struct BufferCreateInfo {
-    BufferUsage usage;
-    MemoryUsage memory;
+    vk::BufferUsageFlags usage;
+    vk::MemoryPropertyFlags memory;
     size_t size = 0;
     const void* data = nullptr;
 };
 
 struct ImageCreateInfo {
-    ImageUsage usage;
+    vk::ImageUsageFlags usage;
     uint32_t width = 1;
     uint32_t height = 1;
     uint32_t depth = 1;
@@ -97,14 +148,6 @@ struct ImageCreateInfo {
     // if mipLevels is std::numeric_limits<uint32_t>::max(), then it's set to max level
     uint32_t mipLevels = 1;
 };
-
-vk::BufferUsageFlags getBufferUsage(rv::BufferUsage usage);
-
-vk::MemoryPropertyFlags getMemoryProperty(rv::MemoryUsage usage);
-
-vk::ImageUsageFlags getImageUsage(rv::ImageUsage usage);
-
-vk::ImageAspectFlags getImageAspect(rv::ImageUsage usage);
 
 class Context {
 public:

@@ -10,94 +10,12 @@
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 namespace rv {
-vk::BufferUsageFlags getBufferUsage(rv::BufferUsage usage) {
-    switch (usage) {
-        case rv::BufferUsage::Uniform:
-            return vk::BufferUsageFlagBits::eUniformBuffer | vk::BufferUsageFlagBits::eTransferDst |
-                   vk::BufferUsageFlagBits::eShaderDeviceAddress;
-        case rv::BufferUsage::Storage:
-            return vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst |
-                   vk::BufferUsageFlagBits::eShaderDeviceAddress;
-        case rv::BufferUsage::Staging:
-            return vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst;
-        case rv::BufferUsage::Vertex:
-            return vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
-                   vk::BufferUsageFlagBits::eStorageBuffer |
-                   vk::BufferUsageFlagBits::eShaderDeviceAddress |
-                   vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst;
-        case rv::BufferUsage::Index:
-            return vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
-                   vk::BufferUsageFlagBits::eStorageBuffer |
-                   vk::BufferUsageFlagBits::eShaderDeviceAddress |
-                   vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst;
-        case rv::BufferUsage::Indirect:
-            return vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst |
-                   vk::BufferUsageFlagBits::eIndirectBuffer;
-        case rv::BufferUsage::AccelStorage:
-            return vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR |
-                   vk::BufferUsageFlagBits::eShaderDeviceAddress;
-        case rv::BufferUsage::AccelInput:
-            return vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
-                   vk::BufferUsageFlagBits::eStorageBuffer |
-                   vk::BufferUsageFlagBits::eShaderDeviceAddress |
-                   vk::BufferUsageFlagBits::eTransferDst;
-        case rv::BufferUsage::ShaderBindingTable:
-            return vk::BufferUsageFlagBits::eShaderBindingTableKHR |
-                   vk::BufferUsageFlagBits::eShaderDeviceAddress |
-                   vk::BufferUsageFlagBits::eTransferDst;
-        case rv::BufferUsage::Scratch:
-            return vk::BufferUsageFlagBits::eStorageBuffer |
-                   vk::BufferUsageFlagBits::eShaderDeviceAddress;
+vk::ImageAspectFlags getImageAspect(vk::ImageUsageFlags usage) {
+    if (usage & vk::ImageUsageFlagBits::eDepthStencilAttachment) {
+        spdlog::warn("Stencil aspect does not supported.");
+        return vk::ImageAspectFlagBits::eDepth;
     }
-}
-
-vk::MemoryPropertyFlags getMemoryProperty(rv::MemoryUsage usage) {
-    switch (usage) {
-        case rv::MemoryUsage::Device:
-            return vk::MemoryPropertyFlagBits::eDeviceLocal;
-        case rv::MemoryUsage::Host:
-            return vk::MemoryPropertyFlagBits::eHostVisible |
-                   vk::MemoryPropertyFlagBits::eHostCoherent;
-        case rv::MemoryUsage::DeviceHost:
-            return vk::MemoryPropertyFlagBits::eDeviceLocal |
-                   vk::MemoryPropertyFlagBits::eHostVisible |
-                   vk::MemoryPropertyFlagBits::eHostCoherent;
-    }
-}
-
-vk::ImageUsageFlags getImageUsage(rv::ImageUsage usage) {
-    switch (usage) {
-        case rv::ImageUsage::ColorAttachment:
-            return vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc |
-                   vk::ImageUsageFlagBits::eTransferDst;
-        case rv::ImageUsage::DepthAttachment:
-            return vk::ImageUsageFlagBits::eDepthStencilAttachment |
-                   vk::ImageUsageFlagBits::eTransferDst;
-        case rv::ImageUsage::DepthStencilAttachment:
-            return vk::ImageUsageFlagBits::eDepthStencilAttachment |
-                   vk::ImageUsageFlagBits::eTransferDst;
-        case rv::ImageUsage::Sampled:
-            return vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst |
-                   vk::ImageUsageFlagBits::eTransferSrc;
-        case rv::ImageUsage::Storage:
-            return vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferDst |
-                   vk::ImageUsageFlagBits::eTransferSrc;
-    }
-}
-
-vk::ImageAspectFlags getImageAspect(rv::ImageUsage usage) {
-    switch (usage) {
-        case rv::ImageUsage::ColorAttachment:
-            return vk::ImageAspectFlagBits::eColor;
-        case rv::ImageUsage::DepthAttachment:
-            return vk::ImageAspectFlagBits::eDepth;
-        case rv::ImageUsage::DepthStencilAttachment:
-            return vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
-        case rv::ImageUsage::Sampled:
-            return vk::ImageAspectFlagBits::eColor;
-        case rv::ImageUsage::Storage:
-            return vk::ImageAspectFlagBits::eColor;
-    }
+    return vk::ImageAspectFlagBits::eColor;
 }
 
 void Context::initInstance(bool enableValidation,
@@ -276,17 +194,15 @@ RayTracingPipelineHandle Context::createRayTracingPipeline(
 }
 
 ImageHandle Context::createImage(ImageCreateInfo createInfo) const {
-    vk::ImageUsageFlags usage = getImageUsage(createInfo.usage);
     vk::ImageAspectFlags aspect = getImageAspect(createInfo.usage);
-    return std::make_shared<Image>(this, usage, createInfo.width, createInfo.height,
+    return std::make_shared<Image>(this, createInfo.usage, createInfo.width, createInfo.height,
                                    createInfo.depth, createInfo.format, createInfo.layout, aspect,
                                    createInfo.mipLevels);
 }
 
 BufferHandle Context::createBuffer(BufferCreateInfo createInfo) const {
-    vk::BufferUsageFlags usage = getBufferUsage(createInfo.usage);
-    vk::MemoryPropertyFlags memory = getMemoryProperty(createInfo.memory);
-    return std::make_shared<Buffer>(this, usage, memory, createInfo.size, createInfo.data);
+    return std::make_shared<Buffer>(this, createInfo.usage, createInfo.memory, createInfo.size,
+                                    createInfo.data);
 }
 
 MeshHandle Context::createMesh(MeshCreateInfo createInfo) const {
