@@ -9,9 +9,7 @@ class Image {
 public:
     Image(const Context* context,
           vk::ImageUsageFlags usage,
-          uint32_t width,
-          uint32_t height,
-          uint32_t depth,
+          vk::Extent3D extent,
           vk::Format format,
           vk::ImageLayout layout,
           vk::ImageAspectFlags aspect,
@@ -42,7 +40,7 @@ public:
 
     vk::ImageLayout getLayout() const { return layout; }
 
-    vk::Extent3D getExtent() const { return {width, height, depth}; }
+    vk::Extent3D getExtent() const { return extent; }
 
     // Ensure that data is pre-filled
     // ImageLayout is implicitly shifted to ShaderReadOnlyOptimal
@@ -67,9 +65,7 @@ private:
 
     vk::ImageLayout layout = vk::ImageLayout::eUndefined;
     vk::Format format;
-    uint32_t width;
-    uint32_t height;
-    uint32_t depth = 1;
+    vk::Extent3D extent;
     uint32_t mipLevels = 1;
     vk::ImageAspectFlags aspect;
 };

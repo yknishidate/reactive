@@ -11,27 +11,23 @@ uint32_t calculateMipLevels(uint32_t width, uint32_t height) {
 namespace rv {
 Image::Image(const Context* context,
              vk::ImageUsageFlags usage,
-             uint32_t width,
-             uint32_t height,
-             uint32_t depth,
+             vk::Extent3D extent,
              vk::Format format,
              vk::ImageLayout layout,
              vk::ImageAspectFlags aspect,
              uint32_t mipLevels)
     : context{context},
-      width{width},
-      height{height},
-      depth{depth},
+      extent{extent},
       layout{layout},
       format{format},
       mipLevels{mipLevels},
       aspect{aspect},
       hasOwnership{true} {
-    vk::ImageType type = depth == 1 ? vk::ImageType::e2D : vk::ImageType::e3D;
+    vk::ImageType type = extent.depth == 1 ? vk::ImageType::e2D : vk::ImageType::e3D;
 
     // Compute mipmap level
     if (mipLevels == std::numeric_limits<uint32_t>::max()) {
-        mipLevels = calculateMipLevels(width, height);
+        mipLevels = calculateMipLevels(extent.width, extent.height);
     }
 
     // NOTE: initialLayout must be Undefined or PreInitialized
@@ -39,7 +35,7 @@ Image::Image(const Context* context,
     vk::ImageCreateInfo imageInfo;
     imageInfo.setImageType(type);
     imageInfo.setFormat(format);
-    imageInfo.setExtent({width, height, depth});
+    imageInfo.setExtent(extent);
     imageInfo.setMipLevels(mipLevels);
     imageInfo.setArrayLayers(1);
     imageInfo.setSamples(vk::SampleCountFlagBits::e1);
@@ -109,9 +105,7 @@ ImageHandle Image::loadFromFile(const Context& context,
 
     ImageHandle image = context.createImage({
         .usage = ImageUsage::Sampled,
-        .width = static_cast<uint32_t>(width),
-        .height = static_cast<uint32_t>(height),
-        .depth = 1,
+        .extent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1},
         .format = vk::Format::eR8G8B8A8Unorm,
         .layout = vk::ImageLayout::eTransferDstOptimal,
         .mipLevels = mipLevels,
@@ -172,9 +166,7 @@ ImageHandle Image::loadFromFileHDR(const Context& context, const std::string& fi
 
     ImageHandle image = context.createImage({
         .usage = ImageUsage::Sampled,
-        .width = static_cast<uint32_t>(width),
-        .height = static_cast<uint32_t>(height),
-        .depth = 1,
+        .extent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1},
         .format = vk::Format::eR32G32B32A32Sfloat,
         .layout = vk::ImageLayout::eTransferDstOptimal,
     });
@@ -245,8 +237,8 @@ void Image::generateMipmaps() {
         barrier.subresourceRange.layerCount = 1;
         barrier.subresourceRange.levelCount = 1;
 
-        int32_t mipWidth = width;
-        int32_t mipHeight = height;
+        int32_t mipWidth = extent.width;
+        int32_t mipHeight = extent.height;
 
         for (uint32_t i = 1; i < mipLevels; i++) {
             barrier.subresourceRange.baseMipLevel = i - 1;

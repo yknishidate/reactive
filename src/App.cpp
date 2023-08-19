@@ -381,9 +381,7 @@ void App::createSwapchain() {
 void App::createDepthImage() {
     depthImage = context.createImage({
         .usage = ImageUsage::DepthAttachment,
-        .width = width,
-        .height = height,
-        .depth = 1,
+        .extent = {width, height, 1},
         .format = vk::Format::eD32Sfloat,
         .layout = vk::ImageLayout::eDepthAttachmentOptimal,
     });

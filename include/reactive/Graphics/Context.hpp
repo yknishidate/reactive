@@ -140,9 +140,7 @@ struct BufferCreateInfo {
 
 struct ImageCreateInfo {
     vk::ImageUsageFlags usage;
-    uint32_t width = 1;
-    uint32_t height = 1;
-    uint32_t depth = 1;
+    vk::Extent3D extent = {1, 1, 1};
     vk::Format format;
     vk::ImageLayout layout;
     // if mipLevels is std::numeric_limits<uint32_t>::max(), then it's set to max level

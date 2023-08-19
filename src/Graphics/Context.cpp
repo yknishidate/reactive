@@ -195,9 +195,8 @@ RayTracingPipelineHandle Context::createRayTracingPipeline(
 
 ImageHandle Context::createImage(ImageCreateInfo createInfo) const {
     vk::ImageAspectFlags aspect = getImageAspect(createInfo.usage);
-    return std::make_shared<Image>(this, createInfo.usage, createInfo.width, createInfo.height,
-                                   createInfo.depth, createInfo.format, createInfo.layout, aspect,
-                                   createInfo.mipLevels);
+    return std::make_shared<Image>(this, createInfo.usage, createInfo.extent, createInfo.format,
+                                   createInfo.layout, aspect, createInfo.mipLevels);
 }
 
 BufferHandle Context::createBuffer(BufferCreateInfo createInfo) const {
