@@ -1,5 +1,4 @@
 #pragma once
-#include "Buffer.hpp"
 #include "Context.hpp"
 
 namespace rv {
@@ -127,11 +126,7 @@ public:
                       vk::AccessFlags srcAccessMask,
                       vk::AccessFlags dstAccessMask) const;
 
-    void transitionLayout(vk::Image image,
-                          vk::ImageLayout oldLayout,
-                          vk::ImageLayout newLayout,
-                          vk::ImageAspectFlagBits aspect = vk::ImageAspectFlagBits::eColor,
-                          uint32_t mipLevels = 1) const;
+    void transitionLayout(ImageHandle image, rv::ImageLayout newLayout) const;
 
     void memoryBarrier(vk::PipelineStageFlags srcStageMask,
                        vk::PipelineStageFlags dstStageMask,
@@ -144,9 +139,9 @@ public:
     void copyImage(ImageHandle srcImage,
                    ImageHandle dstImage,
                    ImageLayout newSrcLayout,
-                   ImageLayout newDstLayout,
-                   uint32_t width,
-                   uint32_t height) const;
+                   ImageLayout newDstLayout) const;
+
+    void copyImageToBuffer(ImageHandle srcImage, BufferHandle dstBuffer) const;
 
     void fillBuffer(BufferHandle dstBuffer,
                     vk::DeviceSize dstOffset,

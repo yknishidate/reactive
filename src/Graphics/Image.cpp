@@ -92,10 +92,8 @@ Image::Image(const Context* context,
     samplerInfo.setAddressModeW(vk::SamplerAddressMode::eRepeat);
     sampler = context->getDevice().createSampler(samplerInfo);
 
-    context->oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
-        transitionLayout(commandBuffer, image, vk::ImageLayout::eUndefined, layout, aspect,
-                         mipLevels);
-    });
+    context->oneTimeSubmit(
+        [&](vk::CommandBuffer commandBuffer) { transitionLayout(commandBuffer, layout); });
 }
 
 ImageHandle Image::loadFromFile(const Context& context,
@@ -143,6 +141,7 @@ ImageHandle Image::loadFromFile(const Context& context,
         region.imageSubresource = subresourceLayers;
         region.imageExtent = extent;
 
+        image->transitionLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);
         commandBuffer.copyBufferToImage(stagingBuffer->getBuffer(), image->getImage(),
                                         vk::ImageLayout::eTransferDstOptimal, region);
 
@@ -150,9 +149,7 @@ ImageHandle Image::loadFromFile(const Context& context,
         if (mipLevels > 1) {
             newLayout = vk::ImageLayout::eTransferSrcOptimal;
         }
-        Image::transitionLayout(commandBuffer, image->getImage(),
-                                vk::ImageLayout::eTransferDstOptimal, newLayout,
-                                vk::ImageAspectFlagBits::eColor, image->getMipLevels());
+        image->transitionLayout(commandBuffer, newLayout);
     });
 
     if (mipLevels > 1) {
@@ -206,12 +203,10 @@ ImageHandle Image::loadFromFileHDR(const Context& context, const std::string& fi
         region.imageSubresource = subresourceLayers;
         region.imageExtent = extent;
 
+        image->transitionLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);
         commandBuffer.copyBufferToImage(stagingBuffer->getBuffer(), image->getImage(),
                                         vk::ImageLayout::eTransferDstOptimal, region);
-        Image::transitionLayout(commandBuffer, image->getImage(),
-                                vk::ImageLayout::eTransferDstOptimal,
-                                vk::ImageLayout::eShaderReadOnlyOptimal,
-                                vk::ImageAspectFlagBits::eColor, image->getMipLevels());
+        image->transitionLayout(commandBuffer, vk::ImageLayout::eShaderReadOnlyOptimal);
         image->layout = vk::ImageLayout::eShaderReadOnlyOptimal;
     });
 
@@ -309,12 +304,7 @@ void Image::generateMipmaps() {
     });
 }
 
-void Image::transitionLayout(vk::CommandBuffer commandBuffer,
-                             vk::Image image,
-                             vk::ImageLayout oldLayout,
-                             vk::ImageLayout newLayout,
-                             vk::ImageAspectFlags aspect,
-                             uint32_t mipLevels) {
+void Image::transitionLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout newLayout) {
     vk::PipelineStageFlags srcStageMask = vk::PipelineStageFlagBits::eAllCommands;
     vk::PipelineStageFlags dstStageMask = vk::PipelineStageFlagBits::eAllCommands;
 
@@ -322,11 +312,11 @@ void Image::transitionLayout(vk::CommandBuffer commandBuffer,
     barrier.setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
     barrier.setSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
     barrier.setImage(image);
-    barrier.setOldLayout(oldLayout);
+    barrier.setOldLayout(layout);
     barrier.setNewLayout(newLayout);
     barrier.setSubresourceRange({aspect, 0, mipLevels, 0, 1});
 
-    switch (oldLayout) {
+    switch (layout) {
         case vk::ImageLayout::eTransferDstOptimal:
             barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
             break;
@@ -373,5 +363,6 @@ void Image::transitionLayout(vk::CommandBuffer commandBuffer,
     }
 
     commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, {}, {}, {}, barrier);
+    layout = newLayout;
 }
 }  // namespace rv

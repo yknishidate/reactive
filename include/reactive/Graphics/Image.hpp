@@ -42,6 +42,8 @@ public:
 
     vk::ImageLayout getLayout() const { return layout; }
 
+    vk::Extent3D getExtent() const { return {width, height, depth}; }
+
     // Ensure that data is pre-filled
     // ImageLayout is implicitly shifted to ShaderReadOnlyOptimal
     void generateMipmaps();
@@ -53,12 +55,7 @@ public:
     // mipmap is not supported
     static ImageHandle loadFromFileHDR(const Context& context, const std::string& filepath);
 
-    static void transitionLayout(vk::CommandBuffer commandBuffer,
-                                 vk::Image image,
-                                 vk::ImageLayout oldLayout,
-                                 vk::ImageLayout newLayout,
-                                 vk::ImageAspectFlags aspect,
-                                 uint32_t mipLevels);
+    void transitionLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout newLayout);
 
 private:
     const Context* context;

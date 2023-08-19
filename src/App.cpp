@@ -74,8 +74,7 @@ void App::run() {
             commandBuffer.endRendering();
         }
 
-        commandBuffer.transitionLayout(swapchainImages[frameIndex], vk::ImageLayout::eUndefined,
-                                       vk::ImageLayout::ePresentSrcKHR);
+        commandBuffer.transitionLayout(getCurrentColorImage(), rv::ImageLayout::PresentSrc);
 
         // End command buffer
         commandBuffers[frameIndex]->end();
