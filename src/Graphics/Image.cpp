@@ -16,13 +16,13 @@ Image::Image(const Context* context,
              vk::ImageLayout layout,
              vk::ImageAspectFlags aspect,
              uint32_t mipLevels)
+    // NOTE: layout is updated by transitionLayout after this ctor.
     : context{context},
-      extent{extent},
-      layout{layout},
+      hasOwnership{true},
       format{format},
+      extent{extent},
       mipLevels{mipLevels},
-      aspect{aspect},
-      hasOwnership{true} {
+      aspect{aspect} {
     vk::ImageType type = extent.depth == 1 ? vk::ImageType::e2D : vk::ImageType::e3D;
 
     // Compute mipmap level

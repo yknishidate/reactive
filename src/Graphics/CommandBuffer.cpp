@@ -200,8 +200,12 @@ void CommandBuffer::copyImage(ImageHandle srcImage,
                               ImageHandle dstImage,
                               vk::ImageLayout newSrcLayout,
                               vk::ImageLayout newDstLayout) const {
-    RV_ASSERT(srcImage->getExtent() == dstImage->getExtent(),
-              "srcImage and dstImage must have same extents.");
+    vk::Extent3D srcExtent = srcImage->getExtent();
+    vk::Extent3D dstExtent = dstImage->getExtent();
+    RV_ASSERT(srcExtent == dstExtent,
+              "srcImage({}, {}, {}) and dstImage({}, {}, {}) must have same extents.",
+              srcExtent.width, srcExtent.height, srcExtent.depth,  // break
+              dstExtent.width, dstExtent.height, dstExtent.depth);
 
     srcImage->transitionLayout(commandBuffer, vk::ImageLayout::eTransferSrcOptimal);
     dstImage->transitionLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);

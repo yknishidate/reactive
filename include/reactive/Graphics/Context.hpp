@@ -122,11 +122,11 @@ static vk::ImageUsageFlags DepthStencilAttachment =    // break
     vk::ImageUsageFlagBits::eDepthStencilAttachment |  // break
     vk::ImageUsageFlagBits::eTransferDst;
 static vk::ImageUsageFlags Storage =        // break
-    vk::ImageUsageFlagBits::eSampled |      // break
+    vk::ImageUsageFlagBits::eStorage |      // break
     vk::ImageUsageFlagBits::eTransferDst |  // break
     vk::ImageUsageFlagBits::eTransferSrc;
 static vk::ImageUsageFlags Sampled =        // break
-    vk::ImageUsageFlagBits::eStorage |      // break
+    vk::ImageUsageFlagBits::eSampled |      // break
     vk::ImageUsageFlagBits::eTransferDst |  // break
     vk::ImageUsageFlagBits::eTransferSrc;
 };  // namespace ImageUsage

@@ -76,7 +76,9 @@ public:
     // Getter
     ImageHandle getCurrentColorImage() const {
         return std::make_shared<Image>(swapchainImages[frameIndex],
-                                       *swapchainImageViews[frameIndex]);
+                                       *swapchainImageViews[frameIndex],
+                                       vk::Extent3D{width, height, 1},
+                                       vk::ImageAspectFlagBits::eColor);
     }
     ImageHandle getDefaultDepthImage() const { return depthImage; }
 

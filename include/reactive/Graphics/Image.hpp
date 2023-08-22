@@ -15,7 +15,8 @@ public:
           vk::ImageAspectFlags aspect,
           uint32_t mipLevels);
 
-    Image(vk::Image image, vk::ImageView view) : image{image}, view{view} {}
+    Image(vk::Image image, vk::ImageView view, vk::Extent3D extent, vk::ImageAspectFlags aspect)
+        : image{image}, view{view}, extent{extent}, aspect{aspect} {}
 
     ~Image() {
         if (hasOwnership) {
