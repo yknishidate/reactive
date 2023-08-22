@@ -177,7 +177,7 @@ public:
 
     bool debugEnabled() const { return debugMessenger.get(); }
 
-    template <typename T>
+    template <typename T, typename = std::enable_if_t<vk::isVulkanHandleType<T>::value>>
     void setDebugName(T object, const char* debugName) const {
         if (debugEnabled()) {
             vk::DebugUtilsObjectNameInfoEXT nameInfo;
