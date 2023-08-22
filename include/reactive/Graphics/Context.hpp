@@ -181,7 +181,7 @@ public:
     void setDebugName(T object, const char* debugName) const {
         if (debugEnabled()) {
             vk::DebugUtilsObjectNameInfoEXT nameInfo;
-            nameInfo.setObjectHandle(reinterpret_cast<uint64_t>(static_cast<T::CType>(object)));
+            nameInfo.setObjectHandle(static_cast<uint64_t>(static_cast<T::CType>(object)));
             nameInfo.setObjectType(T::objectType);
             nameInfo.setPObjectName(debugName);
             getDevice().setDebugUtilsObjectNameEXT(nameInfo);
