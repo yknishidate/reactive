@@ -15,7 +15,8 @@ Image::Image(const Context* context,
              vk::Format format,
              vk::ImageLayout layout,
              vk::ImageAspectFlags aspect,
-             uint32_t mipLevels)
+             uint32_t mipLevels,
+             const char* debugName)
     // NOTE: layout is updated by transitionLayout after this ctor.
     : context{context},
       hasOwnership{true},
@@ -90,6 +91,10 @@ Image::Image(const Context* context,
 
     context->oneTimeSubmit(
         [&](vk::CommandBuffer commandBuffer) { transitionLayout(commandBuffer, layout); });
+
+    if (debugName) {
+        context->setDebugName(image, debugName);
+    }
 }
 
 ImageHandle Image::loadFromFile(const Context& context,

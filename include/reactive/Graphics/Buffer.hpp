@@ -2,6 +2,14 @@
 #include "Context.hpp"
 
 namespace rv {
+struct BufferCreateInfo {
+    vk::BufferUsageFlags usage;
+    vk::MemoryPropertyFlags memory;
+    size_t size = 0;
+    const void* data = nullptr;
+    const char* debugName = nullptr;
+};
+
 class Buffer {
 public:
     Buffer(const Context* context,

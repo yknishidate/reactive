@@ -131,22 +131,6 @@ static vk::ImageUsageFlags Sampled =        // break
     vk::ImageUsageFlagBits::eTransferSrc;
 };  // namespace ImageUsage
 
-struct BufferCreateInfo {
-    vk::BufferUsageFlags usage;
-    vk::MemoryPropertyFlags memory;
-    size_t size = 0;
-    const void* data = nullptr;
-};
-
-struct ImageCreateInfo {
-    vk::ImageUsageFlags usage;
-    vk::Extent3D extent = {1, 1, 1};
-    vk::Format format;
-    vk::ImageLayout layout;
-    // if mipLevels is std::numeric_limits<uint32_t>::max(), then it's set to max level
-    uint32_t mipLevels = 1;
-};
-
 class Context {
 public:
     void initInstance(bool enableValidation,
@@ -192,6 +176,17 @@ public:
     }
 
     bool debugEnabled() const { return debugMessenger.get(); }
+
+    template <typename T>
+    void setDebugName(T object, const char* debugName) const {
+        if (debugEnabled()) {
+            vk::DebugUtilsObjectNameInfoEXT nameInfo;
+            nameInfo.setObjectHandle(reinterpret_cast<uint64_t>(static_cast<T::CType>(object)));
+            nameInfo.setObjectType(T::objectType);
+            nameInfo.setPObjectName(debugName);
+            getDevice().setDebugUtilsObjectNameEXT(nameInfo);
+        }
+    }
 
     ShaderHandle createShader(ShaderCreateInfo createInfo) const;
     DescriptorSetHandle createDescriptorSet(DescriptorSetCreateInfo createInfo) const;

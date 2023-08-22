@@ -5,6 +5,16 @@
 namespace rv {
 class Buffer;
 
+struct ImageCreateInfo {
+    vk::ImageUsageFlags usage;
+    vk::Extent3D extent = {1, 1, 1};
+    vk::Format format;
+    vk::ImageLayout layout;
+    // if mipLevels is std::numeric_limits<uint32_t>::max(), then it's set to max level
+    uint32_t mipLevels = 1;
+    const char* debugName = nullptr;
+};
+
 class Image {
 public:
     Image(const Context* context,
@@ -13,7 +23,8 @@ public:
           vk::Format format,
           vk::ImageLayout layout,
           vk::ImageAspectFlags aspect,
-          uint32_t mipLevels);
+          uint32_t mipLevels,
+          const char* debugName);
 
     Image(vk::Image image, vk::ImageView view, vk::Extent3D extent, vk::ImageAspectFlags aspect)
         : image{image}, view{view}, extent{extent}, aspect{aspect} {}
