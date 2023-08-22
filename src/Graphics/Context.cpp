@@ -202,7 +202,7 @@ ImageHandle Context::createImage(ImageCreateInfo createInfo) const {
 
 BufferHandle Context::createBuffer(BufferCreateInfo createInfo) const {
     return std::make_shared<Buffer>(this, createInfo.usage, createInfo.memory, createInfo.size,
-                                    createInfo.data);
+                                    createInfo.data, createInfo.debugName);
 }
 
 MeshHandle Context::createMesh(MeshCreateInfo createInfo) const {

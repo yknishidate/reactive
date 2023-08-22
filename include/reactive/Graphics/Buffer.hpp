@@ -16,7 +16,8 @@ public:
            vk::BufferUsageFlags usage,
            vk::MemoryPropertyFlags memoryProp,
            vk::DeviceSize size,
-           const void* data);
+           const void* data,
+           const char* debugName);
 
     vk::Buffer getBuffer() const { return *buffer; }
 

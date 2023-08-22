@@ -7,7 +7,8 @@ Buffer::Buffer(const Context* context,
                vk::BufferUsageFlags usage,
                vk::MemoryPropertyFlags memoryProp,
                vk::DeviceSize size,
-               const void* data)
+               const void* data,
+               const char* debugName)
     : context{context}, size(size) {
     // Create buffer
     vk::BufferCreateInfo bufferInfo;
@@ -34,6 +35,11 @@ Buffer::Buffer(const Context* context,
     // Copy data
     if (data) {
         copy(data);
+    }
+
+    if (debugName) {
+        context->setDebugName(*buffer, debugName);
+        context->setDebugName(*memory, debugName);
     }
 }
 
