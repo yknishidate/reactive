@@ -87,15 +87,39 @@ Mesh::Mesh(const Context* context, SphereMeshCreateInfo createInfo) : context{co
 }
 
 Mesh::Mesh(const Context* context, PlaneMeshCreateInfo createInfo) : context{context} {
-    vertices = std::vector<Vertex>{
-        {glm::vec3(-1.0, 0.0, -1.0), glm::vec3(0, 1, 0), glm::vec2(0, 0)},
-        {glm::vec3(1.0, 0.0, -1.0), glm::vec3(0, 1, 0), glm::vec2(1, 0)},
-        {glm::vec3(1.0, 0.0, 1.0), glm::vec3(0, 1, 0), glm::vec2(1, 1)},
-        {glm::vec3(-1.0, 0.0, 1.0), glm::vec3(0, 1, 0), glm::vec2(0, 1)},
-    };
-    indices = std::vector<uint32_t>{
-        0, 1, 2, 0, 2, 3,
-    };
+    float width = createInfo.width;
+    float height = createInfo.height;
+    uint32_t widthSegments = createInfo.widthSegments;
+    uint32_t heightSegments = createInfo.heightSegments;
+    uint32_t verticesCount = (widthSegments + 1) * (heightSegments + 1);
+    uint32_t indicesCount = 3 * 2 * widthSegments * heightSegments;
+    vertices.reserve(verticesCount);
+    indices.reserve(indicesCount);
+    for (uint32_t h = 0; h <= heightSegments; h++) {
+        for (uint32_t w = 0; w <= widthSegments; w++) {
+            float u = w / float(widthSegments);
+            float v = h / float(heightSegments);
+            vertices.push_back({
+                .pos = glm::vec3((u - 0.5f) * width, 0.0f, (v - 0.5f) * height),
+                .normal = glm::vec3(0, 1, 0),
+                .texCoord = glm::vec2(u, v),
+            });
+        }
+    }
+    for (uint32_t h = 0; h < heightSegments; h++) {
+        for (uint32_t w = 0; w < widthSegments; w++) {
+            uint32_t i0 = h * (widthSegments + 1) + w;
+            uint32_t i1 = i0 + 1;
+            uint32_t i2 = i0 + widthSegments + 1;
+            uint32_t i3 = i0 + widthSegments + 2;
+            indices.push_back(i0);
+            indices.push_back(i1);
+            indices.push_back(i3);
+            indices.push_back(i3);
+            indices.push_back(i2);
+            indices.push_back(i0);
+        }
+    }
 
     vertexBuffer = context->createBuffer({
         .usage = BufferUsage::Vertex,

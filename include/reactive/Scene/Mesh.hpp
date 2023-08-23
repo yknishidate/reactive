@@ -58,10 +58,14 @@ struct SphereMeshCreateInfo {
     int numStacks;
 };
 
-struct PlaneMeshCreateInfo {};
-
 struct CubeMeshCreateInfo {};
 struct CubeLineMeshCreateInfo {};
+struct PlaneMeshCreateInfo {
+    float width = 1;
+    float height = 1;
+    uint32_t widthSegments = 1;
+    uint32_t heightSegments = 1;
+};
 
 struct Mesh {
     Mesh(const Context* context, MeshCreateInfo createInfo);
