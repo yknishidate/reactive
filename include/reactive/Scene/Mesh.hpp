@@ -56,6 +56,7 @@ struct MeshCreateInfo {
 struct SphereMeshCreateInfo {
     int numSlices;
     int numStacks;
+    float radius = 1.0;
 };
 
 struct CubeMeshCreateInfo {};

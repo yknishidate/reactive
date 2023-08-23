@@ -18,12 +18,14 @@ Mesh::Mesh(const Context* context, MeshCreateInfo createInfo)
 }
 
 Mesh::Mesh(const Context* context, SphereMeshCreateInfo createInfo) : context{context} {
-    // add top vertex
-    vertices.push_back({{0, 1, 0}});
-    uint32_t v0 = 0;
-
     int n_stacks = createInfo.numStacks;
     int n_slices = createInfo.numSlices;
+    float radius = createInfo.radius;
+
+    // add top vertex
+    vertices.push_back({{0, radius, 0}});
+    uint32_t v0 = 0;
+
     // generate vertices per stack / slice
     constexpr double PI = glm::pi<double>();
     for (int i = 0; i < n_stacks - 1; i++) {
@@ -33,13 +35,13 @@ Mesh::Mesh(const Context* context, SphereMeshCreateInfo createInfo) : context{co
             auto x = std::sin(phi) * std::cos(theta);
             auto y = std::cos(phi);
             auto z = std::sin(phi) * std::sin(theta);
-            glm::vec3 pos = {x, y, z};
+            glm::vec3 pos = glm::vec3{x, y, z} * radius;
             vertices.push_back({pos, glm::normalize(pos)});
         }
     }
 
     // add bottom vertex
-    vertices.push_back({{0, -1, 0}});
+    vertices.push_back({{0, -radius, 0}});
     uint32_t v1 = vertices.size() - 1;
 
     // add top / bottom triangles
