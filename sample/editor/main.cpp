@@ -7,7 +7,7 @@ using namespace rv;
 std::string vertCode = R"(
 #version 450
 layout(location = 0) out vec4 outColor;
-vec3 positions[] = vec3[](vec3(-1, 1, 0), vec3(0, -1, 0), vec3(1, 1, 0));
+vec3 positions[] = vec3[](vec3(-1, -1, 0), vec3(0, 1, 0), vec3(1, -1, 0));
 vec3 colors[] = vec3[](vec3(0), vec3(1, 0, 0), vec3(0, 1, 0));
 void main() {
     gl_Position = vec4(positions[gl_VertexIndex], 1);
@@ -28,7 +28,7 @@ public:
         : App({
               .width = 2560,
               .height = 1440,
-              .title = "HelloGraphics",
+              .title = "Reactive Editor",
               .layers = {Layer::Validation},
           }) {}
 
@@ -132,7 +132,8 @@ public:
                 ImGui::End();
             }
 
-            if (ImGui::Begin("Scene")) {
+            {
+                ImGui::Begin("Scene");
                 if (ImGui::TreeNode("Some object 0")) {
                     ImGui::TreePop();
                 }
@@ -151,7 +152,8 @@ public:
             static float param1 = 0.0f;
             static float param2 = 0.0f;
             static float color[3] = {0.0f, 0.0f, 0.0f};
-            if (ImGui::Begin("Attribute")) {
+            {
+                ImGui::Begin("Attribute");
                 ImGui::SliderFloat("Some parameter 0", &param0, 0.0f, 1.0f);
                 ImGui::SliderFloat("Some parameter 1", &param1, 0.0f, 1.0f);
                 ImGui::SliderFloat("Some parameter 2", &param2, 0.0f, 1.0f);
@@ -178,7 +180,10 @@ public:
 
         ShowFullscreenDockspace();
 
-        commandBuffer.clearColorImage(getCurrentColorImage(), {0.0f, 0.0f, 0.5f, 1.0f});
+        commandBuffer.clearColorImage(imguiImage, {0.0f, 0.0f, 0.5f, 1.0f});
+        commandBuffer.transitionLayout(imguiImage, vk::ImageLayout::eGeneral);
+
+        commandBuffer.clearColorImage(getCurrentColorImage(), {0.0f, 0.0f, 0.0f, 1.0f});
         commandBuffer.clearDepthStencilImage(getDefaultDepthImage(), 1.0f, 0);
 
         commandBuffer.setViewport(extent.width, extent.height);
