@@ -30,8 +30,7 @@ void FPSCamera::processInput() {
     glm::vec2 cursorOffset = cursorPos - lastCursorPos;
     lastCursorPos = cursorPos;
     if (app->isMouseButtonDown(GLFW_MOUSE_BUTTON_1)) {
-        yaw = glm::mod(yaw - cursorOffset.x * 0.1f, 360.0f);
-        pitch = glm::clamp(pitch + cursorOffset.y * 0.1f, -89.9f, 89.9f);
+        processDragDelta(cursorOffset);
     }
 
     glm::vec3 front = getFront();
@@ -51,6 +50,11 @@ void FPSCamera::processInput() {
     if (app->isKeyDown(GLFW_KEY_SPACE)) {
         position.y -= 0.05f * speed;
     }
+}
+
+void FPSCamera::processDragDelta(glm::vec2 dragDelta) {
+    yaw = glm::mod(yaw - dragDelta.x * 0.1f, 360.0f);
+    pitch = glm::clamp(pitch + dragDelta.y * 0.1f, -89.9f, 89.9f);
 }
 
 glm::mat4 FPSCamera::getView() const {
@@ -82,8 +86,7 @@ void OrbitalCamera::processInput() {
     glm::vec2 cursorOffset = cursorPos - lastCursorPos;
     lastCursorPos = cursorPos;
     if (app->isMouseButtonDown(GLFW_MOUSE_BUTTON_1)) {
-        phi = glm::mod(phi - cursorOffset.x * 0.5f, 360.0f);
-        theta = std::min(std::max(theta + cursorOffset.y * 0.5f, -89.9f), 89.9f);
+        processDragDelta(cursorOffset);
     }
 
     static float lastWheel = 0.0f;
@@ -91,6 +94,11 @@ void OrbitalCamera::processInput() {
     float wheelOffset = wheel - lastWheel;
     lastWheel = wheel;
     distance = std::max(distance - wheelOffset, 0.001f);
+}
+
+void OrbitalCamera::processDragDelta(glm::vec2 dragDelta) {
+    phi = glm::mod(phi - dragDelta.x * 0.5f, 360.0f);
+    theta = std::min(std::max(theta + dragDelta.y * 0.5f, -89.9f), 89.9f);
 }
 
 glm::mat4 OrbitalCamera::getView() const {

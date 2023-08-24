@@ -4,13 +4,22 @@
 
 using namespace rv;
 
+struct PushConstants {
+    glm::mat4 viewProj{1};
+};
+
 std::string vertCode = R"(
 #version 450
 layout(location = 0) out vec4 outColor;
 vec3 positions[] = vec3[](vec3(-1, -1, 0), vec3(0, 1, 0), vec3(1, -1, 0));
 vec3 colors[] = vec3[](vec3(0), vec3(1, 0, 0), vec3(0, 1, 0));
+
+layout(push_constant) uniform PushConstants {
+    mat4 viewProj;
+};
+
 void main() {
-    gl_Position = vec4(positions[gl_VertexIndex], 1);
+    gl_Position = viewProj * vec4(positions[gl_VertexIndex], 1);
     outColor = vec4(colors[gl_VertexIndex], 1);
 })";
 
@@ -50,12 +59,15 @@ public:
 
         pipeline = context.createGraphicsPipeline({
             .descSetLayout = descSet->getLayout(),
+            .pushSize = sizeof(PushConstants),
             .vertexShader = shaders[0],
             .fragmentShader = shaders[1],
             .viewport = "dynamic",
             .scissor = "dynamic",
             .colorFormat = vk::Format::eR8G8B8A8Unorm,
         });
+
+        camera = OrbitalCamera{this, 1920, 1080};
 
         viewportWidth = 1920;
         viewportHeight = 1080;
@@ -122,6 +134,11 @@ public:
             }
 
             if (ImGui::Begin("Viewport")) {
+                dragDelta.x = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x * 0.5;
+                dragDelta.y = -ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y * 0.5;
+                ImGui::ResetMouseDragDelta();
+                spdlog::info("dragDelta: {} {}", dragDelta.x, dragDelta.y);
+
                 ImVec2 windowSize = ImGui::GetContentRegionAvail();
                 viewportWidth = windowSize.x;
                 viewportHeight = windowSize.y;
@@ -169,13 +186,21 @@ public:
         }
     }
 
+    void onUpdate() override {
+        camera.processDragDelta(dragDelta);
+        pushConstants.viewProj = camera.getProj() * camera.getView();
+    }
+
     void onRender(const CommandBuffer& commandBuffer) override {
         vk::Extent3D extent = imguiImage->getExtent();
         if (uint32_t(viewportWidth) != extent.width || uint32_t(viewportHeight) != extent.height) {
             context.getDevice().waitIdle();
+
             spdlog::info("Resized: {} {}", viewportWidth, viewportHeight);
             createViewportImage(viewportWidth, viewportHeight);
             extent = imguiImage->getExtent();
+
+            camera.aspect = viewportWidth / viewportHeight;
         }
 
         ShowFullscreenDockspace();
@@ -191,6 +216,7 @@ public:
 
         commandBuffer.bindDescriptorSet(descSet, pipeline);
         commandBuffer.bindPipeline(pipeline);
+        commandBuffer.pushConstants(pipeline, &pushConstants);
 
         // TODO: create depth image
         commandBuffer.beginRendering(imguiImage, nullptr, {0, 0}, {extent.width, extent.height});
@@ -200,12 +226,15 @@ public:
 
     DescriptorSetHandle descSet;
     GraphicsPipelineHandle pipeline;
+    OrbitalCamera camera;
+    PushConstants pushConstants;
+    glm::vec2 dragDelta = {0.0f, 0.0f};
 
+    // ImGui
     float viewportWidth;
     float viewportHeight;
     ImageHandle imguiImage;
     vk::DescriptorSet imguiDescSet;
-    int testInt = 0;
 };
 
 int main() {
