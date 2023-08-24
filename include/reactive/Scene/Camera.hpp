@@ -11,6 +11,7 @@ struct Camera {
         : app{app}, aspect{static_cast<float>(width) / static_cast<float>(height)} {}
 
     virtual void processInput() = 0;
+    virtual void processDragDelta(glm::vec2 dragDelta) = 0;
 
     virtual glm::mat4 getView() const = 0;
     virtual glm::mat4 getProj() const = 0;
@@ -36,6 +37,8 @@ struct FPSCamera : public Camera {
 
     // Override
     void processInput() override;
+    void processDragDelta(glm::vec2 dragDelta) override;
+
     glm::mat4 getView() const override;
     glm::mat4 getProj() const override;
     glm::vec3 getPosition() const override;
@@ -53,6 +56,8 @@ struct OrbitalCamera : public Camera {
 
     // Override
     void processInput() override;
+    void processDragDelta(glm::vec2 dragDelta) override;
+
     glm::mat4 getView() const override;
     glm::mat4 getProj() const override;
     glm::vec3 getPosition() const override;
