@@ -137,6 +137,61 @@ Mesh::Mesh(const Context* context, PlaneMeshCreateInfo createInfo) : context{con
     });
 }
 
+Mesh::Mesh(const Context* context, PlaneLineMeshCreateInfo createInfo) {
+    float width = createInfo.width;
+    float height = createInfo.height;
+    uint32_t widthSegments = createInfo.widthSegments;
+    uint32_t heightSegments = createInfo.heightSegments;
+
+    uint32_t verticesCount = 2 * (widthSegments + 1) + 2 * (heightSegments + 1);
+    uint32_t indicesCount = verticesCount;
+    vertices.reserve(verticesCount);
+    indices.reserve(indicesCount);
+    for (uint32_t h = 0; h <= heightSegments; h++) {
+        float v = h / float(heightSegments);
+        vertices.push_back({
+            .pos = glm::vec3(-0.5f * width, 0.0f, (v - 0.5f) * height),
+            .normal = glm::vec3(0, 1, 0),
+            .texCoord = glm::vec2(0.0f, v),
+        });
+        vertices.push_back({
+            .pos = glm::vec3(0.5f * width, 0.0f, (v - 0.5f) * height),
+            .normal = glm::vec3(0, 1, 0),
+            .texCoord = glm::vec2(1.0f, v),
+        });
+    }
+    for (uint32_t w = 0; w <= widthSegments; w++) {
+        float u = w / float(widthSegments);
+        vertices.push_back({
+            .pos = glm::vec3((u - 0.5f) * width, 0.0f, -0.5f * height),
+            .normal = glm::vec3(0, 1, 0),
+            .texCoord = glm::vec2(u, 0.0f),
+        });
+        vertices.push_back({
+            .pos = glm::vec3((u - 0.5f) * width, 0.0f, 0.5f * height),
+            .normal = glm::vec3(0, 1, 0),
+            .texCoord = glm::vec2(u, 1.0f),
+        });
+    }
+
+    for (uint32_t i = 0; i < indicesCount; i++) {
+        indices.push_back(i);
+    }
+
+    vertexBuffer = context->createBuffer({
+        .usage = BufferUsage::Vertex,
+        .memory = MemoryUsage::Device,
+        .size = sizeof(Vertex) * vertices.size(),
+        .data = vertices.data(),
+    });
+    indexBuffer = context->createBuffer({
+        .usage = BufferUsage::Index,
+        .memory = MemoryUsage::Device,
+        .size = sizeof(uint32_t) * indices.size(),
+        .data = indices.data(),
+    });
+}
+
 Mesh::Mesh(const Context* context, CubeMeshCreateInfo createInfo) : context{context} {
     std::vector<glm::vec3> positions{
         {-1.0, -1.0, -1.0}, {1.0, -1.0, -1.0}, {1.0, -1.0, 1.0}, {-1.0, -1.0, 1.0},

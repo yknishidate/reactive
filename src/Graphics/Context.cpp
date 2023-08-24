@@ -217,6 +217,10 @@ MeshHandle Context::createPlaneMesh(PlaneMeshCreateInfo createInfo) const {
     return std::make_shared<Mesh>(this, createInfo);
 }
 
+MeshHandle Context::createPlaneLineMesh(PlaneLineMeshCreateInfo createInfo) const {
+    return std::make_shared<Mesh>(this, createInfo);
+}
+
 MeshHandle Context::createCubeMesh(CubeMeshCreateInfo createInfo) const {
     return std::make_shared<Mesh>(this, createInfo);
 }

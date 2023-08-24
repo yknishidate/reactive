@@ -10,26 +10,125 @@ struct PushConstants {
 
 std::string vertCode = R"(
 #version 450
-layout(location = 0) out vec4 outColor;
-vec3 positions[] = vec3[](vec3(-1, -1, 0), vec3(0, 1, 0), vec3(1, -1, 0));
-vec3 colors[] = vec3[](vec3(0), vec3(1, 0, 0), vec3(0, 1, 0));
+layout(location = 0) in vec3 inPosition;
+layout(location = 1) in vec3 inNormal;
+layout(location = 2) in vec2 inTexCoord;
+layout(location = 0) out vec3 outNormal;
 
 layout(push_constant) uniform PushConstants {
     mat4 viewProj;
 };
 
 void main() {
-    gl_Position = viewProj * vec4(positions[gl_VertexIndex], 1);
-    outColor = vec4(colors[gl_VertexIndex], 1);
+    gl_Position = viewProj * vec4(inPosition, 1);
+    outNormal = inNormal;
 })";
 
 std::string fragCode = R"(
 #version 450
-layout(location = 0) in vec4 inColor;
+layout(location = 0) in vec3 inNormal;
 layout(location = 0) out vec4 outColor;
 void main() {
-    outColor = inColor;
+    vec3 lightDir = normalize(vec3(1, 2, -3));
+    float diffuse = dot(lightDir, inNormal) * 0.5 + 0.5;
+    outColor = vec4(vec3(max(0.0, diffuse)), 1.0);
+    //outColor = vec4(inNormal, 1.0);
 })";
+
+class GridRenderer {
+public:
+    GridRenderer(const Context& context) {
+        const std::string gridVertCode = R"(
+        #version 450
+        layout(location = 0) in vec3 inPosition;
+        layout(push_constant) uniform PushConstants {
+            mat4 viewProj;
+            vec3 color;
+        };
+
+        void main() {
+            gl_Position = viewProj * vec4(inPosition, 1);
+            gl_PointSize = 5.0;
+        })";
+
+        const std::string gridFragCode = R"(
+        #version 450
+        layout(location = 0) out vec4 outColor;
+        layout(push_constant) uniform PushConstants {
+            mat4 viewProj;
+            vec3 color;
+        };
+
+        void main() {
+            outColor = vec4(color, 1.0);
+        })";
+
+        std::vector<ShaderHandle> shaders(2);
+        shaders[0] = context.createShader({
+            .code = Compiler::compileToSPV(gridVertCode, vk::ShaderStageFlagBits::eVertex),
+            .stage = vk::ShaderStageFlagBits::eVertex,
+        });
+
+        shaders[1] = context.createShader({
+            .code = Compiler::compileToSPV(gridFragCode, vk::ShaderStageFlagBits::eFragment),
+            .stage = vk::ShaderStageFlagBits::eFragment,
+        });
+
+        descSet = context.createDescriptorSet({
+            .shaders = shaders,
+        });
+
+        pipeline = context.createGraphicsPipeline({
+            .descSetLayout = descSet->getLayout(),
+            .pushSize = sizeof(Constants),
+            .vertexShader = shaders[0],
+            .fragmentShader = shaders[1],
+            .vertexStride = sizeof(Vertex),
+            .vertexAttributes = Vertex::getAttributeDescriptions(),
+            .viewport = "dynamic",
+            .scissor = "dynamic",
+            .colorFormat = vk::Format::eR8G8B8A8Unorm,
+            .topology = vk::PrimitiveTopology::eLineList,
+            .polygonMode = vk::PolygonMode::eLine,
+            .lineWidth = 2.0f,
+        });
+
+        planeLineMesh = context.createPlaneLineMesh({
+            .width = 5.0f,
+            .height = 5.0f,
+            .widthSegments = 5,
+            .heightSegments = 5,
+        });
+    }
+
+    void render(const CommandBuffer& commandBuffer,
+                uint32_t width,
+                uint32_t height,
+                const glm::mat4& viewProj) {
+        constants.viewProj = viewProj;
+        constants.color = glm::vec3(0.4);
+
+        commandBuffer.setViewport(width, height);
+        commandBuffer.setScissor(width, height);
+
+        commandBuffer.bindDescriptorSet(descSet, pipeline);
+        commandBuffer.bindPipeline(pipeline);
+        commandBuffer.pushConstants(pipeline, &constants);
+
+        // TODO: create depth image
+        commandBuffer.drawIndexed(planeLineMesh);
+    }
+
+    struct Constants {
+        glm::mat4 viewProj;
+        glm::vec3 color;
+    };
+
+    GraphicsPipelineHandle pipeline;
+    DescriptorSetHandle descSet;
+    MeshHandle planeLineMesh;
+    Constants constants;
+};
 
 class HelloApp : public App {
 public:
@@ -39,7 +138,8 @@ public:
               .height = 1440,
               .title = "Reactive Editor",
               .layers = {Layer::Validation},
-          }) {}
+          }),
+          gridRenderer(context) {}
 
     void onStart() override {
         std::vector<ShaderHandle> shaders(2);
@@ -62,10 +162,14 @@ public:
             .pushSize = sizeof(PushConstants),
             .vertexShader = shaders[0],
             .fragmentShader = shaders[1],
+            .vertexStride = sizeof(Vertex),
+            .vertexAttributes = Vertex::getAttributeDescriptions(),
             .viewport = "dynamic",
             .scissor = "dynamic",
             .colorFormat = vk::Format::eR8G8B8A8Unorm,
         });
+
+        cubeMesh = context.createCubeMesh({});
 
         camera = OrbitalCamera{this, 1920, 1080};
 
@@ -205,7 +309,7 @@ public:
 
         ShowFullscreenDockspace();
 
-        commandBuffer.clearColorImage(imguiImage, {0.0f, 0.0f, 0.5f, 1.0f});
+        commandBuffer.clearColorImage(imguiImage, {0.0f, 0.0f, 0.0f, 1.0f});
         commandBuffer.transitionLayout(imguiImage, vk::ImageLayout::eGeneral);
 
         commandBuffer.clearColorImage(getCurrentColorImage(), {0.0f, 0.0f, 0.0f, 1.0f});
@@ -219,22 +323,33 @@ public:
         commandBuffer.pushConstants(pipeline, &pushConstants);
 
         // TODO: create depth image
-        commandBuffer.beginRendering(imguiImage, nullptr, {0, 0}, {extent.width, extent.height});
-        commandBuffer.draw(3, 1, 0, 0);
+        commandBuffer.beginRendering(imguiImage, getDefaultDepthImage(), {0, 0},
+                                     {extent.width, extent.height});
+
+        commandBuffer.drawIndexed(cubeMesh);
+
+        gridRenderer.render(commandBuffer, extent.width, extent.height, pushConstants.viewProj);
+
         commandBuffer.endRendering();
     }
 
     DescriptorSetHandle descSet;
     GraphicsPipelineHandle pipeline;
-    OrbitalCamera camera;
     PushConstants pushConstants;
+
+    // Scene
     glm::vec2 dragDelta = {0.0f, 0.0f};
+    OrbitalCamera camera;
+    MeshHandle cubeMesh;
 
     // ImGui
     float viewportWidth;
     float viewportHeight;
     ImageHandle imguiImage;
     vk::DescriptorSet imguiDescSet;
+
+    // Editor
+    GridRenderer gridRenderer;
 };
 
 int main() {

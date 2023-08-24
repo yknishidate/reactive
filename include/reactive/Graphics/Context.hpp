@@ -14,6 +14,7 @@ struct BufferCreateInfo;
 struct MeshCreateInfo;
 struct SphereMeshCreateInfo;
 struct PlaneMeshCreateInfo;
+struct PlaneLineMeshCreateInfo;
 struct CubeMeshCreateInfo;
 struct CubeLineMeshCreateInfo;
 struct ShaderCreateInfo;
@@ -201,6 +202,7 @@ public:
     MeshHandle createMesh(MeshCreateInfo createInfo) const;
     MeshHandle createSphereMesh(SphereMeshCreateInfo createInfo) const;
     MeshHandle createPlaneMesh(PlaneMeshCreateInfo createInfo) const;
+    MeshHandle createPlaneLineMesh(PlaneLineMeshCreateInfo createInfo) const;
     MeshHandle createCubeMesh(CubeMeshCreateInfo createInfo) const;
     MeshHandle createCubeLineMesh(CubeLineMeshCreateInfo createInfo) const;
     BottomAccelHandle createBottomAccel(BottomAccelCreateInfo createInfo) const;
