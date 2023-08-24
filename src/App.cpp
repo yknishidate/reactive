@@ -288,15 +288,14 @@ void App::initImGui() {
     // Color scheme
     // Vulkan color: RGB(164, 30, 34) or Hex(#A41E22)
     ImVec4 vulkan = ImVec4(164.0f / 255.0f, 30.0f / 255.0f, 34.0f / 255.0f, 1.0f);
-    ImVec4 vulkanLight = ImVec4(200.0f / 255.0f, 90.0f / 255.0f, 90.0f / 255.0f, 1.0f);
     ImVec4 black100 = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
     ImVec4 black90 = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
     ImVec4 black80 = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
 
     ImGuiStyle& style = ImGui::GetStyle();
     style.Colors[ImGuiCol_WindowBg] = black90;
-    style.Colors[ImGuiCol_TitleBg] = vulkan;
-    style.Colors[ImGuiCol_TitleBgActive] = vulkan;
+    style.Colors[ImGuiCol_TitleBg] = black90;
+    style.Colors[ImGuiCol_TitleBgActive] = black90;
     style.Colors[ImGuiCol_Header] = vulkan;
     style.Colors[ImGuiCol_HeaderActive] = vulkan;
     style.Colors[ImGuiCol_HeaderHovered] = vulkan;
@@ -313,11 +312,13 @@ void App::initImGui() {
     style.Colors[ImGuiCol_ResizeGripHovered] = vulkan;
     style.Colors[ImGuiCol_ResizeGripActive] = vulkan;
     style.Colors[ImGuiCol_DockingPreview] = vulkan;
-    style.Colors[ImGuiCol_Tab] = vulkan;
-    style.Colors[ImGuiCol_TabActive] = vulkanLight;
-    style.Colors[ImGuiCol_TabHovered] = vulkanLight;
-    style.Colors[ImGuiCol_TabUnfocused] = vulkan;
-    style.Colors[ImGuiCol_TabUnfocusedActive] = vulkan;
+    style.Colors[ImGuiCol_Tab] = black90;
+    style.Colors[ImGuiCol_TabActive] = black90;
+    style.Colors[ImGuiCol_TabHovered] = black90;
+    style.Colors[ImGuiCol_TabUnfocused] = black90;
+    style.Colors[ImGuiCol_TabUnfocusedActive] = black90;
+    style.Colors[ImGuiCol_Border] = black100;
+    style.Colors[ImGuiCol_BorderShadow] = black100;
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForVulkan(window, true);
