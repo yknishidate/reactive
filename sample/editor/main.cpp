@@ -96,7 +96,7 @@ public:
         window_flags |= ImGuiWindowFlags_MenuBar;
 
         if (dockspaceOpen) {
-            if (ImGui::Begin("DockSpace Demo", &dockspaceOpen, window_flags)) {
+            if (ImGui::Begin("DockSpace", &dockspaceOpen, window_flags)) {
                 ImGui::PopStyleVar(3);
 
                 if (ImGui::BeginMenuBar()) {
@@ -107,18 +107,17 @@ public:
                         }
                         ImGui::EndMenu();
                     }
+                    if (ImGui::BeginMenu("Edit")) {
+                        ImGui::EndMenu();
+                    }
+                    if (ImGui::BeginMenu("Create")) {
+                        ImGui::EndMenu();
+                    }
                     ImGui::EndMenuBar();
                 }
 
-                ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+                ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
                 ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
-                ImGui::End();
-            }
-
-            if (ImGui::Begin("Scrolling")) {
-                ImGui::TextColored(ImVec4(1, 1, 0, 1), "Important Stuff");
-                for (int n = 0; n < 50; n++)
-                    ImGui::Text("%04d: Some text", n);
                 ImGui::End();
             }
 
@@ -130,6 +129,39 @@ public:
                 ImGui::Image(imguiDescSet,
                              {static_cast<float>(extent.width), static_cast<float>(extent.height)},
                              ImVec2(0, 1), ImVec2(1, 0));
+                ImGui::End();
+            }
+
+            if (ImGui::Begin("Scene")) {
+                if (ImGui::TreeNode("Some object 0")) {
+                    ImGui::TreePop();
+                }
+
+                if (ImGui::TreeNode("Some object 1")) {
+                    ImGui::TreePop();
+                }
+
+                if (ImGui::TreeNode("Some object 2")) {
+                    ImGui::TreePop();
+                }
+                ImGui::End();
+            }
+
+            static float param0 = 0.0f;
+            static float param1 = 0.0f;
+            static float param2 = 0.0f;
+            static float color[3] = {0.0f, 0.0f, 0.0f};
+            if (ImGui::Begin("Attribute")) {
+                ImGui::SliderFloat("Some parameter 0", &param0, 0.0f, 1.0f);
+                ImGui::SliderFloat("Some parameter 1", &param1, 0.0f, 1.0f);
+                ImGui::SliderFloat("Some parameter 2", &param2, 0.0f, 1.0f);
+                ImGui::ColorEdit3("Some color", color);
+                ImGui::End();
+            }
+
+            if (ImGui::Begin("Project")) {
+                for (int n = 0; n < 5; n++)
+                    ImGui::Text("Asset");
                 ImGui::End();
             }
         }
