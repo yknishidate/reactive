@@ -60,7 +60,7 @@ public:
 
     static ImageHandle loadFromFile(const Context& context,
                                     const std::string& filepath,
-                                    uint32_t mipLevels);
+                                    uint32_t mipLevels = 1);
 
     // mipmap is not supported
     static ImageHandle loadFromFileHDR(const Context& context, const std::string& filepath);
