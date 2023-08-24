@@ -90,14 +90,21 @@ public:
             .colorFormat = vk::Format::eR8G8B8A8Unorm,
             .topology = vk::PrimitiveTopology::eLineList,
             .polygonMode = vk::PolygonMode::eLine,
-            .lineWidth = 2.0f,
+            .lineWidth = "dynamic",
         });
 
-        planeLineMesh = context.createPlaneLineMesh({
-            .width = 5.0f,
-            .height = 5.0f,
-            .widthSegments = 5,
-            .heightSegments = 5,
+        mainGridMesh = context.createPlaneLineMesh({
+            .width = 20.0f,
+            .height = 20.0f,
+            .widthSegments = 20,
+            .heightSegments = 20,
+        });
+
+        subGridMesh = context.createPlaneLineMesh({
+            .width = 20.0f,
+            .height = 20.0f,
+            .widthSegments = 100,
+            .heightSegments = 100,
         });
     }
 
@@ -105,18 +112,22 @@ public:
                 uint32_t width,
                 uint32_t height,
                 const glm::mat4& viewProj) {
-        constants.viewProj = viewProj;
-        constants.color = glm::vec3(0.4);
-
         commandBuffer.setViewport(width, height);
         commandBuffer.setScissor(width, height);
 
         commandBuffer.bindDescriptorSet(descSet, pipeline);
         commandBuffer.bindPipeline(pipeline);
-        commandBuffer.pushConstants(pipeline, &constants);
 
-        // TODO: create depth image
-        commandBuffer.drawIndexed(planeLineMesh);
+        constants.viewProj = viewProj;
+        constants.color = glm::vec3(0.6);
+        commandBuffer.setLineWidth(2.0f);
+        commandBuffer.pushConstants(pipeline, &constants);
+        commandBuffer.drawIndexed(mainGridMesh);
+
+        constants.color = glm::vec3(0.3);
+        commandBuffer.setLineWidth(1.0f);
+        commandBuffer.pushConstants(pipeline, &constants);
+        commandBuffer.drawIndexed(subGridMesh);
     }
 
     struct Constants {
@@ -126,7 +137,10 @@ public:
 
     GraphicsPipelineHandle pipeline;
     DescriptorSetHandle descSet;
-    MeshHandle planeLineMesh;
+
+    MeshHandle mainGridMesh;
+    MeshHandle subGridMesh;
+
     Constants constants;
 };
 
@@ -241,7 +255,6 @@ public:
                 dragDelta.x = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x * 0.5;
                 dragDelta.y = -ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y * 0.5;
                 ImGui::ResetMouseDragDelta();
-                spdlog::info("dragDelta: {} {}", dragDelta.x, dragDelta.y);
 
                 ImVec2 windowSize = ImGui::GetContentRegionAvail();
                 viewportWidth = windowSize.x;
