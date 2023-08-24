@@ -11,6 +11,7 @@
     {
       "name": "imgui",
       "features": ["glfw-binding", "vulkan-binding", "docking-experimental"]
-    }
+    },
+    "imguizmo"
   ]
 }
