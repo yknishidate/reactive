@@ -56,6 +56,10 @@ public:
             .scissor = "dynamic",
             .colorFormat = vk::Format::eR8G8B8A8Unorm,
         });
+
+        viewportWidth = 1920;
+        viewportHeight = 1080;
+        createViewportImage(viewportWidth, viewportHeight);
     }
 
     void createViewportImage(uint32_t width, uint32_t height) {
@@ -68,6 +72,7 @@ public:
             .format = vk::Format::eR8G8B8A8Unorm,
             .layout = vk::ImageLayout::eGeneral,
         });
+        ImGui_ImplVulkan_RemoveTexture(imguiDescSet);
         imguiDescSet = ImGui_ImplVulkan_AddTexture(imguiImage->getSampler(), imguiImage->getView(),
                                                    VK_IMAGE_LAYOUT_GENERAL);
     }
@@ -118,37 +123,40 @@ public:
             }
 
             if (ImGui::Begin("Viewport")) {
-                viewportResized = false;
                 ImVec2 windowSize = ImGui::GetContentRegionAvail();
-                if (viewportWidth != windowSize.x || viewportHeight != windowSize.y) {
-                    viewportResized = true;
-                    viewportWidth = windowSize.x;
-                    viewportHeight = windowSize.y;
-                    spdlog::info("size: {} {}", viewportWidth, viewportHeight);
-                    createViewportImage(viewportWidth, viewportHeight);
-                }
-                ImGui::Image(imguiDescSet, windowSize, ImVec2(0, 1), ImVec2(1, 0));
+                viewportWidth = windowSize.x;
+                viewportHeight = windowSize.y;
+                vk::Extent3D extent = imguiImage->getExtent();
+                ImGui::Image(imguiDescSet,
+                             {static_cast<float>(extent.width), static_cast<float>(extent.height)},
+                             ImVec2(0, 1), ImVec2(1, 0));
                 ImGui::End();
             }
         }
     }
 
     void onRender(const CommandBuffer& commandBuffer) override {
+        vk::Extent3D extent = imguiImage->getExtent();
+        if (uint32_t(viewportWidth) != extent.width || uint32_t(viewportHeight) != extent.height) {
+            context.getDevice().waitIdle();
+            spdlog::info("Resized: {} {}", viewportWidth, viewportHeight);
+            createViewportImage(viewportWidth, viewportHeight);
+            extent = imguiImage->getExtent();
+        }
+
         ShowFullscreenDockspace();
 
         commandBuffer.clearColorImage(getCurrentColorImage(), {0.0f, 0.0f, 0.5f, 1.0f});
         commandBuffer.clearDepthStencilImage(getDefaultDepthImage(), 1.0f, 0);
 
-        uint32_t renderWidth = static_cast<uint32_t>(viewportWidth);
-        uint32_t renderHeight = static_cast<uint32_t>(viewportHeight);
-        commandBuffer.setViewport(renderWidth, renderHeight);
-        commandBuffer.setScissor(renderWidth, renderHeight);
+        commandBuffer.setViewport(extent.width, extent.height);
+        commandBuffer.setScissor(extent.width, extent.height);
 
         commandBuffer.bindDescriptorSet(descSet, pipeline);
         commandBuffer.bindPipeline(pipeline);
 
-        commandBuffer.beginRendering(imguiImage, getDefaultDepthImage(), {0, 0},
-                                     {renderWidth, renderHeight});
+        // TODO: create depth image
+        commandBuffer.beginRendering(imguiImage, nullptr, {0, 0}, {extent.width, extent.height});
         commandBuffer.draw(3, 1, 0, 0);
         commandBuffer.endRendering();
     }
@@ -156,9 +164,6 @@ public:
     DescriptorSetHandle descSet;
     GraphicsPipelineHandle pipeline;
 
-    ImageHandle viewportImage;
-
-    bool viewportResized = false;
     float viewportWidth;
     float viewportHeight;
     ImageHandle imguiImage;
