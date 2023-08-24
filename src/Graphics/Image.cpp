@@ -120,7 +120,7 @@ ImageHandle Image::loadFromFile(const Context& context,
     BufferHandle stagingBuffer = context.createBuffer({
         .usage = BufferUsage::Staging,
         .memory = MemoryUsage::Host,
-        .size = width * height * comp * sizeof(unsigned char*),
+        .size = width * height * comp * sizeof(unsigned char),
         .data = reinterpret_cast<void*>(pixels),
     });
 
