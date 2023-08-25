@@ -193,8 +193,7 @@ public:
     }
 
     void createViewportImage(uint32_t width, uint32_t height) {
-        // TODO: use allocated memory
-        imguiImage = context.createImage({
+        viewportImage = context.createImage({
             .usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage |
                      vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc |
                      vk::ImageUsageFlagBits::eColorAttachment,
@@ -202,9 +201,16 @@ public:
             .format = vk::Format::eR8G8B8A8Unorm,
             .layout = vk::ImageLayout::eGeneral,
         });
-        ImGui_ImplVulkan_RemoveTexture(imguiDescSet);
-        imguiDescSet = ImGui_ImplVulkan_AddTexture(imguiImage->getSampler(), imguiImage->getView(),
-                                                   VK_IMAGE_LAYOUT_GENERAL);
+        ImGui_ImplVulkan_RemoveTexture(viewportDescSet);
+        viewportDescSet = ImGui_ImplVulkan_AddTexture(
+            viewportImage->getSampler(), viewportImage->getView(), VK_IMAGE_LAYOUT_GENERAL);
+
+        viewportDepthImage = context.createImage({
+            .usage = ImageUsage::DepthAttachment,
+            .extent = {width, height, 1},
+            .format = vk::Format::eD32Sfloat,
+            .layout = vk::ImageLayout::eDepthAttachmentOptimal,
+        });
     }
 
     void ShowFullscreenDockspace() {
@@ -261,7 +267,7 @@ public:
                 ImVec2 windowSize = ImGui::GetContentRegionAvail();
                 viewportWidth = windowSize.x;
                 viewportHeight = windowSize.y;
-                ImGui::Image(imguiDescSet, windowSize, ImVec2(0, 1), ImVec2(1, 0));
+                ImGui::Image(viewportDescSet, windowSize, ImVec2(0, 1), ImVec2(1, 0));
                 ImGui::End();
             }
 
@@ -308,13 +314,13 @@ public:
     }
 
     void onRender(const CommandBuffer& commandBuffer) override {
-        vk::Extent3D extent = imguiImage->getExtent();
+        vk::Extent3D extent = viewportImage->getExtent();
         if (uint32_t(viewportWidth) != extent.width || uint32_t(viewportHeight) != extent.height) {
             context.getDevice().waitIdle();
 
             spdlog::info("Resized: {} {}", viewportWidth, viewportHeight);
             createViewportImage(viewportWidth, viewportHeight);
-            extent = imguiImage->getExtent();
+            extent = viewportImage->getExtent();
 
             camera.aspect = viewportWidth / viewportHeight;
             pushConstants.viewProj = camera.getProj() * camera.getView();
@@ -322,11 +328,11 @@ public:
 
         ShowFullscreenDockspace();
 
-        commandBuffer.clearColorImage(imguiImage, {0.0f, 0.0f, 0.0f, 1.0f});
-        commandBuffer.transitionLayout(imguiImage, vk::ImageLayout::eGeneral);
+        commandBuffer.clearColorImage(viewportImage, {0.0f, 0.0f, 0.0f, 1.0f});
+        commandBuffer.transitionLayout(viewportImage, vk::ImageLayout::eGeneral);
 
         commandBuffer.clearColorImage(getCurrentColorImage(), {0.0f, 0.0f, 0.0f, 1.0f});
-        commandBuffer.clearDepthStencilImage(getDefaultDepthImage(), 1.0f, 0);
+        commandBuffer.clearDepthStencilImage(viewportDepthImage, 1.0f, 0);
 
         commandBuffer.setViewport(extent.width, extent.height);
         commandBuffer.setScissor(extent.width, extent.height);
@@ -336,7 +342,7 @@ public:
         commandBuffer.pushConstants(pipeline, &pushConstants);
 
         // TODO: create depth image
-        commandBuffer.beginRendering(imguiImage, getDefaultDepthImage(), {0, 0},
+        commandBuffer.beginRendering(viewportImage, viewportDepthImage, {0, 0},
                                      {extent.width, extent.height});
 
         commandBuffer.drawIndexed(cubeMesh);
@@ -359,8 +365,9 @@ public:
     bool viewportClicked = false;
     float viewportWidth;
     float viewportHeight;
-    ImageHandle imguiImage;
-    vk::DescriptorSet imguiDescSet;
+    ImageHandle viewportImage;
+    ImageHandle viewportDepthImage;
+    vk::DescriptorSet viewportDescSet;
 
     // Editor
     GridRenderer gridRenderer;
