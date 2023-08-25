@@ -298,35 +298,35 @@ void setImGuiStyle() {
     colors[ImGuiCol_Text]                  = white;
     colors[ImGuiCol_TextDisabled]          = ImVec4(gray50.x, gray50.y, gray50.z, 1.00f);
     colors[ImGuiCol_WindowBg]              = ImVec4(gray10.x, gray10.y, gray10.z, 1.00f);
-    colors[ImGuiCol_ChildBg]               = ImVec4(black.x, black.y, black.z, 0.00f);
+    colors[ImGuiCol_ChildBg]               = ImVec4(black.x, black.y, black.z, 1.00f);
     colors[ImGuiCol_PopupBg]               = ImVec4(gray10.x, gray10.y, gray10.z, 1.00f);
-    colors[ImGuiCol_Border]                = ImVec4(gray50.x, gray50.y, gray50.z, 0.50f);
-    colors[ImGuiCol_BorderShadow]          = ImVec4(black.x, black.y, black.z, 0.00f);
-    colors[ImGuiCol_FrameBg]               = ImVec4(color2.x, color2.y, color2.z, 0.50f);
-    colors[ImGuiCol_FrameBgHovered]        = ImVec4(color1.x, color1.y, color1.z, 0.40f);
-    colors[ImGuiCol_FrameBgActive]         = ImVec4(color1.x, color1.y, color1.z, 0.70f);
+    colors[ImGuiCol_Border]                = ImVec4(gray30.x, gray30.y, gray30.z, 1.00f);
+    colors[ImGuiCol_BorderShadow]          = ImVec4(black.x, black.y, black.z, 1.00f);
+    colors[ImGuiCol_FrameBg]               = ImVec4(color2.x, color2.y, color2.z, 1.00f);
+    colors[ImGuiCol_FrameBgHovered]        = ImVec4(color1.x, color1.y, color1.z, 1.00f);
+    colors[ImGuiCol_FrameBgActive]         = ImVec4(color1.x, color1.y, color1.z, 1.00f);
     colors[ImGuiCol_TitleBg]               = ImVec4(gray10.x, gray10.y, gray10.z, 1.00f);
     colors[ImGuiCol_TitleBgActive]         = ImVec4(gray10.x, gray10.y, gray10.z, 1.00f);
-    colors[ImGuiCol_TitleBgCollapsed]      = ImVec4(black.x, black.y, black.z, 0.50f);
+    colors[ImGuiCol_TitleBgCollapsed]      = ImVec4(black.x, black.y, black.z, 1.00f);
     colors[ImGuiCol_MenuBarBg]             = ImVec4(gray10.x, gray10.y, gray10.z, 1.00f);
-    colors[ImGuiCol_ScrollbarBg]           = ImVec4(black.x, black.y, black.z, 0.50f);
+    colors[ImGuiCol_ScrollbarBg]           = ImVec4(black.x, black.y, black.z, 1.00f);
     colors[ImGuiCol_ScrollbarGrab]         = ImVec4(gray30.x, gray30.y, gray30.z, 1.00f);
     colors[ImGuiCol_ScrollbarGrabHovered]  = ImVec4(gray40.x, gray40.y, gray40.z, 1.00f);
     colors[ImGuiCol_ScrollbarGrabActive]   = ImVec4(gray50.x, gray50.y, gray50.z, 1.00f);
     colors[ImGuiCol_CheckMark]             = ImVec4(color1.x, color1.y, color1.z, 1.00f);
     colors[ImGuiCol_SliderGrab]            = ImVec4(color1.x, color1.y, color1.z, 1.00f);
     colors[ImGuiCol_SliderGrabActive]      = ImVec4(color1.x, color1.y, color1.z, 1.00f);
-    colors[ImGuiCol_Button]                = ImVec4(color1.x, color1.y, color1.z, 0.40f);
+    colors[ImGuiCol_Button]                = ImVec4(color1.x, color1.y, color1.z, 1.00f);
     colors[ImGuiCol_ButtonHovered]         = ImVec4(color1.x, color1.y, color1.z, 1.00f);
     colors[ImGuiCol_ButtonActive]          = ImVec4(color1.x, color1.y, color1.z, 1.00f);
-    colors[ImGuiCol_Header]                = ImVec4(color1.x, color1.y, color1.z, 0.30f);
-    colors[ImGuiCol_HeaderHovered]         = ImVec4(color1.x, color1.y, color1.z, 0.80f);
+    colors[ImGuiCol_Header]                = ImVec4(color1.x, color1.y, color1.z, 1.00f);
+    colors[ImGuiCol_HeaderHovered]         = ImVec4(color1.x, color1.y, color1.z, 1.00f);
     colors[ImGuiCol_HeaderActive]          = ImVec4(color1.x, color1.y, color1.z, 1.00f);
     colors[ImGuiCol_Separator]             = colors[ImGuiCol_Border];
-    colors[ImGuiCol_SeparatorHovered]      = ImVec4(color3.x, color3.y, color3.z, 0.80f);
+    colors[ImGuiCol_SeparatorHovered]      = ImVec4(color3.x, color3.y, color3.z, 1.00f);
     colors[ImGuiCol_SeparatorActive]       = ImVec4(color3.x, color3.y, color3.z, 1.00f);
-    colors[ImGuiCol_ResizeGrip]            = ImVec4(color1.x, color1.y, color1.z, 0.20f);
-    colors[ImGuiCol_ResizeGripHovered]     = ImVec4(color1.x, color1.y, color1.z, 0.70f);
+    colors[ImGuiCol_ResizeGrip]            = ImVec4(color1.x, color1.y, color1.z, 1.00f);
+    colors[ImGuiCol_ResizeGripHovered]     = ImVec4(color1.x, color1.y, color1.z, 1.00f);
     colors[ImGuiCol_ResizeGripActive]      = ImVec4(color1.x, color1.y, color1.z, 1.00f);
     colors[ImGuiCol_Tab]                   = ImVec4(gray20.x, gray20.y, gray20.z, 1.00f);
     colors[ImGuiCol_TabHovered]            = ImVec4(gray20.x, gray20.y, gray20.z, 1.00f);
@@ -342,12 +342,12 @@ void setImGuiStyle() {
     colors[ImGuiCol_TableBorderLight]      = ImVec4(gray20.x, gray20.y, gray20.z, 1.00f);  // Prefer using Alpha=1.0 here
     colors[ImGuiCol_TableRowBg]            = ImVec4(black.x, black.y, black.z, 0.00f);
     colors[ImGuiCol_TableRowBgAlt]         = ImVec4(white.x, white.y, white.z, 0.10f);
-    colors[ImGuiCol_TextSelectedBg]        = ImVec4(color1.x, color1.y, color1.z, 0.40f);
-    colors[ImGuiCol_DragDropTarget]        = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
+    colors[ImGuiCol_TextSelectedBg]        = ImVec4(color1.x, color1.y, color1.z, 1.00f);
+    colors[ImGuiCol_DragDropTarget]        = ImVec4(1.00f, 1.00f, 0.00f, 1.00f);
     colors[ImGuiCol_NavHighlight]          = ImVec4(color1.x, color1.y, color1.z, 1.00f);
-    colors[ImGuiCol_NavWindowingHighlight] = ImVec4(white.x, white.y, white.z, 0.70f);
-    colors[ImGuiCol_NavWindowingDimBg]     = ImVec4(gray80.x, gray80.y, gray80.z, 0.20f);
-    colors[ImGuiCol_ModalWindowDimBg]      = ImVec4(gray80.x, gray80.y, gray80.z, 0.40f);
+    colors[ImGuiCol_NavWindowingHighlight] = ImVec4(white.x, white.y, white.z, 1.00f);
+    colors[ImGuiCol_NavWindowingDimBg]     = ImVec4(gray80.x, gray80.y, gray80.z, 1.00f);
+    colors[ImGuiCol_ModalWindowDimBg]      = ImVec4(gray80.x, gray80.y, gray80.z, 1.00f);
     // clang-format on
 }
 
