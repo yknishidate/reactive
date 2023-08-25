@@ -261,6 +261,8 @@ public:
                 if (ImGui::IsWindowHovered()) {
                     dragDelta.x = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x * 0.5;
                     dragDelta.y = -ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y * 0.5;
+                    mouseScroll = ImGui::GetIO().MouseWheel;
+                    spdlog::info("mouseScroll: {}", mouseScroll);
                 }
                 ImGui::ResetMouseDragDelta();
 
@@ -310,6 +312,7 @@ public:
 
     void onUpdate() override {
         camera.processDragDelta(dragDelta);
+        camera.processMouseScroll(mouseScroll);
         pushConstants.viewProj = camera.getProj() * camera.getView();
     }
 
@@ -341,7 +344,6 @@ public:
         commandBuffer.bindPipeline(pipeline);
         commandBuffer.pushConstants(pipeline, &pushConstants);
 
-        // TODO: create depth image
         commandBuffer.beginRendering(viewportImage, viewportDepthImage, {0, 0},
                                      {extent.width, extent.height});
 
@@ -358,6 +360,7 @@ public:
 
     // Scene
     glm::vec2 dragDelta = {0.0f, 0.0f};
+    float mouseScroll = 0.0f;
     OrbitalCamera camera;
     MeshHandle cubeMesh;
 

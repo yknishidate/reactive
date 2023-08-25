@@ -12,6 +12,7 @@ struct Camera {
 
     virtual void processInput() = 0;
     virtual void processDragDelta(glm::vec2 dragDelta) = 0;
+    virtual void processMouseScroll(float scroll) = 0;
 
     virtual glm::mat4 getView() const = 0;
     virtual glm::mat4 getProj() const = 0;
@@ -38,6 +39,7 @@ struct FPSCamera : public Camera {
     // Override
     void processInput() override;
     void processDragDelta(glm::vec2 dragDelta) override;
+    void processMouseScroll(float scroll) override;
 
     glm::mat4 getView() const override;
     glm::mat4 getProj() const override;
@@ -57,6 +59,7 @@ struct OrbitalCamera : public Camera {
     // Override
     void processInput() override;
     void processDragDelta(glm::vec2 dragDelta) override;
+    void processMouseScroll(float scroll) override;
 
     glm::mat4 getView() const override;
     glm::mat4 getProj() const override;

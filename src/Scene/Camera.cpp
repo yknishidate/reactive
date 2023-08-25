@@ -57,6 +57,8 @@ void FPSCamera::processDragDelta(glm::vec2 dragDelta) {
     pitch = glm::clamp(pitch + dragDelta.y * 0.1f, -89.9f, 89.9f);
 }
 
+void FPSCamera::processMouseScroll(float scroll) {}
+
 glm::mat4 FPSCamera::getView() const {
     return glm::lookAt(position, position + getFront(), up);
 }
@@ -99,6 +101,10 @@ void OrbitalCamera::processInput() {
 void OrbitalCamera::processDragDelta(glm::vec2 dragDelta) {
     phi = glm::mod(phi - dragDelta.x * 0.5f, 360.0f);
     theta = std::min(std::max(theta + dragDelta.y * 0.5f, -89.9f), 89.9f);
+}
+
+void OrbitalCamera::processMouseScroll(float scroll) {
+    distance = std::max(distance - scroll, 0.001f);
 }
 
 glm::mat4 OrbitalCamera::getView() const {
