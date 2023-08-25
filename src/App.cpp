@@ -394,6 +394,21 @@ void App::createDepthImage() {
     });
 }
 
+void App::onWindowSize(int width, int height) {
+    if (width == 0 || height == 0) {
+        return;
+    }
+    context.getDevice().waitIdle();
+
+    depthImage.reset();
+    swapchainImageViews.clear();
+    swapchainImages.clear();
+    swapchain.reset();
+
+    createSwapchain();
+    createDepthImage();
+}
+
 // Callbacks
 void App::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     ImGuiIO& io = ImGui::GetIO();

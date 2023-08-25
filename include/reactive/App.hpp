@@ -96,17 +96,7 @@ public:
     virtual void onCursorEnter(int entered) {}
     virtual void onScroll(double xoffset, double yoffset) {}
     virtual void onDrop(int count, const char** paths) {}
-    virtual void onWindowSize(int width, int height) {
-        context.getDevice().waitIdle();
-
-        depthImage.reset();
-        swapchainImageViews.clear();
-        swapchainImages.clear();
-        swapchain.reset();
-
-        createSwapchain();
-        createDepthImage();
-    }
+    virtual void onWindowSize(int width, int height);
 
 protected:
     static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
