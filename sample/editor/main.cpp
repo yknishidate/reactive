@@ -1,11 +1,14 @@
-#include <imgui_impl_vulkan.h>
 
 #include <reactive/App.hpp>
+
+#include <ImGuizmo.h>
+#include <imgui_impl_vulkan.h>
 
 using namespace rv;
 
 struct PushConstants {
     glm::mat4 viewProj{1};
+    glm::mat4 model{1};
 };
 
 std::string vertCode = R"(
@@ -17,10 +20,11 @@ layout(location = 0) out vec3 outNormal;
 
 layout(push_constant) uniform PushConstants {
     mat4 viewProj;
+    mat4 model;
 };
 
 void main() {
-    gl_Position = viewProj * vec4(inPosition, 1);
+    gl_Position = viewProj * model * vec4(inPosition, 1);
     outNormal = inNormal;
 })";
 
@@ -213,7 +217,25 @@ public:
         });
     }
 
-    void ShowFullscreenDockspace() {
+    void editTransform(const Camera& camera, glm::mat4& matrix) {
+        // Gizmos
+        ImGuizmo::SetOrthographic(false);
+        ImGuizmo::SetDrawlist();
+
+        float windowWidth = (float)ImGui::GetWindowWidth();
+        float windowHeight = (float)ImGui::GetWindowHeight();
+        ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth,
+                          windowHeight);
+
+        const glm::mat4& cameraProjection = camera.getProj();
+        glm::mat4 cameraView = camera.getView();
+
+        ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
+                             ImGuizmo::TRANSLATE, ImGuizmo::LOCAL, glm::value_ptr(matrix), nullptr,
+                             nullptr);
+    }
+
+    void showFullscreenDockspace() {
         static bool dockspaceOpen = true;
 
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
@@ -232,7 +254,8 @@ public:
         window_flags |= ImGuiWindowFlags_MenuBar;
 
         if (dockspaceOpen) {
-            if (ImGui::Begin("DockSpace", &dockspaceOpen, window_flags)) {
+            {
+                ImGui::Begin("DockSpace", &dockspaceOpen, window_flags);
                 ImGui::PopStyleVar(3);
 
                 if (ImGui::BeginMenuBar()) {
@@ -254,57 +277,61 @@ public:
 
                 ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
                 ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
-                ImGui::End();
-            }
 
-            if (ImGui::Begin("Viewport")) {
-                if (ImGui::IsWindowHovered()) {
-                    dragDelta.x = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x * 0.5;
-                    dragDelta.y = -ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y * 0.5;
-                    mouseScroll = ImGui::GetIO().MouseWheel;
-                    spdlog::info("mouseScroll: {}", mouseScroll);
-                }
-                ImGui::ResetMouseDragDelta();
+                {
+                    ImGui::Begin("Scene");
+                    if (ImGui::TreeNode("Some object 0")) {
+                        ImGui::TreePop();
+                    }
 
-                ImVec2 windowSize = ImGui::GetContentRegionAvail();
-                viewportWidth = windowSize.x;
-                viewportHeight = windowSize.y;
-                ImGui::Image(viewportDescSet, windowSize, ImVec2(0, 1), ImVec2(1, 0));
-                ImGui::End();
-            }
+                    if (ImGui::TreeNode("Some object 1")) {
+                        ImGui::TreePop();
+                    }
 
-            {
-                ImGui::Begin("Scene");
-                if (ImGui::TreeNode("Some object 0")) {
-                    ImGui::TreePop();
+                    if (ImGui::TreeNode("Some object 2")) {
+                        ImGui::TreePop();
+                    }
+                    ImGui::End();
                 }
 
-                if (ImGui::TreeNode("Some object 1")) {
-                    ImGui::TreePop();
+                static float param0 = 0.0f;
+                static float param1 = 0.0f;
+                static float param2 = 0.0f;
+                static float color[3] = {0.0f, 0.0f, 0.0f};
+                {
+                    ImGui::Begin("Attribute");
+                    ImGui::SliderFloat("Some parameter 0", &param0, 0.0f, 1.0f);
+                    ImGui::SliderFloat("Some parameter 1", &param1, 0.0f, 1.0f);
+                    ImGui::SliderFloat("Some parameter 2", &param2, 0.0f, 1.0f);
+                    ImGui::ColorEdit3("Some color", color);
+                    ImGui::End();
                 }
 
-                if (ImGui::TreeNode("Some object 2")) {
-                    ImGui::TreePop();
+                if (ImGui::Begin("Project")) {
+                    for (int n = 0; n < 5; n++)
+                        ImGui::Text("Asset");
+                    ImGui::End();
                 }
-                ImGui::End();
-            }
 
-            static float param0 = 0.0f;
-            static float param1 = 0.0f;
-            static float param2 = 0.0f;
-            static float color[3] = {0.0f, 0.0f, 0.0f};
-            {
-                ImGui::Begin("Attribute");
-                ImGui::SliderFloat("Some parameter 0", &param0, 0.0f, 1.0f);
-                ImGui::SliderFloat("Some parameter 1", &param1, 0.0f, 1.0f);
-                ImGui::SliderFloat("Some parameter 2", &param2, 0.0f, 1.0f);
-                ImGui::ColorEdit3("Some color", color);
-                ImGui::End();
-            }
+                if (ImGui::Begin("Viewport")) {
+                    if (ImGui::IsWindowHovered() && !ImGuizmo::IsUsing()) {
+                        dragDelta.x = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x * 0.5;
+                        dragDelta.y = -ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y * 0.5;
+                        mouseScroll = ImGui::GetIO().MouseWheel;
+                        spdlog::info("mouseScroll: {}", mouseScroll);
+                    }
+                    ImGui::ResetMouseDragDelta();
 
-            if (ImGui::Begin("Project")) {
-                for (int n = 0; n < 5; n++)
-                    ImGui::Text("Asset");
+                    ImVec2 windowSize = ImGui::GetContentRegionAvail();
+                    viewportWidth = windowSize.x;
+                    viewportHeight = windowSize.y;
+                    ImGui::Image(viewportDescSet, windowSize, ImVec2(0, 1), ImVec2(1, 0));
+
+                    editTransform(camera, pushConstants.model);
+
+                    ImGui::End();
+                }
+
                 ImGui::End();
             }
         }
@@ -329,7 +356,7 @@ public:
             pushConstants.viewProj = camera.getProj() * camera.getView();
         }
 
-        ShowFullscreenDockspace();
+        showFullscreenDockspace();
 
         commandBuffer.clearColorImage(viewportImage, {0.0f, 0.0f, 0.0f, 1.0f});
         commandBuffer.transitionLayout(viewportImage, vk::ImageLayout::eGeneral);
@@ -368,6 +395,7 @@ public:
     bool viewportClicked = false;
     float viewportWidth;
     float viewportHeight;
+    // TODO: change to vector(3)
     ImageHandle viewportImage;
     ImageHandle viewportDepthImage;
     vk::DescriptorSet viewportDescSet;
