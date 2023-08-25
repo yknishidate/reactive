@@ -252,17 +252,16 @@ public:
             }
 
             if (ImGui::Begin("Viewport")) {
-                dragDelta.x = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x * 0.5;
-                dragDelta.y = -ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y * 0.5;
+                if (ImGui::IsWindowHovered()) {
+                    dragDelta.x = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x * 0.5;
+                    dragDelta.y = -ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y * 0.5;
+                }
                 ImGui::ResetMouseDragDelta();
 
                 ImVec2 windowSize = ImGui::GetContentRegionAvail();
                 viewportWidth = windowSize.x;
                 viewportHeight = windowSize.y;
-                vk::Extent3D extent = imguiImage->getExtent();
-                ImGui::Image(imguiDescSet,
-                             {static_cast<float>(extent.width), static_cast<float>(extent.height)},
-                             ImVec2(0, 1), ImVec2(1, 0));
+                ImGui::Image(imguiDescSet, windowSize, ImVec2(0, 1), ImVec2(1, 0));
                 ImGui::End();
             }
 
@@ -318,6 +317,7 @@ public:
             extent = imguiImage->getExtent();
 
             camera.aspect = viewportWidth / viewportHeight;
+            pushConstants.viewProj = camera.getProj() * camera.getView();
         }
 
         ShowFullscreenDockspace();
@@ -356,6 +356,7 @@ public:
     MeshHandle cubeMesh;
 
     // ImGui
+    bool viewportClicked = false;
     float viewportWidth;
     float viewportHeight;
     ImageHandle imguiImage;
