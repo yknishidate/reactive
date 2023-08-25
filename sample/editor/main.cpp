@@ -254,86 +254,84 @@ public:
         window_flags |= ImGuiWindowFlags_MenuBar;
 
         if (dockspaceOpen) {
+            ImGui::Begin("DockSpace", &dockspaceOpen, window_flags);
+            ImGui::PopStyleVar(3);
+
+            if (ImGui::BeginMenuBar()) {
+                if (ImGui::BeginMenu("File")) {
+                    if (ImGui::MenuItem("Open..", "Ctrl+O")) { /* Do stuff */
+                    }
+                    if (ImGui::MenuItem("Save", "Ctrl+S")) { /* Do stuff */
+                    }
+                    ImGui::EndMenu();
+                }
+                if (ImGui::BeginMenu("Edit")) {
+                    ImGui::EndMenu();
+                }
+                if (ImGui::BeginMenu("Create")) {
+                    ImGui::EndMenu();
+                }
+                ImGui::EndMenuBar();
+            }
+
+            ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
+            ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+
             {
-                ImGui::Begin("DockSpace", &dockspaceOpen, window_flags);
-                ImGui::PopStyleVar(3);
-
-                if (ImGui::BeginMenuBar()) {
-                    if (ImGui::BeginMenu("File")) {
-                        if (ImGui::MenuItem("Open..", "Ctrl+O")) { /* Do stuff */
-                        }
-                        if (ImGui::MenuItem("Save", "Ctrl+S")) { /* Do stuff */
-                        }
-                        ImGui::EndMenu();
-                    }
-                    if (ImGui::BeginMenu("Edit")) {
-                        ImGui::EndMenu();
-                    }
-                    if (ImGui::BeginMenu("Create")) {
-                        ImGui::EndMenu();
-                    }
-                    ImGui::EndMenuBar();
+                ImGui::Begin("Scene");
+                if (ImGui::TreeNode("Some object 0")) {
+                    ImGui::TreePop();
                 }
 
-                ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
-                ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
-
-                {
-                    ImGui::Begin("Scene");
-                    if (ImGui::TreeNode("Some object 0")) {
-                        ImGui::TreePop();
-                    }
-
-                    if (ImGui::TreeNode("Some object 1")) {
-                        ImGui::TreePop();
-                    }
-
-                    if (ImGui::TreeNode("Some object 2")) {
-                        ImGui::TreePop();
-                    }
-                    ImGui::End();
+                if (ImGui::TreeNode("Some object 1")) {
+                    ImGui::TreePop();
                 }
 
-                static float param0 = 0.0f;
-                static float param1 = 0.0f;
-                static float param2 = 0.0f;
-                static float color[3] = {0.0f, 0.0f, 0.0f};
-                {
-                    ImGui::Begin("Attribute");
-                    ImGui::SliderFloat("Some parameter 0", &param0, 0.0f, 1.0f);
-                    ImGui::SliderFloat("Some parameter 1", &param1, 0.0f, 1.0f);
-                    ImGui::SliderFloat("Some parameter 2", &param2, 0.0f, 1.0f);
-                    ImGui::ColorEdit3("Some color", color);
-                    ImGui::End();
+                if (ImGui::TreeNode("Some object 2")) {
+                    ImGui::TreePop();
                 }
+                ImGui::End();
+            }
 
-                if (ImGui::Begin("Project")) {
-                    for (int n = 0; n < 5; n++)
-                        ImGui::Text("Asset");
-                    ImGui::End();
+            static float param0 = 0.0f;
+            static float param1 = 0.0f;
+            static float param2 = 0.0f;
+            static float color[3] = {0.0f, 0.0f, 0.0f};
+            {
+                ImGui::Begin("Attribute");
+                ImGui::SliderFloat("Some parameter 0", &param0, 0.0f, 1.0f);
+                ImGui::SliderFloat("Some parameter 1", &param1, 0.0f, 1.0f);
+                ImGui::SliderFloat("Some parameter 2", &param2, 0.0f, 1.0f);
+                ImGui::ColorEdit3("Some color", color);
+                ImGui::End();
+            }
+
+            if (ImGui::Begin("Project")) {
+                for (int n = 0; n < 5; n++)
+                    ImGui::Text("Asset");
+                ImGui::End();
+            }
+
+            if (ImGui::Begin("Viewport")) {
+                if (ImGui::IsWindowHovered() && !ImGuizmo::IsUsing()) {
+                    dragDelta.x = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x * 0.5;
+                    dragDelta.y = -ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y * 0.5;
+                    mouseScroll = ImGui::GetIO().MouseWheel;
+                    spdlog::info("mouseScroll: {}", mouseScroll);
                 }
+                ImGui::ResetMouseDragDelta();
 
-                if (ImGui::Begin("Viewport")) {
-                    if (ImGui::IsWindowHovered() && !ImGuizmo::IsUsing()) {
-                        dragDelta.x = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x * 0.5;
-                        dragDelta.y = -ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y * 0.5;
-                        mouseScroll = ImGui::GetIO().MouseWheel;
-                        spdlog::info("mouseScroll: {}", mouseScroll);
-                    }
-                    ImGui::ResetMouseDragDelta();
+                ImVec2 windowSize = ImGui::GetContentRegionAvail();
+                viewportWidth = windowSize.x;
+                viewportHeight = windowSize.y;
+                ImGui::Image(viewportDescSet, windowSize, ImVec2(0, 1), ImVec2(1, 0));
 
-                    ImVec2 windowSize = ImGui::GetContentRegionAvail();
-                    viewportWidth = windowSize.x;
-                    viewportHeight = windowSize.y;
-                    ImGui::Image(viewportDescSet, windowSize, ImVec2(0, 1), ImVec2(1, 0));
-
-                    editTransform(camera, pushConstants.model);
-
-                    ImGui::End();
-                }
+                editTransform(camera, pushConstants.model);
 
                 ImGui::End();
             }
+
+            ImGui::End();
         }
     }
 

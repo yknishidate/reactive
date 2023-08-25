@@ -277,48 +277,123 @@ void App::initVulkan(ArrayProxy<Layer> requiredLayers, ArrayProxy<Extension> req
     }
 }
 
+void setImGuiStyle() {
+    ImVec4* colors = ImGui::GetStyle().Colors;
+
+    // clang-format off
+    ImVec4 color1 = ImVec4(200.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f, 1.0f);
+    ImVec4 color2 = ImVec4(100.0f / 255.0f, 20.0f / 255.0f, 20.0f / 255.0f, 1.0f);
+    ImVec4 color3 = ImVec4(164.0f / 255.0f, 30.0f / 255.0f, 34.0f / 255.0f, 1.0f); // original vulkan theme
+
+    ImVec4 white = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+    ImVec4 black = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+    ImVec4 gray80 = ImVec4(0.80f, 0.80f, 0.80f, 1.00f);
+    ImVec4 gray60 = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
+    ImVec4 gray50 = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+    ImVec4 gray40 = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
+    ImVec4 gray30 = ImVec4(0.30f, 0.30f, 0.30f, 1.00f);
+    ImVec4 gray20 = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+    ImVec4 gray10 = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
+
+    colors[ImGuiCol_Text]                  = white;
+    colors[ImGuiCol_TextDisabled]          = ImVec4(gray50.x, gray50.y, gray50.z, 1.00f);
+    colors[ImGuiCol_WindowBg]              = ImVec4(gray10.x, gray10.y, gray10.z, 1.00f);
+    colors[ImGuiCol_ChildBg]               = ImVec4(black.x, black.y, black.z, 0.00f);
+    colors[ImGuiCol_PopupBg]               = ImVec4(gray10.x, gray10.y, gray10.z, 1.00f);
+    colors[ImGuiCol_Border]                = ImVec4(gray50.x, gray50.y, gray50.z, 0.50f);
+    colors[ImGuiCol_BorderShadow]          = ImVec4(black.x, black.y, black.z, 0.00f);
+    colors[ImGuiCol_FrameBg]               = ImVec4(color2.x, color2.y, color2.z, 0.50f);
+    colors[ImGuiCol_FrameBgHovered]        = ImVec4(color1.x, color1.y, color1.z, 0.40f);
+    colors[ImGuiCol_FrameBgActive]         = ImVec4(color1.x, color1.y, color1.z, 0.70f);
+    colors[ImGuiCol_TitleBg]               = ImVec4(gray10.x, gray10.y, gray10.z, 1.00f);
+    colors[ImGuiCol_TitleBgActive]         = ImVec4(gray10.x, gray10.y, gray10.z, 1.00f);
+    colors[ImGuiCol_TitleBgCollapsed]      = ImVec4(black.x, black.y, black.z, 0.50f);
+    colors[ImGuiCol_MenuBarBg]             = ImVec4(gray10.x, gray10.y, gray10.z, 1.00f);
+    colors[ImGuiCol_ScrollbarBg]           = ImVec4(black.x, black.y, black.z, 0.50f);
+    colors[ImGuiCol_ScrollbarGrab]         = ImVec4(gray30.x, gray30.y, gray30.z, 1.00f);
+    colors[ImGuiCol_ScrollbarGrabHovered]  = ImVec4(gray40.x, gray40.y, gray40.z, 1.00f);
+    colors[ImGuiCol_ScrollbarGrabActive]   = ImVec4(gray50.x, gray50.y, gray50.z, 1.00f);
+    colors[ImGuiCol_CheckMark]             = ImVec4(color1.x, color1.y, color1.z, 1.00f);
+    colors[ImGuiCol_SliderGrab]            = ImVec4(color1.x, color1.y, color1.z, 1.00f);
+    colors[ImGuiCol_SliderGrabActive]      = ImVec4(color1.x, color1.y, color1.z, 1.00f);
+    colors[ImGuiCol_Button]                = ImVec4(color1.x, color1.y, color1.z, 0.40f);
+    colors[ImGuiCol_ButtonHovered]         = ImVec4(color1.x, color1.y, color1.z, 1.00f);
+    colors[ImGuiCol_ButtonActive]          = ImVec4(color1.x, color1.y, color1.z, 1.00f);
+    colors[ImGuiCol_Header]                = ImVec4(color1.x, color1.y, color1.z, 0.30f);
+    colors[ImGuiCol_HeaderHovered]         = ImVec4(color1.x, color1.y, color1.z, 0.80f);
+    colors[ImGuiCol_HeaderActive]          = ImVec4(color1.x, color1.y, color1.z, 1.00f);
+    colors[ImGuiCol_Separator]             = colors[ImGuiCol_Border];
+    colors[ImGuiCol_SeparatorHovered]      = ImVec4(color3.x, color3.y, color3.z, 0.80f);
+    colors[ImGuiCol_SeparatorActive]       = ImVec4(color3.x, color3.y, color3.z, 1.00f);
+    colors[ImGuiCol_ResizeGrip]            = ImVec4(color1.x, color1.y, color1.z, 0.20f);
+    colors[ImGuiCol_ResizeGripHovered]     = ImVec4(color1.x, color1.y, color1.z, 0.70f);
+    colors[ImGuiCol_ResizeGripActive]      = ImVec4(color1.x, color1.y, color1.z, 1.00f);
+    colors[ImGuiCol_Tab]                   = ImVec4(gray20.x, gray20.y, gray20.z, 1.00f);
+    colors[ImGuiCol_TabHovered]            = ImVec4(gray20.x, gray20.y, gray20.z, 1.00f);
+    colors[ImGuiCol_TabActive]             = ImVec4(gray20.x, gray20.y, gray20.z, 1.00f);
+    colors[ImGuiCol_TabUnfocused]          = ImVec4(gray20.x, gray20.y, gray20.z, 1.00f);
+    colors[ImGuiCol_TabUnfocusedActive]    = ImVec4(gray20.x, gray20.y, gray20.z, 1.00f);
+    colors[ImGuiCol_PlotLines]             = ImVec4(gray60.x, gray60.y, gray60.z, 1.00f);
+    colors[ImGuiCol_PlotLinesHovered]      = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
+    colors[ImGuiCol_PlotHistogram]         = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
+    colors[ImGuiCol_PlotHistogramHovered]  = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
+    colors[ImGuiCol_TableHeaderBg]         = ImVec4(gray20.x, gray20.y, gray20.z, 1.00f);
+    colors[ImGuiCol_TableBorderStrong]     = ImVec4(gray30.x, gray30.y, gray30.z, 1.00f);  // Prefer using Alpha=1.0 here
+    colors[ImGuiCol_TableBorderLight]      = ImVec4(gray20.x, gray20.y, gray20.z, 1.00f);  // Prefer using Alpha=1.0 here
+    colors[ImGuiCol_TableRowBg]            = ImVec4(black.x, black.y, black.z, 0.00f);
+    colors[ImGuiCol_TableRowBgAlt]         = ImVec4(white.x, white.y, white.z, 0.10f);
+    colors[ImGuiCol_TextSelectedBg]        = ImVec4(color1.x, color1.y, color1.z, 0.40f);
+    colors[ImGuiCol_DragDropTarget]        = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
+    colors[ImGuiCol_NavHighlight]          = ImVec4(color1.x, color1.y, color1.z, 1.00f);
+    colors[ImGuiCol_NavWindowingHighlight] = ImVec4(white.x, white.y, white.z, 0.70f);
+    colors[ImGuiCol_NavWindowingDimBg]     = ImVec4(gray80.x, gray80.y, gray80.z, 0.20f);
+    colors[ImGuiCol_ModalWindowDimBg]      = ImVec4(gray80.x, gray80.y, gray80.z, 0.40f);
+    // clang-format on
+}
+
 void App::initImGui() {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    ImGui::StyleColorsDark();
+    // ImGui::StyleColorsDark();
+    setImGuiStyle();
 
     // Color scheme
     // Vulkan color: RGB(164, 30, 34) or Hex(#A41E22)
-    ImVec4 vulkan = ImVec4(164.0f / 255.0f, 30.0f / 255.0f, 34.0f / 255.0f, 1.0f);
-    ImVec4 black100 = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
-    ImVec4 black90 = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
-    ImVec4 black80 = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
+    // ImVec4 vulkan = ImVec4(164.0f / 255.0f, 30.0f / 255.0f, 34.0f / 255.0f, 1.0f);
+    // ImVec4 black100 = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
+    // ImVec4 black90 = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
+    // ImVec4 black80 = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
 
-    ImGuiStyle& style = ImGui::GetStyle();
-    style.Colors[ImGuiCol_WindowBg] = black90;
-    style.Colors[ImGuiCol_TitleBg] = black90;
-    style.Colors[ImGuiCol_TitleBgActive] = black90;
-    style.Colors[ImGuiCol_Header] = vulkan;
-    style.Colors[ImGuiCol_HeaderActive] = vulkan;
-    style.Colors[ImGuiCol_HeaderHovered] = vulkan;
-    style.Colors[ImGuiCol_FrameBg] = black100;
-    style.Colors[ImGuiCol_FrameBgHovered] = black80;
-    style.Colors[ImGuiCol_FrameBgActive] = black80;
-    style.Colors[ImGuiCol_CheckMark] = vulkan;
-    style.Colors[ImGuiCol_SliderGrab] = vulkan;
-    style.Colors[ImGuiCol_SliderGrabActive] = vulkan;
-    style.Colors[ImGuiCol_Button] = vulkan;
-    style.Colors[ImGuiCol_ButtonHovered] = vulkan;
-    style.Colors[ImGuiCol_ButtonActive] = vulkan;
-    style.Colors[ImGuiCol_ResizeGrip] = vulkan;
-    style.Colors[ImGuiCol_ResizeGripHovered] = vulkan;
-    style.Colors[ImGuiCol_ResizeGripActive] = vulkan;
-    style.Colors[ImGuiCol_DockingPreview] = vulkan;
-    style.Colors[ImGuiCol_Tab] = black90;
-    style.Colors[ImGuiCol_TabActive] = black90;
-    style.Colors[ImGuiCol_TabHovered] = black90;
-    style.Colors[ImGuiCol_TabUnfocused] = black90;
-    style.Colors[ImGuiCol_TabUnfocusedActive] = black90;
-    style.Colors[ImGuiCol_Border] = black100;
-    style.Colors[ImGuiCol_BorderShadow] = black100;
+    // ImGuiStyle& style = ImGui::GetStyle();
+    // style.Colors[ImGuiCol_WindowBg] = black90;
+    // style.Colors[ImGuiCol_TitleBg] = black90;
+    // style.Colors[ImGuiCol_TitleBgActive] = black90;
+    // style.Colors[ImGuiCol_Header] = vulkan;
+    // style.Colors[ImGuiCol_HeaderActive] = vulkan;
+    // style.Colors[ImGuiCol_HeaderHovered] = vulkan;
+    // style.Colors[ImGuiCol_FrameBg] = black100;
+    // style.Colors[ImGuiCol_FrameBgHovered] = black80;
+    // style.Colors[ImGuiCol_FrameBgActive] = black80;
+    // style.Colors[ImGuiCol_CheckMark] = vulkan;
+    // style.Colors[ImGuiCol_SliderGrab] = vulkan;
+    // style.Colors[ImGuiCol_SliderGrabActive] = vulkan;
+    // style.Colors[ImGuiCol_Button] = vulkan;
+    // style.Colors[ImGuiCol_ButtonHovered] = vulkan;
+    // style.Colors[ImGuiCol_ButtonActive] = vulkan;
+    // style.Colors[ImGuiCol_ResizeGrip] = vulkan;
+    // style.Colors[ImGuiCol_ResizeGripHovered] = vulkan;
+    // style.Colors[ImGuiCol_ResizeGripActive] = vulkan;
+    // style.Colors[ImGuiCol_DockingPreview] = vulkan;
+    // style.Colors[ImGuiCol_Tab] = black90;
+    // style.Colors[ImGuiCol_TabActive] = black90;
+    // style.Colors[ImGuiCol_TabHovered] = black90;
+    // style.Colors[ImGuiCol_TabUnfocused] = black90;
+    // style.Colors[ImGuiCol_TabUnfocusedActive] = black90;
+    // style.Colors[ImGuiCol_Border] = black100;
+    // style.Colors[ImGuiCol_BorderShadow] = black100;
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForVulkan(window, true);
