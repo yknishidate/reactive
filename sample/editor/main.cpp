@@ -222,14 +222,13 @@ public:
         ImGuizmo::SetOrthographic(false);
         ImGuizmo::SetDrawlist();
 
-        float windowWidth = (float)ImGui::GetWindowWidth();
-        float windowHeight = (float)ImGui::GetWindowHeight();
-        ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth,
-                          windowHeight);
+        float windowWidth = ImGui::GetWindowWidth();
+        float windowHeight = ImGui::GetWindowHeight();
+        ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y,  // break
+                          windowWidth, windowHeight);
 
         const glm::mat4& cameraProjection = camera.getProj();
-        glm::mat4 cameraView = camera.getView();
-
+        const glm::mat4& cameraView = camera.getView();
         ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
                              ImGuizmo::TRANSLATE, ImGuizmo::LOCAL, glm::value_ptr(matrix), nullptr,
                              nullptr);
