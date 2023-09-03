@@ -142,6 +142,7 @@ public:
                    vk::ImageLayout newDstLayout) const;
 
     void copyImageToBuffer(ImageHandle srcImage, BufferHandle dstBuffer) const;
+    void copyBufferToImage(BufferHandle srcBuffer, ImageHandle dstImage) const;
 
     void fillBuffer(BufferHandle dstBuffer,
                     vk::DeviceSize dstOffset,

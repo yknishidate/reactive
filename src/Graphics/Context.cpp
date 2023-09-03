@@ -1,6 +1,7 @@
 #include "Graphics/Context.hpp"
 
 #include "Graphics/Accel.hpp"
+#include "Graphics/CommandBuffer.hpp"
 #include "Graphics/DescriptorSet.hpp"
 #include "Graphics/Image.hpp"
 #include "Graphics/Pipeline.hpp"
@@ -144,6 +145,13 @@ void Context::oneTimeSubmit(const std::function<void(vk::CommandBuffer)>& comman
 
     queue.submit(vk::SubmitInfo().setCommandBuffers(*commandBuffer));
     queue.waitIdle();
+}
+
+void Context::oneTimeSubmit(const std::function<void(CommandBuffer)>& command) const {
+    oneTimeSubmit([&](vk::CommandBuffer _commandBuffer) {
+        CommandBuffer commandBuffer = {this, _commandBuffer};
+        command(commandBuffer);
+    });
 }
 
 vk::UniqueDescriptorSet Context::allocateDescriptorSet(
