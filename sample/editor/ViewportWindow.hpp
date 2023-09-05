@@ -291,7 +291,7 @@ public:
     }
 
     void showToolBar(ImVec2 viewportPos) {
-        ImGui::SetCursorScreenPos(ImVec2(viewportPos.x + 10, viewportPos.y + 10));
+        ImGui::SetCursorScreenPos(ImVec2(viewportPos.x + 10, viewportPos.y + 15));
         ImGui::BeginChild("Toolbar", ImVec2(180, 60), false,
                           ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration);
 

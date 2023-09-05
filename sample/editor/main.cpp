@@ -44,6 +44,8 @@ public:
         scene.nodes.push_back(node);
 
         camera = OrbitalCamera{this, 1920, 1080};
+        camera.fovY = glm::radians(30.0f);
+        camera.distance = 10.0f;
 
         viewportWindow.createPipeline(context);
         viewportWindow.createImages(context, 1920, 1080);
