@@ -11,6 +11,7 @@ using namespace rv;
 struct PushConstants {
     glm::mat4 viewProj{1};
     glm::mat4 model{1};
+    glm::vec3 color{1};
 };
 
 std::string vertCode = R"(
@@ -23,6 +24,7 @@ layout(location = 0) out vec3 outNormal;
 layout(push_constant) uniform PushConstants {
     mat4 viewProj;
     mat4 model;
+    vec3 color;
 };
 
 void main() {
@@ -34,11 +36,17 @@ std::string fragCode = R"(
 #version 450
 layout(location = 0) in vec3 inNormal;
 layout(location = 0) out vec4 outColor;
+
+layout(push_constant) uniform PushConstants {
+    mat4 viewProj;
+    mat4 model;
+    vec3 color;
+};
+
 void main() {
     vec3 lightDir = normalize(vec3(1, 2, -3));
-    float diffuse = dot(lightDir, inNormal) * 0.5 + 0.5;
-    outColor = vec4(vec3(max(0.0, diffuse)), 1.0);
-    //outColor = vec4(inNormal, 1.0);
+    vec3 diffuse = color * (dot(lightDir, inNormal) * 0.5 + 0.5);
+    outColor = vec4(diffuse, 1.0);
 })";
 
 class GridRenderer {
@@ -256,6 +264,7 @@ public:
 
         for (auto& node : nodes) {
             pushConstants.model = node.computeTransformMatrix(frame);
+            pushConstants.color = node.material->baseColorFactor.xyz;
             Mesh* mesh = node.mesh;
             commandBuffer.pushConstants(pipeline, &pushConstants);
             commandBuffer.drawIndexed(mesh->vertexBuffer, mesh->indexBuffer,
@@ -455,14 +464,18 @@ public:
         material.baseColorFactor = glm::vec4{1, 0, 0, 1};
         scene.materials.push_back(material);
 
+        material.baseColorFactor = glm::vec4{1, 1, 0, 1};
+        scene.materials.push_back(material);
+
         // Add node
         Node node;
         node.name = "Cube 0";
         node.mesh = &scene.meshes.back();
-        node.material = &scene.materials.back();
+        node.material = &scene.materials[0];
         scene.nodes.push_back(node);
 
         node.name = "Cube 1";
+        node.material = &scene.materials[1];
         scene.nodes.push_back(node);
 
         camera = OrbitalCamera{this, 1920, 1080};
