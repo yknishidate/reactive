@@ -272,13 +272,27 @@ public:
         }
     }
 
-    void showToolIcon(int iconIndex, float thumbnailSize, ImGuizmo::OPERATION operation) {
-        if (ImGui::ImageButton(iconDescSets[iconIndex],         // user_texture_id
+    void showToolIcon(int toolIndex, float thumbnailSize, ImGuizmo::OPERATION operation) {
+        ImVec4 bgColor = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
+        ImVec4 bgHoverColor = ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
+
+        ImVec2 mousePos = ImGui::GetMousePos();
+        ImVec2 buttonMin = ImGui::GetCursorScreenPos();
+        ImVec2 buttonMax = ImVec2(buttonMin.x + thumbnailSize, buttonMin.y + thumbnailSize);
+
+        if (mousePos.x >= buttonMin.x &&  // break
+            mousePos.y >= buttonMin.y &&  // break
+            mousePos.x <= buttonMax.x &&  // break
+            mousePos.y <= buttonMax.y) {
+            bgColor = bgHoverColor;
+        }
+
+        if (ImGui::ImageButton(iconDescSets[toolIndex],         // user_texture_id
                                {thumbnailSize, thumbnailSize},  // size
                                {0, 0},                          // uv0
                                {1, 1},                          // uv1
                                0,                               // frame_padding
-                               ImVec4(0, 0, 0, 1)               // bg_col
+                               bgColor                          // bg_col
                                )) {
             currentGizmoOperation = operation;
         }
@@ -288,10 +302,10 @@ public:
     void showToolBar(ImVec2 viewportPos) {
         ImGui::SetCursorScreenPos(ImVec2(viewportPos.x + 10, viewportPos.y + 10));
 
-        ImGui::BeginChild("Overlay", ImVec2(500, 200), false,
+        ImGui::BeginChild("Overlay", ImVec2(180, 60), false,
                           ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration);
 
-        float padding = 4.0f;
+        float padding = 1.0f;
         float thumbnailSize = 50.0f;
         float cellSize = thumbnailSize + padding;
         float panelWidth = ImGui::GetContentRegionAvail().x;
@@ -330,7 +344,7 @@ public:
             {
                 commandBuffer.bindDescriptorSet(descSet, pipeline);
                 commandBuffer.bindPipeline(pipeline);
-                commandBuffer.clearColorImage(colorImage, {0.0f, 0.0f, 0.0f, 1.0f});
+                commandBuffer.clearColorImage(colorImage, {0.05f, 0.05f, 0.05f, 1.0f});
                 commandBuffer.clearDepthStencilImage(depthImage, 1.0f, 0);
                 commandBuffer.transitionLayout(colorImage, vk::ImageLayout::eGeneral);
 
