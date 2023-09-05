@@ -193,15 +193,9 @@ public:
     }
 
     void createIcons(const rv::Context& context) {
-        icons.push_back(rv::Image::loadFromFile(context, ASSET_DIR + "icons/manip_translate.png"));
-        icons.push_back(rv::Image::loadFromFile(context, ASSET_DIR + "icons/manip_rotate.png"));
-        icons.push_back(rv::Image::loadFromFile(context, ASSET_DIR + "icons/manip_scale.png"));
-        iconDescSets.emplace_back(ImGui_ImplVulkan_AddTexture(
-            icons[0]->getSampler(), icons[0]->getView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
-        iconDescSets.emplace_back(ImGui_ImplVulkan_AddTexture(
-            icons[1]->getSampler(), icons[1]->getView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
-        iconDescSets.emplace_back(ImGui_ImplVulkan_AddTexture(
-            icons[2]->getSampler(), icons[2]->getView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+        iconManager.addIcon(context, "manip_translate", ASSET_DIR + "icons/manip_translate.png");
+        iconManager.addIcon(context, "manip_rotate", ASSET_DIR + "icons/manip_rotate.png");
+        iconManager.addIcon(context, "manip_scale", ASSET_DIR + "icons/manip_scale.png");
     }
 
     void editTransform(const rv::Camera& camera, glm::mat4& matrix) const {
@@ -270,26 +264,6 @@ public:
         }
     }
 
-    void showToolIcon(int toolIndex, float thumbnailSize, ImGuizmo::OPERATION operation) {
-        ImVec4 bgColor = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
-        ImVec2 mousePos = ImGui::GetMousePos();
-        ImVec2 buttonMin = ImGui::GetCursorScreenPos();
-        ImVec2 buttonMax = ImVec2(buttonMin.x + thumbnailSize, buttonMin.y + thumbnailSize);
-        if (mousePos.x >= buttonMin.x &&  // break
-            mousePos.y >= buttonMin.y &&  // break
-            mousePos.x <= buttonMax.x &&  // break
-            mousePos.y <= buttonMax.y) {
-            bgColor = ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
-        }
-
-        if (ImGui::ImageButton(iconDescSets[toolIndex],         // texture
-                               {thumbnailSize, thumbnailSize},  // size
-                               {0, 0}, {1, 1}, 0, bgColor)) {
-            currentGizmoOperation = operation;
-        }
-        ImGui::NextColumn();
-    }
-
     void showToolBar(ImVec2 viewportPos) {
         ImGui::SetCursorScreenPos(ImVec2(viewportPos.x + 10, viewportPos.y + 15));
         ImGui::BeginChild("Toolbar", ImVec2(180, 60), false,
@@ -302,9 +276,14 @@ public:
         int columnCount = static_cast<int>(panelWidth / cellSize);
         ImGui::Columns(columnCount, 0, false);
 
-        showToolIcon(0, thumbnailSize, ImGuizmo::TRANSLATE);
-        showToolIcon(1, thumbnailSize, ImGuizmo::ROTATE);
-        showToolIcon(2, thumbnailSize, ImGuizmo::SCALE);
+        ImVec4 bgColor = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
+        ImVec4 bgHoverColor = ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
+        iconManager.show("manip_translate", false, thumbnailSize, bgColor, bgHoverColor,
+                         [&]() { currentGizmoOperation = ImGuizmo::TRANSLATE; });
+        iconManager.show("manip_rotate", false, thumbnailSize, bgColor, bgHoverColor,
+                         [&]() { currentGizmoOperation = ImGuizmo::ROTATE; });
+        iconManager.show("manip_scale", false, thumbnailSize, bgColor, bgHoverColor,
+                         [&]() { currentGizmoOperation = ImGuizmo::SCALE; });
 
         ImGui::Columns(1);
         ImGui::EndChild();
@@ -374,7 +353,6 @@ public:
     rv::GraphicsPipelineHandle pipeline;
     GridRenderer gridRenderer;
 
-    std::vector<rv::ImageHandle> icons;
-    std::vector<vk::DescriptorSet> iconDescSets;
+    IconManager iconManager;
     ImGuizmo::OPERATION currentGizmoOperation = ImGuizmo::TRANSLATE;
 };

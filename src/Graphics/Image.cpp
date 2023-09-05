@@ -114,6 +114,7 @@ ImageHandle Image::loadFromFile(const Context& context,
         .format = vk::Format::eR8G8B8A8Unorm,
         .layout = vk::ImageLayout::eTransferDstOptimal,
         .mipLevels = mipLevels,
+        .debugName = filepath.c_str(),
     });
 
     // Copy to image
