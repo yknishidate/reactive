@@ -192,6 +192,18 @@ public:
         gridRenderer.createPipeline(context);
     }
 
+    void createIcons(const rv::Context& context) {
+        icons.push_back(rv::Image::loadFromFile(context, ASSET_DIR + "icons/manip_translate.png"));
+        icons.push_back(rv::Image::loadFromFile(context, ASSET_DIR + "icons/manip_rotate.png"));
+        icons.push_back(rv::Image::loadFromFile(context, ASSET_DIR + "icons/manip_scale.png"));
+        iconDescSets.emplace_back(ImGui_ImplVulkan_AddTexture(
+            icons[0]->getSampler(), icons[0]->getView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+        iconDescSets.emplace_back(ImGui_ImplVulkan_AddTexture(
+            icons[1]->getSampler(), icons[1]->getView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+        iconDescSets.emplace_back(ImGui_ImplVulkan_AddTexture(
+            icons[2]->getSampler(), icons[2]->getView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+    }
+
     void editTransform(const rv::Camera& camera, glm::mat4& matrix) const {
         ImGuizmo::SetOrthographic(false);
         ImGuizmo::SetDrawlist();
@@ -202,7 +214,7 @@ public:
         glm::mat4 cameraProjection = camera.getProj();
         glm::mat4 cameraView = camera.getView();
         ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
-                             ImGuizmo::TRANSLATE, ImGuizmo::LOCAL, glm::value_ptr(matrix));
+                             currentGizmoOperation, ImGuizmo::LOCAL, glm::value_ptr(matrix));
     }
 
     void createImages(const rv::Context& context, uint32_t _width, uint32_t _height) {
@@ -232,6 +244,8 @@ public:
             .aspect = vk::ImageAspectFlagBits::eDepth,
             .debugName = "ViewportWindow::depthImage",
         });
+
+        createIcons(context);
     }
 
     void processMouseInput() {
@@ -258,6 +272,40 @@ public:
         }
     }
 
+    void showToolIcon(int iconIndex, float thumbnailSize, ImGuizmo::OPERATION operation) {
+        if (ImGui::ImageButton(iconDescSets[iconIndex],         // user_texture_id
+                               {thumbnailSize, thumbnailSize},  // size
+                               {0, 0},                          // uv0
+                               {1, 1},                          // uv1
+                               0,                               // frame_padding
+                               ImVec4(0, 0, 0, 1)               // bg_col
+                               )) {
+            currentGizmoOperation = operation;
+        }
+        ImGui::NextColumn();
+    }
+
+    void showToolBar(ImVec2 viewportPos) {
+        ImGui::SetCursorScreenPos(ImVec2(viewportPos.x + 10, viewportPos.y + 10));
+
+        ImGui::BeginChild("Overlay", ImVec2(500, 200), false,
+                          ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration);
+
+        float padding = 4.0f;
+        float thumbnailSize = 50.0f;
+        float cellSize = thumbnailSize + padding;
+        float panelWidth = ImGui::GetContentRegionAvail().x;
+        int columnCount = static_cast<int>(panelWidth / cellSize);
+        ImGui::Columns(columnCount, 0, false);
+
+        showToolIcon(0, thumbnailSize, ImGuizmo::TRANSLATE);
+        showToolIcon(1, thumbnailSize, ImGuizmo::ROTATE);
+        showToolIcon(2, thumbnailSize, ImGuizmo::SCALE);
+
+        ImGui::Columns(1);
+        ImGui::EndChild();
+    }
+
     void show(const rv::CommandBuffer& commandBuffer,
               Scene& scene,
               Node* selectedNode,
@@ -266,33 +314,38 @@ public:
         if (ImGui::Begin("Viewport")) {
             processMouseInput();
 
+            // Show viewport
+            ImVec2 windowPos = ImGui::GetCursorScreenPos();
             ImVec2 windowSize = ImGui::GetContentRegionAvail();
             width = windowSize.x;
             height = windowSize.y;
 
             ImGui::Image(imguiDescSet, windowSize, ImVec2(0, 1), ImVec2(1, 0));
 
+            showToolBar(windowPos);
+
             showGizmo(scene, selectedNode, camera, frame);
 
-            commandBuffer.bindDescriptorSet(descSet, pipeline);
-            commandBuffer.bindPipeline(pipeline);
+            // Render scene
+            {
+                commandBuffer.bindDescriptorSet(descSet, pipeline);
+                commandBuffer.bindPipeline(pipeline);
+                commandBuffer.clearColorImage(colorImage, {0.0f, 0.0f, 0.0f, 1.0f});
+                commandBuffer.clearDepthStencilImage(depthImage, 1.0f, 0);
+                commandBuffer.transitionLayout(colorImage, vk::ImageLayout::eGeneral);
 
-            commandBuffer.clearColorImage(colorImage, {0.0f, 0.0f, 0.0f, 1.0f});
-            commandBuffer.clearDepthStencilImage(depthImage, 1.0f, 0);
+                vk::Extent3D extent = colorImage->getExtent();
+                commandBuffer.setViewport(extent.width, extent.height);
+                commandBuffer.setScissor(extent.width, extent.height);
+                commandBuffer.beginRendering(colorImage, depthImage, {0, 0},
+                                             {extent.width, extent.height});
 
-            commandBuffer.transitionLayout(colorImage, vk::ImageLayout::eGeneral);
+                glm::mat4 viewProj = camera.getProj() * camera.getView();
+                scene.draw(commandBuffer, pipeline, viewProj, frame);
+                gridRenderer.render(commandBuffer, extent.width, extent.height, viewProj);
 
-            vk::Extent3D extent = colorImage->getExtent();
-            commandBuffer.setViewport(extent.width, extent.height);
-            commandBuffer.setScissor(extent.width, extent.height);
-            commandBuffer.beginRendering(colorImage, depthImage, {0, 0},
-                                         {extent.width, extent.height});
-
-            glm::mat4 viewProj = camera.getProj() * camera.getView();
-            scene.draw(commandBuffer, pipeline, viewProj, frame);
-            gridRenderer.render(commandBuffer, extent.width, extent.height, viewProj);
-
-            commandBuffer.endRendering();
+                commandBuffer.endRendering();
+            }
 
             ImGui::End();
         }
@@ -316,4 +369,8 @@ public:
     rv::DescriptorSetHandle descSet;
     rv::GraphicsPipelineHandle pipeline;
     GridRenderer gridRenderer;
+
+    std::vector<rv::ImageHandle> icons;
+    std::vector<vk::DescriptorSet> iconDescSets;
+    ImGuizmo::OPERATION currentGizmoOperation = ImGuizmo::TRANSLATE;
 };
