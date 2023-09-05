@@ -316,9 +316,12 @@ public:
 
         // Add node
         Node node;
-        node.name = "Cube";
+        node.name = "Cube 0";
         node.mesh = &scene.meshes.back();
         node.material = &scene.materials.back();
+        scene.nodes.push_back(node);
+
+        node.name = "Cube 1";
         scene.nodes.push_back(node);
 
         camera = OrbitalCamera{this, 1920, 1080};
@@ -366,11 +369,21 @@ public:
                              nullptr);
     }
 
-    void showSceneHierarchy() const {
+    void showSceneHierarchy() {
         ImGui::Begin("Scene");
 
-        for (const auto& node : scene.nodes) {
-            if (ImGui::TreeNode(node.name.c_str())) {
+        for (auto& node : scene.nodes) {
+            int flag = ImGuiTreeNodeFlags_OpenOnArrow;
+            if (&node == selectedNode) {
+                flag = flag | ImGuiTreeNodeFlags_Selected;
+            }
+
+            bool open = ImGui::TreeNodeEx(node.name.c_str(), flag);
+            if (ImGui::IsItemClicked()) {
+                selectedNode = &node;
+                spdlog::info("Selected: {}", node.name);
+            }
+            if (open) {
                 ImGui::TreePop();
             }
         }
@@ -446,7 +459,6 @@ public:
                     dragDelta.x = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x * 0.5;
                     dragDelta.y = -ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y * 0.5;
                     mouseScroll = ImGui::GetIO().MouseWheel;
-                    spdlog::info("mouseScroll: {}", mouseScroll);
                 }
                 ImGui::ResetMouseDragDelta();
 
@@ -457,15 +469,17 @@ public:
                 ImGui::Image(viewportDescSet, windowSize, ImVec2(0, 1), ImVec2(1, 0));
 
                 // Show gizmo
-                if (selectedNode) {
-                    glm::mat4 model = selectedNode->computeTransformMatrix(frame);
-                    editTransform(camera, model);
+                for (auto& node : scene.nodes) {
+                    if (&node == selectedNode) {
+                        glm::mat4 model = node.computeTransformMatrix(frame);
+                        editTransform(camera, model);
 
-                    Transform& transform = selectedNode->transform;
-                    glm::vec3 skew;
-                    glm::vec4 perspective;
-                    glm::decompose(model, transform.translation, transform.rotation,
-                                   transform.scale, skew, perspective);
+                        Transform& transform = node.transform;
+                        glm::vec3 skew;
+                        glm::vec4 perspective;
+                        glm::decompose(model, transform.scale, transform.rotation,
+                                       transform.translation, skew, perspective);
+                    }
                 }
 
                 ImGui::End();
@@ -526,7 +540,6 @@ public:
     OrbitalCamera camera;
     Scene scene;
     int frame = 0;
-    Node* selectedNode = nullptr;
 
     // ImGui
     bool viewportClicked = false;
@@ -536,6 +549,7 @@ public:
     ImageHandle viewportImage;
     ImageHandle viewportDepthImage;
     vk::DescriptorSet viewportDescSet;
+    Node* selectedNode = nullptr;
 
     // Editor
     GridRenderer gridRenderer;
