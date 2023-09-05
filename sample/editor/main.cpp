@@ -312,11 +312,26 @@ public:
                              nullptr);
     }
 
+    void beginRendering(CommandBuffer commandBuffer) const {
+        commandBuffer.clearColorImage(colorImage, {0.0f, 0.0f, 0.0f, 1.0f});
+        commandBuffer.clearDepthStencilImage(depthImage, 1.0f, 0);
+
+        commandBuffer.transitionLayout(colorImage, vk::ImageLayout::eGeneral);
+
+        vk::Extent3D extent = colorImage->getExtent();
+        commandBuffer.setViewport(extent.width, extent.height);
+        commandBuffer.setScissor(extent.width, extent.height);
+
+        commandBuffer.beginRendering(colorImage, depthImage, {0, 0}, {extent.width, extent.height});
+    }
+
+    void endRendering(CommandBuffer commandBuffer) const { commandBuffer.endRendering(); }
+
     void createImages(const Context& context, uint32_t _width, uint32_t _height) {
         width = _width;
         height = _height;
 
-        image = context.createImage({
+        colorImage = context.createImage({
             .usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage |
                      vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc |
                      vk::ImageUsageFlagBits::eColorAttachment,
@@ -325,7 +340,7 @@ public:
             .layout = vk::ImageLayout::eGeneral,
         });
         ImGui_ImplVulkan_RemoveTexture(descSet);
-        descSet = ImGui_ImplVulkan_AddTexture(image->getSampler(), image->getView(),
+        descSet = ImGui_ImplVulkan_AddTexture(colorImage->getSampler(), colorImage->getView(),
                                               VK_IMAGE_LAYOUT_GENERAL);
 
         depthImage = context.createImage({
@@ -374,8 +389,7 @@ public:
     bool clicked = false;
     float width;
     float height;
-    // TODO: change to vector(3)
-    ImageHandle image;
+    ImageHandle colorImage;
     ImageHandle depthImage;
     vk::DescriptorSet descSet;
 };
@@ -518,40 +532,32 @@ public:
     }
 
     void onRender(const CommandBuffer& commandBuffer) override {
-        vk::Extent3D extent = viewportWindow.image->getExtent();
+        vk::Extent3D extent = viewportWindow.colorImage->getExtent();
         if (uint32_t(viewportWindow.width) != extent.width ||
             uint32_t(viewportWindow.height) != extent.height) {
             context.getDevice().waitIdle();
 
             // TODO: remove width, height
             viewportWindow.createImages(context, viewportWindow.width, viewportWindow.height);
-            extent = viewportWindow.image->getExtent();
+            extent = viewportWindow.colorImage->getExtent();
 
             camera.aspect = viewportWindow.width / viewportWindow.height;
         }
 
         showFullscreenDockspace();
 
-        commandBuffer.clearColorImage(viewportWindow.image, {0.0f, 0.0f, 0.0f, 1.0f});
-        commandBuffer.transitionLayout(viewportWindow.image, vk::ImageLayout::eGeneral);
-
         commandBuffer.clearColorImage(getCurrentColorImage(), {0.0f, 0.0f, 0.0f, 1.0f});
-        commandBuffer.clearDepthStencilImage(viewportWindow.depthImage, 1.0f, 0);
-
-        commandBuffer.setViewport(extent.width, extent.height);
-        commandBuffer.setScissor(extent.width, extent.height);
 
         commandBuffer.bindDescriptorSet(descSet, pipeline);
         commandBuffer.bindPipeline(pipeline);
 
-        commandBuffer.beginRendering(viewportWindow.image, viewportWindow.depthImage, {0, 0},
-                                     {extent.width, extent.height});
+        viewportWindow.beginRendering(commandBuffer);
 
         auto viewProj = camera.getProj() * camera.getView();
         scene.draw(commandBuffer, pipeline, viewProj, frame);
         gridRenderer.render(commandBuffer, extent.width, extent.height, viewProj);
 
-        commandBuffer.endRendering();
+        viewportWindow.endRendering(commandBuffer);
     }
 
     DescriptorSetHandle descSet;
