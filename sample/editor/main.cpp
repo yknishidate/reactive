@@ -417,6 +417,18 @@ public:
     vk::DescriptorSet descSet;
 };
 
+class AttributeWindow {
+public:
+    void show(Scene& scene, Node* selectedNode) const {
+        ImGui::Begin("Attribute");
+        if (selectedNode) {
+            Material* material = selectedNode->material;
+            ImGui::ColorEdit4("Base color", &material->baseColorFactor[0]);
+        }
+        ImGui::End();
+    }
+};
+
 class Editor : public App {
 public:
     Editor()
@@ -526,19 +538,7 @@ public:
             ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 
             sceneHierarchyWindow.show(scene, &selectedNode);
-
-            static float param0 = 0.0f;
-            static float param1 = 0.0f;
-            static float param2 = 0.0f;
-            static float color[3] = {0.0f, 0.0f, 0.0f};
-            {
-                ImGui::Begin("Attribute");
-                ImGui::SliderFloat("Some parameter 0", &param0, 0.0f, 1.0f);
-                ImGui::SliderFloat("Some parameter 1", &param1, 0.0f, 1.0f);
-                ImGui::SliderFloat("Some parameter 2", &param2, 0.0f, 1.0f);
-                ImGui::ColorEdit3("Some color", color);
-                ImGui::End();
-            }
+            attributeWindow.show(scene, selectedNode);
 
             if (ImGui::Begin("Project")) {
                 for (int n = 0; n < 5; n++)
@@ -602,6 +602,7 @@ public:
     GridRenderer gridRenderer;
     SceneHierarchyWindow sceneHierarchyWindow;
     ViewportWindow viewportWindow;
+    AttributeWindow attributeWindow;
 };
 
 int main() {
