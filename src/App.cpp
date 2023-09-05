@@ -155,7 +155,6 @@ void App::initGLFW(bool resizable, const char* title) {
     // Setup input callbacks
     glfwSetWindowUserPointer(window, this);
     glfwSetKeyCallback(window, keyCallback);
-    glfwSetCharCallback(window, charCallback);
     glfwSetCharModsCallback(window, charModsCallback);
     glfwSetMouseButtonCallback(window, mouseButtonCallback);
     glfwSetCursorPosCallback(window, cursorPosCallback);
@@ -454,13 +453,6 @@ void App::keyCallback(GLFWwindow* window, int key, int scancode, int action, int
         App* app = (App*)glfwGetWindowUserPointer(window);
         app->onKey(key, scancode, action, mods);
     }
-}
-
-void App::charCallback(GLFWwindow* window, unsigned int codepoint) {
-    App* app = (App*)glfwGetWindowUserPointer(window);
-    ImGuiIO& io = ImGui::GetIO();
-    io.AddInputCharacter(codepoint);
-    app->onChar(codepoint);
 }
 
 void App::charModsCallback(GLFWwindow* window, unsigned int codepoint, int mods) {

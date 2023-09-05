@@ -75,10 +75,9 @@ public:
 
     // Getter
     ImageHandle getCurrentColorImage() const {
-        return std::make_shared<Image>(swapchainImages[frameIndex],
-                                       *swapchainImageViews[frameIndex],
-                                       vk::Extent3D{width, height, 1},
-                                       vk::ImageAspectFlagBits::eColor);
+        return std::make_shared<Image>(
+            swapchainImages[frameIndex], *swapchainImageViews[frameIndex],
+            vk::Extent3D{width, height, 1}, vk::ImageAspectFlagBits::eColor);
     }
     ImageHandle getDefaultDepthImage() const { return depthImage; }
 
@@ -100,7 +99,6 @@ public:
 
 protected:
     static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-    static void charCallback(GLFWwindow* window, unsigned int codepoint);
     static void charModsCallback(GLFWwindow* window, unsigned int codepoint, int mods);
     static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
     static void cursorPosCallback(GLFWwindow* window, double xpos, double ypos);
