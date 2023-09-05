@@ -274,26 +274,19 @@ public:
 
     void showToolIcon(int toolIndex, float thumbnailSize, ImGuizmo::OPERATION operation) {
         ImVec4 bgColor = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
-        ImVec4 bgHoverColor = ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
-
         ImVec2 mousePos = ImGui::GetMousePos();
         ImVec2 buttonMin = ImGui::GetCursorScreenPos();
         ImVec2 buttonMax = ImVec2(buttonMin.x + thumbnailSize, buttonMin.y + thumbnailSize);
-
         if (mousePos.x >= buttonMin.x &&  // break
             mousePos.y >= buttonMin.y &&  // break
             mousePos.x <= buttonMax.x &&  // break
             mousePos.y <= buttonMax.y) {
-            bgColor = bgHoverColor;
+            bgColor = ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
         }
 
-        if (ImGui::ImageButton(iconDescSets[toolIndex],         // user_texture_id
+        if (ImGui::ImageButton(iconDescSets[toolIndex],         // texture
                                {thumbnailSize, thumbnailSize},  // size
-                               {0, 0},                          // uv0
-                               {1, 1},                          // uv1
-                               0,                               // frame_padding
-                               bgColor                          // bg_col
-                               )) {
+                               {0, 0}, {1, 1}, 0, bgColor)) {
             currentGizmoOperation = operation;
         }
         ImGui::NextColumn();
@@ -301,8 +294,7 @@ public:
 
     void showToolBar(ImVec2 viewportPos) {
         ImGui::SetCursorScreenPos(ImVec2(viewportPos.x + 10, viewportPos.y + 10));
-
-        ImGui::BeginChild("Overlay", ImVec2(180, 60), false,
+        ImGui::BeginChild("Toolbar", ImVec2(180, 60), false,
                           ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration);
 
         float padding = 1.0f;
