@@ -354,43 +354,7 @@ void App::initImGui() {
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    // ImGui::StyleColorsDark();
     setImGuiStyle();
-
-    // Color scheme
-    // Vulkan color: RGB(164, 30, 34) or Hex(#A41E22)
-    // ImVec4 vulkan = ImVec4(164.0f / 255.0f, 30.0f / 255.0f, 34.0f / 255.0f, 1.0f);
-    // ImVec4 black100 = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
-    // ImVec4 black90 = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
-    // ImVec4 black80 = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
-
-    // ImGuiStyle& style = ImGui::GetStyle();
-    // style.Colors[ImGuiCol_WindowBg] = black90;
-    // style.Colors[ImGuiCol_TitleBg] = black90;
-    // style.Colors[ImGuiCol_TitleBgActive] = black90;
-    // style.Colors[ImGuiCol_Header] = vulkan;
-    // style.Colors[ImGuiCol_HeaderActive] = vulkan;
-    // style.Colors[ImGuiCol_HeaderHovered] = vulkan;
-    // style.Colors[ImGuiCol_FrameBg] = black100;
-    // style.Colors[ImGuiCol_FrameBgHovered] = black80;
-    // style.Colors[ImGuiCol_FrameBgActive] = black80;
-    // style.Colors[ImGuiCol_CheckMark] = vulkan;
-    // style.Colors[ImGuiCol_SliderGrab] = vulkan;
-    // style.Colors[ImGuiCol_SliderGrabActive] = vulkan;
-    // style.Colors[ImGuiCol_Button] = vulkan;
-    // style.Colors[ImGuiCol_ButtonHovered] = vulkan;
-    // style.Colors[ImGuiCol_ButtonActive] = vulkan;
-    // style.Colors[ImGuiCol_ResizeGrip] = vulkan;
-    // style.Colors[ImGuiCol_ResizeGripHovered] = vulkan;
-    // style.Colors[ImGuiCol_ResizeGripActive] = vulkan;
-    // style.Colors[ImGuiCol_DockingPreview] = vulkan;
-    // style.Colors[ImGuiCol_Tab] = black90;
-    // style.Colors[ImGuiCol_TabActive] = black90;
-    // style.Colors[ImGuiCol_TabHovered] = black90;
-    // style.Colors[ImGuiCol_TabUnfocused] = black90;
-    // style.Colors[ImGuiCol_TabUnfocusedActive] = black90;
-    // style.Colors[ImGuiCol_Border] = black100;
-    // style.Colors[ImGuiCol_BorderShadow] = black100;
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForVulkan(window, true);
