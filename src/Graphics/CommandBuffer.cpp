@@ -230,6 +230,14 @@ void CommandBuffer::copyImageToBuffer(ImageHandle srcImage, BufferHandle dstBuff
                                     dstBuffer->getBuffer(), region);
 }
 
+void CommandBuffer::copyBufferToImage(BufferHandle srcBuffer, ImageHandle dstImage) const {
+    vk::BufferImageCopy region;
+    region.setImageExtent(dstImage->getExtent());
+    region.setImageSubresource({dstImage->getAspectMask(), 0, 0, 1});
+    commandBuffer.copyBufferToImage(srcBuffer->getBuffer(), dstImage->getImage(),
+                                    dstImage->getLayout(), region);
+}
+
 void CommandBuffer::fillBuffer(BufferHandle dstBuffer,
                                vk::DeviceSize dstOffset,
                                vk::DeviceSize size,

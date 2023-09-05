@@ -39,6 +39,7 @@ class RayTracingPipeline;
 class BottomAccel;
 class TopAccel;
 class GPUTimer;
+class CommandBuffer;
 
 using BufferHandle = std::shared_ptr<Buffer>;
 using ImageHandle = std::shared_ptr<Image>;
@@ -156,6 +157,7 @@ public:
     std::vector<vk::UniqueCommandBuffer> allocateCommandBuffers(uint32_t count) const;
 
     void oneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command) const;
+    void oneTimeSubmit(const std::function<void(CommandBuffer)>& command) const;
 
     vk::UniqueDescriptorSet allocateDescriptorSet(vk::DescriptorSetLayout descSetLayout) const;
 
