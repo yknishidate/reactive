@@ -236,6 +236,7 @@ public:
         return computeTransformAtFrame(frame).computeNormalMatrix();
     }
 
+    std::string name;
     Mesh* mesh = nullptr;
     Material* material = nullptr;
     Transform transform;
@@ -315,6 +316,7 @@ public:
 
         // Add node
         Node node;
+        node.name = "Cube";
         node.mesh = &scene.meshes.back();
         node.material = &scene.materials.back();
         scene.nodes.push_back(node);
@@ -364,6 +366,18 @@ public:
                              nullptr);
     }
 
+    void showSceneHierarchy() const {
+        ImGui::Begin("Scene");
+
+        for (const auto& node : scene.nodes) {
+            if (ImGui::TreeNode(node.name.c_str())) {
+                ImGui::TreePop();
+            }
+        }
+
+        ImGui::End();
+    }
+
     void showFullscreenDockspace() {
         static bool dockspaceOpen = true;
 
@@ -406,21 +420,7 @@ public:
             ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
             ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 
-            {
-                ImGui::Begin("Scene");
-                if (ImGui::TreeNode("Some object 0")) {
-                    ImGui::TreePop();
-                }
-
-                if (ImGui::TreeNode("Some object 1")) {
-                    ImGui::TreePop();
-                }
-
-                if (ImGui::TreeNode("Some object 2")) {
-                    ImGui::TreePop();
-                }
-                ImGui::End();
-            }
+            showSceneHierarchy();
 
             static float param0 = 0.0f;
             static float param1 = 0.0f;
