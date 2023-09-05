@@ -43,9 +43,12 @@ public:
 
         camera = OrbitalCamera{this, 1920, 1080};
 
-        // Create viewport window
         viewportWindow.createPipeline(context);
         viewportWindow.createImages(context, 1920, 1080);
+
+        icons.push_back(Image::loadFromFile(context, ASSET_DIR + "Vulkan.png"));
+        iconDescSets.emplace_back(ImGui_ImplVulkan_AddTexture(
+            icons[0]->getSampler(), icons[0]->getView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
     }
 
     void onUpdate() override {
@@ -106,8 +109,27 @@ public:
             attributeWindow.show(scene, selectedNode);
 
             if (ImGui::Begin("Project")) {
-                for (int n = 0; n < 5; n++)
-                    ImGui::Text("Asset");
+                float padding = 16.0f;
+                float thumbnailSize = 100.0f;
+                float cellSize = thumbnailSize + padding;
+                float panelWidth = ImGui::GetContentRegionAvail().x;
+                int columnCount = static_cast<int>(panelWidth / cellSize);
+                ImGui::Columns(columnCount, 0, false);
+
+                for (int i = 0; i < 5; i++) {
+                    ImGui::ImageButton(iconDescSets[0],                 // user_texture_id
+                                       {thumbnailSize, thumbnailSize},  // size
+                                       {0, 0},                          // uv0
+                                       {1, 1},                          // uv1
+                                       -1,                              // frame_padding
+                                       ImVec4(0, 0, 0, 1)               // bb_col
+                    );
+                    ImGui::TextWrapped(("Asset " + std::to_string(i)).c_str());
+
+                    ImGui::NextColumn();
+                }
+                ImGui::Columns(1);
+
                 ImGui::End();
             }
 
@@ -129,6 +151,9 @@ public:
     SceneWindow sceneWindow;
     ViewportWindow viewportWindow;
     AttributeWindow attributeWindow;
+
+    std::vector<ImageHandle> icons;
+    std::vector<vk::DescriptorSet> iconDescSets;
 };
 
 int main() {

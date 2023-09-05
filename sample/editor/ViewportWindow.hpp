@@ -193,20 +193,16 @@ public:
     }
 
     void editTransform(const rv::Camera& camera, glm::mat4& matrix) const {
-        // Gizmos
         ImGuizmo::SetOrthographic(false);
         ImGuizmo::SetDrawlist();
 
-        float windowWidth = ImGui::GetWindowWidth();
-        float windowHeight = ImGui::GetWindowHeight();
         ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y,  // break
-                          windowWidth, windowHeight);
+                          ImGui::GetWindowWidth(), ImGui::GetWindowHeight());
 
-        const glm::mat4& cameraProjection = camera.getProj();
-        const glm::mat4& cameraView = camera.getView();
+        glm::mat4 cameraProjection = camera.getProj();
+        glm::mat4 cameraView = camera.getView();
         ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
-                             ImGuizmo::TRANSLATE, ImGuizmo::LOCAL, glm::value_ptr(matrix), nullptr,
-                             nullptr);
+                             ImGuizmo::TRANSLATE, ImGuizmo::LOCAL, glm::value_ptr(matrix));
     }
 
     void createImages(const rv::Context& context, uint32_t _width, uint32_t _height) {
@@ -292,7 +288,7 @@ public:
             commandBuffer.beginRendering(colorImage, depthImage, {0, 0},
                                          {extent.width, extent.height});
 
-            auto viewProj = camera.getProj() * camera.getView();
+            glm::mat4 viewProj = camera.getProj() * camera.getView();
             scene.draw(commandBuffer, pipeline, viewProj, frame);
             gridRenderer.render(commandBuffer, extent.width, extent.height, viewProj);
 
