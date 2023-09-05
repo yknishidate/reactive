@@ -267,6 +267,32 @@ public:
     std::vector<Camera> cameras;
 };
 
+class SceneHierarchy {
+public:
+    void show(Scene& scene, Node** selectedNode) const {
+        ImGui::Begin("Scene");
+
+        for (auto& node : scene.nodes) {
+            // Set flag
+            int flag = ImGuiTreeNodeFlags_OpenOnArrow;
+            if (&node == *selectedNode) {
+                flag = flag | ImGuiTreeNodeFlags_Selected;
+            }
+
+            // Show node
+            bool open = ImGui::TreeNodeEx(node.name.c_str(), flag);
+            if (ImGui::IsItemClicked()) {
+                *selectedNode = &node;
+            }
+            if (open) {
+                ImGui::TreePop();
+            }
+        }
+
+        ImGui::End();
+    }
+};
+
 class Editor : public App {
 public:
     Editor()
@@ -369,28 +395,6 @@ public:
                              nullptr);
     }
 
-    void showSceneHierarchy() {
-        ImGui::Begin("Scene");
-
-        for (auto& node : scene.nodes) {
-            int flag = ImGuiTreeNodeFlags_OpenOnArrow;
-            if (&node == selectedNode) {
-                flag = flag | ImGuiTreeNodeFlags_Selected;
-            }
-
-            bool open = ImGui::TreeNodeEx(node.name.c_str(), flag);
-            if (ImGui::IsItemClicked()) {
-                selectedNode = &node;
-                spdlog::info("Selected: {}", node.name);
-            }
-            if (open) {
-                ImGui::TreePop();
-            }
-        }
-
-        ImGui::End();
-    }
-
     void showFullscreenDockspace() {
         static bool dockspaceOpen = true;
 
@@ -433,7 +437,7 @@ public:
             ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
             ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 
-            showSceneHierarchy();
+            sceneHierarchy.show(scene, &selectedNode);
 
             static float param0 = 0.0f;
             static float param1 = 0.0f;
@@ -553,6 +557,7 @@ public:
 
     // Editor
     GridRenderer gridRenderer;
+    SceneHierarchy sceneHierarchy;
 };
 
 int main() {
