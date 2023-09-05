@@ -38,17 +38,23 @@ struct SphereMeshCreateInfo {
     int numSlices;
     int numStacks;
     float radius = 1.0;
+    std::string name = "Sphere";
 };
 
-struct CubeMeshCreateInfo {};
+struct CubeMeshCreateInfo {
+    std::string name = "Cube";
+};
 
-struct CubeLineMeshCreateInfo {};
+struct CubeLineMeshCreateInfo {
+    std::string name = "CubeLine";
+};
 
 struct PlaneMeshCreateInfo {
     float width = 1;
     float height = 1;
     uint32_t widthSegments = 1;
     uint32_t heightSegments = 1;
+    std::string name = "Plane";
 };
 
 struct PlaneLineMeshCreateInfo {
@@ -56,13 +62,15 @@ struct PlaneLineMeshCreateInfo {
     float height = 1;
     uint32_t widthSegments = 1;
     uint32_t heightSegments = 1;
+    std::string name = "PlaneLine";
 };
 
 struct Mesh {
     Mesh() = default;
     Mesh(const Context& context,
          const std::vector<Vertex>& vertices,
-         const std::vector<uint32_t>& indices);
+         const std::vector<uint32_t>& indices,
+         const std::string& name);
     static Mesh createSphereMesh(const Context& context, SphereMeshCreateInfo createInfo);
     static Mesh createPlaneMesh(const Context& context, PlaneMeshCreateInfo createInfo);
     static Mesh createPlaneLineMesh(const Context& context, PlaneLineMeshCreateInfo createInfo);
@@ -80,6 +88,7 @@ struct Mesh {
     }
 
     const Context* context;
+    std::string name;
     BufferHandle vertexBuffer;
     BufferHandle indexBuffer;
     std::vector<Vertex> vertices;

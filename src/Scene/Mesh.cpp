@@ -3,19 +3,22 @@
 namespace rv {
 Mesh::Mesh(const Context& context,
            const std::vector<Vertex>& vertices,
-           const std::vector<uint32_t>& indices)
-    : context{&context}, vertices{vertices}, indices{indices} {
+           const std::vector<uint32_t>& indices,
+           const std::string& name)
+    : context{&context}, vertices{vertices}, indices{indices}, name{name} {
     vertexBuffer = context.createBuffer({
         .usage = BufferUsage::Vertex,
         .memory = MemoryUsage::Device,
         .size = sizeof(Vertex) * vertices.size(),
         .data = vertices.data(),
+        .debugName = (name + "::vertexBuffer").c_str(),
     });
     indexBuffer = context.createBuffer({
         .usage = BufferUsage::Index,
         .memory = MemoryUsage::Device,
         .size = sizeof(uint32_t) * indices.size(),
         .data = indices.data(),
+        .debugName = (name + "::indexBuffer").c_str(),
     });
 }
 
@@ -80,7 +83,7 @@ Mesh Mesh::createSphereMesh(const Context& context, SphereMeshCreateInfo createI
         }
     }
 
-    return {context, vertices, indices};
+    return {context, vertices, indices, createInfo.name};
 }
 
 Mesh Mesh::createPlaneMesh(const Context& context, PlaneMeshCreateInfo createInfo) {
@@ -121,7 +124,7 @@ Mesh Mesh::createPlaneMesh(const Context& context, PlaneMeshCreateInfo createInf
         }
     }
 
-    return {context, vertices, indices};
+    return {context, vertices, indices, createInfo.name};
 }
 
 Mesh Mesh::createPlaneLineMesh(const Context& context, PlaneLineMeshCreateInfo createInfo) {
@@ -167,7 +170,7 @@ Mesh Mesh::createPlaneLineMesh(const Context& context, PlaneLineMeshCreateInfo c
     for (uint32_t i = 0; i < indicesCount; i++) {
         indices.push_back(i);
     }
-    return {context, vertices, indices};
+    return {context, vertices, indices, createInfo.name};
 }
 
 Mesh Mesh::createCubeMesh(const Context& context, CubeMeshCreateInfo createInfo) {
@@ -224,7 +227,7 @@ Mesh Mesh::createCubeMesh(const Context& context, CubeMeshCreateInfo createInfo)
     for (int i = 0; i < vertices.size(); i++) {
         indices.push_back(i);
     }
-    return {context, vertices, indices};
+    return {context, vertices, indices, createInfo.name};
 }
 
 Mesh Mesh::createCubeLineMesh(const Context& context, CubeLineMeshCreateInfo createInfo) {
@@ -235,6 +238,6 @@ Mesh Mesh::createCubeLineMesh(const Context& context, CubeLineMeshCreateInfo cre
     };
     std::vector<uint32_t> indices = {0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6,
                                      6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7};
-    return {context, vertices, indices};
+    return {context, vertices, indices, createInfo.name};
 }
 }  // namespace rv
