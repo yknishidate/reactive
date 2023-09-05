@@ -15,15 +15,14 @@ public:
     void onStart() override {
         image = context.createImage({
             .usage = ImageUsage::Storage,
-            .width = width,
-            .height = height,
-            .format = Format::BGRA8Unorm,
-            .layout = ImageLayout::General,
+            .extent = {width, height, 1},
+            .format = vk::Format::eB8G8R8A8Unorm,
+            .layout = vk::ImageLayout::eGeneral,
         });
 
         ShaderHandle compShader = context.createShader({
             .code = Compiler::compileToSPV(SHADER_DIR + "hello_compute.comp"),
-            .stage = ShaderStage::Compute,
+            .stage = vk::ShaderStageFlagBits::eCompute,
         });
 
         descSet = context.createDescriptorSet({
@@ -46,8 +45,8 @@ public:
         commandBuffer.bindPipeline(pipeline);
         commandBuffer.pushConstants(pipeline, &frame);
         commandBuffer.dispatch(pipeline, width, height, 1);
-        commandBuffer.copyImage(image, getCurrentColorImage(), ImageLayout::General,
-                                ImageLayout::PresentSrc, width, height);
+        commandBuffer.copyImage(image, getCurrentColorImage(), vk::ImageLayout::eGeneral,
+                                vk::ImageLayout::ePresentSrcKHR);
     }
 
     ImageHandle image;

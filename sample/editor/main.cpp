@@ -148,9 +148,9 @@ public:
     Constants constants;
 };
 
-class HelloApp : public App {
+class Editor : public App {
 public:
-    HelloApp()
+    Editor()
         : App({
               .width = 2560,
               .height = 1440,
@@ -403,7 +403,7 @@ public:
 
 int main() {
     try {
-        HelloApp app{};
+        Editor app{};
         app.run();
     } catch (const std::exception& e) {
         spdlog::error(e.what());

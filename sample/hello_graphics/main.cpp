@@ -33,13 +33,13 @@ public:
     void onStart() override {
         std::vector<ShaderHandle> shaders(2);
         shaders[0] = context.createShader({
-            .code = Compiler::compileToSPV(vertCode, ShaderStage::Vertex),
-            .stage = ShaderStage::Vertex,
+            .code = Compiler::compileToSPV(vertCode, vk::ShaderStageFlagBits::eVertex),
+            .stage = vk::ShaderStageFlagBits::eVertex,
         });
 
         shaders[1] = context.createShader({
-            .code = Compiler::compileToSPV(fragCode, ShaderStage::Fragment),
-            .stage = ShaderStage::Fragment,
+            .code = Compiler::compileToSPV(fragCode, vk::ShaderStageFlagBits::eFragment),
+            .stage = vk::ShaderStageFlagBits::eFragment,
         });
 
         descSet = context.createDescriptorSet({

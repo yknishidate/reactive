@@ -39,26 +39,25 @@ public:
 
         image = context.createImage({
             .usage = ImageUsage::Storage,
-            .width = width,
-            .height = height,
-            .format = Format::BGRA8Unorm,
-            .layout = ImageLayout::General,
+            .extent = {width, height, 1},
+            .format = vk::Format::eB8G8R8A8Unorm,
+            .layout = vk::ImageLayout::eGeneral,
         });
 
         std::vector<ShaderHandle> shaders(3);
         shaders[0] = context.createShader({
             .code = Compiler::compileToSPV(SHADER_DIR + "hello_raytracing.rgen"),
-            .stage = ShaderStage::Raygen,
+            .stage = vk::ShaderStageFlagBits::eRaygenKHR,
         });
 
         shaders[1] = context.createShader({
             .code = Compiler::compileToSPV(SHADER_DIR + "hello_raytracing.rmiss"),
-            .stage = ShaderStage::Miss,
+            .stage = vk::ShaderStageFlagBits::eMissKHR,
         });
 
         shaders[2] = context.createShader({
             .code = Compiler::compileToSPV(SHADER_DIR + "hello_raytracing.rchit"),
-            .stage = ShaderStage::ClosestHit,
+            .stage = vk::ShaderStageFlagBits::eClosestHitKHR,
         });
 
         descSet = context.createDescriptorSet({
@@ -89,8 +88,8 @@ public:
         commandBuffer.bindPipeline(pipeline);
         commandBuffer.pushConstants(pipeline, &pushConstants);
         commandBuffer.traceRays(pipeline, width, height, 1);
-        commandBuffer.copyImage(image, getCurrentColorImage(), ImageLayout::General,
-                                ImageLayout::PresentSrc, width, height);
+        commandBuffer.copyImage(image, getCurrentColorImage(), vk::ImageLayout::eGeneral,
+                                vk::ImageLayout::ePresentSrcKHR);
     }
 
     std::vector<Vertex> vertices{{{-1, 0, 0}}, {{0, -1, 0}}, {{1, 0, 0}}};
