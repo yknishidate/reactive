@@ -47,6 +47,7 @@ public:
 
         viewportWindow.createPipeline(context);
         viewportWindow.createImages(context, 1920, 1080);
+        viewportWindow.createIcons(context);
 
         icons.push_back(Image::loadFromFile(context, ASSET_DIR + "icons/asset_mesh.png"));
         icons.push_back(Image::loadFromFile(context, ASSET_DIR + "icons/asset_material.png"));

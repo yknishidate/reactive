@@ -244,8 +244,6 @@ public:
             .aspect = vk::ImageAspectFlagBits::eDepth,
             .debugName = "ViewportWindow::depthImage",
         });
-
-        createIcons(context);
     }
 
     void processMouseInput() {
