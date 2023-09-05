@@ -46,7 +46,7 @@ public:
         viewportWindow.createPipeline(context);
         viewportWindow.createImages(context, 1920, 1080);
 
-        icons.push_back(Image::loadFromFile(context, ASSET_DIR + "Vulkan.png"));
+        icons.push_back(Image::loadFromFile(context, ASSET_DIR + "icons/asset_mesh.png"));
         iconDescSets.emplace_back(ImGui_ImplVulkan_AddTexture(
             icons[0]->getSampler(), icons[0]->getView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
     }
@@ -108,24 +108,23 @@ public:
             sceneWindow.show(scene, &selectedNode);
             attributeWindow.show(scene, selectedNode);
 
-            if (ImGui::Begin("Project")) {
+            if (ImGui::Begin("Asset")) {
                 float padding = 16.0f;
                 float thumbnailSize = 100.0f;
                 float cellSize = thumbnailSize + padding;
                 float panelWidth = ImGui::GetContentRegionAvail().x;
-                int columnCount = static_cast<int>(panelWidth / cellSize);
+                int columnCount = std::max(static_cast<int>(panelWidth / cellSize), 1);
                 ImGui::Columns(columnCount, 0, false);
 
-                for (int i = 0; i < 5; i++) {
+                for (auto& mesh : scene.meshes) {
                     ImGui::ImageButton(iconDescSets[0],                 // user_texture_id
                                        {thumbnailSize, thumbnailSize},  // size
                                        {0, 0},                          // uv0
                                        {1, 1},                          // uv1
-                                       -1,                              // frame_padding
+                                       0,                               // frame_padding
                                        ImVec4(0, 0, 0, 1)               // bb_col
                     );
-                    ImGui::TextWrapped(("Asset " + std::to_string(i)).c_str());
-
+                    ImGui::TextWrapped(mesh.name.c_str());
                     ImGui::NextColumn();
                 }
                 ImGui::Columns(1);
