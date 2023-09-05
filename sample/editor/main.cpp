@@ -267,7 +267,7 @@ public:
     std::vector<Camera> cameras;
 };
 
-class SceneHierarchy {
+class SceneHierarchyWindow {
 public:
     void show(Scene& scene, Node** selectedNode) const {
         ImGui::Begin("Scene");
@@ -291,6 +291,93 @@ public:
 
         ImGui::End();
     }
+};
+
+class ViewportWindow {
+public:
+    void editTransform(const Camera& camera, glm::mat4& matrix) {
+        // Gizmos
+        ImGuizmo::SetOrthographic(false);
+        ImGuizmo::SetDrawlist();
+
+        float windowWidth = ImGui::GetWindowWidth();
+        float windowHeight = ImGui::GetWindowHeight();
+        ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y,  // break
+                          windowWidth, windowHeight);
+
+        const glm::mat4& cameraProjection = camera.getProj();
+        const glm::mat4& cameraView = camera.getView();
+        ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
+                             ImGuizmo::TRANSLATE, ImGuizmo::LOCAL, glm::value_ptr(matrix), nullptr,
+                             nullptr);
+    }
+
+    void createImages(const Context& context, uint32_t _width, uint32_t _height) {
+        width = _width;
+        height = _height;
+
+        image = context.createImage({
+            .usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage |
+                     vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc |
+                     vk::ImageUsageFlagBits::eColorAttachment,
+            .extent = {_width, _height, 1},
+            .format = vk::Format::eR8G8B8A8Unorm,
+            .layout = vk::ImageLayout::eGeneral,
+        });
+        ImGui_ImplVulkan_RemoveTexture(descSet);
+        descSet = ImGui_ImplVulkan_AddTexture(image->getSampler(), image->getView(),
+                                              VK_IMAGE_LAYOUT_GENERAL);
+
+        depthImage = context.createImage({
+            .usage = ImageUsage::DepthAttachment,
+            .extent = {_width, _height, 1},
+            .format = vk::Format::eD32Sfloat,
+            .layout = vk::ImageLayout::eDepthAttachmentOptimal,
+        });
+    }
+
+    void show(Scene& scene, Node* selectedNode, const Camera& camera, int frame) {
+        if (ImGui::Begin("Viewport")) {
+            if (ImGui::IsWindowHovered() && !ImGuizmo::IsUsing()) {
+                dragDelta.x = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x * 0.5;
+                dragDelta.y = -ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y * 0.5;
+                mouseScroll = ImGui::GetIO().MouseWheel;
+            }
+            ImGui::ResetMouseDragDelta();
+
+            // Show image
+            ImVec2 windowSize = ImGui::GetContentRegionAvail();
+            width = windowSize.x;
+            height = windowSize.y;
+            ImGui::Image(descSet, windowSize, ImVec2(0, 1), ImVec2(1, 0));
+
+            // Show gizmo
+            for (auto& node : scene.nodes) {
+                if (&node == selectedNode) {
+                    glm::mat4 model = node.computeTransformMatrix(frame);
+                    editTransform(camera, model);
+
+                    Transform& transform = node.transform;
+                    glm::vec3 skew;
+                    glm::vec4 perspective;
+                    glm::decompose(model, transform.scale, transform.rotation,
+                                   transform.translation, skew, perspective);
+                }
+            }
+
+            ImGui::End();
+        }
+    }
+
+    glm::vec2 dragDelta = {0.0f, 0.0f};
+    float mouseScroll = 0.0f;
+    bool clicked = false;
+    float width;
+    float height;
+    // TODO: change to vector(3)
+    ImageHandle image;
+    ImageHandle depthImage;
+    vk::DescriptorSet descSet;
 };
 
 class Editor : public App {
@@ -352,47 +439,7 @@ public:
 
         camera = OrbitalCamera{this, 1920, 1080};
 
-        viewportWidth = 1920;
-        viewportHeight = 1080;
-        createViewportImage(viewportWidth, viewportHeight);
-    }
-
-    void createViewportImage(uint32_t width, uint32_t height) {
-        viewportImage = context.createImage({
-            .usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage |
-                     vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc |
-                     vk::ImageUsageFlagBits::eColorAttachment,
-            .extent = {width, height, 1},
-            .format = vk::Format::eR8G8B8A8Unorm,
-            .layout = vk::ImageLayout::eGeneral,
-        });
-        ImGui_ImplVulkan_RemoveTexture(viewportDescSet);
-        viewportDescSet = ImGui_ImplVulkan_AddTexture(
-            viewportImage->getSampler(), viewportImage->getView(), VK_IMAGE_LAYOUT_GENERAL);
-
-        viewportDepthImage = context.createImage({
-            .usage = ImageUsage::DepthAttachment,
-            .extent = {width, height, 1},
-            .format = vk::Format::eD32Sfloat,
-            .layout = vk::ImageLayout::eDepthAttachmentOptimal,
-        });
-    }
-
-    void editTransform(const Camera& camera, glm::mat4& matrix) {
-        // Gizmos
-        ImGuizmo::SetOrthographic(false);
-        ImGuizmo::SetDrawlist();
-
-        float windowWidth = ImGui::GetWindowWidth();
-        float windowHeight = ImGui::GetWindowHeight();
-        ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y,  // break
-                          windowWidth, windowHeight);
-
-        const glm::mat4& cameraProjection = camera.getProj();
-        const glm::mat4& cameraView = camera.getView();
-        ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
-                             ImGuizmo::TRANSLATE, ImGuizmo::LOCAL, glm::value_ptr(matrix), nullptr,
-                             nullptr);
+        viewportWindow.createImages(context, 1920, 1080);
     }
 
     void showFullscreenDockspace() {
@@ -437,7 +484,7 @@ public:
             ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
             ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 
-            sceneHierarchy.show(scene, &selectedNode);
+            sceneHierarchyWindow.show(scene, &selectedNode);
 
             static float param0 = 0.0f;
             static float param1 = 0.0f;
@@ -458,66 +505,38 @@ public:
                 ImGui::End();
             }
 
-            if (ImGui::Begin("Viewport")) {
-                if (ImGui::IsWindowHovered() && !ImGuizmo::IsUsing()) {
-                    dragDelta.x = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x * 0.5;
-                    dragDelta.y = -ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y * 0.5;
-                    mouseScroll = ImGui::GetIO().MouseWheel;
-                }
-                ImGui::ResetMouseDragDelta();
-
-                // Show image
-                ImVec2 windowSize = ImGui::GetContentRegionAvail();
-                viewportWidth = windowSize.x;
-                viewportHeight = windowSize.y;
-                ImGui::Image(viewportDescSet, windowSize, ImVec2(0, 1), ImVec2(1, 0));
-
-                // Show gizmo
-                for (auto& node : scene.nodes) {
-                    if (&node == selectedNode) {
-                        glm::mat4 model = node.computeTransformMatrix(frame);
-                        editTransform(camera, model);
-
-                        Transform& transform = node.transform;
-                        glm::vec3 skew;
-                        glm::vec4 perspective;
-                        glm::decompose(model, transform.scale, transform.rotation,
-                                       transform.translation, skew, perspective);
-                    }
-                }
-
-                ImGui::End();
-            }
+            viewportWindow.show(scene, selectedNode, camera, frame);
 
             ImGui::End();
         }
     }
 
     void onUpdate() override {
-        camera.processDragDelta(dragDelta);
-        camera.processMouseScroll(mouseScroll);
+        camera.processDragDelta(viewportWindow.dragDelta);
+        camera.processMouseScroll(viewportWindow.mouseScroll);
         frame++;
     }
 
     void onRender(const CommandBuffer& commandBuffer) override {
-        vk::Extent3D extent = viewportImage->getExtent();
-        if (uint32_t(viewportWidth) != extent.width || uint32_t(viewportHeight) != extent.height) {
+        vk::Extent3D extent = viewportWindow.image->getExtent();
+        if (uint32_t(viewportWindow.width) != extent.width ||
+            uint32_t(viewportWindow.height) != extent.height) {
             context.getDevice().waitIdle();
 
-            spdlog::info("Resized: {} {}", viewportWidth, viewportHeight);
-            createViewportImage(viewportWidth, viewportHeight);
-            extent = viewportImage->getExtent();
+            // TODO: remove width, height
+            viewportWindow.createImages(context, viewportWindow.width, viewportWindow.height);
+            extent = viewportWindow.image->getExtent();
 
-            camera.aspect = viewportWidth / viewportHeight;
+            camera.aspect = viewportWindow.width / viewportWindow.height;
         }
 
         showFullscreenDockspace();
 
-        commandBuffer.clearColorImage(viewportImage, {0.0f, 0.0f, 0.0f, 1.0f});
-        commandBuffer.transitionLayout(viewportImage, vk::ImageLayout::eGeneral);
+        commandBuffer.clearColorImage(viewportWindow.image, {0.0f, 0.0f, 0.0f, 1.0f});
+        commandBuffer.transitionLayout(viewportWindow.image, vk::ImageLayout::eGeneral);
 
         commandBuffer.clearColorImage(getCurrentColorImage(), {0.0f, 0.0f, 0.0f, 1.0f});
-        commandBuffer.clearDepthStencilImage(viewportDepthImage, 1.0f, 0);
+        commandBuffer.clearDepthStencilImage(viewportWindow.depthImage, 1.0f, 0);
 
         commandBuffer.setViewport(extent.width, extent.height);
         commandBuffer.setScissor(extent.width, extent.height);
@@ -525,7 +544,7 @@ public:
         commandBuffer.bindDescriptorSet(descSet, pipeline);
         commandBuffer.bindPipeline(pipeline);
 
-        commandBuffer.beginRendering(viewportImage, viewportDepthImage, {0, 0},
+        commandBuffer.beginRendering(viewportWindow.image, viewportWindow.depthImage, {0, 0},
                                      {extent.width, extent.height});
 
         auto viewProj = camera.getProj() * camera.getView();
@@ -539,25 +558,17 @@ public:
     GraphicsPipelineHandle pipeline;
 
     // Scene
-    glm::vec2 dragDelta = {0.0f, 0.0f};
-    float mouseScroll = 0.0f;
     OrbitalCamera camera;
     Scene scene;
     int frame = 0;
 
     // ImGui
-    bool viewportClicked = false;
-    float viewportWidth;
-    float viewportHeight;
-    // TODO: change to vector(3)
-    ImageHandle viewportImage;
-    ImageHandle viewportDepthImage;
-    vk::DescriptorSet viewportDescSet;
     Node* selectedNode = nullptr;
 
     // Editor
     GridRenderer gridRenderer;
-    SceneHierarchy sceneHierarchy;
+    SceneHierarchyWindow sceneHierarchyWindow;
+    ViewportWindow viewportWindow;
 };
 
 int main() {
