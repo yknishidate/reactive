@@ -295,7 +295,7 @@ public:
 
 class ViewportWindow {
 public:
-    void editTransform(const Camera& camera, glm::mat4& matrix) {
+    void editTransform(const Camera& camera, glm::mat4& matrix) const {
         // Gizmos
         ImGuizmo::SetOrthographic(false);
         ImGuizmo::SetDrawlist();
@@ -339,6 +339,8 @@ public:
             .format = vk::Format::eR8G8B8A8Unorm,
             .layout = vk::ImageLayout::eGeneral,
         });
+
+        // Create desc set
         ImGui_ImplVulkan_RemoveTexture(descSet);
         descSet = ImGui_ImplVulkan_AddTexture(colorImage->getSampler(), colorImage->getView(),
                                               VK_IMAGE_LAYOUT_GENERAL);
@@ -351,34 +353,41 @@ public:
         });
     }
 
+    void processMouseInput() {
+        if (ImGui::IsWindowHovered() && !ImGuizmo::IsUsing()) {
+            dragDelta.x = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x * 0.5f;
+            dragDelta.y = -ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y * 0.5f;
+            mouseScroll = ImGui::GetIO().MouseWheel;
+        }
+        ImGui::ResetMouseDragDelta();
+    }
+
+    void showGizmo(Scene& scene, Node* selectedNode, const Camera& camera, int frame) const {
+        for (auto& node : scene.nodes) {
+            if (&node == selectedNode) {
+                glm::mat4 model = node.computeTransformMatrix(frame);
+                editTransform(camera, model);
+
+                Transform& transform = node.transform;
+                glm::vec3 skew;
+                glm::vec4 perspective;
+                glm::decompose(model, transform.scale, transform.rotation, transform.translation,
+                               skew, perspective);
+            }
+        }
+    }
+
     void show(Scene& scene, Node* selectedNode, const Camera& camera, int frame) {
         if (ImGui::Begin("Viewport")) {
-            if (ImGui::IsWindowHovered() && !ImGuizmo::IsUsing()) {
-                dragDelta.x = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x * 0.5;
-                dragDelta.y = -ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y * 0.5;
-                mouseScroll = ImGui::GetIO().MouseWheel;
-            }
-            ImGui::ResetMouseDragDelta();
+            processMouseInput();
 
-            // Show image
             ImVec2 windowSize = ImGui::GetContentRegionAvail();
             width = windowSize.x;
             height = windowSize.y;
+
             ImGui::Image(descSet, windowSize, ImVec2(0, 1), ImVec2(1, 0));
 
-            // Show gizmo
-            for (auto& node : scene.nodes) {
-                if (&node == selectedNode) {
-                    glm::mat4 model = node.computeTransformMatrix(frame);
-                    editTransform(camera, model);
-
-                    Transform& transform = node.transform;
-                    glm::vec3 skew;
-                    glm::vec4 perspective;
-                    glm::decompose(model, transform.scale, transform.rotation,
-                                   transform.translation, skew, perspective);
-                }
-            }
+            showGizmo(scene, selectedNode, camera, frame);
 
             ImGui::End();
         }
