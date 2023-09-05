@@ -11,14 +11,6 @@
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 namespace rv {
-vk::ImageAspectFlags getImageAspect(vk::ImageUsageFlags usage) {
-    if (usage & vk::ImageUsageFlagBits::eDepthStencilAttachment) {
-        spdlog::warn("Stencil aspect does not supported.");
-        return vk::ImageAspectFlagBits::eDepth;
-    }
-    return vk::ImageAspectFlagBits::eColor;
-}
-
 void Context::initInstance(bool enableValidation,
                            const std::vector<const char*>& layers,
                            const std::vector<const char*>& instanceExtensions,
@@ -202,9 +194,8 @@ RayTracingPipelineHandle Context::createRayTracingPipeline(
 }
 
 ImageHandle Context::createImage(ImageCreateInfo createInfo) const {
-    vk::ImageAspectFlags aspect = getImageAspect(createInfo.usage);
     return std::make_shared<Image>(this, createInfo.usage, createInfo.extent, createInfo.format,
-                                   createInfo.layout, aspect, createInfo.mipLevels,
+                                   createInfo.layout, createInfo.aspect, createInfo.mipLevels,
                                    createInfo.debugName);
 }
 

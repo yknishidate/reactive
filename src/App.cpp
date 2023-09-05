@@ -463,6 +463,8 @@ void App::createDepthImage() {
         .extent = {width, height, 1},
         .format = vk::Format::eD32Sfloat,
         .layout = vk::ImageLayout::eDepthAttachmentOptimal,
+        .aspect = vk::ImageAspectFlagBits::eDepth,
+        .debugName = "App::depthImage",
     });
 }
 
