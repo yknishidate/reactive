@@ -338,6 +338,7 @@ public:
             .extent = {_width, _height, 1},
             .format = vk::Format::eR8G8B8A8Unorm,
             .layout = vk::ImageLayout::eGeneral,
+            .debugName = "ViewportWindow::colorImage",
         });
 
         // Create desc set
@@ -351,7 +352,7 @@ public:
             .format = vk::Format::eD32Sfloat,
             .layout = vk::ImageLayout::eDepthAttachmentOptimal,
             .aspect = vk::ImageAspectFlagBits::eDepth,
-            .debugName = "depthImage",
+            .debugName = "ViewportWindow::depthImage",
         });
     }
 
