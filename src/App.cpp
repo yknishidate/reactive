@@ -431,7 +431,11 @@ void App::createDepthImage() {
     });
 }
 
-void App::onWindowSize(int width, int height) {
+void App::onWindowSize(int _width, int _height) {
+    vk::PhysicalDevice physicalDevice = context.getPhysicalDevice();
+    vk::SurfaceCapabilitiesKHR capabilities = physicalDevice.getSurfaceCapabilitiesKHR(*surface);
+    width = capabilities.currentExtent.width;
+    height = capabilities.currentExtent.height;
     if (width == 0 || height == 0) {
         return;
     }
@@ -495,8 +499,6 @@ void App::dropCallback(GLFWwindow* window, int count, const char** paths) {
 
 void App::windowSizeCallback(GLFWwindow* window, int width, int height) {
     App* app = (App*)glfwGetWindowUserPointer(window);
-    app->width = width;
-    app->height = height;
     app->onWindowSize(width, height);
 }
 }  // namespace rv
