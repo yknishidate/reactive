@@ -43,7 +43,6 @@ class CommandBuffer;
 
 using BufferHandle = std::shared_ptr<Buffer>;
 using ImageHandle = std::shared_ptr<Image>;
-using MeshHandle = std::shared_ptr<Mesh>;
 using ShaderHandle = std::shared_ptr<Shader>;
 using DescriptorSetHandle = std::shared_ptr<DescriptorSet>;
 using PipelineHandle = std::shared_ptr<Pipeline>;
@@ -201,12 +200,6 @@ public:
         RayTracingPipelineCreateInfo createInfo) const;
     ImageHandle createImage(ImageCreateInfo createInfo) const;
     BufferHandle createBuffer(BufferCreateInfo createInfo) const;
-    MeshHandle createMesh(MeshCreateInfo createInfo) const;
-    MeshHandle createSphereMesh(SphereMeshCreateInfo createInfo) const;
-    MeshHandle createPlaneMesh(PlaneMeshCreateInfo createInfo) const;
-    MeshHandle createPlaneLineMesh(PlaneLineMeshCreateInfo createInfo) const;
-    MeshHandle createCubeMesh(CubeMeshCreateInfo createInfo) const;
-    MeshHandle createCubeLineMesh(CubeLineMeshCreateInfo createInfo) const;
     BottomAccelHandle createBottomAccel(BottomAccelCreateInfo createInfo) const;
     TopAccelHandle createTopAccel(TopAccelCreateInfo createInfo) const;
     GPUTimerHandle createGPUTimer(GPUTimerCreateInfo createInfo) const;

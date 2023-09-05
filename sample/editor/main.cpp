@@ -4,6 +4,8 @@
 #include <ImGuizmo.h>
 #include <imgui_impl_vulkan.h>
 
+#include <glm/gtx/matrix_decompose.hpp>
+
 using namespace rv;
 
 struct PushConstants {
@@ -97,19 +99,16 @@ public:
             .lineWidth = "dynamic",
         });
 
-        mainGridMesh = context.createPlaneLineMesh({
-            .width = 20.0f,
-            .height = 20.0f,
-            .widthSegments = 20,
-            .heightSegments = 20,
-        });
+        PlaneLineMeshCreateInfo gridInfo;
+        gridInfo.width = 20.0f;
+        gridInfo.height = 20.0f;
+        gridInfo.widthSegments = 20;
+        gridInfo.heightSegments = 20;
+        mainGridMesh = Mesh::createPlaneLineMesh(context, gridInfo);
 
-        subGridMesh = context.createPlaneLineMesh({
-            .width = 20.0f,
-            .height = 20.0f,
-            .widthSegments = 100,
-            .heightSegments = 100,
-        });
+        gridInfo.widthSegments = 100;
+        gridInfo.heightSegments = 100;
+        subGridMesh = Mesh::createPlaneLineMesh(context, gridInfo);
     }
 
     void render(const CommandBuffer& commandBuffer,
@@ -126,12 +125,14 @@ public:
         constants.color = glm::vec3(0.6);
         commandBuffer.setLineWidth(2.0f);
         commandBuffer.pushConstants(pipeline, &constants);
-        commandBuffer.drawIndexed(mainGridMesh);
+        commandBuffer.drawIndexed(mainGridMesh.vertexBuffer, mainGridMesh.indexBuffer,
+                                  mainGridMesh.getIndicesCount());
 
         constants.color = glm::vec3(0.3);
         commandBuffer.setLineWidth(1.0f);
         commandBuffer.pushConstants(pipeline, &constants);
-        commandBuffer.drawIndexed(subGridMesh);
+        commandBuffer.drawIndexed(subGridMesh.vertexBuffer, subGridMesh.indexBuffer,
+                                  subGridMesh.getIndicesCount());
     }
 
     struct Constants {
@@ -142,8 +143,8 @@ public:
     GraphicsPipelineHandle pipeline;
     DescriptorSetHandle descSet;
 
-    MeshHandle mainGridMesh;
-    MeshHandle subGridMesh;
+    Mesh mainGridMesh;
+    Mesh subGridMesh;
 
     Constants constants;
 };
@@ -304,7 +305,7 @@ public:
             .colorFormat = vk::Format::eR8G8B8A8Unorm,
         });
 
-        cubeMesh = context.createCubeMesh({});
+        scene.meshes.push_back(Mesh::createCubeMesh(context, {}));
 
         camera = OrbitalCamera{this, 1920, 1080};
 
@@ -437,12 +438,23 @@ public:
                 }
                 ImGui::ResetMouseDragDelta();
 
+                // Show image
                 ImVec2 windowSize = ImGui::GetContentRegionAvail();
                 viewportWidth = windowSize.x;
                 viewportHeight = windowSize.y;
                 ImGui::Image(viewportDescSet, windowSize, ImVec2(0, 1), ImVec2(1, 0));
 
-                editTransform(camera, pushConstants.model);
+                // Show gizmo
+                if (selectedNode) {
+                    glm::mat4 model = selectedNode->computeTransformMatrix(frame);
+                    editTransform(camera, model);
+
+                    Transform& transform = selectedNode->transform;
+                    glm::vec3 skew;
+                    glm::vec4 perspective;
+                    glm::decompose(model, transform.translation, transform.rotation,
+                                   transform.scale, skew, perspective);
+                }
 
                 ImGui::End();
             }
@@ -454,7 +466,7 @@ public:
     void onUpdate() override {
         camera.processDragDelta(dragDelta);
         camera.processMouseScroll(mouseScroll);
-        pushConstants.viewProj = camera.getProj() * camera.getView();
+        frame++;
     }
 
     void onRender(const CommandBuffer& commandBuffer) override {
@@ -467,7 +479,6 @@ public:
             extent = viewportImage->getExtent();
 
             camera.aspect = viewportWidth / viewportHeight;
-            pushConstants.viewProj = camera.getProj() * camera.getView();
         }
 
         showFullscreenDockspace();
@@ -487,23 +498,23 @@ public:
         commandBuffer.beginRendering(viewportImage, viewportDepthImage, {0, 0},
                                      {extent.width, extent.height});
 
-        commandBuffer.pushConstants(pipeline, &pushConstants);
-        commandBuffer.drawIndexed(cubeMesh);
-
-        gridRenderer.render(commandBuffer, extent.width, extent.height, pushConstants.viewProj);
+        auto viewProj = camera.getProj() * camera.getView();
+        scene.draw(commandBuffer, pipeline, viewProj, frame);
+        gridRenderer.render(commandBuffer, extent.width, extent.height, viewProj);
 
         commandBuffer.endRendering();
     }
 
     DescriptorSetHandle descSet;
     GraphicsPipelineHandle pipeline;
-    PushConstants pushConstants;
 
     // Scene
     glm::vec2 dragDelta = {0.0f, 0.0f};
     float mouseScroll = 0.0f;
     OrbitalCamera camera;
     Scene scene;
+    int frame = 0;
+    Node* selectedNode = nullptr;
 
     // ImGui
     bool viewportClicked = false;

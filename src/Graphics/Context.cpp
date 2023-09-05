@@ -213,30 +213,6 @@ BufferHandle Context::createBuffer(BufferCreateInfo createInfo) const {
                                     createInfo.data, createInfo.debugName);
 }
 
-MeshHandle Context::createMesh(MeshCreateInfo createInfo) const {
-    return std::make_shared<Mesh>(this, createInfo);
-}
-
-MeshHandle Context::createSphereMesh(SphereMeshCreateInfo createInfo) const {
-    return std::make_shared<Mesh>(this, createInfo);
-}
-
-MeshHandle Context::createPlaneMesh(PlaneMeshCreateInfo createInfo) const {
-    return std::make_shared<Mesh>(this, createInfo);
-}
-
-MeshHandle Context::createPlaneLineMesh(PlaneLineMeshCreateInfo createInfo) const {
-    return std::make_shared<Mesh>(this, createInfo);
-}
-
-MeshHandle Context::createCubeMesh(CubeMeshCreateInfo createInfo) const {
-    return std::make_shared<Mesh>(this, createInfo);
-}
-
-MeshHandle Context::createCubeLineMesh(CubeLineMeshCreateInfo createInfo) const {
-    return std::make_shared<Mesh>(this, createInfo);
-}
-
 BottomAccelHandle Context::createBottomAccel(BottomAccelCreateInfo createInfo) const {
     return std::make_shared<BottomAccel>(this, createInfo);
 }

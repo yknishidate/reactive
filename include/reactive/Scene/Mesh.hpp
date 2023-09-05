@@ -34,25 +34,6 @@ struct Vertex {
     }
 };
 
-// struct Material {
-//     glm::vec3 ambient{1.0};
-//     glm::vec3 diffuse{1.0};
-//     glm::vec3 specular{0.0};
-//     glm::vec3 emission{0.0};
-//     float shininess = 0.0;
-//     float ior = 1.0;
-//     int ambientTexture = -1;
-//     int diffuseTexture = -1;
-//     int specularTexture = -1;
-//     int alphaTexture = -1;
-//     int emissionTexture = -1;
-// };
-
-struct MeshCreateInfo {
-    const std::vector<Vertex>& vertices;
-    const std::vector<uint32_t>& indices;
-};
-
 struct SphereMeshCreateInfo {
     int numSlices;
     int numStacks;
@@ -78,12 +59,15 @@ struct PlaneLineMeshCreateInfo {
 };
 
 struct Mesh {
-    Mesh(const Context* context, MeshCreateInfo createInfo);
-    Mesh(const Context* context, SphereMeshCreateInfo createInfo);
-    Mesh(const Context* context, PlaneMeshCreateInfo createInfo);
-    Mesh(const Context* context, PlaneLineMeshCreateInfo createInfo);
-    Mesh(const Context* context, CubeMeshCreateInfo createInfo);
-    Mesh(const Context* context, CubeLineMeshCreateInfo createInfo);
+    Mesh() = default;
+    Mesh(const Context& context,
+         const std::vector<Vertex>& vertices,
+         const std::vector<uint32_t>& indices);
+    static Mesh createSphereMesh(const Context& context, SphereMeshCreateInfo createInfo);
+    static Mesh createPlaneMesh(const Context& context, PlaneMeshCreateInfo createInfo);
+    static Mesh createPlaneLineMesh(const Context& context, PlaneLineMeshCreateInfo createInfo);
+    static Mesh createCubeMesh(const Context& context, CubeMeshCreateInfo createInfo);
+    static Mesh createCubeLineMesh(const Context& context, CubeLineMeshCreateInfo createInfo);
 
     uint32_t getIndicesCount() const { return indices.size(); }
     uint32_t getTriangleCount() const { return indices.size() / 3; }

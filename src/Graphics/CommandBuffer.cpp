@@ -118,10 +118,6 @@ void CommandBuffer::drawIndexed(BufferHandle vertexBuffer,
     commandBuffer.drawIndexed(indexCount, instanceCount, firstIndex, 0, firstInstance);
 }
 
-void CommandBuffer::drawIndexed(MeshHandle mesh, uint32_t instanceCount) const {
-    mesh->drawIndexed(commandBuffer, instanceCount);
-}
-
 void CommandBuffer::drawMeshTasks(uint32_t groupCountX,
                                   uint32_t groupCountY,
                                   uint32_t groupCountZ) const {

@@ -1,15 +1,17 @@
 #include "Scene/Mesh.hpp"
 
 namespace rv {
-Mesh::Mesh(const Context* context, MeshCreateInfo createInfo)
-    : context{context}, vertices{createInfo.vertices}, indices{createInfo.indices} {
-    vertexBuffer = context->createBuffer({
+Mesh::Mesh(const Context& context,
+           const std::vector<Vertex>& vertices,
+           const std::vector<uint32_t>& indices)
+    : context{&context}, vertices{vertices}, indices{indices} {
+    vertexBuffer = context.createBuffer({
         .usage = BufferUsage::Vertex,
         .memory = MemoryUsage::Device,
         .size = sizeof(Vertex) * vertices.size(),
         .data = vertices.data(),
     });
-    indexBuffer = context->createBuffer({
+    indexBuffer = context.createBuffer({
         .usage = BufferUsage::Index,
         .memory = MemoryUsage::Device,
         .size = sizeof(uint32_t) * indices.size(),
@@ -17,12 +19,14 @@ Mesh::Mesh(const Context* context, MeshCreateInfo createInfo)
     });
 }
 
-Mesh::Mesh(const Context* context, SphereMeshCreateInfo createInfo) : context{context} {
+Mesh Mesh::createSphereMesh(const Context& context, SphereMeshCreateInfo createInfo) {
     int n_stacks = createInfo.numStacks;
     int n_slices = createInfo.numSlices;
     float radius = createInfo.radius;
 
     // add top vertex
+    std::vector<Vertex> vertices{};
+    std::vector<uint32_t> indices{};
     vertices.push_back({{0, radius, 0}});
     uint32_t v0 = 0;
 
@@ -76,25 +80,19 @@ Mesh::Mesh(const Context* context, SphereMeshCreateInfo createInfo) : context{co
         }
     }
 
-    vertexBuffer = context->createBuffer({
-        .usage = BufferUsage::Vertex,
-        .size = sizeof(Vertex) * vertices.size(),
-        .data = vertices.data(),
-    });
-    indexBuffer = context->createBuffer({
-        .usage = BufferUsage::Index,
-        .size = sizeof(uint32_t) * indices.size(),
-        .data = indices.data(),
-    });
+    return {context, vertices, indices};
 }
 
-Mesh::Mesh(const Context* context, PlaneMeshCreateInfo createInfo) : context{context} {
+Mesh Mesh::createPlaneMesh(const Context& context, PlaneMeshCreateInfo createInfo) {
     float width = createInfo.width;
     float height = createInfo.height;
     uint32_t widthSegments = createInfo.widthSegments;
     uint32_t heightSegments = createInfo.heightSegments;
     uint32_t verticesCount = (widthSegments + 1) * (heightSegments + 1);
     uint32_t indicesCount = 3 * 2 * widthSegments * heightSegments;
+
+    std::vector<Vertex> vertices{};
+    std::vector<uint32_t> indices{};
     vertices.reserve(verticesCount);
     indices.reserve(indicesCount);
     for (uint32_t h = 0; h <= heightSegments; h++) {
@@ -123,21 +121,10 @@ Mesh::Mesh(const Context* context, PlaneMeshCreateInfo createInfo) : context{con
         }
     }
 
-    vertexBuffer = context->createBuffer({
-        .usage = BufferUsage::Vertex,
-        .memory = MemoryUsage::Device,
-        .size = sizeof(Vertex) * vertices.size(),
-        .data = vertices.data(),
-    });
-    indexBuffer = context->createBuffer({
-        .usage = BufferUsage::Index,
-        .memory = MemoryUsage::Device,
-        .size = sizeof(uint32_t) * indices.size(),
-        .data = indices.data(),
-    });
+    return {context, vertices, indices};
 }
 
-Mesh::Mesh(const Context* context, PlaneLineMeshCreateInfo createInfo) {
+Mesh Mesh::createPlaneLineMesh(const Context& context, PlaneLineMeshCreateInfo createInfo) {
     float width = createInfo.width;
     float height = createInfo.height;
     uint32_t widthSegments = createInfo.widthSegments;
@@ -145,6 +132,9 @@ Mesh::Mesh(const Context* context, PlaneLineMeshCreateInfo createInfo) {
 
     uint32_t verticesCount = 2 * (widthSegments + 1) + 2 * (heightSegments + 1);
     uint32_t indicesCount = verticesCount;
+
+    std::vector<Vertex> vertices{};
+    std::vector<uint32_t> indices{};
     vertices.reserve(verticesCount);
     indices.reserve(indicesCount);
     for (uint32_t h = 0; h <= heightSegments; h++) {
@@ -177,22 +167,10 @@ Mesh::Mesh(const Context* context, PlaneLineMeshCreateInfo createInfo) {
     for (uint32_t i = 0; i < indicesCount; i++) {
         indices.push_back(i);
     }
-
-    vertexBuffer = context->createBuffer({
-        .usage = BufferUsage::Vertex,
-        .memory = MemoryUsage::Device,
-        .size = sizeof(Vertex) * vertices.size(),
-        .data = vertices.data(),
-    });
-    indexBuffer = context->createBuffer({
-        .usage = BufferUsage::Index,
-        .memory = MemoryUsage::Device,
-        .size = sizeof(uint32_t) * indices.size(),
-        .data = indices.data(),
-    });
+    return {context, vertices, indices};
 }
 
-Mesh::Mesh(const Context* context, CubeMeshCreateInfo createInfo) : context{context} {
+Mesh Mesh::createCubeMesh(const Context& context, CubeMeshCreateInfo createInfo) {
     std::vector<glm::vec3> positions{
         {-1.0, -1.0, -1.0}, {1.0, -1.0, -1.0}, {1.0, -1.0, 1.0}, {-1.0, -1.0, 1.0},
         {-1.0, 1.0, -1.0},  {1.0, 1.0, -1.0},  {1.0, 1.0, 1.0},  {-1.0, 1.0, 1.0},
@@ -215,7 +193,7 @@ Mesh::Mesh(const Context* context, CubeMeshCreateInfo createInfo) : context{cont
     //  |/          |/
     // 4+-----------+5
 
-    vertices = std::vector<Vertex>{
+    std::vector<Vertex> vertices = {
         {positions[0], normals[4]}, {positions[1], normals[4]},
         {positions[2], normals[4]},  // Top -Y
         {positions[0], normals[4]}, {positions[2], normals[4]},
@@ -241,44 +219,22 @@ Mesh::Mesh(const Context* context, CubeMeshCreateInfo createInfo) : context{cont
         {positions[5], normals[1]}, {positions[7], normals[1]},
         {positions[6], normals[1]},  // Bottom Y
     };
+
+    std::vector<uint32_t> indices;
     for (int i = 0; i < vertices.size(); i++) {
         indices.push_back(i);
     }
-
-    vertexBuffer = context->createBuffer({
-        .usage = BufferUsage::Vertex,
-        .memory = MemoryUsage::Device,
-        .size = sizeof(Vertex) * vertices.size(),
-        .data = vertices.data(),
-    });
-    indexBuffer = context->createBuffer({
-        .usage = BufferUsage::Index,
-        .memory = MemoryUsage::Device,
-        .size = sizeof(uint32_t) * indices.size(),
-        .data = indices.data(),
-    });
+    return {context, vertices, indices};
 }
 
-Mesh::Mesh(const Context* context, CubeLineMeshCreateInfo createInfo) : context{context} {
-    vertices = std::vector<Vertex>{
+Mesh Mesh::createCubeLineMesh(const Context& context, CubeLineMeshCreateInfo createInfo) {
+    std::vector<Vertex> vertices = {
         {glm::vec3(-1.0, -1.0, -1.0)}, {glm::vec3(1.0, -1.0, -1.0)}, {glm::vec3(1.0, -1.0, 1.0)},
         {glm::vec3(-1.0, -1.0, 1.0)},  {glm::vec3(-1.0, 1.0, -1.0)}, {glm::vec3(1.0, 1.0, -1.0)},
         {glm::vec3(1.0, 1.0, 1.0)},    {glm::vec3(-1.0, 1.0, 1.0)},
     };
-    indices = std::vector<uint32_t>{0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6,
-                                    6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7};
-
-    vertexBuffer = context->createBuffer({
-        .usage = BufferUsage::Vertex,
-        .memory = MemoryUsage::Device,
-        .size = sizeof(Vertex) * vertices.size(),
-        .data = vertices.data(),
-    });
-    indexBuffer = context->createBuffer({
-        .usage = BufferUsage::Index,
-        .memory = MemoryUsage::Device,
-        .size = sizeof(uint32_t) * indices.size(),
-        .data = indices.data(),
-    });
+    std::vector<uint32_t> indices = {0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6,
+                                     6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7};
+    return {context, vertices, indices};
 }
 }  // namespace rv
