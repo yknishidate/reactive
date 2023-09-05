@@ -14,44 +14,9 @@ struct PushConstants {
     glm::vec3 color{1};
 };
 
-std::string vertCode = R"(
-#version 450
-layout(location = 0) in vec3 inPosition;
-layout(location = 1) in vec3 inNormal;
-layout(location = 2) in vec2 inTexCoord;
-layout(location = 0) out vec3 outNormal;
-
-layout(push_constant) uniform PushConstants {
-    mat4 viewProj;
-    mat4 model;
-    vec3 color;
-};
-
-void main() {
-    gl_Position = viewProj * model * vec4(inPosition, 1);
-    outNormal = inNormal;
-})";
-
-std::string fragCode = R"(
-#version 450
-layout(location = 0) in vec3 inNormal;
-layout(location = 0) out vec4 outColor;
-
-layout(push_constant) uniform PushConstants {
-    mat4 viewProj;
-    mat4 model;
-    vec3 color;
-};
-
-void main() {
-    vec3 lightDir = normalize(vec3(1, 2, -3));
-    vec3 diffuse = color * (dot(lightDir, inNormal) * 0.5 + 0.5);
-    outColor = vec4(diffuse, 1.0);
-})";
-
 class GridRenderer {
 public:
-    GridRenderer(const Context& context) {
+    void createPipeline(const Context& context) {
         const std::string gridVertCode = R"(
         #version 450
         layout(location = 0) in vec3 inPosition;
@@ -160,16 +125,17 @@ public:
 };
 
 struct Material {
+    glm::vec4 baseColor{1.0f};
+    glm::vec3 emissive{0.0f};
+    float metallic{0.0f};
+    float roughness{0.0f};
+    float ior{1.5f};
+
     int baseColorTextureIndex{-1};
     int metallicRoughnessTextureIndex{-1};
     int normalTextureIndex{-1};
     int occlusionTextureIndex{-1};
     int emissiveTextureIndex{-1};
-
-    glm::vec4 baseColorFactor{1.0f};
-    float metallicFactor{0.0f};
-    float roughnessFactor{0.0f};
-    glm::vec3 emissiveFactor{0.0f};
 };
 
 struct Transform {
@@ -264,7 +230,7 @@ public:
 
         for (auto& node : nodes) {
             pushConstants.model = node.computeTransformMatrix(frame);
-            pushConstants.color = node.material->baseColorFactor.xyz;
+            pushConstants.color = node.material->baseColor.xyz;
             Mesh* mesh = node.mesh;
             commandBuffer.pushConstants(pipeline, &pushConstants);
             commandBuffer.drawIndexed(mesh->vertexBuffer, mesh->indexBuffer,
@@ -306,6 +272,72 @@ public:
 
 class ViewportWindow {
 public:
+    std::string vertCode = R"(
+    #version 450
+    layout(location = 0) in vec3 inPosition;
+    layout(location = 1) in vec3 inNormal;
+    layout(location = 2) in vec2 inTexCoord;
+    layout(location = 0) out vec3 outNormal;
+
+    layout(push_constant) uniform PushConstants {
+        mat4 viewProj;
+        mat4 model;
+        vec3 color;
+    };
+
+    void main() {
+        gl_Position = viewProj * model * vec4(inPosition, 1);
+        outNormal = inNormal;
+    })";
+
+    std::string fragCode = R"(
+    #version 450
+    layout(location = 0) in vec3 inNormal;
+    layout(location = 0) out vec4 outColor;
+
+    layout(push_constant) uniform PushConstants {
+        mat4 viewProj;
+        mat4 model;
+        vec3 color;
+    };
+
+    void main() {
+        vec3 lightDir = normalize(vec3(1, 2, -3));
+        vec3 diffuse = color * (dot(lightDir, inNormal) * 0.5 + 0.5);
+        outColor = vec4(diffuse, 1.0);
+    })";
+
+    void createPipeline(const Context& context) {
+        std::vector<ShaderHandle> shaders(2);
+        shaders[0] = context.createShader({
+            .code = Compiler::compileToSPV(vertCode, vk::ShaderStageFlagBits::eVertex),
+            .stage = vk::ShaderStageFlagBits::eVertex,
+        });
+
+        shaders[1] = context.createShader({
+            .code = Compiler::compileToSPV(fragCode, vk::ShaderStageFlagBits::eFragment),
+            .stage = vk::ShaderStageFlagBits::eFragment,
+        });
+
+        descSet = context.createDescriptorSet({
+            .shaders = shaders,
+        });
+
+        pipeline = context.createGraphicsPipeline({
+            .descSetLayout = descSet->getLayout(),
+            .pushSize = sizeof(PushConstants),
+            .vertexShader = shaders[0],
+            .fragmentShader = shaders[1],
+            .vertexStride = sizeof(Vertex),
+            .vertexAttributes = Vertex::getAttributeDescriptions(),
+            .viewport = "dynamic",
+            .scissor = "dynamic",
+            .colorFormat = vk::Format::eR8G8B8A8Unorm,
+        });
+
+        gridRenderer.createPipeline(context);
+    }
+
     void editTransform(const Camera& camera, glm::mat4& matrix) const {
         // Gizmos
         ImGuizmo::SetOrthographic(false);
@@ -323,21 +355,6 @@ public:
                              nullptr);
     }
 
-    void beginRendering(CommandBuffer commandBuffer) const {
-        commandBuffer.clearColorImage(colorImage, {0.0f, 0.0f, 0.0f, 1.0f});
-        commandBuffer.clearDepthStencilImage(depthImage, 1.0f, 0);
-
-        commandBuffer.transitionLayout(colorImage, vk::ImageLayout::eGeneral);
-
-        vk::Extent3D extent = colorImage->getExtent();
-        commandBuffer.setViewport(extent.width, extent.height);
-        commandBuffer.setScissor(extent.width, extent.height);
-
-        commandBuffer.beginRendering(colorImage, depthImage, {0, 0}, {extent.width, extent.height});
-    }
-
-    void endRendering(CommandBuffer commandBuffer) const { commandBuffer.endRendering(); }
-
     void createImages(const Context& context, uint32_t _width, uint32_t _height) {
         width = _width;
         height = _height;
@@ -353,9 +370,9 @@ public:
         });
 
         // Create desc set
-        ImGui_ImplVulkan_RemoveTexture(descSet);
-        descSet = ImGui_ImplVulkan_AddTexture(colorImage->getSampler(), colorImage->getView(),
-                                              VK_IMAGE_LAYOUT_GENERAL);
+        ImGui_ImplVulkan_RemoveTexture(imguiDescSet);
+        imguiDescSet = ImGui_ImplVulkan_AddTexture(colorImage->getSampler(), colorImage->getView(),
+                                                   VK_IMAGE_LAYOUT_GENERAL);
 
         depthImage = context.createImage({
             .usage = ImageUsage::DepthAttachment,
@@ -391,7 +408,11 @@ public:
         }
     }
 
-    void show(Scene& scene, Node* selectedNode, const Camera& camera, int frame) {
+    void show(const CommandBuffer& commandBuffer,
+              Scene& scene,
+              Node* selectedNode,
+              const Camera& camera,
+              int frame) {
         if (ImGui::Begin("Viewport")) {
             processMouseInput();
 
@@ -399,12 +420,38 @@ public:
             width = windowSize.x;
             height = windowSize.y;
 
-            ImGui::Image(descSet, windowSize, ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::Image(imguiDescSet, windowSize, ImVec2(0, 1), ImVec2(1, 0));
 
             showGizmo(scene, selectedNode, camera, frame);
 
+            commandBuffer.bindDescriptorSet(descSet, pipeline);
+            commandBuffer.bindPipeline(pipeline);
+
+            commandBuffer.clearColorImage(colorImage, {0.0f, 0.0f, 0.0f, 1.0f});
+            commandBuffer.clearDepthStencilImage(depthImage, 1.0f, 0);
+
+            commandBuffer.transitionLayout(colorImage, vk::ImageLayout::eGeneral);
+
+            vk::Extent3D extent = colorImage->getExtent();
+            commandBuffer.setViewport(extent.width, extent.height);
+            commandBuffer.setScissor(extent.width, extent.height);
+            commandBuffer.beginRendering(colorImage, depthImage, {0, 0},
+                                         {extent.width, extent.height});
+
+            auto viewProj = camera.getProj() * camera.getView();
+            scene.draw(commandBuffer, pipeline, viewProj, frame);
+            gridRenderer.render(commandBuffer, extent.width, extent.height, viewProj);
+
+            commandBuffer.endRendering();
+
             ImGui::End();
         }
+    }
+
+    bool needsRecreate() const {
+        vk::Extent3D extent = colorImage->getExtent();
+        return static_cast<uint32_t>(width) != extent.width ||
+               static_cast<uint32_t>(height) != extent.height;
     }
 
     glm::vec2 dragDelta = {0.0f, 0.0f};
@@ -414,7 +461,11 @@ public:
     float height;
     ImageHandle colorImage;
     ImageHandle depthImage;
-    vk::DescriptorSet descSet;
+    vk::DescriptorSet imguiDescSet;
+
+    DescriptorSetHandle descSet;
+    GraphicsPipelineHandle pipeline;
+    GridRenderer gridRenderer;
 };
 
 class AttributeWindow {
@@ -423,7 +474,11 @@ public:
         ImGui::Begin("Attribute");
         if (selectedNode) {
             Material* material = selectedNode->material;
-            ImGui::ColorEdit4("Base color", &material->baseColorFactor[0]);
+            ImGui::ColorEdit4("Base color", &material->baseColor[0]);
+            ImGui::ColorEdit3("Emissive", &material->emissive[0]);
+            ImGui::SliderFloat("Metallic", &material->metallic, 0.0f, 1.0f);
+            ImGui::SliderFloat("Roughness", &material->roughness, 0.0f, 1.0f);
+            ImGui::SliderFloat("IOR", &material->ior, 0.01f, 5.0f);
         }
         ImGui::End();
     }
@@ -437,46 +492,18 @@ public:
               .height = 1440,
               .title = "Reactive Editor",
               .layers = {Layer::Validation},
-          }),
-          gridRenderer(context) {}
+          }) {}
 
     void onStart() override {
-        std::vector<ShaderHandle> shaders(2);
-        shaders[0] = context.createShader({
-            .code = Compiler::compileToSPV(vertCode, vk::ShaderStageFlagBits::eVertex),
-            .stage = vk::ShaderStageFlagBits::eVertex,
-        });
-
-        shaders[1] = context.createShader({
-            .code = Compiler::compileToSPV(fragCode, vk::ShaderStageFlagBits::eFragment),
-            .stage = vk::ShaderStageFlagBits::eFragment,
-        });
-
-        descSet = context.createDescriptorSet({
-            .shaders = shaders,
-        });
-
-        pipeline = context.createGraphicsPipeline({
-            .descSetLayout = descSet->getLayout(),
-            .pushSize = sizeof(PushConstants),
-            .vertexShader = shaders[0],
-            .fragmentShader = shaders[1],
-            .vertexStride = sizeof(Vertex),
-            .vertexAttributes = Vertex::getAttributeDescriptions(),
-            .viewport = "dynamic",
-            .scissor = "dynamic",
-            .colorFormat = vk::Format::eR8G8B8A8Unorm,
-        });
-
         // Add mesh
         scene.meshes.push_back(Mesh::createCubeMesh(context, {}));
 
         // Add material
         Material material;
-        material.baseColorFactor = glm::vec4{1, 0, 0, 1};
+        material.baseColor = glm::vec4{1, 0, 0, 1};
         scene.materials.push_back(material);
 
-        material.baseColorFactor = glm::vec4{1, 1, 0, 1};
+        material.baseColor = glm::vec4{1, 1, 0, 1};
         scene.materials.push_back(material);
 
         // Add node
@@ -492,11 +519,25 @@ public:
 
         camera = OrbitalCamera{this, 1920, 1080};
 
+        // Create viewport window
+        viewportWindow.createPipeline(context);
         viewportWindow.createImages(context, 1920, 1080);
     }
 
-    void showFullscreenDockspace() {
+    void onUpdate() override {
+        camera.processDragDelta(viewportWindow.dragDelta);
+        camera.processMouseScroll(viewportWindow.mouseScroll);
+        frame++;
+    }
+
+    void onRender(const CommandBuffer& commandBuffer) override {
+        if (viewportWindow.needsRecreate()) {
+            context.getDevice().waitIdle();
+            viewportWindow.createImages(context, viewportWindow.width, viewportWindow.height);
+            camera.aspect = viewportWindow.width / viewportWindow.height;
+        }
         static bool dockspaceOpen = true;
+        commandBuffer.clearColorImage(getCurrentColorImage(), {0.0f, 0.0f, 0.0f, 1.0f});
 
         ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
         ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -546,49 +587,11 @@ public:
                 ImGui::End();
             }
 
-            viewportWindow.show(scene, selectedNode, camera, frame);
+            viewportWindow.show(commandBuffer, scene, selectedNode, camera, frame);
 
             ImGui::End();
         }
     }
-
-    void onUpdate() override {
-        camera.processDragDelta(viewportWindow.dragDelta);
-        camera.processMouseScroll(viewportWindow.mouseScroll);
-        frame++;
-    }
-
-    void onRender(const CommandBuffer& commandBuffer) override {
-        vk::Extent3D extent = viewportWindow.colorImage->getExtent();
-        if (uint32_t(viewportWindow.width) != extent.width ||
-            uint32_t(viewportWindow.height) != extent.height) {
-            context.getDevice().waitIdle();
-
-            // TODO: remove width, height
-            viewportWindow.createImages(context, viewportWindow.width, viewportWindow.height);
-            extent = viewportWindow.colorImage->getExtent();
-
-            camera.aspect = viewportWindow.width / viewportWindow.height;
-        }
-
-        showFullscreenDockspace();
-
-        commandBuffer.clearColorImage(getCurrentColorImage(), {0.0f, 0.0f, 0.0f, 1.0f});
-
-        commandBuffer.bindDescriptorSet(descSet, pipeline);
-        commandBuffer.bindPipeline(pipeline);
-
-        viewportWindow.beginRendering(commandBuffer);
-
-        auto viewProj = camera.getProj() * camera.getView();
-        scene.draw(commandBuffer, pipeline, viewProj, frame);
-        gridRenderer.render(commandBuffer, extent.width, extent.height, viewProj);
-
-        viewportWindow.endRendering(commandBuffer);
-    }
-
-    DescriptorSetHandle descSet;
-    GraphicsPipelineHandle pipeline;
 
     // Scene
     OrbitalCamera camera;
@@ -599,7 +602,6 @@ public:
     Node* selectedNode = nullptr;
 
     // Editor
-    GridRenderer gridRenderer;
     SceneHierarchyWindow sceneHierarchyWindow;
     ViewportWindow viewportWindow;
     AttributeWindow attributeWindow;
