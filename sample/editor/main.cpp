@@ -236,8 +236,8 @@ public:
         return computeTransformAtFrame(frame).computeNormalMatrix();
     }
 
-    Mesh* mesh;
-    Material* material;
+    Mesh* mesh = nullptr;
+    Material* material = nullptr;
     Transform transform;
     std::vector<KeyFrame> keyFrames;
 };
@@ -305,7 +305,19 @@ public:
             .colorFormat = vk::Format::eR8G8B8A8Unorm,
         });
 
+        // Add mesh
         scene.meshes.push_back(Mesh::createCubeMesh(context, {}));
+
+        // Add material
+        Material material;
+        material.baseColorFactor = glm::vec4{1, 0, 0, 1};
+        scene.materials.push_back(material);
+
+        // Add node
+        Node node;
+        node.mesh = &scene.meshes.back();
+        node.material = &scene.materials.back();
+        scene.nodes.push_back(node);
 
         camera = OrbitalCamera{this, 1920, 1080};
 
