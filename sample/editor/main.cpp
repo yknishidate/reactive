@@ -148,6 +148,123 @@ public:
     Constants constants;
 };
 
+struct Material {
+    int baseColorTextureIndex{-1};
+    int metallicRoughnessTextureIndex{-1};
+    int normalTextureIndex{-1};
+    int occlusionTextureIndex{-1};
+    int emissiveTextureIndex{-1};
+
+    glm::vec4 baseColorFactor{1.0f};
+    float metallicFactor{0.0f};
+    float roughnessFactor{0.0f};
+    glm::vec3 emissiveFactor{0.0f};
+};
+
+struct Transform {
+    glm::vec3 translation = {0.0f, 0.0f, 0.0f};
+    glm::quat rotation = {1.0f, 0.0f, 0.0f, 0.0f};
+    glm::vec3 scale = {1.0f, 1.0f, 1.0f};
+
+    glm::mat4 computeTransformMatrix() const {
+        glm::mat4 T = glm::translate(glm::mat4{1.0}, translation);
+        glm::mat4 R = glm::mat4_cast(rotation);
+        glm::mat4 S = glm::scale(glm::mat4{1.0}, scale);
+        return T * R * S;
+    }
+
+    glm::mat4 computeNormalMatrix() const {
+        glm::mat4 R = glm::mat4_cast(rotation);
+        glm::mat4 S = glm::scale(glm::mat4{1.0}, glm::vec3{1.0} / scale);
+        return R * S;
+    }
+
+    static Transform lerp(const Transform& a, const Transform& b, float t) {
+        Transform transform;
+        transform.translation = glm::mix(a.translation, b.translation, t);
+        transform.rotation = glm::lerp(a.rotation, b.rotation, t);
+        transform.scale = glm::mix(a.scale, b.scale, t);
+        return transform;
+    }
+};
+
+struct KeyFrame {
+    int frame;
+    Transform transform;
+};
+
+class Node {
+public:
+    Transform computeTransformAtFrame(int frame) const {
+        // Handle frame out of range
+        if (frame <= keyFrames.front().frame) {
+            return keyFrames.front().transform;
+        }
+        if (frame >= keyFrames.back().frame) {
+            return keyFrames.back().transform;
+        }
+
+        // Search frame
+        for (int i = 0; i < keyFrames.size(); i++) {
+            const auto& keyFrame = keyFrames[i];
+            if (keyFrame.frame == frame) {
+                return keyFrame.transform;
+            }
+
+            if (keyFrame.frame > frame) {
+                const KeyFrame& prev = keyFrames[i - 1];
+                const KeyFrame& next = keyFrames[i];
+                float t = (frame = prev.frame) / (next.frame - prev.frame);
+
+                return Transform::lerp(prev.transform, next.transform, t);
+            }
+        }
+    }
+
+    glm::mat4 computeTransformMatrix(int frame) const {
+        if (keyFrames.empty()) {
+            return transform.computeTransformMatrix();
+        }
+        return computeTransformAtFrame(frame).computeTransformMatrix();
+    }
+
+    glm::mat4 computeNormalMatrix(int frame) const {
+        if (keyFrames.empty()) {
+            return transform.computeNormalMatrix();
+        }
+        return computeTransformAtFrame(frame).computeNormalMatrix();
+    }
+
+    Mesh* mesh;
+    Material* material;
+    Transform transform;
+    std::vector<KeyFrame> keyFrames;
+};
+
+class Scene {
+public:
+    void draw(CommandBuffer commandBuffer,
+              PipelineHandle pipeline,
+              const glm::mat4& viewProj,
+              int frame) const {
+        PushConstants pushConstants;
+        pushConstants.viewProj = viewProj;
+
+        for (auto& node : nodes) {
+            pushConstants.model = node.computeTransformMatrix(frame);
+            Mesh* mesh = node.mesh;
+            commandBuffer.pushConstants(pipeline, &pushConstants);
+            commandBuffer.drawIndexed(mesh->vertexBuffer, mesh->indexBuffer,
+                                      mesh->getIndicesCount());
+        }
+    }
+
+    std::vector<Node> nodes;
+    std::vector<Mesh> meshes;
+    std::vector<Material> materials;
+    std::vector<Camera> cameras;
+};
+
 class Editor : public App {
 public:
     Editor()
@@ -366,11 +483,11 @@ public:
 
         commandBuffer.bindDescriptorSet(descSet, pipeline);
         commandBuffer.bindPipeline(pipeline);
-        commandBuffer.pushConstants(pipeline, &pushConstants);
 
         commandBuffer.beginRendering(viewportImage, viewportDepthImage, {0, 0},
                                      {extent.width, extent.height});
 
+        commandBuffer.pushConstants(pipeline, &pushConstants);
         commandBuffer.drawIndexed(cubeMesh);
 
         gridRenderer.render(commandBuffer, extent.width, extent.height, pushConstants.viewProj);
@@ -386,7 +503,7 @@ public:
     glm::vec2 dragDelta = {0.0f, 0.0f};
     float mouseScroll = 0.0f;
     OrbitalCamera camera;
-    MeshHandle cubeMesh;
+    Scene scene;
 
     // ImGui
     bool viewportClicked = false;
