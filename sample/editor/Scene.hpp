@@ -14,6 +14,7 @@ struct Material {
     int normalTextureIndex{-1};
     int occlusionTextureIndex{-1};
     int emissiveTextureIndex{-1};
+    std::string name;
 };
 
 struct Transform {

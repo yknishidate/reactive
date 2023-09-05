@@ -25,9 +25,11 @@ public:
         // Add material
         Material material;
         material.baseColor = glm::vec4{1, 0, 0, 1};
+        material.name = "Standard 0";
         scene.materials.push_back(material);
 
         material.baseColor = glm::vec4{1, 1, 0, 1};
+        material.name = "Standard 1";
         scene.materials.push_back(material);
 
         // Add node
@@ -47,14 +49,31 @@ public:
         viewportWindow.createImages(context, 1920, 1080);
 
         icons.push_back(Image::loadFromFile(context, ASSET_DIR + "icons/asset_mesh.png"));
-        iconDescSets.emplace_back(ImGui_ImplVulkan_AddTexture(
-            icons[0]->getSampler(), icons[0]->getView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+        icons.push_back(Image::loadFromFile(context, ASSET_DIR + "icons/asset_material.png"));
+        iconDescSets.emplace_back(ImGui_ImplVulkan_AddTexture(  // break
+            icons[IconMesh]->getSampler(), icons[IconMesh]->getView(),
+            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+        iconDescSets.emplace_back(ImGui_ImplVulkan_AddTexture(  // break
+            icons[IconMaterial]->getSampler(), icons[IconMaterial]->getView(),
+            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
     }
 
     void onUpdate() override {
         camera.processDragDelta(viewportWindow.dragDelta);
         camera.processMouseScroll(viewportWindow.mouseScroll);
         frame++;
+    }
+
+    void showAssetIcon(int iconType, float thumbnailSize, const std::string& name) const {
+        ImGui::ImageButton(iconDescSets[iconType],          // user_texture_id
+                           {thumbnailSize, thumbnailSize},  // size
+                           {0, 0},                          // uv0
+                           {1, 1},                          // uv1
+                           0,                               // frame_padding
+                           ImVec4(0, 0, 0, 1)               // bb_col
+        );
+        ImGui::TextWrapped(name.c_str());
+        ImGui::NextColumn();
     }
 
     void onRender(const CommandBuffer& commandBuffer) override {
@@ -117,16 +136,13 @@ public:
                 ImGui::Columns(columnCount, 0, false);
 
                 for (auto& mesh : scene.meshes) {
-                    ImGui::ImageButton(iconDescSets[0],                 // user_texture_id
-                                       {thumbnailSize, thumbnailSize},  // size
-                                       {0, 0},                          // uv0
-                                       {1, 1},                          // uv1
-                                       0,                               // frame_padding
-                                       ImVec4(0, 0, 0, 1)               // bb_col
-                    );
-                    ImGui::TextWrapped(mesh.name.c_str());
-                    ImGui::NextColumn();
+                    showAssetIcon(IconMesh, thumbnailSize, mesh.name);
                 }
+
+                for (auto& material : scene.materials) {
+                    showAssetIcon(IconMaterial, thumbnailSize, material.name);
+                }
+
                 ImGui::Columns(1);
 
                 ImGui::End();
@@ -150,6 +166,11 @@ public:
     SceneWindow sceneWindow;
     ViewportWindow viewportWindow;
     AttributeWindow attributeWindow;
+
+    enum IconType {
+        IconMesh = 0,
+        IconMaterial = 1,
+    };
 
     std::vector<ImageHandle> icons;
     std::vector<vk::DescriptorSet> iconDescSets;
