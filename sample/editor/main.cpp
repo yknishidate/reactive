@@ -260,10 +260,12 @@ public:
         node.name = "Cube 0";
         node.mesh = &scene.meshes.back();
         node.material = &scene.materials[0];
+        node.transform.translation = glm::vec3{-1.5, 0, 0};
         scene.nodes.push_back(node);
 
         node.name = "Cube 1";
         node.material = &scene.materials[1];
+        node.transform.translation = glm::vec3{1.5, 0, 0};
         scene.nodes.push_back(node);
 
         camera = OrbitalCamera{this, 1920, 1080};
