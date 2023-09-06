@@ -140,11 +140,21 @@ public:
         camera.aspect = tmpAspect;
     }
 
+    void findDomeLight(const Scene& scene) {
+        for (int i = 0; i < scene.nodes.size(); i++) {
+            const auto& node = scene.nodes[i];
+            if (node.type == Node::DomeLightNode) {
+                pushConstants.domeLightIndex = i;
+            }
+        }
+    }
+
     void loadScene(const Context& context, const Scene& scene, rv::Camera& camera) {
         createInstanceDataBuffer(context, scene);
         updateInstanceDataBuffer(context, scene);
         buildAccels(context, scene);
         createPipeline(context);
+        findDomeLight(scene);
     }
 
     void render(const Context& context, const Scene& scene, rv::Camera& camera, int frame) {
@@ -201,8 +211,10 @@ public:
             data.transformMatrix = node.transform.computeTransformMatrix();
             data.normalMatrix = node.transform.computeNormalMatrix();
 
-            data.vertexAddress = node.mesh->vertexBuffer->getAddress();
-            data.indexAddress = node.mesh->indexBuffer->getAddress();
+            if (node.mesh) {
+                data.vertexAddress = node.mesh->vertexBuffer->getAddress();
+                data.indexAddress = node.mesh->indexBuffer->getAddress();
+            }
         }
 
         instanceDataBuffer->copy(instanceData.data());
@@ -299,6 +311,11 @@ public:
         material.name = "Standard 2";
         scene.materials.push_back(material);
 
+        material.baseColor = glm::vec4{0, 0, 0, 1};
+        material.emissive = glm::vec3{0.5, 0.5, 1.0};
+        material.name = "Dome light 0";
+        scene.materials.push_back(material);
+
         // Add node
         Node node;
         node.name = "Cube 0";
@@ -316,6 +333,13 @@ public:
         node.mesh = &scene.meshes[1];
         node.material = &scene.materials[2];
         node.transform.translation = glm::vec3{0, -1, 0};
+        scene.nodes.push_back(node);
+
+        node.name = "Dome light";
+        node.type = Node::DomeLightNode;
+        node.mesh = nullptr;
+        node.material = &scene.materials[3];
+        node.transform.translation = glm::vec3{0, 0, 0};
         scene.nodes.push_back(node);
 
         camera = OrbitalCamera{this, 1920, 1080};

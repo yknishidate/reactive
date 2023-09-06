@@ -91,7 +91,13 @@ public:
         return computeTransformAtFrame(frame).computeNormalMatrix();
     }
 
+    enum Type {
+        MeshNode,
+        DomeLightNode,
+    };
+
     std::string name;
+    Type type = MeshNode;
     rv::Mesh* mesh = nullptr;
     Material* material = nullptr;
     Transform transform;
@@ -104,4 +110,5 @@ public:
     std::vector<rv::Mesh> meshes;
     std::vector<Material> materials;
     std::vector<rv::Camera> cameras;
+    std::vector<rv::ImageHandle> textures;
 };

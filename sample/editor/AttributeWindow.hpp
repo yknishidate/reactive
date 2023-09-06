@@ -26,6 +26,9 @@ public:
 
     void showMaterial(const Node* node) const {
         Material* material = node->material;
+        if (!material) {
+            return;
+        }
         ImGui::SetNextItemOpen(true, ImGuiCond_Once);
         if (ImGui::TreeNode(("Material: " + material->name).c_str())) {
             ImGui::ColorEdit4("Base color", &material->baseColor[0]);
@@ -43,9 +46,11 @@ public:
             showTransform(node);
 
             rv::Mesh* mesh = node->mesh;
-            ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-            if (ImGui::TreeNode(("Mesh: " + mesh->name).c_str())) {
-                ImGui::TreePop();
+            if (mesh) {
+                ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+                if (ImGui::TreeNode(("Mesh: " + mesh->name).c_str())) {
+                    ImGui::TreePop();
+                }
             }
 
             showMaterial(node);

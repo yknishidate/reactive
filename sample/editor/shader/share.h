@@ -20,6 +20,8 @@ struct RenderPushConstants {
     int frame = 0;
     int sampleCount = 1;
     int enableAccum = 0;
+    int domeLightIndex = -1;
+
     float domeLightPhi = 0.0f;
 
     uint64_t instanceDataAddress;
@@ -32,6 +34,8 @@ layout(push_constant) uniform PushConstants {
     int frame;
     int sampleCount;
     int enableAccum;
+    int domeLightIndex;
+
     float domeLightPhi;
 
     uint64_t instanceDataAddress;

@@ -337,9 +337,11 @@ public:
             pushConstants.model = node.computeTransformMatrix(frame);
             pushConstants.color = node.material->baseColor.xyz;
             rv::Mesh* mesh = node.mesh;
-            commandBuffer.pushConstants(pipeline, &pushConstants);
-            commandBuffer.drawIndexed(mesh->vertexBuffer, mesh->indexBuffer,
-                                      mesh->getIndicesCount());
+            if (mesh) {
+                commandBuffer.pushConstants(pipeline, &pushConstants);
+                commandBuffer.drawIndexed(mesh->vertexBuffer, mesh->indexBuffer,
+                                          mesh->getIndicesCount());
+            }
         }
 
         // Draw grid
