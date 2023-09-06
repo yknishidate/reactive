@@ -30,7 +30,7 @@ Mesh Mesh::createSphereMesh(const Context& context, SphereMeshCreateInfo createI
     // add top vertex
     std::vector<Vertex> vertices{};
     std::vector<uint32_t> indices{};
-    vertices.push_back({{0, radius, 0}});
+    vertices.push_back({{0, radius, 0}, {0, 1, 0}});
     uint32_t v0 = 0;
 
     // generate vertices per stack / slice
@@ -48,7 +48,7 @@ Mesh Mesh::createSphereMesh(const Context& context, SphereMeshCreateInfo createI
     }
 
     // add bottom vertex
-    vertices.push_back({{0, -radius, 0}});
+    vertices.push_back({{0, -radius, 0}, {0, -1, 0}});
     uint32_t v1 = vertices.size() - 1;
 
     // add top / bottom triangles

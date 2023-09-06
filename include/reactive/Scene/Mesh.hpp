@@ -35,8 +35,8 @@ struct Vertex {
 };
 
 struct SphereMeshCreateInfo {
-    int numSlices;
-    int numStacks;
+    int numSlices = 32;
+    int numStacks = 32;
     float radius = 1.0;
     std::string name = "Sphere";
 };
