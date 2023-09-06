@@ -3,47 +3,64 @@
 
 #include "Scene.hpp"
 
+namespace Message {
+enum Type {
+    None = 0,
+    TransformChanged = 1 << 0,
+    MaterialChanged = 1 << 1,
+};
+}
+
 class AttributeWindow {
 public:
-    void showTransform(Node* node) const {
+    bool showTransform(Node* node) const {
         Transform& transform = node->transform;
+        bool changed = false;
         ImGui::SetNextItemOpen(true, ImGuiCond_Once);
         if (ImGui::TreeNode("Transform")) {
             // Translation
-            ImGui::DragFloat3("Translation", glm::value_ptr(transform.translation), 0.01);
+            changed |=
+                ImGui::DragFloat3("Translation", glm::value_ptr(transform.translation), 0.01);
 
             // Rotation
             glm::vec3 eulerAngles = glm::degrees(glm::eulerAngles(transform.rotation));
-            ImGui::DragFloat3("Rotation", glm::value_ptr(eulerAngles), 1.0);
+            changed |= ImGui::DragFloat3("Rotation", glm::value_ptr(eulerAngles), 1.0);
             transform.rotation = glm::quat(glm::radians(eulerAngles));
 
             // Scale
-            ImGui::DragFloat3("Scale", glm::value_ptr(transform.scale), 0.01);
+            changed |= ImGui::DragFloat3("Scale", glm::value_ptr(transform.scale), 0.01);
 
             ImGui::TreePop();
         }
+        return changed;
     }
 
-    void showMaterial(const Node* node) const {
+    bool showMaterial(const Node* node) const {
         Material* material = node->material;
         if (!material) {
-            return;
+            return false;
         }
+        bool changed = false;
         ImGui::SetNextItemOpen(true, ImGuiCond_Once);
         if (ImGui::TreeNode(("Material: " + material->name).c_str())) {
-            ImGui::ColorEdit4("Base color", &material->baseColor[0]);
-            ImGui::ColorEdit3("Emissive", &material->emissive[0]);
-            ImGui::SliderFloat("Metallic", &material->metallic, 0.0f, 1.0f);
-            ImGui::SliderFloat("Roughness", &material->roughness, 0.0f, 1.0f);
-            ImGui::SliderFloat("IOR", &material->ior, 0.01f, 5.0f);
+            changed |= ImGui::ColorEdit4("Base color", &material->baseColor[0]);
+            changed |= ImGui::ColorEdit3("Emissive", &material->emissive[0]);
+            changed |= ImGui::SliderFloat("Metallic", &material->metallic, 0.0f, 1.0f);
+            changed |= ImGui::SliderFloat("Roughness", &material->roughness, 0.0f, 1.0f);
+            changed |= ImGui::SliderFloat("IOR", &material->ior, 0.01f, 5.0f);
             ImGui::TreePop();
         }
+        return changed;
     }
 
-    void show(Scene& scene, Node* node) const {
+    int show(Scene& scene, Node* node) const {
         ImGui::Begin("Attribute");
+        int message = Message::None;
         if (node) {
-            showTransform(node);
+            if (showTransform(node)) {
+                spdlog::info("Transform changed");
+                message |= Message::TransformChanged;
+            }
 
             rv::Mesh* mesh = node->mesh;
             if (mesh) {
@@ -53,8 +70,11 @@ public:
                 }
             }
 
-            showMaterial(node);
+            if (showMaterial(node)) {
+                message |= Message::MaterialChanged;
+            }
         }
         ImGui::End();
+        return message;
     }
 };

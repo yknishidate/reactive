@@ -204,7 +204,7 @@ public:
         iconManager.addIcon(context, "manip_scale", ASSET_DIR + "icons/manip_scale.png");
     }
 
-    void editTransform(const rv::Camera& camera, glm::mat4& matrix) const {
+    bool editTransform(const rv::Camera& camera, glm::mat4& matrix) const {
         ImGuizmo::SetOrthographic(false);
         ImGuizmo::SetDrawlist();
 
@@ -213,8 +213,8 @@ public:
 
         glm::mat4 cameraProjection = camera.getProj();
         glm::mat4 cameraView = camera.getView();
-        ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
-                             currentGizmoOperation, ImGuizmo::LOCAL, glm::value_ptr(matrix));
+        return ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
+                                    currentGizmoOperation, ImGuizmo::LOCAL, glm::value_ptr(matrix));
     }
 
     void createImages(const rv::Context& context, uint32_t _width, uint32_t _height) {
@@ -255,11 +255,12 @@ public:
         ImGui::ResetMouseDragDelta();
     }
 
-    void showGizmo(Scene& scene, Node* selectedNode, const rv::Camera& camera, int frame) const {
+    bool showGizmo(Scene& scene, Node* selectedNode, const rv::Camera& camera, int frame) const {
+        bool changed = false;
         for (auto& node : scene.nodes) {
             if (&node == selectedNode) {
                 glm::mat4 model = node.computeTransformMatrix(frame);
-                editTransform(camera, model);
+                changed |= editTransform(camera, model);
 
                 Transform& transform = node.transform;
                 glm::vec3 skew;
@@ -268,6 +269,7 @@ public:
                                skew, perspective);
             }
         }
+        return changed;
     }
 
     void showToolIcon(const std::string& name, float thumbnailSize, ImGuizmo::OPERATION operation) {
@@ -299,7 +301,8 @@ public:
         ImGui::EndChild();
     }
 
-    void show(Scene& scene, Node* selectedNode, const rv::Camera& camera, int frame) {
+    int show(Scene& scene, Node* selectedNode, const rv::Camera& camera, int frame) {
+        int message = Message::None;
         if (ImGui::Begin("Viewport")) {
             processMouseInput();
 
@@ -310,9 +313,13 @@ public:
             ImGui::Image(imguiDescSet, windowSize, ImVec2(0, 1), ImVec2(1, 0));
 
             showToolBar(windowPos);
-            showGizmo(scene, selectedNode, camera, frame);
+            if (showGizmo(scene, selectedNode, camera, frame)) {
+                message |= Message::TransformChanged;
+            }
+
             ImGui::End();
         }
+        return message;
     }
 
     void drawContent(const rv::CommandBuffer& commandBuffer,

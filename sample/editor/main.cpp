@@ -157,7 +157,11 @@ public:
         findDomeLight(scene);
     }
 
-    void render(const Context& context, const Scene& scene, rv::Camera& camera, int frame) {
+    void render(const Context& context,
+                const Scene& scene,
+                rv::Camera& camera,
+                int frame,
+                int message) {
         if (!running) {
             return;
         }
@@ -166,6 +170,7 @@ public:
             loadScene(context, scene, camera);
         }
 
+        // TODO: move to new function
         // Ignore the request if rendering is in progress.
         vk::Result fenceStatus = context.getDevice().getFenceStatus(*fence);
         if (fenceStatus == vk::Result::eNotReady) {
@@ -174,10 +179,21 @@ public:
         }
         context.getDevice().resetFences(*fence);
 
+        if (message & Message::MaterialChanged || message & Message::TransformChanged) {
+            spdlog::info("Update instance data");
+            updateInstanceDataBuffer(context, scene);
+        }
+
         updatePushConstants(camera);
 
         vk::CommandBufferBeginInfo beginInfo;
         vkCommandBuffer->begin(beginInfo);
+
+        // Update top level as
+        if (message & Message::TransformChanged) {
+            spdlog::info("Update top level as");
+            updateTopAccel(*vkCommandBuffer, scene, frame);
+        }
 
         vk::Extent3D imageExtent = colorImage->getExtent();
         rv::CommandBuffer commandBuffer{&context, *vkCommandBuffer};
@@ -256,6 +272,27 @@ public:
             }
         }
         topAccel = context.createTopAccel({.accelInstances = accelInstances});
+    }
+
+    void updateTopAccel(vk::CommandBuffer commandBuffer, const Scene& scene, int frame) {
+        // TODO: I want to remove this loop.
+        std::unordered_map<std::string, int> meshIndices;
+        bottomAccels.resize(scene.meshes.size());
+        for (int i = 0; i < scene.meshes.size(); i++) {
+            const Mesh& mesh = scene.meshes[i];
+            meshIndices[mesh.name] = i;
+        }
+
+        std::vector<AccelInstance> accelInstances;
+        for (auto& node : scene.nodes) {
+            if (node.mesh) {
+                accelInstances.push_back({
+                    .bottomAccel = bottomAccels[meshIndices[node.mesh->name]],
+                    .transform = node.computeTransformMatrix(frame),
+                });
+            }
+        }
+        topAccel->update(commandBuffer, accelInstances);
     }
 
     rv::ImageHandle colorImage;
@@ -406,14 +443,15 @@ public:
             ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 
             sceneWindow.show(scene, &selectedNode);
-            attributeWindow.show(scene, selectedNode);
+            int message = Message::None;
+            message |= attributeWindow.show(scene, selectedNode);
+            message |= viewportWindow.show(scene, selectedNode, camera, frame);
             assetWindow.show(scene);
-            viewportWindow.show(scene, selectedNode, camera, frame);
             renderWindow.show(scene, camera, frame);
 
             viewportWindow.drawContent(commandBuffer, scene, camera, frame);
 
-            renderWindow.render(context, scene, camera, frame);
+            renderWindow.render(context, scene, camera, frame, message);
 
             ImGui::End();
         }
