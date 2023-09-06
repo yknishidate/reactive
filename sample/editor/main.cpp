@@ -42,7 +42,7 @@ public:
 
         descSet = context.createDescriptorSet({
             .shaders = shaders,
-            .images = {{"baseImage", colorImage}},
+            .images = {{"accumImage", accumImage}, {"outputImage", colorImage}},
             .accels = {{"topLevelAS", topAccel}},
         });
 
@@ -57,6 +57,16 @@ public:
     }
 
     void createImages(const rv::Context& context, uint32_t width, uint32_t height) {
+        accumImage = context.createImage({
+            .usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage |
+                     vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc |
+                     vk::ImageUsageFlagBits::eColorAttachment,
+            .extent = {width, height, 1},
+            .format = vk::Format::eR32G32B32A32Sfloat,
+            .layout = vk::ImageLayout::eGeneral,
+            .debugName = "RenderWindow::accumImage",
+        });
+
         colorImage = context.createImage({
             .usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage |
                      vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc |
@@ -130,13 +140,20 @@ public:
         }
     }
 
-    void updatePushConstants(rv::Camera& camera) {
+    void updatePushConstants(rv::Camera& camera, int message) {
         vk::Extent3D imageExtent = colorImage->getExtent();
         float tmpAspect = camera.aspect;
         camera.aspect = static_cast<float>(imageExtent.width) / imageExtent.height;
         pushConstants.invView = camera.getInvView();
         pushConstants.invProj = camera.getInvProj();
         pushConstants.instanceDataAddress = instanceDataBuffer->getAddress();
+        if (message == Message::None) {
+            // Accumulate
+            pushConstants.frame++;
+        } else {
+            // Reset
+            pushConstants.frame = 0;
+        }
         camera.aspect = tmpAspect;
     }
 
@@ -184,7 +201,7 @@ public:
             updateInstanceDataBuffer(context, scene);
         }
 
-        updatePushConstants(camera);
+        updatePushConstants(camera, message);
 
         vk::CommandBufferBeginInfo beginInfo;
         vkCommandBuffer->begin(beginInfo);
@@ -295,6 +312,7 @@ public:
         topAccel->update(commandBuffer, accelInstances);
     }
 
+    rv::ImageHandle accumImage;
     rv::ImageHandle colorImage;
     vk::DescriptorSet imguiDescSet;
 
@@ -349,7 +367,7 @@ public:
         scene.materials.push_back(material);
 
         material.baseColor = glm::vec4{0, 0, 0, 1};
-        material.emissive = glm::vec3{0.5, 0.5, 1.0};
+        material.emissive = glm::vec3{0.5, 1.0, 0.5};
         material.name = "Dome light 0";
         scene.materials.push_back(material);
 

@@ -39,6 +39,11 @@ void main()
     }
     radiance /= sampleCount;
 
-    vec4 newColor = vec4(radiance, 1);
-    imageStore(baseImage, ivec2(gl_LaunchIDEXT.xy), newColor);
+    vec3 newColor = radiance;
+    if(enableAccum == 1){
+        vec3 prevColor = imageLoad(accumImage, ivec2(gl_LaunchIDEXT.xy)).rgb;
+        newColor = (newColor + (prevColor * frame)) / (frame + 1);
+    }
+    imageStore(accumImage, ivec2(gl_LaunchIDEXT.xy), vec4(newColor, 1));
+    imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(newColor, 1));
 }

@@ -19,7 +19,7 @@ struct RenderPushConstants {
 
     int frame = 0;
     int sampleCount = 1;
-    int enableAccum = 0;
+    int enableAccum = 1;
     int domeLightIndex = -1;
 
     float domeLightPhi = 0.0f;
@@ -77,8 +77,9 @@ struct Vertex {
 };
 
 // Image
-layout(binding = 0, rgba8) uniform image2D baseImage;
-layout(binding = 1) uniform sampler2D domeLightTexture;
+layout(binding = 0, rgba32f) uniform image2D accumImage;
+layout(binding = 1, rgba8) uniform image2D outputImage;
+layout(binding = 2) uniform sampler2D domeLightTexture;
 
 // Accel
 layout(binding = 10) uniform accelerationStructureEXT topLevelAS;
