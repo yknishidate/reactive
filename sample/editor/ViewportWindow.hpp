@@ -14,7 +14,7 @@ struct PushConstants {
     glm::vec3 color{1};
 };
 
-class GridRenderer {
+class GridDrawer {
 public:
     void createPipeline(const rv::Context& context) {
         const std::string gridVertCode = R"(
@@ -86,10 +86,10 @@ public:
         subGridMesh = rv::Mesh::createPlaneLineMesh(context, gridInfo);
     }
 
-    void render(const rv::CommandBuffer& commandBuffer,
-                uint32_t width,
-                uint32_t height,
-                const glm::mat4& viewProj) {
+    void draw(const rv::CommandBuffer& commandBuffer,
+              uint32_t width,
+              uint32_t height,
+              const glm::mat4& viewProj) {
         commandBuffer.setViewport(width, height);
         commandBuffer.setScissor(width, height);
 
@@ -161,6 +161,14 @@ public:
         outColor = vec4(diffuse, 1.0);
     })";
 
+    void init(const rv::Context& context, uint32_t _width, uint32_t _height) {
+        createPipeline(context);
+        createImages(context, _width, _height);
+        createIcons(context);
+
+        gridDrawer.createPipeline(context);
+    }
+
     void createPipeline(const rv::Context& context) {
         std::vector<rv::ShaderHandle> shaders(2);
         shaders[0] = context.createShader({
@@ -188,8 +196,6 @@ public:
             .scissor = "dynamic",
             .colorFormat = vk::Format::eR8G8B8A8Unorm,
         });
-
-        gridRenderer.createPipeline(context);
     }
 
     void createIcons(const rv::Context& context) {
@@ -293,49 +299,42 @@ public:
         ImGui::EndChild();
     }
 
-    void show(const rv::CommandBuffer& commandBuffer,
-              Scene& scene,
-              Node* selectedNode,
-              const rv::Camera& camera,
-              int frame) {
+    void show(Scene& scene, Node* selectedNode, const rv::Camera& camera, int frame) {
         if (ImGui::Begin("Viewport")) {
             processMouseInput();
 
-            // Show viewport
             ImVec2 windowPos = ImGui::GetCursorScreenPos();
             ImVec2 windowSize = ImGui::GetContentRegionAvail();
             width = windowSize.x;
             height = windowSize.y;
-
             ImGui::Image(imguiDescSet, windowSize, ImVec2(0, 1), ImVec2(1, 0));
 
             showToolBar(windowPos);
-
             showGizmo(scene, selectedNode, camera, frame);
-
-            // Render scene
-            {
-                commandBuffer.bindDescriptorSet(descSet, pipeline);
-                commandBuffer.bindPipeline(pipeline);
-                commandBuffer.clearColorImage(colorImage, {0.05f, 0.05f, 0.05f, 1.0f});
-                commandBuffer.clearDepthStencilImage(depthImage, 1.0f, 0);
-                commandBuffer.transitionLayout(colorImage, vk::ImageLayout::eGeneral);
-
-                vk::Extent3D extent = colorImage->getExtent();
-                commandBuffer.setViewport(extent.width, extent.height);
-                commandBuffer.setScissor(extent.width, extent.height);
-                commandBuffer.beginRendering(colorImage, depthImage, {0, 0},
-                                             {extent.width, extent.height});
-
-                glm::mat4 viewProj = camera.getProj() * camera.getView();
-                scene.draw(commandBuffer, pipeline, viewProj, frame);
-                gridRenderer.render(commandBuffer, extent.width, extent.height, viewProj);
-
-                commandBuffer.endRendering();
-            }
-
             ImGui::End();
         }
+    }
+
+    void drawContent(const rv::CommandBuffer& commandBuffer,
+                     const Scene& scene,
+                     const rv::Camera& camera,
+                     int frame) {
+        commandBuffer.bindDescriptorSet(descSet, pipeline);
+        commandBuffer.bindPipeline(pipeline);
+        commandBuffer.clearColorImage(colorImage, {0.05f, 0.05f, 0.05f, 1.0f});
+        commandBuffer.clearDepthStencilImage(depthImage, 1.0f, 0);
+        commandBuffer.transitionLayout(colorImage, vk::ImageLayout::eGeneral);
+
+        vk::Extent3D extent = colorImage->getExtent();
+        commandBuffer.setViewport(extent.width, extent.height);
+        commandBuffer.setScissor(extent.width, extent.height);
+        commandBuffer.beginRendering(colorImage, depthImage, {0, 0}, {extent.width, extent.height});
+
+        glm::mat4 viewProj = camera.getProj() * camera.getView();
+        scene.draw(commandBuffer, pipeline, viewProj, frame);
+        gridDrawer.draw(commandBuffer, extent.width, extent.height, viewProj);
+
+        commandBuffer.endRendering();
     }
 
     bool needsRecreate() const {
@@ -355,7 +354,7 @@ public:
 
     rv::DescriptorSetHandle descSet;
     rv::GraphicsPipelineHandle pipeline;
-    GridRenderer gridRenderer;
+    GridDrawer gridDrawer;
 
     IconManager iconManager;
     ImGuizmo::OPERATION currentGizmoOperation = ImGuizmo::TRANSLATE;

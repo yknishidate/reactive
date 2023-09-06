@@ -50,10 +50,7 @@ public:
         camera.distance = 10.0f;
 
         assetWindow.init(context);
-
-        viewportWindow.createPipeline(context);
-        viewportWindow.createImages(context, 1920, 1080);
-        viewportWindow.createIcons(context);
+        viewportWindow.init(context, 1920, 1080);
     }
 
     void onUpdate() override {
@@ -113,7 +110,9 @@ public:
             sceneWindow.show(scene, &selectedNode);
             attributeWindow.show(scene, selectedNode);
             assetWindow.show(scene);
-            viewportWindow.show(commandBuffer, scene, selectedNode, camera, frame);
+            viewportWindow.show(scene, selectedNode, camera, frame);
+
+            viewportWindow.drawContent(commandBuffer, scene, camera, frame);
 
             ImGui::End();
         }
