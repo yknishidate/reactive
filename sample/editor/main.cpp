@@ -11,72 +11,40 @@ using namespace rv;
 
 class RenderWindow {
 public:
-    std::string vertCode = R"(
-    #version 450
-    layout(location = 0) in vec3 inPosition;
-    layout(location = 1) in vec3 inNormal;
-    layout(location = 2) in vec2 inTexCoord;
-    layout(location = 0) out vec3 outNormal;
-
-    layout(push_constant) uniform PushConstants {
-        mat4 viewProj;
-        mat4 model;
-        vec3 color;
-    };
-
-    void main() {
-        gl_Position = viewProj * model * vec4(inPosition, 1);
-        outNormal = inNormal;
-    })";
-
-    std::string fragCode = R"(
-    #version 450
-    layout(location = 0) in vec3 inNormal;
-    layout(location = 0) out vec4 outColor;
-
-    layout(push_constant) uniform PushConstants {
-        mat4 viewProj;
-        mat4 model;
-        vec3 color;
-    };
-
-    void main() {
-        vec3 lightDir = normalize(vec3(1, 2, -3));
-        vec3 diffuse = color * (dot(lightDir, inNormal) * 0.5 + 0.5);
-        outColor = vec4(diffuse, 1.0);
-    })";
-
     void init(const rv::Context& context, uint32_t width, uint32_t height) {
-        createPipeline(context);
         createImages(context, width, height);
+        createPipeline(context);
     }
 
     void createPipeline(const rv::Context& context) {
-        std::vector<rv::ShaderHandle> shaders(2);
+        std::vector<rv::ShaderHandle> shaders(3);
         shaders[0] = context.createShader({
-            .code = rv::Compiler::compileToSPV(vertCode, vk::ShaderStageFlagBits::eVertex),
-            .stage = vk::ShaderStageFlagBits::eVertex,
+            .code = rv::Compiler::compileToSPV(SHADER_DIR + "base.rgen"),
+            .stage = vk::ShaderStageFlagBits::eRaygenKHR,
         });
 
         shaders[1] = context.createShader({
-            .code = rv::Compiler::compileToSPV(fragCode, vk::ShaderStageFlagBits::eFragment),
-            .stage = vk::ShaderStageFlagBits::eFragment,
+            .code = rv::Compiler::compileToSPV(SHADER_DIR + "base.rmiss"),
+            .stage = vk::ShaderStageFlagBits::eMissKHR,
+        });
+
+        shaders[2] = context.createShader({
+            .code = rv::Compiler::compileToSPV(SHADER_DIR + "base.rchit"),
+            .stage = vk::ShaderStageFlagBits::eClosestHitKHR,
         });
 
         descSet = context.createDescriptorSet({
             .shaders = shaders,
+            .images = {{"baseImage", colorImage}},
         });
 
-        pipeline = context.createGraphicsPipeline({
+        pipeline = context.createRayTracingPipeline({
+            .rgenShaders = shaders[0],
+            .missShaders = shaders[1],
+            .chitShaders = shaders[2],
             .descSetLayout = descSet->getLayout(),
-            .pushSize = sizeof(PushConstants),
-            .vertexShader = shaders[0],
-            .fragmentShader = shaders[1],
-            .vertexStride = sizeof(rv::Vertex),
-            .vertexAttributes = rv::Vertex::getAttributeDescriptions(),
-            .viewport = "dynamic",
-            .scissor = "dynamic",
-            .colorFormat = vk::Format::eR8G8B8A8Unorm,
+            .pushSize = 0,
+            .maxRayRecursionDepth = 16,
         });
     }
 
@@ -135,6 +103,9 @@ public:
         commandBuffer.clearColorImage(colorImage, {1.0, 1.0, 0.5, 1.0});
         commandBuffer.transitionLayout(colorImage, vk::ImageLayout::eGeneral);
 
+        vk::Extent3D imageExtent = colorImage->getExtent();
+        commandBuffer.traceRays(pipeline, imageExtent.width, imageExtent.height, imageExtent.depth);
+
         // TODO: change camera aspect
         glm::mat4 viewProj = camera.getProj() * camera.getView();
     }
@@ -143,7 +114,7 @@ public:
     vk::DescriptorSet imguiDescSet;
 
     rv::DescriptorSetHandle descSet;
-    rv::GraphicsPipelineHandle pipeline;
+    rv::RayTracingPipelineHandle pipeline;
 };
 
 class Editor : public App {
@@ -154,6 +125,7 @@ public:
               .height = 1440,
               .title = "Reactive Editor",
               .layers = {Layer::Validation},
+              .extensions = {Extension::RayTracing},
           }) {}
 
     void onStart() override {
