@@ -96,13 +96,13 @@ public:
         commandBuffer.bindPipeline(pipeline);
 
         pushConstants.viewProj = viewProj;
-        pushConstants.color = glm::vec3(0.6);
+        pushConstants.color = glm::vec3(0.4);
         commandBuffer.setLineWidth(2.0f);
         commandBuffer.pushConstants(pipeline, &pushConstants);
         commandBuffer.drawIndexed(mainGridMesh.vertexBuffer, mainGridMesh.indexBuffer,
                                   mainGridMesh.getIndicesCount());
 
-        pushConstants.color = glm::vec3(0.3);
+        pushConstants.color = glm::vec3(0.2);
         commandBuffer.setLineWidth(1.0f);
         commandBuffer.pushConstants(pipeline, &pushConstants);
         commandBuffer.drawIndexed(subGridMesh.vertexBuffer, subGridMesh.indexBuffer,
