@@ -13,7 +13,7 @@ const float PI = 3.1415926535;
 #endif
 
 #ifdef __cplusplus
-struct PushConstants {
+struct RenderPushConstants {
     glm::mat4 invView;
     glm::mat4 invProj;
 
@@ -43,7 +43,8 @@ struct InstanceData {
     mat4 transformMatrix;
     mat4 normalMatrix;
 
-    int meshIndex;
+    uint64_t vertexAddress;
+    uint64_t indexAddress;
 
     int baseColorTextureIndex;
     int metallicRoughnessTextureIndex;
@@ -51,10 +52,10 @@ struct InstanceData {
     int occlusionTextureIndex;
     int emissiveTextureIndex;
 
-    float metallicFactor;
-    float roughnessFactor;
-    vec4 baseColorFactor;
-    vec3 emissiveFactor;
+    float metallic;
+    float roughness;
+    vec4 baseColor;
+    vec3 emissive;
 };
 
 #ifndef __cplusplus
@@ -79,15 +80,13 @@ layout(binding = 1) uniform sampler2D domeLightTexture;
 layout(binding = 10) uniform accelerationStructureEXT topLevelAS;
 
 // Buffer
-layout(binding = 20) buffer VertexBuffers {
+layout(buffer_reference, scalar) buffer VertexBuffer {
     Vertex vertices[];
-}
-vertexBuffers[];
+};
 
-layout(binding = 21) buffer IndexBuffers {
+layout(buffer_reference, scalar) buffer IndexBuffer {
     uint indices[];
-}
-indexBuffers[];
+};
 
 layout(buffer_reference, scalar) buffer InstanceDataBuffer {
     InstanceData instanceData[];

@@ -155,6 +155,16 @@ public:
 
     std::vector<vk::UniqueCommandBuffer> allocateCommandBuffers(uint32_t count) const;
 
+    vk::UniqueCommandBuffer allocateCommandBuffer() const {
+        return std::move(allocateCommandBuffers(1).front());
+    }
+
+    void submit(vk::CommandBuffer commandBuffer, vk::Fence fence) const {
+        vk::SubmitInfo submitInfo;
+        submitInfo.setCommandBuffers(commandBuffer);
+        queue.submit(submitInfo, fence);
+    }
+
     void oneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command) const;
     void oneTimeSubmit(const std::function<void(CommandBuffer)>& command) const;
 

@@ -100,29 +100,6 @@ public:
 
 class Scene {
 public:
-    struct PushConstants {
-        glm::mat4 viewProj;
-        glm::mat4 model;
-        glm::vec3 color;
-    };
-
-    void draw(rv::CommandBuffer commandBuffer,
-              rv::PipelineHandle pipeline,
-              const glm::mat4& viewProj,
-              int frame) const {
-        PushConstants pushConstants;
-        pushConstants.viewProj = viewProj;
-
-        for (auto& node : nodes) {
-            pushConstants.model = node.computeTransformMatrix(frame);
-            pushConstants.color = node.material->baseColor.xyz;
-            rv::Mesh* mesh = node.mesh;
-            commandBuffer.pushConstants(pipeline, &pushConstants);
-            commandBuffer.drawIndexed(mesh->vertexBuffer, mesh->indexBuffer,
-                                      mesh->getIndicesCount());
-        }
-    }
-
     std::vector<Node> nodes;
     std::vector<rv::Mesh> meshes;
     std::vector<Material> materials;

@@ -8,13 +8,12 @@
 #include "Scene.hpp"
 #include "reactive/Graphics/Context.hpp"
 
-struct PushConstants {
-    glm::mat4 viewProj{1};
-    glm::mat4 model{1};
-    glm::vec3 color{1};
-};
-
 class GridDrawer {
+    struct PushConstants {
+        glm::mat4 viewProj;
+        glm::vec3 color;
+    };
+
 public:
     void createPipeline(const rv::Context& context) {
         const std::string gridVertCode = R"(
@@ -61,7 +60,7 @@ public:
 
         pipeline = context.createGraphicsPipeline({
             .descSetLayout = descSet->getLayout(),
-            .pushSize = sizeof(Constants),
+            .pushSize = sizeof(PushConstants),
             .vertexShader = shaders[0],
             .fragmentShader = shaders[1],
             .vertexStride = sizeof(rv::Vertex),
@@ -96,24 +95,19 @@ public:
         commandBuffer.bindDescriptorSet(descSet, pipeline);
         commandBuffer.bindPipeline(pipeline);
 
-        constants.viewProj = viewProj;
-        constants.color = glm::vec3(0.6);
+        pushConstants.viewProj = viewProj;
+        pushConstants.color = glm::vec3(0.6);
         commandBuffer.setLineWidth(2.0f);
-        commandBuffer.pushConstants(pipeline, &constants);
+        commandBuffer.pushConstants(pipeline, &pushConstants);
         commandBuffer.drawIndexed(mainGridMesh.vertexBuffer, mainGridMesh.indexBuffer,
                                   mainGridMesh.getIndicesCount());
 
-        constants.color = glm::vec3(0.3);
+        pushConstants.color = glm::vec3(0.3);
         commandBuffer.setLineWidth(1.0f);
-        commandBuffer.pushConstants(pipeline, &constants);
+        commandBuffer.pushConstants(pipeline, &pushConstants);
         commandBuffer.drawIndexed(subGridMesh.vertexBuffer, subGridMesh.indexBuffer,
                                   subGridMesh.getIndicesCount());
     }
-
-    struct Constants {
-        glm::mat4 viewProj;
-        glm::vec3 color;
-    };
 
     rv::GraphicsPipelineHandle pipeline;
     rv::DescriptorSetHandle descSet;
@@ -121,10 +115,16 @@ public:
     rv::Mesh mainGridMesh;
     rv::Mesh subGridMesh;
 
-    Constants constants;
+    PushConstants pushConstants;
 };
 
 class ViewportWindow {
+    struct PushConstants {
+        glm::mat4 viewProj;
+        glm::mat4 model;
+        glm::vec3 color;
+    };
+
 public:
     std::string vertCode = R"(
     #version 450
@@ -330,8 +330,19 @@ public:
         commandBuffer.setScissor(extent.width, extent.height);
         commandBuffer.beginRendering(colorImage, depthImage, {0, 0}, {extent.width, extent.height});
 
+        // Draw scene
         glm::mat4 viewProj = camera.getProj() * camera.getView();
-        scene.draw(commandBuffer, pipeline, viewProj, frame);
+        pushConstants.viewProj = viewProj;
+        for (auto& node : scene.nodes) {
+            pushConstants.model = node.computeTransformMatrix(frame);
+            pushConstants.color = node.material->baseColor.xyz;
+            rv::Mesh* mesh = node.mesh;
+            commandBuffer.pushConstants(pipeline, &pushConstants);
+            commandBuffer.drawIndexed(mesh->vertexBuffer, mesh->indexBuffer,
+                                      mesh->getIndicesCount());
+        }
+
+        // Draw grid
         gridDrawer.draw(commandBuffer, extent.width, extent.height, viewProj);
 
         commandBuffer.endRendering();
@@ -354,6 +365,7 @@ public:
     rv::DescriptorSetHandle descSet;
     rv::GraphicsPipelineHandle pipeline;
     GridDrawer gridDrawer;
+    PushConstants pushConstants;
 
     IconManager iconManager;
     ImGuizmo::OPERATION currentGizmoOperation = ImGuizmo::TRANSLATE;

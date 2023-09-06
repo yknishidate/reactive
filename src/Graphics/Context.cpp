@@ -125,7 +125,7 @@ std::vector<vk::UniqueCommandBuffer> Context::allocateCommandBuffers(uint32_t co
 }
 
 void Context::oneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command) const {
-    vk::UniqueCommandBuffer commandBuffer = std::move(allocateCommandBuffers(1).front());
+    vk::UniqueCommandBuffer commandBuffer = allocateCommandBuffer();
 
     vk::CommandBufferBeginInfo beginInfo;
     beginInfo.setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);

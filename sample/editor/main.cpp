@@ -6,6 +6,7 @@
 #include "Scene.hpp"
 #include "SceneWindow.hpp"
 #include "ViewportWindow.hpp"
+#include "shader/share.h"
 
 using namespace rv;
 
@@ -14,6 +15,12 @@ public:
     void init(const rv::Context& context, uint32_t width, uint32_t height) {
         createImages(context, width, height);
         createPipeline(context);
+
+        vkCommandBuffer = context.allocateCommandBuffer();
+
+        vk::FenceCreateInfo fenceInfo;
+        fenceInfo.setFlags(vk::FenceCreateFlagBits::eSignaled);
+        fence = context.getDevice().createFenceUnique(fenceInfo);
     }
 
     void createPipeline(const rv::Context& context) {
@@ -95,23 +102,79 @@ public:
         }
     }
 
-    void drawContent(const rv::CommandBuffer& commandBuffer,
-                     const Scene& scene,
-                     rv::Camera& camera,
-                     int frame) {
+    void updatePushConstants(rv::Camera& camera) {
+        vk::Extent3D imageExtent = colorImage->getExtent();
+        float tmpAspect = camera.aspect;
+        camera.aspect = imageExtent.width / imageExtent.height;
+        pushConstants.invView = camera.getInvView();
+        pushConstants.invProj = camera.getInvProj();
+        camera.aspect = tmpAspect;
+    }
+
+    void render(const Context& context, const Scene& scene, rv::Camera& camera, int frame) {
+        createInstanceDataBuffer(context, scene);
+        updateInstanceDataBuffer(context, scene);
+
+        // Ignore the request if rendering is in progress.
+        vk::Result fenceStatus = context.getDevice().getFenceStatus(*fence);
+        if (fenceStatus == vk::Result::eNotReady) {
+            spdlog::info("RenderWindow::render(): Rendering is in progress.");
+            return;
+        }
+        context.getDevice().resetFences(*fence);
+
+        updatePushConstants(camera);
+
+        vk::CommandBufferBeginInfo beginInfo;
+        vkCommandBuffer->begin(beginInfo);
+
+        vk::Extent3D imageExtent = colorImage->getExtent();
+        rv::CommandBuffer commandBuffer{&context, *vkCommandBuffer};
         commandBuffer.bindDescriptorSet(descSet, pipeline);
         commandBuffer.bindPipeline(pipeline);
         commandBuffer.clearColorImage(colorImage, {1.0, 1.0, 0.5, 1.0});
         commandBuffer.transitionLayout(colorImage, vk::ImageLayout::eGeneral);
-
-        vk::Extent3D imageExtent = colorImage->getExtent();
-        float tmpAspect = camera.aspect;
-        camera.aspect = imageExtent.width / imageExtent.height;
-        glm::mat4 viewProj = camera.getProj() * camera.getView();
-
         commandBuffer.traceRays(pipeline, imageExtent.width, imageExtent.height, imageExtent.depth);
 
-        camera.aspect = tmpAspect;
+        vkCommandBuffer->end();
+        context.submit(*vkCommandBuffer, *fence);
+    }
+
+    void updateInstanceDataBuffer(const Context& context, const Scene& scene) {
+        for (int i = 0; i < scene.nodes.size(); i++) {
+            const Node& node = scene.nodes[i];
+            Material* material = node.material;
+
+            InstanceData& data = instanceData[i];
+            data.baseColor = material->baseColor;
+            data.metallic = material->metallic;
+            data.roughness = material->roughness;
+            data.emissive = material->emissive;
+            data.baseColorTextureIndex = material->baseColorTextureIndex;
+            data.emissiveTextureIndex = material->emissiveTextureIndex;
+            data.metallicRoughnessTextureIndex = material->metallicRoughnessTextureIndex;
+            data.normalTextureIndex = material->normalTextureIndex;
+            data.occlusionTextureIndex = material->occlusionTextureIndex;
+
+            data.transformMatrix = node.transform.computeTransformMatrix();
+            data.normalMatrix = node.transform.computeNormalMatrix();
+
+            data.vertexAddress = node.mesh->vertexBuffer->getAddress();
+            data.indexAddress = node.mesh->indexBuffer->getAddress();
+        }
+
+        instanceDataBuffer->copy(instanceData.data());
+    }
+
+    void createInstanceDataBuffer(const Context& context, const Scene& scene) {
+        instanceData.clear();
+        instanceData.resize(scene.nodes.size());
+        instanceDataBuffer = context.createBuffer({
+            .usage = rv::BufferUsage::Storage,
+            .memory = rv::MemoryUsage::Device,
+            .size = sizeof(InstanceData) * instanceData.size(),
+            .debugName = "RenderWindow::instanceDataBuffer",
+        });
     }
 
     rv::ImageHandle colorImage;
@@ -119,6 +182,13 @@ public:
 
     rv::DescriptorSetHandle descSet;
     rv::RayTracingPipelineHandle pipeline;
+
+    vk::UniqueCommandBuffer vkCommandBuffer;
+    vk::UniqueFence fence;
+
+    RenderPushConstants pushConstants;
+    std::vector<InstanceData> instanceData;
+    BufferHandle instanceDataBuffer;
 };
 
 class Editor : public App {
@@ -227,7 +297,8 @@ public:
             renderWindow.show(scene, camera, frame);
 
             viewportWindow.drawContent(commandBuffer, scene, camera, frame);
-            renderWindow.drawContent(commandBuffer, scene, camera, frame);
+
+            renderWindow.render(context, scene, camera, frame);
 
             ImGui::End();
         }
