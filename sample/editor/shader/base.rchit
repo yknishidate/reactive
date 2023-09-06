@@ -8,5 +8,5 @@ hitAttributeEXT vec3 attribs;
 
 void main()
 {
-    
+    payload.radiance = vec3(1.0);
 }

@@ -1,11 +1,43 @@
 #version 460
 #extension GL_EXT_ray_tracing : enable
 #include "./share.h"
+#include "./random.glsl"
 
 layout(location = 0) rayPayloadEXT HitPayload payload;
 
 void main()
 {
-    vec2 uv = vec2(gl_LaunchIDEXT.xy) / vec2(gl_LaunchSizeEXT.xy);
-    imageStore(baseImage, ivec2(gl_LaunchIDEXT.xy), vec4(uv, 0, 1));
+    const vec2 screenPos = vec2(gl_LaunchIDEXT.xy);
+    const vec2 samplingRadius = 2.0 / vec2(gl_LaunchSizeEXT.xy);
+    const vec2 uv = vec2(gl_LaunchIDEXT.xy) / vec2(gl_LaunchSizeEXT.xy) * 2.0 - 1.0;
+    vec4 origin = invView * vec4(0, 0, 0, 1);
+
+    uvec2 s = pcg2d(gl_LaunchIDEXT.xy * frame);
+    payload.seed = s.x + s.y;
+    vec3 radiance = vec3(0.0);
+    for(int i = 0; i < sampleCount; i++){
+        vec2 offset    = vec2(rand(payload.seed), rand(payload.seed)) * samplingRadius;
+        vec4 target    = invProj * vec4(uv.xy + offset, 1, 1);
+        vec4 direction = invView * vec4(normalize(target.xyz), 0);
+        payload.radiance = vec3(0.0);
+        payload.depth = 0;
+        traceRayEXT(
+            topLevelAS,
+            gl_RayFlagsOpaqueEXT,
+            0xff, // cullMask
+            0,    // sbtRecordOffset
+            0,    // sbtRecordStride
+            0,    // missIndex
+            origin.xyz,
+            0.001,
+            direction.xyz,
+            10000.0,
+            0     // payloadLocation
+        );
+        radiance += payload.radiance;
+    }
+    radiance /= sampleCount;
+
+    vec4 newColor = vec4(radiance, 1);
+    imageStore(baseImage, ivec2(gl_LaunchIDEXT.xy), newColor);
 }

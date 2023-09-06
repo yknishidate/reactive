@@ -14,7 +14,6 @@ class RenderWindow {
 public:
     void init(const rv::Context& context, uint32_t width, uint32_t height) {
         createImages(context, width, height);
-        createPipeline(context);
 
         vkCommandBuffer = context.allocateCommandBuffer();
 
@@ -43,6 +42,7 @@ public:
         descSet = context.createDescriptorSet({
             .shaders = shaders,
             .images = {{"baseImage", colorImage}},
+            .accels = {{"topLevelAS", topAccel}},
         });
 
         pipeline = context.createRayTracingPipeline({
@@ -50,7 +50,7 @@ public:
             .missShaders = shaders[1],
             .chitShaders = shaders[2],
             .descSetLayout = descSet->getLayout(),
-            .pushSize = 0,
+            .pushSize = sizeof(RenderPushConstants),
             .maxRayRecursionDepth = 16,
         });
     }
@@ -105,16 +105,20 @@ public:
     void updatePushConstants(rv::Camera& camera) {
         vk::Extent3D imageExtent = colorImage->getExtent();
         float tmpAspect = camera.aspect;
-        camera.aspect = imageExtent.width / imageExtent.height;
+        camera.aspect = static_cast<float>(imageExtent.width) / imageExtent.height;
         pushConstants.invView = camera.getInvView();
         pushConstants.invProj = camera.getInvProj();
         camera.aspect = tmpAspect;
     }
 
-    void render(const Context& context, const Scene& scene, rv::Camera& camera, int frame) {
+    void loadScene(const Context& context, const Scene& scene, rv::Camera& camera) {
         createInstanceDataBuffer(context, scene);
         updateInstanceDataBuffer(context, scene);
+        buildAccels(context, scene);
+        createPipeline(context);
+    }
 
+    void render(const Context& context, const Scene& scene, rv::Camera& camera, int frame) {
         // Ignore the request if rendering is in progress.
         vk::Result fenceStatus = context.getDevice().getFenceStatus(*fence);
         if (fenceStatus == vk::Result::eNotReady) {
@@ -134,6 +138,7 @@ public:
         commandBuffer.bindPipeline(pipeline);
         commandBuffer.clearColorImage(colorImage, {1.0, 1.0, 0.5, 1.0});
         commandBuffer.transitionLayout(colorImage, vk::ImageLayout::eGeneral);
+        commandBuffer.pushConstants(pipeline, &pushConstants);
         commandBuffer.traceRays(pipeline, imageExtent.width, imageExtent.height, imageExtent.depth);
 
         vkCommandBuffer->end();
@@ -177,6 +182,33 @@ public:
         });
     }
 
+    void buildAccels(const Context& context, const Scene& scene) {
+        std::unordered_map<std::string, int> meshIndices;
+        bottomAccels.resize(scene.meshes.size());
+        for (int i = 0; i < scene.meshes.size(); i++) {
+            const Mesh& mesh = scene.meshes[i];
+            meshIndices[mesh.name] = i;
+            bottomAccels[i] = context.createBottomAccel({
+                .vertexBuffer = mesh.vertexBuffer,
+                .indexBuffer = mesh.indexBuffer,
+                .vertexStride = sizeof(Vertex),
+                .vertexCount = mesh.getVertexCount(),
+                .triangleCount = mesh.getTriangleCount(),
+            });
+        }
+
+        std::vector<AccelInstance> accelInstances;
+        for (auto& node : scene.nodes) {
+            if (node.mesh) {
+                accelInstances.push_back({
+                    .bottomAccel = bottomAccels[meshIndices[node.mesh->name]],
+                    .transform = node.computeTransformMatrix(0.0),
+                });
+            }
+        }
+        topAccel = context.createTopAccel({.accelInstances = accelInstances});
+    }
+
     rv::ImageHandle colorImage;
     vk::DescriptorSet imguiDescSet;
 
@@ -186,9 +218,16 @@ public:
     vk::UniqueCommandBuffer vkCommandBuffer;
     vk::UniqueFence fence;
 
+    // Render data
+    // NOTE: Vertex and Index buffers are accessed by buffer
+    //       reference, so it is not necessary
     RenderPushConstants pushConstants;
     std::vector<InstanceData> instanceData;
     BufferHandle instanceDataBuffer;
+    std::vector<BottomAccelHandle> bottomAccels;
+    TopAccelHandle topAccel;
+
+    bool running = false;
 };
 
 class Editor : public App {
@@ -234,6 +273,7 @@ public:
         assetWindow.init(context);
         viewportWindow.init(context, 1920, 1080);
         renderWindow.init(context, 1280, 720);
+        renderWindow.loadScene(context, scene, camera);
     }
 
     void onUpdate() override {
