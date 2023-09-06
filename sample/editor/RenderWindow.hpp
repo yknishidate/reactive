@@ -220,7 +220,9 @@ public:
     void updatePushConstants(rv::Camera& camera, int message) {
         vk::Extent3D imageExtent = colorImage->getExtent();
         float tmpAspect = camera.aspect;
+        float tmpFovY = camera.fovY;
         camera.aspect = static_cast<float>(imageExtent.width) / imageExtent.height;
+        camera.fovY /= camera.aspect;
         pushConstants.invView = camera.getInvView();
         pushConstants.invProj = camera.getInvProj();
         pushConstants.instanceDataAddress = instanceDataBuffer->getAddress();
@@ -232,6 +234,7 @@ public:
             pushConstants.frame = 0;
         }
         camera.aspect = tmpAspect;
+        camera.fovY = tmpFovY;
     }
 
     void findDomeLight() {
