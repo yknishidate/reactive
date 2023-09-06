@@ -20,6 +20,7 @@ public:
         vk::FenceCreateInfo fenceInfo;
         fenceInfo.setFlags(vk::FenceCreateFlagBits::eSignaled);
         fence = context.getDevice().createFenceUnique(fenceInfo);
+        iconManager.addIcon(context, "render_ipr", ASSET_DIR + "icons/render_ipr.png");
     }
 
     void createPipeline(const rv::Context& context) {
@@ -72,10 +73,37 @@ public:
                                                    VK_IMAGE_LAYOUT_GENERAL);
     }
 
+    void showToolBar() {
+        float panelWidth = ImGui::GetContentRegionAvail().x;
+        float thumbnailSize = 50.0f;
+        ImGui::BeginChild("Toolbar", ImVec2(panelWidth, 60), false, ImGuiWindowFlags_NoBackground);
+        ImGui::Columns(1, 0, true);
+
+        ImVec4 bgColor = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
+        if (running || iconManager.isHover(thumbnailSize)) {
+            bgColor = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
+        }
+        iconManager.show("render_ipr", "", thumbnailSize, bgColor, [&]() {
+            if (running) {
+                running = false;
+                spdlog::info("[UI] Stop IPR");
+            } else {
+                running = true;
+                spdlog::info("[UI] Start IPR");
+            }
+        });
+
+        ImGui::Columns(1);
+        ImGui::Separator();
+        ImGui::EndChild();
+    }
+
     void show(Scene& scene, const rv::Camera& camera, int frame) {
         if (ImGui::Begin("Render")) {
-            ImVec2 windowPos = ImGui::GetCursorScreenPos();
+            showToolBar();
+
             ImVec2 windowSize = ImGui::GetContentRegionAvail();
+            ImVec2 windowPos = ImGui::GetCursorScreenPos();
             vk::Extent3D imageExtent = colorImage->getExtent();
             float imageAspect = static_cast<float>(imageExtent.width) / imageExtent.height;
             float windowAspect = windowSize.x / windowSize.y;
@@ -120,6 +148,14 @@ public:
     }
 
     void render(const Context& context, const Scene& scene, rv::Camera& camera, int frame) {
+        if (!running) {
+            return;
+        }
+
+        if (!topAccel) {
+            loadScene(context, scene, camera);
+        }
+
         // Ignore the request if rendering is in progress.
         vk::Result fenceStatus = context.getDevice().getFenceStatus(*fence);
         if (fenceStatus == vk::Result::eNotReady) {
@@ -229,6 +265,8 @@ public:
     TopAccelHandle topAccel;
 
     bool running = false;
+
+    IconManager iconManager;
 };
 
 class Editor : public App {
@@ -276,7 +314,6 @@ public:
         assetWindow.init(context);
         viewportWindow.init(context, 1920, 1080);
         renderWindow.init(context, 1280, 720);
-        renderWindow.loadScene(context, scene, camera);
     }
 
     void onUpdate() override {
