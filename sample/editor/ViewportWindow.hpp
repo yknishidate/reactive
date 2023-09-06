@@ -264,6 +264,15 @@ public:
         }
     }
 
+    void showToolIcon(const std::string& name, float thumbnailSize, ImGuizmo::OPERATION operation) {
+        ImVec4 bgColor = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
+        if (currentGizmoOperation == operation || iconManager.isHover(thumbnailSize)) {
+            bgColor = ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
+        }
+        iconManager.show(name, false, thumbnailSize, bgColor,
+                         [&]() { currentGizmoOperation = operation; });
+    }
+
     void showToolBar(ImVec2 viewportPos) {
         ImGui::SetCursorScreenPos(ImVec2(viewportPos.x + 10, viewportPos.y + 15));
         ImGui::BeginChild("Toolbar", ImVec2(180, 60), false,
@@ -276,14 +285,9 @@ public:
         int columnCount = static_cast<int>(panelWidth / cellSize);
         ImGui::Columns(columnCount, 0, false);
 
-        ImVec4 bgColor = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
-        ImVec4 bgHoverColor = ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
-        iconManager.show("manip_translate", false, thumbnailSize, bgColor, bgHoverColor,
-                         [&]() { currentGizmoOperation = ImGuizmo::TRANSLATE; });
-        iconManager.show("manip_rotate", false, thumbnailSize, bgColor, bgHoverColor,
-                         [&]() { currentGizmoOperation = ImGuizmo::ROTATE; });
-        iconManager.show("manip_scale", false, thumbnailSize, bgColor, bgHoverColor,
-                         [&]() { currentGizmoOperation = ImGuizmo::SCALE; });
+        showToolIcon("manip_translate", thumbnailSize, ImGuizmo::TRANSLATE);
+        showToolIcon("manip_rotate", thumbnailSize, ImGuizmo::ROTATE);
+        showToolIcon("manip_scale", thumbnailSize, ImGuizmo::SCALE);
 
         ImGui::Columns(1);
         ImGui::EndChild();

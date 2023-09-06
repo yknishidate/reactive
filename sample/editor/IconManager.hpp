@@ -7,22 +7,19 @@
 
 class IconManager {
 public:
+    bool isHover(float thumbnailSize) const {
+        ImVec2 mousePos = ImGui::GetMousePos();
+        ImVec2 buttonMin = ImGui::GetCursorScreenPos();
+        ImVec2 buttonMax = ImVec2(buttonMin.x + thumbnailSize, buttonMin.y + thumbnailSize);
+        return mousePos.x >= buttonMin.x && mousePos.y >= buttonMin.y &&
+               mousePos.x <= buttonMax.x && mousePos.y <= buttonMax.y;
+    }
+
     void show(const std::string& name,
               bool showName,
               float thumbnailSize,
               ImVec4 bgColor,
-              ImVec4 bgHoverColor,
               const std::function<void()>& callback) {
-        ImVec2 mousePos = ImGui::GetMousePos();
-        ImVec2 buttonMin = ImGui::GetCursorScreenPos();
-        ImVec2 buttonMax = ImVec2(buttonMin.x + thumbnailSize, buttonMin.y + thumbnailSize);
-        if (mousePos.x >= buttonMin.x &&  // break
-            mousePos.y >= buttonMin.y &&  // break
-            mousePos.x <= buttonMax.x &&  // break
-            mousePos.y <= buttonMax.y) {
-            bgColor = bgHoverColor;
-        }
-
         if (ImGui::ImageButton(icons[name].descSet,             // texture
                                {thumbnailSize, thumbnailSize},  // size
                                {0, 0}, {1, 1}, 0, bgColor)) {
