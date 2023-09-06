@@ -65,7 +65,7 @@ public:
                                                    VK_IMAGE_LAYOUT_GENERAL);
     }
 
-    void show(Scene& scene, Node* selectedNode, const rv::Camera& camera, int frame) {
+    void show(Scene& scene, const rv::Camera& camera, int frame) {
         if (ImGui::Begin("Render")) {
             ImVec2 windowPos = ImGui::GetCursorScreenPos();
             ImVec2 windowSize = ImGui::GetContentRegionAvail();
@@ -73,6 +73,7 @@ public:
             float imageAspect = static_cast<float>(imageExtent.width) / imageExtent.height;
             float windowAspect = windowSize.x / windowSize.y;
 
+            // Fit image size and move image position
             ImVec2 imageSize;
             if (imageAspect >= windowAspect) {
                 imageSize.x = windowSize.x;
@@ -96,7 +97,7 @@ public:
 
     void drawContent(const rv::CommandBuffer& commandBuffer,
                      const Scene& scene,
-                     const rv::Camera& camera,
+                     rv::Camera& camera,
                      int frame) {
         commandBuffer.bindDescriptorSet(descSet, pipeline);
         commandBuffer.bindPipeline(pipeline);
@@ -104,10 +105,13 @@ public:
         commandBuffer.transitionLayout(colorImage, vk::ImageLayout::eGeneral);
 
         vk::Extent3D imageExtent = colorImage->getExtent();
+        float tmpAspect = camera.aspect;
+        camera.aspect = imageExtent.width / imageExtent.height;
+        glm::mat4 viewProj = camera.getProj() * camera.getView();
+
         commandBuffer.traceRays(pipeline, imageExtent.width, imageExtent.height, imageExtent.depth);
 
-        // TODO: change camera aspect
-        glm::mat4 viewProj = camera.getProj() * camera.getView();
+        camera.aspect = tmpAspect;
     }
 
     rv::ImageHandle colorImage;
@@ -159,7 +163,7 @@ public:
 
         assetWindow.init(context);
         viewportWindow.init(context, 1920, 1080);
-        renderWindow.init(context, 1920, 1080);
+        renderWindow.init(context, 1280, 720);
     }
 
     void onUpdate() override {
@@ -220,7 +224,7 @@ public:
             attributeWindow.show(scene, selectedNode);
             assetWindow.show(scene);
             viewportWindow.show(scene, selectedNode, camera, frame);
-            renderWindow.show(scene, selectedNode, camera, frame);
+            renderWindow.show(scene, camera, frame);
 
             viewportWindow.drawContent(commandBuffer, scene, camera, frame);
             renderWindow.drawContent(commandBuffer, scene, camera, frame);
