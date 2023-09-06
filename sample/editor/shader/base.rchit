@@ -8,5 +8,7 @@ hitAttributeEXT vec3 attribs;
 
 void main()
 {
-    payload.radiance = vec3(1.0);
+    InstanceDataBuffer dataBuffer = InstanceDataBuffer(instanceDataAddress);
+    InstanceData data = dataBuffer.instanceData[gl_InstanceID];
+    payload.radiance = data.baseColor.rgb;
 }

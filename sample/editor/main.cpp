@@ -108,6 +108,7 @@ public:
         camera.aspect = static_cast<float>(imageExtent.width) / imageExtent.height;
         pushConstants.invView = camera.getInvView();
         pushConstants.invProj = camera.getInvProj();
+        pushConstants.instanceDataAddress = instanceDataBuffer->getAddress();
         camera.aspect = tmpAspect;
     }
 
