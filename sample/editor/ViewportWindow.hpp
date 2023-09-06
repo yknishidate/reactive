@@ -246,13 +246,18 @@ public:
         });
     }
 
-    void processMouseInput() {
+    bool processMouseInput() {
+        bool changed = false;
         if (ImGui::IsWindowHovered() && !ImGuizmo::IsUsing()) {
             dragDelta.x = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x * 0.5f;
             dragDelta.y = -ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y * 0.5f;
             mouseScroll = ImGui::GetIO().MouseWheel;
+            if (dragDelta.x != 0.0 || dragDelta.y != 0.0 || mouseScroll != 0) {
+                changed = true;
+            }
         }
         ImGui::ResetMouseDragDelta();
+        return changed;
     }
 
     bool showGizmo(Scene& scene, Node* selectedNode, const rv::Camera& camera, int frame) const {
@@ -304,7 +309,9 @@ public:
     int show(Scene& scene, Node* selectedNode, const rv::Camera& camera, int frame) {
         int message = Message::None;
         if (ImGui::Begin("Viewport")) {
-            processMouseInput();
+            if (processMouseInput()) {
+                message |= Message::CameraChanged;
+            }
 
             ImVec2 windowPos = ImGui::GetCursorScreenPos();
             ImVec2 windowSize = ImGui::GetContentRegionAvail();

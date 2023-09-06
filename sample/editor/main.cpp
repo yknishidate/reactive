@@ -216,8 +216,12 @@ public:
         rv::CommandBuffer commandBuffer{&context, *vkCommandBuffer};
         commandBuffer.bindDescriptorSet(descSet, pipeline);
         commandBuffer.bindPipeline(pipeline);
-        commandBuffer.clearColorImage(colorImage, {1.0, 1.0, 0.5, 1.0});
+        commandBuffer.clearColorImage(colorImage, {1.0, 0.0, 1.0, 1.0});
         commandBuffer.transitionLayout(colorImage, vk::ImageLayout::eGeneral);
+        if (message != Message::None) {
+            commandBuffer.clearColorImage(accumImage, {0.0, 0.0, 0.0, 1.0});
+            commandBuffer.transitionLayout(accumImage, vk::ImageLayout::eGeneral);
+        }
         commandBuffer.pushConstants(pipeline, &pushConstants);
         commandBuffer.traceRays(pipeline, imageExtent.width, imageExtent.height, imageExtent.depth);
 

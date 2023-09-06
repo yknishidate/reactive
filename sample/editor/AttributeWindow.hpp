@@ -8,6 +8,7 @@ enum Type {
     None = 0,
     TransformChanged = 1 << 0,
     MaterialChanged = 1 << 1,
+    CameraChanged = 1 << 2,
 };
 }
 
