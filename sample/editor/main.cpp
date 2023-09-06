@@ -1,6 +1,7 @@
 
 #include <reactive/App.hpp>
 
+#include "AssetWindow.hpp"
 #include "AttributeWindow.hpp"
 #include "IconManager.hpp"
 #include "Scene.hpp"
@@ -48,12 +49,11 @@ public:
         camera.fovY = glm::radians(30.0f);
         camera.distance = 10.0f;
 
+        assetWindow.init(context);
+
         viewportWindow.createPipeline(context);
         viewportWindow.createImages(context, 1920, 1080);
         viewportWindow.createIcons(context);
-
-        iconManager.addIcon(context, "asset_mesh", ASSET_DIR + "icons/asset_mesh.png");
-        iconManager.addIcon(context, "asset_material", ASSET_DIR + "icons/asset_material.png");
     }
 
     void onUpdate() override {
@@ -112,30 +112,7 @@ public:
 
             sceneWindow.show(scene, &selectedNode);
             attributeWindow.show(scene, selectedNode);
-
-            if (ImGui::Begin("Asset")) {
-                float padding = 16.0f;
-                float thumbnailSize = 100.0f;
-                float cellSize = thumbnailSize + padding;
-                float panelWidth = ImGui::GetContentRegionAvail().x;
-                int columnCount = std::max(static_cast<int>(panelWidth / cellSize), 1);
-                ImGui::Columns(columnCount, 0, false);
-
-                for (auto& mesh : scene.meshes) {
-                    iconManager.show("asset_mesh", mesh.name, thumbnailSize, ImVec4(0, 0, 0, 1),
-                                     {});
-                }
-
-                for (auto& material : scene.materials) {
-                    iconManager.show("asset_material", material.name, thumbnailSize,
-                                     ImVec4(0, 0, 0, 1), {});
-                }
-
-                ImGui::Columns(1);
-
-                ImGui::End();
-            }
-
+            assetWindow.show(scene);
             viewportWindow.show(commandBuffer, scene, selectedNode, camera, frame);
 
             ImGui::End();
@@ -154,7 +131,7 @@ public:
     SceneWindow sceneWindow;
     ViewportWindow viewportWindow;
     AttributeWindow attributeWindow;
-    IconManager iconManager;
+    AssetWindow assetWindow;
 };
 
 int main() {
