@@ -122,11 +122,13 @@ public:
                 ImGui::Columns(columnCount, 0, false);
 
                 for (auto& mesh : scene.meshes) {
-                    iconManager.show("asset_mesh", true, thumbnailSize, ImVec4(0, 0, 0, 1), {});
+                    iconManager.show("asset_mesh", mesh.name, thumbnailSize, ImVec4(0, 0, 0, 1),
+                                     {});
                 }
 
                 for (auto& material : scene.materials) {
-                    iconManager.show("asset_material", true, thumbnailSize, ImVec4(0, 0, 0, 1), {});
+                    iconManager.show("asset_material", material.name, thumbnailSize,
+                                     ImVec4(0, 0, 0, 1), {});
                 }
 
                 ImGui::Columns(1);

@@ -269,7 +269,7 @@ public:
         if (currentGizmoOperation == operation || iconManager.isHover(thumbnailSize)) {
             bgColor = ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
         }
-        iconManager.show(name, false, thumbnailSize, bgColor,
+        iconManager.show(name, "", thumbnailSize, bgColor,
                          [&]() { currentGizmoOperation = operation; });
     }
 

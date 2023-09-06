@@ -15,18 +15,18 @@ public:
                mousePos.x <= buttonMax.x && mousePos.y <= buttonMax.y;
     }
 
-    void show(const std::string& name,
-              bool showName,
+    void show(const std::string& iconName,
+              const std::string& itemName,
               float thumbnailSize,
               ImVec4 bgColor,
               const std::function<void()>& callback) {
-        if (ImGui::ImageButton(icons[name].descSet,             // texture
+        if (ImGui::ImageButton(icons[iconName].descSet,         // texture
                                {thumbnailSize, thumbnailSize},  // size
                                {0, 0}, {1, 1}, 0, bgColor)) {
             callback();
         }
-        if (showName) {
-            ImGui::TextWrapped(name.c_str());
+        if (!itemName.empty()) {
+            ImGui::TextWrapped(itemName.c_str());
         }
         ImGui::NextColumn();
     }
