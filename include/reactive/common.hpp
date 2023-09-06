@@ -2,14 +2,14 @@
 #include <spdlog/spdlog.h>
 
 namespace rv {
-constexpr char RED_COLOR[] = "\033[31m";
-constexpr char YELLOW_COLOR[] = "\033[33m";
-constexpr char RESET_COLOR[] = "\033[0m";
 
 #ifdef NDEBUG
 #define RV_ASSERT(condition, ...)
 #else
 #define RV_ASSERT(condition, ...)                                                           \
+    constexpr char RED_COLOR[] = "\033[31m";                                                \
+    constexpr char YELLOW_COLOR[] = "\033[33m";                                             \
+    constexpr char RESET_COLOR[] = "\033[0m";                                               \
     if (!(condition)) {                                                                     \
         spdlog::critical("Assertion {}`" #condition                                         \
                          "`{} failed. {}{}{}\n           File: {}\n           Line: {}",    \
