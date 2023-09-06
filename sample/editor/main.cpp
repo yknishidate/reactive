@@ -21,6 +21,7 @@ public:
         fenceInfo.setFlags(vk::FenceCreateFlagBits::eSignaled);
         fence = context.getDevice().createFenceUnique(fenceInfo);
         iconManager.addIcon(context, "render_ipr", ASSET_DIR + "icons/render_ipr.png");
+        iconManager.addIcon(context, "render_save", ASSET_DIR + "icons/render_save.png");
     }
 
     void createPipeline(const rv::Context& context) {
@@ -83,12 +84,7 @@ public:
                                                    VK_IMAGE_LAYOUT_GENERAL);
     }
 
-    void showToolBar() {
-        float panelWidth = ImGui::GetContentRegionAvail().x;
-        float thumbnailSize = 50.0f;
-        ImGui::BeginChild("Toolbar", ImVec2(panelWidth, 60), false, ImGuiWindowFlags_NoBackground);
-        ImGui::Columns(1, 0, true);
-
+    void showRunIcon(float thumbnailSize) {
         ImVec4 bgColor = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
         if (running || iconManager.isHover(thumbnailSize)) {
             bgColor = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
@@ -102,6 +98,28 @@ public:
                 spdlog::info("[UI] Start IPR");
             }
         });
+    }
+
+    void showSaveIcon(float thumbnailSize) {
+        ImVec4 bgColor = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
+        if (iconManager.isHover(thumbnailSize)) {
+            bgColor = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
+        }
+        iconManager.show("render_save", "", thumbnailSize, bgColor,
+                         [&]() { spdlog::info("[UI] Save image"); });
+    }
+
+    void showToolBar() {
+        float thumbnailSize = 50.0f;
+        int columnCount = 2;
+        float padding = 5.0f;
+        float panelWidth = columnCount * (thumbnailSize + padding);
+        ImGui::BeginChild("Toolbar", ImVec2(panelWidth, 60), false,
+                          ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration);
+        ImGui::Columns(columnCount, 0, true);
+
+        showRunIcon(thumbnailSize);
+        showSaveIcon(thumbnailSize);
 
         ImGui::Columns(1);
         ImGui::Separator();
@@ -371,7 +389,7 @@ public:
         scene.materials.push_back(material);
 
         material.baseColor = glm::vec4{0, 0, 0, 1};
-        material.emissive = glm::vec3{0.5, 1.0, 0.5};
+        material.emissive = glm::vec3{0.95, 0.95, 0.95};
         material.name = "Dome light 0";
         scene.materials.push_back(material);
 
