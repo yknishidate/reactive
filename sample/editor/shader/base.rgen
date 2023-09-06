@@ -12,8 +12,9 @@ void main()
     const vec2 uv = vec2(gl_LaunchIDEXT.xy) / vec2(gl_LaunchSizeEXT.xy) * 2.0 - 1.0;
     vec4 origin = invView * vec4(0, 0, 0, 1);
 
-    uvec2 s = pcg2d(gl_LaunchIDEXT.xy * frame);
+    uvec2 s = pcg2d(gl_LaunchIDEXT.xy * (frame + 1));
     payload.seed = s.x + s.y;
+
     vec3 radiance = vec3(0.0);
     for(int i = 0; i < sampleCount; i++){
         vec2 offset    = vec2(rand(payload.seed), rand(payload.seed)) * samplingRadius;

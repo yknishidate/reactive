@@ -18,8 +18,8 @@ struct RenderPushConstants {
     glm::mat4 invProj;
 
     int frame = 0;
-    int sampleCount = 10;
-    int enableAccum = 1;
+    int sampleCount = 1;
+    int enableAccum = 0;
     float domeLightPhi = 0.0f;
 
     uint64_t instanceDataAddress;
