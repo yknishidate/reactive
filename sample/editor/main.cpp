@@ -286,11 +286,11 @@ public:
 
         // Add material
         Material material;
-        material.baseColor = glm::vec4{1, 0, 0, 1};
+        material.baseColor = glm::vec4{0.9, 0.3, 0.2, 1};
         material.name = "Standard 0";
         scene.materials.push_back(material);
 
-        material.baseColor = glm::vec4{1, 1, 0, 1};
+        material.baseColor = glm::vec4{0.8, 0.7, 0.1, 1};
         material.name = "Standard 1";
         scene.materials.push_back(material);
 

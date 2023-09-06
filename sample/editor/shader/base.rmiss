@@ -6,5 +6,5 @@ layout(location = 0) rayPayloadInEXT HitPayload payload;
 
 void main()
 {
-    payload.radiance = vec3(0.0);
+    payload.radiance = vec3(0.5);
 }
