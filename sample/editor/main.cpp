@@ -283,6 +283,7 @@ public:
     void onStart() override {
         // Add mesh
         scene.meshes.push_back(Mesh::createCubeMesh(context, {}));
+        scene.meshes.push_back(Mesh::createPlaneMesh(context, {.width = 10.0f, .height = 10.0f}));
 
         // Add material
         Material material;
@@ -294,10 +295,14 @@ public:
         material.name = "Standard 1";
         scene.materials.push_back(material);
 
+        material.baseColor = glm::vec4{0.9, 0.9, 0.9, 1};
+        material.name = "Standard 2";
+        scene.materials.push_back(material);
+
         // Add node
         Node node;
         node.name = "Cube 0";
-        node.mesh = &scene.meshes.back();
+        node.mesh = &scene.meshes[0];
         node.material = &scene.materials[0];
         node.transform.translation = glm::vec3{-1.5, 0, 0};
         scene.nodes.push_back(node);
@@ -305,6 +310,12 @@ public:
         node.name = "Cube 1";
         node.material = &scene.materials[1];
         node.transform.translation = glm::vec3{1.5, 0, 0};
+        scene.nodes.push_back(node);
+
+        node.name = "Plane 0";
+        node.mesh = &scene.meshes[1];
+        node.material = &scene.materials[2];
+        node.transform.translation = glm::vec3{0, -1, 0};
         scene.nodes.push_back(node);
 
         camera = OrbitalCamera{this, 1920, 1080};
