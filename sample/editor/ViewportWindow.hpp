@@ -345,7 +345,6 @@ public:
 
     glm::vec2 dragDelta = {0.0f, 0.0f};
     float mouseScroll = 0.0f;
-    bool clicked = false;
     float width;
     float height;
     rv::ImageHandle colorImage;
