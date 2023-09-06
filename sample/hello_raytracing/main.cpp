@@ -22,17 +22,14 @@ public:
     void onStart() override {
         camera = OrbitalCamera{this, width, height};
 
-        mesh = context.createMesh({
-            .vertices = vertices,
-            .indices = indices,
-        });
+        mesh = Mesh{context, vertices, indices, "Triangle"};
 
         bottomAccel = context.createBottomAccel({
-            .vertexBuffer = mesh->vertexBuffer,
-            .indexBuffer = mesh->indexBuffer,
+            .vertexBuffer = mesh.vertexBuffer,
+            .indexBuffer = mesh.indexBuffer,
             .vertexStride = sizeof(Vertex),
-            .vertexCount = static_cast<uint32_t>(mesh->vertices.size()),
-            .triangleCount = mesh->getTriangleCount(),
+            .vertexCount = mesh.getVertexCount(),
+            .triangleCount = mesh.getTriangleCount(),
         });
 
         topAccel = context.createTopAccel({.accelInstances = {{bottomAccel}}});
@@ -94,7 +91,8 @@ public:
 
     std::vector<Vertex> vertices{{{-1, 0, 0}}, {{0, -1, 0}}, {{1, 0, 0}}};
     std::vector<uint32_t> indices{0, 1, 2};
-    MeshHandle mesh;
+    Mesh mesh;
+
     BottomAccelHandle bottomAccel;
     TopAccelHandle topAccel;
     ImageHandle image;

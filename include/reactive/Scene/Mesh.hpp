@@ -77,6 +77,7 @@ struct Mesh {
     static Mesh createCubeMesh(const Context& context, CubeMeshCreateInfo createInfo);
     static Mesh createCubeLineMesh(const Context& context, CubeLineMeshCreateInfo createInfo);
 
+    uint32_t getVertexCount() const { return vertices.size(); }
     uint32_t getIndicesCount() const { return indices.size(); }
     uint32_t getTriangleCount() const { return indices.size() / 3; }
 

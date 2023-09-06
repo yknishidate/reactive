@@ -3,7 +3,6 @@
 
 #include "AssetWindow.hpp"
 #include "AttributeWindow.hpp"
-#include "IconManager.hpp"
 #include "Scene.hpp"
 #include "SceneWindow.hpp"
 #include "ViewportWindow.hpp"
