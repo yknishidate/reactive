@@ -102,14 +102,23 @@ public:
             ImVec2 windowPos = ImGui::GetCursorScreenPos();
             ImVec2 windowSize = ImGui::GetContentRegionAvail();
             vk::Extent3D imageExtent = colorImage->getExtent();
-            float aspect = static_cast<float>(imageExtent.width) / imageExtent.height;
+            float imageAspect = static_cast<float>(imageExtent.width) / imageExtent.height;
+            float windowAspect = windowSize.x / windowSize.y;
 
             ImVec2 imageSize;
-            imageSize.x = windowSize.x;
-            imageSize.y = windowSize.x / aspect;
+            if (imageAspect >= windowAspect) {
+                imageSize.x = windowSize.x;
+                imageSize.y = windowSize.x / imageAspect;
 
-            float padding = (windowSize.y - imageSize.y) / 2.0;
-            ImGui::SetCursorScreenPos(ImVec2(windowPos.x, windowPos.y + padding));
+                float padding = (windowSize.y - imageSize.y) / 2.0;
+                ImGui::SetCursorScreenPos(ImVec2(windowPos.x, windowPos.y + padding));
+            } else {
+                imageSize.y = windowSize.y;
+                imageSize.x = windowSize.y * imageAspect;
+
+                float padding = (windowSize.x - imageSize.x) / 2.0;
+                ImGui::SetCursorScreenPos(ImVec2(windowPos.x + padding, windowPos.y));
+            }
 
             ImGui::Image(imguiDescSet, imageSize, ImVec2(0, 1), ImVec2(1, 0));
 
