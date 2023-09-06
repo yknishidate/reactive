@@ -1,4 +1,8 @@
 
+#include <nfd.h>
+#include <stb_image_write.h>
+
+#include <future>
 #include <reactive/App.hpp>
 
 #include "AssetWindow.hpp"
@@ -6,6 +10,7 @@
 #include "Scene.hpp"
 #include "SceneWindow.hpp"
 #include "ViewportWindow.hpp"
+#include "reactive/common.hpp"
 #include "shader/share.h"
 
 using namespace rv;
@@ -13,6 +18,7 @@ using namespace rv;
 class RenderWindow {
 public:
     void init(const rv::Context& context, uint32_t width, uint32_t height) {
+        this->context = &context;
         createImages(context, width, height);
 
         vkCommandBuffer = context.allocateCommandBuffer();
@@ -78,6 +84,13 @@ public:
             .debugName = "RenderWindow::colorImage",
         });
 
+        imageSavingBuffer = context.createBuffer({
+            .usage = rv::BufferUsage::Staging,
+            .memory = rv::MemoryUsage::Host,
+            .size = sizeof(char) * width * height * 4,
+            .debugName = "RenderWindow::imageSavingBuffer",
+        });
+
         // Create desc set
         ImGui_ImplVulkan_RemoveTexture(imguiDescSet);
         imguiDescSet = ImGui_ImplVulkan_AddTexture(colorImage->getSampler(), colorImage->getView(),
@@ -100,13 +113,61 @@ public:
         });
     }
 
+    void flipY(uint8_t* pixels, uint32_t width, uint32_t height) {
+        uint32_t rowPitch = width * 4;
+        uint8_t* row = (uint8_t*)malloc(rowPitch);
+        for (uint32_t i = 0; i < (height / 2); i++) {
+            uint8_t* row0 = pixels + i * rowPitch;
+            uint8_t* row1 = pixels + (height - i - 1) * rowPitch;
+            memcpy(row, row0, rowPitch);
+            memcpy(row0, row1, rowPitch);
+            memcpy(row1, row, rowPitch);
+        }
+        free(row);
+    }
+
+    void saveImage(const char* savePath) {
+        vk::Extent3D imageExtent = colorImage->getExtent();
+        context->oneTimeSubmit([&](CommandBuffer commandBuffer) {
+            commandBuffer.transitionLayout(colorImage, vk::ImageLayout::eTransferSrcOptimal);
+            commandBuffer.copyImageToBuffer(colorImage, imageSavingBuffer);
+            commandBuffer.transitionLayout(colorImage, vk::ImageLayout::eGeneral);
+        });
+
+        writeTask = std::async(std::launch::async, [=]() {
+            auto* pixels = static_cast<uint8_t*>(imageSavingBuffer->map());
+            flipY(pixels, imageExtent.width, imageExtent.height);
+
+            std::filesystem::path filepath = savePath;
+            std::filesystem::path extension = filepath.extension();
+            if (extension == ".png") {
+                stbi_write_png(savePath, imageExtent.width, imageExtent.height, 4, pixels, 90);
+            } else if (extension == ".jpg" || extension == ".jpeg") {
+                stbi_write_jpg(savePath, imageExtent.width, imageExtent.height, 4, pixels, 90);
+            } else {
+                RV_ASSERT(false, "Unknown file extension: {}", extension.string());
+            }
+        });
+    }
+
+    void openSaveDialog() {
+        nfdchar_t* savePath = NULL;
+        nfdresult_t result = NFD_SaveDialog("png,jpg", NULL, &savePath);
+        if (result == NFD_OKAY) {
+            saveImage(savePath);
+            free(savePath);
+            spdlog::info("[UI] Save image");
+        } else {
+            spdlog::error("[UI] Save dialog error: {}", NFD_GetError());
+        }
+    }
+
     void showSaveIcon(float thumbnailSize) {
         ImVec4 bgColor = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
         if (iconManager.isHover(thumbnailSize)) {
             bgColor = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
         }
-        iconManager.show("render_save", "", thumbnailSize, bgColor,
-                         [&]() { spdlog::info("[UI] Save image"); });
+        iconManager.show("render_save", "", thumbnailSize, bgColor, [&]() { openSaveDialog(); });
     }
 
     void showToolBar() {
@@ -334,6 +395,7 @@ public:
         topAccel->update(commandBuffer, accelInstances);
     }
 
+    const Context* context;
     rv::ImageHandle accumImage;
     rv::ImageHandle colorImage;
     vk::DescriptorSet imguiDescSet;
@@ -355,7 +417,9 @@ public:
 
     bool running = false;
 
+    std::future<void> writeTask;
     IconManager iconManager;
+    BufferHandle imageSavingBuffer;
 };
 
 class Editor : public App {

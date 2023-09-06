@@ -15,6 +15,7 @@ find_package(glfw3 CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(tinyobjloader CONFIG REQUIRED)
 find_package(imguizmo CONFIG REQUIRED)
+find_package(unofficial-nativefiledialog CONFIG REQUIRED)
 
 set(VULKAN_LIB $ENV{VULKAN_SDK}/Lib)
 set(VULKAN_INCLUDE $ENV{VULKAN_SDK}/Include)
@@ -27,6 +28,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     spdlog::spdlog_header_only
     tinyobjloader::tinyobjloader
     imguizmo::imguizmo
+    unofficial::nativefiledialog::nfd
 
     optimized ${VULKAN_LIB}/spirv-cross-core.lib
     optimized ${VULKAN_LIB}/spirv-cross-cpp.lib
