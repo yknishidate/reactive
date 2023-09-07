@@ -281,6 +281,7 @@ void setImGuiStyle() {
 
     // clang-format off
     ImVec4 base = ImVec4(164.0f / 255.0f, 30.0f / 255.0f, 34.0f / 255.0f, 1.0f); // original vulkan theme
+    ImVec4 baseLight = ImVec4(202.0f / 255.0f, 36.0f / 255.0f, 41.0f / 255.0f, 1.0f);
     ImVec4 white = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
     ImVec4 black = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
     ImVec4 gray80 = ImVec4(0.80f, 0.80f, 0.80f, 1.00f);
@@ -313,8 +314,8 @@ void setImGuiStyle() {
     colors[ImGuiCol_SliderGrab]            = base;
     colors[ImGuiCol_SliderGrabActive]      = base;
     colors[ImGuiCol_Button]                = base;
-    colors[ImGuiCol_ButtonHovered]         = base;
-    colors[ImGuiCol_ButtonActive]          = base;
+    colors[ImGuiCol_ButtonHovered]         = baseLight;
+    colors[ImGuiCol_ButtonActive]          = baseLight;
     colors[ImGuiCol_Header]                = base;
     colors[ImGuiCol_HeaderHovered]         = base;
     colors[ImGuiCol_HeaderActive]          = base;
@@ -329,17 +330,17 @@ void setImGuiStyle() {
     colors[ImGuiCol_TabActive]             = gray20;
     colors[ImGuiCol_TabUnfocused]          = gray20;
     colors[ImGuiCol_TabUnfocusedActive]    = gray20;
-    colors[ImGuiCol_PlotLines]             = gray60;
-    colors[ImGuiCol_PlotLinesHovered]      = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
-    colors[ImGuiCol_PlotHistogram]         = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
-    colors[ImGuiCol_PlotHistogramHovered]  = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
+    colors[ImGuiCol_PlotLines]             = base;
+    colors[ImGuiCol_PlotLinesHovered]      = base;
+    colors[ImGuiCol_PlotHistogram]         = base;
+    colors[ImGuiCol_PlotHistogramHovered]  = base;
     colors[ImGuiCol_TableHeaderBg]         = gray20;
     colors[ImGuiCol_TableBorderStrong]     = gray30;
     colors[ImGuiCol_TableBorderLight]      = gray20;
     colors[ImGuiCol_TableRowBg]            = black;
     colors[ImGuiCol_TableRowBgAlt]         = white;
     colors[ImGuiCol_TextSelectedBg]        = base;
-    colors[ImGuiCol_DragDropTarget]        = ImVec4(1.00f, 1.00f, 0.00f, 1.00f);
+    colors[ImGuiCol_DragDropTarget]        = base;
     colors[ImGuiCol_NavHighlight]          = base;
     colors[ImGuiCol_NavWindowingHighlight] = white;
     colors[ImGuiCol_NavWindowingDimBg]     = gray80;
