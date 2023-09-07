@@ -45,9 +45,24 @@ public:
             .stage = vk::ShaderStageFlagBits::eClosestHitKHR,
         });
 
+        std::vector<rv::ImageHandle> textures;
+        for (auto& texture : scene->textures) {
+            textures.push_back(texture.image);
+        }
+        if (textures.empty()) {
+            textures.push_back(context->createImage({
+                .usage = vk::ImageUsageFlagBits::eSampled,
+                .format = vk::Format::eB8G8R8A8Unorm,
+                .layout = vk::ImageLayout::eShaderReadOnlyOptimal,
+                .debugName = "dummyTexture",
+            }));
+        }
+
         descSet = context->createDescriptorSet({
             .shaders = shaders,
-            .images = {{"accumImage", accumImage}, {"outputImage", colorImage}},
+            .images = {{"accumImage", accumImage},
+                       {"outputImage", colorImage},
+                       {"textures", textures}},
             .accels = {{"topLevelAS", topAccel}},
         });
 

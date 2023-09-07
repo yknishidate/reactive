@@ -9,7 +9,7 @@ struct ImageCreateInfo {
     vk::ImageUsageFlags usage;
     vk::Extent3D extent = {1, 1, 1};
     vk::Format format;
-    vk::ImageLayout layout;
+    vk::ImageLayout layout = vk::ImageLayout::eUndefined;
     // if mipLevels is std::numeric_limits<uint32_t>::max(), then it's set to max level
     vk::ImageAspectFlags aspect = vk::ImageAspectFlagBits::eColor;
     uint32_t mipLevels = 1;

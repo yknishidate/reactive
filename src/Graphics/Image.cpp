@@ -89,8 +89,10 @@ Image::Image(const Context* context,
     samplerInfo.setAddressModeW(vk::SamplerAddressMode::eRepeat);
     sampler = context->getDevice().createSampler(samplerInfo);
 
-    context->oneTimeSubmit(
-        [&](vk::CommandBuffer commandBuffer) { transitionLayout(commandBuffer, layout); });
+    if (layout != vk::ImageLayout::eUndefined) {
+        context->oneTimeSubmit(
+            [&](vk::CommandBuffer commandBuffer) { transitionLayout(commandBuffer, layout); });
+    }
 
     if (debugName) {
         context->setDebugName(image, debugName);
