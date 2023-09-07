@@ -43,7 +43,7 @@ public:
         return changed;
     }
 
-    bool showMaterial(const Node* node) {
+    bool showMaterial(const Node* node) const {
         Material* material = node->material;
         if (!material) {
             return false;
@@ -59,7 +59,17 @@ public:
             } else {
                 iconManager->showDroppableIcon(
                     "asset_texture", "", 100.0f, ImVec4(0, 0, 0, 1), [] {},
-                    [](ImTextureID textureIdDropped) { spdlog::info("Dropped"); });
+                    [&](const char* droppedName) {
+                        spdlog::info("Apply texture: {}", droppedName);
+                        for (int i = 0; i < scene->textures.size(); i++) {
+                            Texture& texture = scene->textures[i];
+                            if (std::strcmp(texture.name.c_str(), droppedName) == 0) {
+                                node->material->baseColorTextureIndex = i;
+                                spdlog::info("  index: {}", i);
+                                changed = true;
+                            }
+                        }
+                    });
             }
             ImGui::Spacing();
 

@@ -88,14 +88,12 @@ public:
                                {thumbnailSize, thumbnailSize},  // size
                                uv0, uv1, 0, bgColor)) {
             callback();
-            spdlog::info("Click: {}", itemName);
         }
 
         // Draggable
         if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
-            ImGui::SetDragDropPayload("DND_IMAGE", &textureId, sizeof(ImTextureID));
+            ImGui::SetDragDropPayload("StringType", itemName.c_str(), itemName.size() + 1);
             ImGui::Text(itemName.c_str());
-            spdlog::info("Drag: {}", itemName);
             ImGui::EndDragDropSource();
         }
         ImGui::PopID();
@@ -112,7 +110,7 @@ public:
         float thumbnailSize,
         ImVec4 bgColor,
         const std::function<void()>& callback = [] {},
-        const std::function<void(ImTextureID)>& dropCallback = [](ImTextureID) {}) {
+        const std::function<void(const char*)>& dropCallback = [](const char*) {}) {
         auto [uv0, uv1] = computeCenterCroppedUVs(getImageSize(iconName));
         ImTextureID textureId = icons[iconName].descSet;
         ImGui::PushID(itemName.c_str());
@@ -120,16 +118,12 @@ public:
                                {thumbnailSize, thumbnailSize},  // size
                                uv0, uv1, 0, bgColor)) {
             callback();
-            spdlog::info("Click: {}", itemName);
         }
 
         // Droppable
         if (ImGui::BeginDragDropTarget()) {
-            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DND_IMAGE")) {
-                IM_ASSERT(payload->DataSize == sizeof(ImTextureID));
-                ImTextureID textureIdDropped = *static_cast<ImTextureID*>(payload->Data);
-                dropCallback(textureIdDropped);
-                spdlog::info("Drop: {}", itemName);
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("StringType")) {
+                dropCallback(static_cast<const char*>(payload->Data));
             }
             ImGui::EndDragDropTarget();
         }
