@@ -100,7 +100,7 @@ public:
         if (running || iconManager.isHover(thumbnailSize)) {
             bgColor = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
         }
-        iconManager.show("render_ipr", "", thumbnailSize, bgColor, [&]() {
+        iconManager.showIcon("render_ipr", "", thumbnailSize, bgColor, [&]() {
             if (running) {
                 running = false;
                 spdlog::info("[UI] Stop IPR");
@@ -163,7 +163,8 @@ public:
         if (iconManager.isHover(thumbnailSize)) {
             bgColor = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
         }
-        iconManager.show("render_save", "", thumbnailSize, bgColor, [&]() { openSaveDialog(); });
+        iconManager.showIcon("render_save", "", thumbnailSize, bgColor,
+                             [&]() { openSaveDialog(); });
     }
 
     void showToolBar() {

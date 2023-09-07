@@ -51,16 +51,17 @@ public:
             ImGui::Columns(columnCount, 0, false);
 
             for (auto& mesh : scene->meshes) {
-                iconManager.show("asset_mesh", mesh.name, thumbnailSize, ImVec4(0, 0, 0, 1), [] {});
+                iconManager.showDraggableIcon("asset_mesh", mesh.name, thumbnailSize,
+                                              ImVec4(0, 0, 0, 1), [] {});
             }
 
             for (auto& material : scene->materials) {
-                iconManager.show("asset_material", material.name, thumbnailSize, ImVec4(0, 0, 0, 1),
-                                 [] {});
+                iconManager.showDraggableIcon("asset_material", material.name, thumbnailSize,
+                                              ImVec4(0, 0, 0, 1), [] {});
             }
             for (auto& texture : scene->textures) {
-                iconManager.show(texture.name, texture.name, thumbnailSize, ImVec4(0, 0, 0, 1),
-                                 [] {});
+                iconManager.showDraggableIcon(texture.name, texture.name, thumbnailSize,
+                                              ImVec4(0, 0, 0, 1), [] {});
             }
 
             ImGui::Columns(1);

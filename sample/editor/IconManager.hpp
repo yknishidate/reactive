@@ -41,17 +41,60 @@ public:
         return {uv0, uv1};
     }
 
-    void show(const std::string& iconName,
-              const std::string& itemName,
-              float thumbnailSize,
-              ImVec4 bgColor,
-              const std::function<void()>& callback) {
+    void showIcon(const std::string& iconName,
+                  const std::string& itemName,
+                  float thumbnailSize,
+                  ImVec4 bgColor,
+                  const std::function<void()>& callback) {
         auto [uv0, uv1] = computeCenterCroppedUVs(getImageSize(iconName));
-        if (ImGui::ImageButton(icons[iconName].descSet,         // texture
+        ImTextureID textureId = icons[iconName].descSet;
+        ImGui::PushID(itemName.c_str());
+        if (ImGui::ImageButton(textureId,                       // texture
                                {thumbnailSize, thumbnailSize},  // size
                                uv0, uv1, 0, bgColor)) {
             callback();
         }
+        ImGui::PopID();
+
+        if (!itemName.empty()) {
+            ImGui::TextWrapped(itemName.c_str());
+        }
+        ImGui::NextColumn();
+    }
+
+    void showDraggableIcon(const std::string& iconName,
+                           const std::string& itemName,
+                           float thumbnailSize,
+                           ImVec4 bgColor,
+                           const std::function<void()>& callback) {
+        auto [uv0, uv1] = computeCenterCroppedUVs(getImageSize(iconName));
+        ImTextureID textureId = icons[iconName].descSet;
+        ImGui::PushID(itemName.c_str());
+        if (ImGui::ImageButton(textureId,                       // texture
+                               {thumbnailSize, thumbnailSize},  // size
+                               uv0, uv1, 0, bgColor)) {
+            callback();
+            spdlog::info("Click: {}", itemName);
+        }
+
+        if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+            ImGui::SetDragDropPayload("DND_IMAGE", &textureId, sizeof(ImTextureID));
+            ImGui::Text(itemName.c_str());
+            spdlog::info("Drag: {}", itemName);
+            ImGui::EndDragDropSource();
+        }
+
+        if (ImGui::BeginDragDropTarget()) {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DND_IMAGE")) {
+                IM_ASSERT(payload->DataSize == sizeof(ImTextureID));
+                ImTextureID textureIdDropped = *static_cast<ImTextureID*>(payload->Data);
+
+                spdlog::info("Drop: {}", itemName);
+            }
+            ImGui::EndDragDropTarget();
+        }
+        ImGui::PopID();
+
         if (!itemName.empty()) {
             ImGui::TextWrapped(itemName.c_str());
         }

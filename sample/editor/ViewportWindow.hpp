@@ -282,8 +282,8 @@ public:
         if (currentGizmoOperation == operation || iconManager.isHover(thumbnailSize)) {
             bgColor = ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
         }
-        iconManager.show(name, "", thumbnailSize, bgColor,
-                         [&]() { currentGizmoOperation = operation; });
+        iconManager.showIcon(name, "", thumbnailSize, bgColor,
+                             [&]() { currentGizmoOperation = operation; });
     }
 
     void showToolBar(ImVec2 viewportPos) {
