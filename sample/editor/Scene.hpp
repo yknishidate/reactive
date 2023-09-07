@@ -104,11 +104,18 @@ public:
     std::vector<KeyFrame> keyFrames;
 };
 
+class Texture {
+public:
+    std::string name;
+    std::string filepath;
+    rv::ImageHandle image;
+};
+
 class Scene {
 public:
     std::vector<Node> nodes;
     std::vector<rv::Mesh> meshes;
     std::vector<Material> materials;
     std::vector<rv::Camera> cameras;
-    std::vector<rv::ImageHandle> textures;
+    std::vector<Texture> textures;
 };

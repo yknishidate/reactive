@@ -9,6 +9,7 @@ public:
     void init(const rv::Context& context) {
         iconManager.addIcon(context, "asset_mesh", ASSET_DIR + "icons/asset_mesh.png");
         iconManager.addIcon(context, "asset_material", ASSET_DIR + "icons/asset_material.png");
+        iconManager.addIcon(context, "asset_texture", ASSET_DIR + "icons/asset_texture.png");
     }
 
     void show(const Scene& scene) {
@@ -26,6 +27,10 @@ public:
 
             for (auto& material : scene.materials) {
                 iconManager.show("asset_material", material.name, thumbnailSize, ImVec4(0, 0, 0, 1),
+                                 [] {});
+            }
+            for (auto& texture : scene.textures) {
+                iconManager.show("asset_texture", texture.name, thumbnailSize, ImVec4(0, 0, 0, 1),
                                  [] {});
             }
 

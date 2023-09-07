@@ -72,6 +72,9 @@ public:
         node.transform.translation = glm::vec3{0, 0, 0};
         scene.nodes.push_back(node);
 
+        // Add texture
+        scene.textures.push_back({"Texture 0", ""});
+
         camera = OrbitalCamera{this, 1920, 1080};
         camera.fovY = glm::radians(30.0f);
         camera.distance = 10.0f;
