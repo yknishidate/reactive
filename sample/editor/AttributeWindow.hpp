@@ -14,6 +14,11 @@ enum Type {
 
 class AttributeWindow {
 public:
+    void init(const rv::Context& context, Scene& scene) {
+        this->scene = &scene;
+        iconManager.addIcon(context, "asset_texture", ASSET_DIR + "icons/asset_texture.png");
+    }
+
     bool showTransform(Node* node) const {
         Transform& transform = node->transform;
         bool changed = false;
@@ -36,7 +41,7 @@ public:
         return changed;
     }
 
-    bool showMaterial(Scene& scene, const Node* node) const {
+    bool showMaterial(const Node* node) {
         Material* material = node->material;
         if (!material) {
             return false;
@@ -45,23 +50,28 @@ public:
         ImGui::SetNextItemOpen(true, ImGuiCond_Once);
         if (ImGui::TreeNode(("Material: " + material->name).c_str())) {
             changed |= ImGui::ColorEdit4("Base color", &material->baseColor[0]);
+            // TODO: get dropped texture
+            if (material->baseColorTextureIndex != -1) {
+                std::string name = scene->textures[material->baseColorTextureIndex].name;
+                iconManager.showDroppableIcon(name, "", 100.0f, ImVec4(0, 0, 0, 1));
+            } else {
+                iconManager.showDroppableIcon(
+                    "asset_texture", "", 100.0f, ImVec4(0, 0, 0, 1), [] {},
+                    [](ImTextureID textureIdDropped) { spdlog::info("Dropped"); });
+            }
+            ImGui::Spacing();
+
             changed |= ImGui::ColorEdit3("Emissive", &material->emissive[0]);
             changed |= ImGui::SliderFloat("Metallic", &material->metallic, 0.0f, 1.0f);
             changed |= ImGui::SliderFloat("Roughness", &material->roughness, 0.0f, 1.0f);
             changed |= ImGui::SliderFloat("IOR", &material->ior, 0.01f, 5.0f);
-
-            ImGui::Text("Base color texture");
-            if (material->baseColorTextureIndex != -1) {
-                std::string name = scene.textures[material->baseColorTextureIndex].name;
-                ImGui::Text(name.c_str());
-            }
 
             ImGui::TreePop();
         }
         return changed;
     }
 
-    int show(Scene& scene, Node* node) const {
+    int show(Node* node) {
         ImGui::Begin("Attribute");
         int message = Message::None;
         if (node) {
@@ -78,11 +88,15 @@ public:
                 }
             }
 
-            if (showMaterial(scene, node)) {
+            if (showMaterial(node)) {
                 message |= Message::MaterialChanged;
             }
         }
         ImGui::End();
         return message;
     }
+
+    const rv::Context* context = nullptr;
+    Scene* scene = nullptr;
+    IconManager iconManager;
 };

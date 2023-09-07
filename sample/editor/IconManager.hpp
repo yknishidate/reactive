@@ -41,11 +41,12 @@ public:
         return {uv0, uv1};
     }
 
-    void showIcon(const std::string& iconName,
-                  const std::string& itemName,
-                  float thumbnailSize,
-                  ImVec4 bgColor,
-                  const std::function<void()>& callback) {
+    void showIcon(
+        const std::string& iconName,
+        const std::string& itemName,
+        float thumbnailSize,
+        ImVec4 bgColor,
+        const std::function<void()>& callback = [] {}) {
         auto [uv0, uv1] = computeCenterCroppedUVs(getImageSize(iconName));
         ImTextureID textureId = icons[iconName].descSet;
         ImGui::PushID(itemName.c_str());
@@ -62,11 +63,12 @@ public:
         ImGui::NextColumn();
     }
 
-    void showDraggableIcon(const std::string& iconName,
-                           const std::string& itemName,
-                           float thumbnailSize,
-                           ImVec4 bgColor,
-                           const std::function<void()>& callback) {
+    void showDraggableIcon(
+        const std::string& iconName,
+        const std::string& itemName,
+        float thumbnailSize,
+        ImVec4 bgColor,
+        const std::function<void()>& callback = [] {}) {
         auto [uv0, uv1] = computeCenterCroppedUVs(getImageSize(iconName));
         ImTextureID textureId = icons[iconName].descSet;
         ImGui::PushID(itemName.c_str());
@@ -77,18 +79,44 @@ public:
             spdlog::info("Click: {}", itemName);
         }
 
+        // Draggable
         if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
             ImGui::SetDragDropPayload("DND_IMAGE", &textureId, sizeof(ImTextureID));
             ImGui::Text(itemName.c_str());
             spdlog::info("Drag: {}", itemName);
             ImGui::EndDragDropSource();
         }
+        ImGui::PopID();
 
+        if (!itemName.empty()) {
+            ImGui::TextWrapped(itemName.c_str());
+        }
+        ImGui::NextColumn();
+    }
+
+    void showDroppableIcon(
+        const std::string& iconName,
+        const std::string& itemName,
+        float thumbnailSize,
+        ImVec4 bgColor,
+        const std::function<void()>& callback = [] {},
+        const std::function<void(ImTextureID)>& dropCallback = [](ImTextureID) {}) {
+        auto [uv0, uv1] = computeCenterCroppedUVs(getImageSize(iconName));
+        ImTextureID textureId = icons[iconName].descSet;
+        ImGui::PushID(itemName.c_str());
+        if (ImGui::ImageButton(textureId,                       // texture
+                               {thumbnailSize, thumbnailSize},  // size
+                               uv0, uv1, 0, bgColor)) {
+            callback();
+            spdlog::info("Click: {}", itemName);
+        }
+
+        // Droppable
         if (ImGui::BeginDragDropTarget()) {
             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DND_IMAGE")) {
                 IM_ASSERT(payload->DataSize == sizeof(ImTextureID));
                 ImTextureID textureIdDropped = *static_cast<ImTextureID*>(payload->Data);
-
+                dropCallback(textureIdDropped);
                 spdlog::info("Drop: {}", itemName);
             }
             ImGui::EndDragDropTarget();

@@ -79,6 +79,7 @@ public:
         assetWindow.init(context, scene);
         viewportWindow.init(context, 1920, 1080);
         renderWindow.init(context, scene, 1280, 720);
+        attributeWindow.init(context, scene);
     }
 
     void onUpdate() override {
@@ -137,7 +138,7 @@ public:
 
             sceneWindow.show(scene, &selectedNode);
             int message = Message::None;
-            message |= attributeWindow.show(scene, selectedNode);
+            message |= attributeWindow.show(selectedNode);
             message |= viewportWindow.show(scene, selectedNode, camera, frame);
             assetWindow.show();
             renderWindow.show(camera, frame);
