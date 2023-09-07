@@ -31,8 +31,6 @@ public:
             spdlog::info("Load image");
             importTexture(outPath);
             free(outPath);
-        } else {
-            spdlog::error("[UI] Dialog error: {}", NFD_GetError());
         }
     }
 

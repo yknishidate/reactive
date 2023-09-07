@@ -155,8 +155,6 @@ public:
             saveImage(savePath);
             free(savePath);
             spdlog::info("[UI] Save image");
-        } else {
-            spdlog::error("[UI] Save dialog error: {}", NFD_GetError());
         }
     }
 
