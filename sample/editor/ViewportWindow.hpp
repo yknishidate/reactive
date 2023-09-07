@@ -248,7 +248,7 @@ public:
 
     bool processMouseInput() {
         bool changed = false;
-        if (ImGui::IsWindowHovered() && !ImGuizmo::IsUsing()) {
+        if (ImGui::IsWindowFocused() && !ImGuizmo::IsUsing()) {
             dragDelta.x = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x * 0.5f;
             dragDelta.y = -ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y * 0.5f;
             mouseScroll = ImGui::GetIO().MouseWheel;
