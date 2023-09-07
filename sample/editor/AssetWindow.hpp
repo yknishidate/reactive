@@ -19,16 +19,22 @@ public:
         Texture texture;
         texture.name = "Texture " + std::to_string(scene->textures.size());
         texture.filepath = filepath;
-        texture.image = rv::Image::loadFromFile(*context, texture.filepath);
+        std::filesystem::path extension = std::filesystem::path{filepath}.extension();
+        if (extension == ".jpg" || extension == ".png") {
+            spdlog::info("Load image");
+            texture.image = rv::Image::loadFromFile(*context, texture.filepath);
+        } else if (extension == ".hdr") {
+            spdlog::info("Load HDR image");
+            texture.image = rv::Image::loadFromFileHDR(*context, texture.filepath);
+        }
         scene->textures.push_back(texture);
         iconManager.addIcon(texture.name, texture.image);
     }
 
     void openImportDialog() {
         nfdchar_t* outPath = NULL;
-        nfdresult_t result = NFD_OpenDialog("png,jpg", NULL, &outPath);
+        nfdresult_t result = NFD_OpenDialog("png,jpg,hdr", NULL, &outPath);
         if (result == NFD_OKAY) {
-            spdlog::info("Load image");
             importTexture(outPath);
             free(outPath);
         }
