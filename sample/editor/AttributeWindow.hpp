@@ -14,8 +14,10 @@ enum Type {
 
 class AttributeWindow {
 public:
-    void init(const rv::Context& context, Scene& scene) {
+    void init(const rv::Context& context, Scene& scene, IconManager& iconManager) {
+        this->context = &context;
         this->scene = &scene;
+        this->iconManager = &iconManager;
         iconManager.addIcon(context, "asset_texture", ASSET_DIR + "icons/asset_texture.png");
     }
 
@@ -53,9 +55,9 @@ public:
             // TODO: get dropped texture
             if (material->baseColorTextureIndex != -1) {
                 std::string name = scene->textures[material->baseColorTextureIndex].name;
-                iconManager.showDroppableIcon(name, "", 100.0f, ImVec4(0, 0, 0, 1));
+                iconManager->showDroppableIcon(name, "", 100.0f, ImVec4(0, 0, 0, 1));
             } else {
-                iconManager.showDroppableIcon(
+                iconManager->showDroppableIcon(
                     "asset_texture", "", 100.0f, ImVec4(0, 0, 0, 1), [] {},
                     [](ImTextureID textureIdDropped) { spdlog::info("Dropped"); });
             }
@@ -98,5 +100,5 @@ public:
 
     const rv::Context* context = nullptr;
     Scene* scene = nullptr;
-    IconManager iconManager;
+    IconManager* iconManager = nullptr;
 };

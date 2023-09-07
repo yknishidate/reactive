@@ -76,10 +76,11 @@ public:
         camera.fovY = glm::radians(30.0f);
         camera.distance = 10.0f;
 
-        assetWindow.init(context, scene);
-        viewportWindow.init(context, 1920, 1080);
+        iconManager.init(context);
+        assetWindow.init(context, scene, iconManager);
+        viewportWindow.init(context, iconManager, 1920, 1080);
         renderWindow.init(context, scene, 1280, 720);
-        attributeWindow.init(context, scene);
+        attributeWindow.init(context, scene, iconManager);
     }
 
     void onUpdate() override {
@@ -91,7 +92,7 @@ public:
     void onRender(const CommandBuffer& commandBuffer) override {
         if (viewportWindow.needsRecreate()) {
             context.getDevice().waitIdle();
-            viewportWindow.createImages(context, viewportWindow.width, viewportWindow.height);
+            viewportWindow.createImages(viewportWindow.width, viewportWindow.height);
             camera.aspect = viewportWindow.width / viewportWindow.height;
         }
         static bool dockspaceOpen = true;
@@ -165,6 +166,7 @@ public:
     AttributeWindow attributeWindow;
     AssetWindow assetWindow;
     RenderWindow renderWindow;
+    IconManager iconManager;
 };
 
 int main() {

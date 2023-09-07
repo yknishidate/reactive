@@ -9,6 +9,18 @@
 
 class IconManager {
 public:
+    void init(const rv::Context& context) {
+        // Manipulate
+        addIcon(context, "manip_translate", ASSET_DIR + "icons/manip_translate.png");
+        addIcon(context, "manip_rotate", ASSET_DIR + "icons/manip_rotate.png");
+        addIcon(context, "manip_scale", ASSET_DIR + "icons/manip_scale.png");
+
+        // Asset
+        addIcon(context, "asset_mesh", ASSET_DIR + "icons/asset_mesh.png");
+        addIcon(context, "asset_material", ASSET_DIR + "icons/asset_material.png");
+        addIcon(context, "asset_texture", ASSET_DIR + "icons/asset_texture.png");
+    }
+
     bool isHover(float thumbnailSize) const {
         ImVec2 mousePos = ImGui::GetMousePos();
         ImVec2 buttonMin = ImGui::GetCursorScreenPos();

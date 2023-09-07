@@ -7,12 +7,10 @@
 
 class AssetWindow {
 public:
-    void init(const rv::Context& context, Scene& scene) {
+    void init(const rv::Context& context, Scene& scene, IconManager& iconManager) {
         this->context = &context;
         this->scene = &scene;
-        iconManager.addIcon(context, "asset_mesh", ASSET_DIR + "icons/asset_mesh.png");
-        iconManager.addIcon(context, "asset_material", ASSET_DIR + "icons/asset_material.png");
-        iconManager.addIcon(context, "asset_texture", ASSET_DIR + "icons/asset_texture.png");
+        this->iconManager = &iconManager;
     }
 
     void importTexture(const char* filepath) {
@@ -28,7 +26,7 @@ public:
             texture.image = rv::Image::loadFromFileHDR(*context, texture.filepath);
         }
         scene->textures.push_back(texture);
-        iconManager.addIcon(texture.name, texture.image);
+        iconManager->addIcon(texture.name, texture.image);
     }
 
     void openImportDialog() {
@@ -51,17 +49,17 @@ public:
             ImGui::Columns(columnCount, 0, false);
 
             for (auto& mesh : scene->meshes) {
-                iconManager.showDraggableIcon("asset_mesh", mesh.name, thumbnailSize,
-                                              ImVec4(0, 0, 0, 1), [] {});
+                iconManager->showDraggableIcon("asset_mesh", mesh.name, thumbnailSize,
+                                               ImVec4(0, 0, 0, 1), [] {});
             }
 
             for (auto& material : scene->materials) {
-                iconManager.showDraggableIcon("asset_material", material.name, thumbnailSize,
-                                              ImVec4(0, 0, 0, 1), [] {});
+                iconManager->showDraggableIcon("asset_material", material.name, thumbnailSize,
+                                               ImVec4(0, 0, 0, 1), [] {});
             }
             for (auto& texture : scene->textures) {
-                iconManager.showDraggableIcon(texture.name, texture.name, thumbnailSize,
-                                              ImVec4(0, 0, 0, 1), [] {});
+                iconManager->showDraggableIcon(texture.name, texture.name, thumbnailSize,
+                                               ImVec4(0, 0, 0, 1), [] {});
             }
 
             ImGui::Columns(1);
@@ -80,5 +78,5 @@ public:
 
     const rv::Context* context = nullptr;
     Scene* scene = nullptr;
-    IconManager iconManager;
+    IconManager* iconManager = nullptr;
 };

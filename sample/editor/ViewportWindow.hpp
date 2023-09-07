@@ -126,7 +126,7 @@ class ViewportWindow {
     };
 
 public:
-    std::string vertCode = R"(
+    const std::string vertCode = R"(
     #version 450
     layout(location = 0) in vec3 inPosition;
     layout(location = 1) in vec3 inNormal;
@@ -144,7 +144,7 @@ public:
         outNormal = inNormal;
     })";
 
-    std::string fragCode = R"(
+    const std::string fragCode = R"(
     #version 450
     layout(location = 0) in vec3 inNormal;
     layout(location = 0) out vec4 outColor;
@@ -161,31 +161,36 @@ public:
         outColor = vec4(diffuse, 1.0);
     })";
 
-    void init(const rv::Context& context, uint32_t _width, uint32_t _height) {
-        createPipeline(context);
-        createImages(context, _width, _height);
-        createIcons(context);
+    void init(const rv::Context& context,
+              IconManager& iconManager,
+              uint32_t _width,
+              uint32_t _height) {
+        this->context = &context;
+        this->iconManager = &iconManager;
+
+        createPipeline();
+        createImages(_width, _height);
 
         gridDrawer.createPipeline(context);
     }
 
-    void createPipeline(const rv::Context& context) {
+    void createPipeline() {
         std::vector<rv::ShaderHandle> shaders(2);
-        shaders[0] = context.createShader({
+        shaders[0] = context->createShader({
             .code = rv::Compiler::compileToSPV(vertCode, vk::ShaderStageFlagBits::eVertex),
             .stage = vk::ShaderStageFlagBits::eVertex,
         });
 
-        shaders[1] = context.createShader({
+        shaders[1] = context->createShader({
             .code = rv::Compiler::compileToSPV(fragCode, vk::ShaderStageFlagBits::eFragment),
             .stage = vk::ShaderStageFlagBits::eFragment,
         });
 
-        descSet = context.createDescriptorSet({
+        descSet = context->createDescriptorSet({
             .shaders = shaders,
         });
 
-        pipeline = context.createGraphicsPipeline({
+        pipeline = context->createGraphicsPipeline({
             .descSetLayout = descSet->getLayout(),
             .pushSize = sizeof(PushConstants),
             .vertexShader = shaders[0],
@@ -196,12 +201,6 @@ public:
             .scissor = "dynamic",
             .colorFormat = vk::Format::eR8G8B8A8Unorm,
         });
-    }
-
-    void createIcons(const rv::Context& context) {
-        iconManager.addIcon(context, "manip_translate", ASSET_DIR + "icons/manip_translate.png");
-        iconManager.addIcon(context, "manip_rotate", ASSET_DIR + "icons/manip_rotate.png");
-        iconManager.addIcon(context, "manip_scale", ASSET_DIR + "icons/manip_scale.png");
     }
 
     bool editTransform(const rv::Camera& camera, glm::mat4& matrix) const {
@@ -217,11 +216,11 @@ public:
                                     currentGizmoOperation, ImGuizmo::LOCAL, glm::value_ptr(matrix));
     }
 
-    void createImages(const rv::Context& context, uint32_t _width, uint32_t _height) {
+    void createImages(uint32_t _width, uint32_t _height) {
         width = _width;
         height = _height;
 
-        colorImage = context.createImage({
+        colorImage = context->createImage({
             .usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage |
                      vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc |
                      vk::ImageUsageFlagBits::eColorAttachment,
@@ -236,7 +235,7 @@ public:
         imguiDescSet = ImGui_ImplVulkan_AddTexture(colorImage->getSampler(), colorImage->getView(),
                                                    VK_IMAGE_LAYOUT_GENERAL);
 
-        depthImage = context.createImage({
+        depthImage = context->createImage({
             .usage = rv::ImageUsage::DepthAttachment,
             .extent = {_width, _height, 1},
             .format = vk::Format::eD32Sfloat,
@@ -279,11 +278,11 @@ public:
 
     void showToolIcon(const std::string& name, float thumbnailSize, ImGuizmo::OPERATION operation) {
         ImVec4 bgColor = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
-        if (currentGizmoOperation == operation || iconManager.isHover(thumbnailSize)) {
+        if (currentGizmoOperation == operation || iconManager->isHover(thumbnailSize)) {
             bgColor = ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
         }
-        iconManager.showIcon(name, "", thumbnailSize, bgColor,
-                             [&]() { currentGizmoOperation = operation; });
+        iconManager->showIcon(name, "", thumbnailSize, bgColor,
+                              [&]() { currentGizmoOperation = operation; });
     }
 
     void showToolBar(ImVec2 viewportPos) {
@@ -370,6 +369,9 @@ public:
                static_cast<uint32_t>(height) != extent.height;
     }
 
+    const rv::Context* context = nullptr;
+    IconManager* iconManager = nullptr;
+
     glm::vec2 dragDelta = {0.0f, 0.0f};
     float mouseScroll = 0.0f;
     float width;
@@ -383,6 +385,5 @@ public:
     GridDrawer gridDrawer;
     PushConstants pushConstants;
 
-    IconManager iconManager;
     ImGuizmo::OPERATION currentGizmoOperation = ImGuizmo::TRANSLATE;
 };
