@@ -36,7 +36,7 @@ public:
         return changed;
     }
 
-    bool showMaterial(const Node* node) const {
+    bool showMaterial(Scene& scene, const Node* node) const {
         Material* material = node->material;
         if (!material) {
             return false;
@@ -49,6 +49,13 @@ public:
             changed |= ImGui::SliderFloat("Metallic", &material->metallic, 0.0f, 1.0f);
             changed |= ImGui::SliderFloat("Roughness", &material->roughness, 0.0f, 1.0f);
             changed |= ImGui::SliderFloat("IOR", &material->ior, 0.01f, 5.0f);
+
+            ImGui::Text("Base color texture");
+            if (material->baseColorTextureIndex != -1) {
+                std::string name = scene.textures[material->baseColorTextureIndex].name;
+                ImGui::Text(name.c_str());
+            }
+
             ImGui::TreePop();
         }
         return changed;
@@ -71,7 +78,7 @@ public:
                 }
             }
 
-            if (showMaterial(node)) {
+            if (showMaterial(scene, node)) {
                 message |= Message::MaterialChanged;
             }
         }

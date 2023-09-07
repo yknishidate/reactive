@@ -72,14 +72,11 @@ public:
         node.transform.translation = glm::vec3{0, 0, 0};
         scene.nodes.push_back(node);
 
-        // Add texture
-        scene.textures.push_back({"Texture 0", ""});
-
         camera = OrbitalCamera{this, 1920, 1080};
         camera.fovY = glm::radians(30.0f);
         camera.distance = 10.0f;
 
-        assetWindow.init(context);
+        assetWindow.init(context, scene);
         viewportWindow.init(context, 1920, 1080);
         renderWindow.init(context, scene, 1280, 720);
     }
@@ -142,7 +139,7 @@ public:
             int message = Message::None;
             message |= attributeWindow.show(scene, selectedNode);
             message |= viewportWindow.show(scene, selectedNode, camera, frame);
-            assetWindow.show(scene);
+            assetWindow.show();
             renderWindow.show(camera, frame);
 
             viewportWindow.drawContent(commandBuffer, scene, camera, frame);
