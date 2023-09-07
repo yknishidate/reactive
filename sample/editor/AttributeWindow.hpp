@@ -52,24 +52,25 @@ public:
         ImGui::SetNextItemOpen(true, ImGuiCond_Once);
         if (ImGui::TreeNode(("Material: " + material->name).c_str())) {
             changed |= ImGui::ColorEdit4("Base color", &material->baseColor[0]);
+
+            // Base color texture
+            std::string name = "asset_texture";
             if (material->baseColorTextureIndex != -1) {
-                std::string name = scene->textures[material->baseColorTextureIndex].name;
-                iconManager->showDroppableIcon(name, "", 100.0f, ImVec4(0, 0, 0, 1));
-            } else {
-                iconManager->showDroppableIcon(
-                    "asset_texture", "", 100.0f, ImVec4(0, 0, 0, 1), [] {},
-                    [&](const char* droppedName) {
-                        for (int i = 0; i < scene->textures.size(); i++) {
-                            Texture& texture = scene->textures[i];
-                            if (std::strcmp(texture.name.c_str(), droppedName) == 0) {
-                                node->material->baseColorTextureIndex = i;
-                                spdlog::info("[UI] Apply texture: {}", droppedName);
-                                changed = true;
-                            }
-                        }
-                        assert(false);
-                    });
+                name = scene->textures[material->baseColorTextureIndex].name;
             }
+            iconManager->showDroppableIcon(
+                name, "", 100.0f, ImVec4(0, 0, 0, 1), [] {},
+                [&](const char* droppedName) {
+                    for (int i = 0; i < scene->textures.size(); i++) {
+                        Texture& texture = scene->textures[i];
+                        if (std::strcmp(texture.name.c_str(), droppedName) == 0) {
+                            node->material->baseColorTextureIndex = i;
+                            spdlog::info("[UI] Apply texture: {}", droppedName);
+                            changed = true;
+                        }
+                    }
+                });
+
             ImGui::Spacing();
 
             changed |= ImGui::ColorEdit3("Emissive", &material->emissive[0]);
