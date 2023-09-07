@@ -209,92 +209,89 @@ void main()
     vec3 emissive = data.emissive;
 
     payload.depth += 1;
-    if(payload.depth >= 24){
+    if(payload.depth >= 8){
         payload.radiance = emissive;
         return;
     }
     
     vec3 origin = pos;
     
-    vec3 direction = sampleHemisphereCosine(normal, payload.seed);
-    traceRay(origin, direction);
-    payload.radiance = emissive + (baseColor * payload.radiance);
-
-    //if(metallic > 0.0){
-    //    // Based on Walter 2007
-    //    // i: in
-    //    // o: out
-    //    // m: half
-    //
-    //    // Sample direction
-    //    vec3 i = worldToLocal(-gl_WorldRayDirectionEXT, normal);
-    //    vec3 m = sampleGGX(roughness, payload.seed);
-    //    vec3 o = reflect(-i, m);
-    //
-    //    traceRay(origin, localToWorld(o, normal));
-    //
-    //    // Compute the GGX BRDF
-    //    float no = abs(cosTheta(o));
-    //    float ni = abs(cosTheta(i));
-    //    float nm = abs(cosTheta(m));
-    //    float mi = abs(dot(i, m));
-    //
-    //    vec3 F = baseColor;
-    //    float G = ggxGeometry(i, o, m, roughness);
-    //
-    //    // Importance sampling:
-    //    // NOTE: max(x, 0.1) is greatly affects the appearance. 
-    //    // Smaller values make it too bright.
-    //    vec3 weight = vec3(F * G * mi) / max(ni * nm, 0.1);
-    //    payload.radiance = emissive + weight * payload.radiance;
-    //}else if(transmission > 0.0){
-    //    float ior = 1.51;
-    //    bool into = dot(gl_WorldRayDirectionEXT, normal) < 0.0;
-    //    float n1 = into ? 1.0 : ior;
-    //    float n2 = into ? ior : 1.0;
-    //    float eta = n1 / n2;
-    //    vec3 n = into ? normal : -normal;
-    //    
-    //    vec3 i = worldToLocal(-gl_WorldRayDirectionEXT, n);
-    //    vec3 m = sampleGGX(roughness, payload.seed);
-    //    vec3 or = reflect(-i, m);      // out(reflect)
-    //    vec3 ot = refract(-i, m, eta); // out(transmit)
-    //    float ni = abs(cosTheta(i));
-    //    float nm = abs(cosTheta(m));
-    //    float mi = abs(dot(i, m));
-    //
-    //    // total reflection
-    //    if(or == vec3(0.0)){
-    //        traceRay(origin, localToWorld(or, n));
-    //        
-    //        // Compute the GGX BRDF
-    //        // NOTE: F = 1.0 in total reflection
-    //        float G = ggxGeometry(i, or, m, roughness);
-    //        vec3 weight = vec3(G * mi) / max(ni * nm, 0.1);
-    //        payload.radiance = emissive + weight * payload.radiance;
-    //    }
-    //    
-    //    // if n = 1.5, F0 = 0.04
-    //    float F0 = ((n1 - n2) * (n1 - n2)) / ((n1 + n2) * (n1 + n2));
-    //    float F = fresnelSchlick(mi, F0);
-    //    if(rand(payload.seed) < F){
-    //        traceRay(origin, localToWorld(or, n));
-    //        
-    //        float G = ggxGeometry(i, or, m, roughness);
-    //        vec3 weight = vec3(G * mi) / max(ni * nm, 0.1);
-    //        payload.radiance = emissive + weight * payload.radiance;
-    //    }else{
-    //        // refraction
-    //        traceRay(origin, localToWorld(ot, n));
-    //        
-    //        float G = ggxGeometry(i, ot, m, roughness);
-    //        vec3 weight = vec3(G * mi) / max(ni * nm, 0.1);
-    //        payload.radiance = emissive + weight * payload.radiance;
-    //    }
-    //}else{
-    //    // Diffuse IS
-    //    vec3 direction = sampleHemisphereCosine(normal, payload.seed);
-    //    traceRay(origin, direction);
-    //    payload.radiance = emissive + (baseColor * payload.radiance);
-    //}
+    if(metallic > 0.0){
+        // Based on Walter 2007
+        // i: in
+        // o: out
+        // m: half
+    
+        // Sample direction
+        vec3 i = worldToLocal(-gl_WorldRayDirectionEXT, normal);
+        vec3 m = sampleGGX(roughness, payload.seed);
+        vec3 o = reflect(-i, m);
+    
+        traceRay(origin, localToWorld(o, normal));
+    
+        // Compute the GGX BRDF
+        float no = abs(cosTheta(o));
+        float ni = abs(cosTheta(i));
+        float nm = abs(cosTheta(m));
+        float mi = abs(dot(i, m));
+    
+        vec3 F = baseColor;
+        float G = ggxGeometry(i, o, m, roughness);
+    
+        // Importance sampling:
+        // NOTE: max(x, 0.1) is greatly affects the appearance. 
+        // Smaller values make it too bright.
+        vec3 weight = vec3(F * G * mi) / max(ni * nm, 0.1);
+        payload.radiance = emissive + weight * payload.radiance;
+    }else if(transmission > 0.0){
+        float ior = 1.51;
+        bool into = dot(gl_WorldRayDirectionEXT, normal) < 0.0;
+        float n1 = into ? 1.0 : ior;
+        float n2 = into ? ior : 1.0;
+        float eta = n1 / n2;
+        vec3 n = into ? normal : -normal;
+        
+        vec3 i = worldToLocal(-gl_WorldRayDirectionEXT, n);
+        vec3 m = sampleGGX(roughness, payload.seed);
+        vec3 or = reflect(-i, m);      // out(reflect)
+        vec3 ot = refract(-i, m, eta); // out(transmit)
+        float ni = abs(cosTheta(i));
+        float nm = abs(cosTheta(m));
+        float mi = abs(dot(i, m));
+    
+        // total reflection
+        if(or == vec3(0.0)){
+            traceRay(origin, localToWorld(or, n));
+            
+            // Compute the GGX BRDF
+            // NOTE: F = 1.0 in total reflection
+            float G = ggxGeometry(i, or, m, roughness);
+            vec3 weight = vec3(G * mi) / max(ni * nm, 0.1);
+            payload.radiance = emissive + weight * payload.radiance;
+        }
+        
+        // if n = 1.5, F0 = 0.04
+        float F0 = ((n1 - n2) * (n1 - n2)) / ((n1 + n2) * (n1 + n2));
+        float F = fresnelSchlick(mi, F0);
+        if(rand(payload.seed) < F){
+            traceRay(origin, localToWorld(or, n));
+            
+            float G = ggxGeometry(i, or, m, roughness);
+            vec3 weight = vec3(G * mi) / max(ni * nm, 0.1);
+            payload.radiance = emissive + weight * payload.radiance;
+        }
+        else{
+            // refraction
+            traceRay(origin, localToWorld(ot, n));
+            
+            float G = ggxGeometry(i, ot, m, roughness);
+            vec3 weight = vec3(G * mi) / max(ni * nm, 0.1);
+            payload.radiance = emissive + weight * payload.radiance;
+        }
+    }else{
+        // Diffuse IS
+        vec3 direction = sampleHemisphereCosine(normal, payload.seed);
+        traceRay(origin, direction);
+        payload.radiance = emissive + (baseColor * payload.radiance);
+    }
 }

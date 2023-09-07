@@ -40,7 +40,9 @@ void main()
     radiance /= sampleCount;
 
     vec3 newColor = radiance;
-    if(enableAccum == 1){
+    if(any(isnan(newColor))){
+        newColor = vec3(1, 0, 1);
+    } else if(enableAccum == 1){
         vec3 prevColor = imageLoad(accumImage, ivec2(gl_LaunchIDEXT.xy)).rgb;
         newColor = (newColor + (prevColor * frame)) / (frame + 1);
     }
