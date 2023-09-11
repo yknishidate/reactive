@@ -81,8 +81,8 @@ void CommandBuffer::beginRendering(ImageHandle colorImage,
     renderingInfo.setColorAttachments(colorAttachment);
 
     // Depth attachment
+    vk::RenderingAttachmentInfo depthStencilAttachment;
     if (depthImage) {
-        vk::RenderingAttachmentInfo depthStencilAttachment;
         depthStencilAttachment.setImageView(depthImage->getView());
         depthStencilAttachment.setImageLayout(vk::ImageLayout::eAttachmentOptimal);
         renderingInfo.setPDepthAttachment(&depthStencilAttachment);
