@@ -7,45 +7,33 @@
 
 namespace rv {
 WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
-                                       vk::DescriptorBufferInfo bufferInfo)
+                                       ArrayProxy<vk::DescriptorBufferInfo> infos)
     : WriteDescriptorSet{binding} {
-    bufferInfos = {bufferInfo};
+    bufferInfos.reserve(infos.size());
+    for (auto& info : infos) {
+        bufferInfos.push_back(info);
+    }
     write.setBufferInfo(bufferInfos);
 }
 
 WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
-                                       std::vector<vk::DescriptorBufferInfo> infos)
+                                       ArrayProxy<vk::DescriptorImageInfo> infos)
     : WriteDescriptorSet{binding} {
-    bufferInfos = {infos};
-    write.setBufferInfo(bufferInfos);
-}
-
-WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
-                                       vk::DescriptorImageInfo imageInfo)
-    : WriteDescriptorSet{binding} {
-    imageInfos = {imageInfo};
+    imageInfos.reserve(infos.size());
+    for (auto& info : infos) {
+        imageInfos.push_back(info);
+    }
     write.setImageInfo(imageInfos);
-}
-
-WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
-                                       std::vector<vk::DescriptorImageInfo> infos)
-    : WriteDescriptorSet{binding} {
-    imageInfos = {infos};
-    write.setImageInfo(imageInfos);
-}
-
-WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
-                                       vk::WriteDescriptorSetAccelerationStructureKHR accelInfo)
-    : WriteDescriptorSet(binding) {
-    accelInfos = {accelInfo};
-    write.setPNext(&accelInfos.front());
 }
 
 WriteDescriptorSet::WriteDescriptorSet(
     vk::DescriptorSetLayoutBinding binding,
-    std::vector<vk::WriteDescriptorSetAccelerationStructureKHR> infos)
+    ArrayProxy<vk::WriteDescriptorSetAccelerationStructureKHR> infos)
     : WriteDescriptorSet(binding) {
-    accelInfos = {infos};
+    accelInfos.reserve(infos.size());
+    for (auto& info : infos) {
+        accelInfos.push_back(info);
+    }
     write.setPNext(accelInfos.data());
 }
 
