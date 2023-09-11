@@ -12,20 +12,16 @@ namespace rv {
 class WriteDescriptorSet {
 public:
     // Buffer
-    WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding, vk::DescriptorBufferInfo bufferInfo);
     WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
-                       std::vector<vk::DescriptorBufferInfo> infos);
+                       ArrayProxy<vk::DescriptorBufferInfo> infos);
 
     // Image
-    WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding, vk::DescriptorImageInfo imageInfo);
     WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
-                       std::vector<vk::DescriptorImageInfo> infos);
+                       ArrayProxy<vk::DescriptorImageInfo> infos);
 
     // TopAccel
     WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
-                       vk::WriteDescriptorSetAccelerationStructureKHR accelInfo);
-    WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
-                       std::vector<vk::WriteDescriptorSetAccelerationStructureKHR> infos);
+                       ArrayProxy<vk::WriteDescriptorSetAccelerationStructureKHR> infos);
 
     vk::WriteDescriptorSet get() const { return write; }
 
