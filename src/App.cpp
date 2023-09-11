@@ -53,6 +53,8 @@ void App::run() {
         context.getDevice().resetFences(*fences[frameIndex]);
 
         // Begin command buffer
+        // NOTE: Since the command pool is created with the Reset flag,
+        //       the command buffer is implicitly reset at begin.
         commandBuffers[frameIndex]->begin(
             vk::CommandBufferBeginInfo().setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
 
