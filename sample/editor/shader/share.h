@@ -79,8 +79,7 @@ struct Vertex {
 // Image
 layout(binding = 0, rgba32f) uniform image2D accumImage;
 layout(binding = 1, rgba8) uniform image2D outputImage;
-layout(binding = 2) uniform sampler2D domeLightTexture;
-layout(binding = 3) uniform sampler2D textures;
+layout(binding = 2) uniform sampler2D textures[];
 
 // Accel
 layout(binding = 10) uniform accelerationStructureEXT topLevelAS;
