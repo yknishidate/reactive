@@ -18,8 +18,8 @@ void GPUTimer::endTimestamp(vk::CommandBuffer commandBuffer) const {
     commandBuffer.writeTimestamp(vk::PipelineStageFlagBits::eBottomOfPipe, *queryPool, 1);
 }
 
-float GPUTimer::elapsedInNano() {
-    std::array<uint64_t, 2> timestamps{};
+double GPUTimer::elapsedInNano() {
+    timestamps.fill(0);
     vk::resultCheck(context->getDevice().getQueryPoolResults(
                         *queryPool, 0, 2,
                         timestamps.size() * sizeof(uint64_t),  // dataSize
@@ -27,10 +27,10 @@ float GPUTimer::elapsedInNano() {
                         sizeof(uint64_t),                      // stride
                         vk::QueryResultFlagBits::e64 | vk::QueryResultFlagBits::eWait),
                     "Failed to get query pool results.");
-    return timestampPeriod * static_cast<float>(timestamps[1] - timestamps[0]);
+    return timestampPeriod * static_cast<double>(timestamps[1] - timestamps[0]);
 }
 
-float GPUTimer::elapsedInMilli() {
-    return elapsedInNano() / 1000000.0f;
+double GPUTimer::elapsedInMilli() {
+    return elapsedInNano() / 1000000.0;
 }
 }  // namespace rv

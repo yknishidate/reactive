@@ -11,8 +11,10 @@ public:
 
     void beginTimestamp(vk::CommandBuffer commandBuffer) const;
     void endTimestamp(vk::CommandBuffer commandBuffer) const;
-    float elapsedInNano();
-    float elapsedInMilli();
+    double elapsedInNano();
+    double elapsedInMilli();
+
+    std::array<uint64_t, 2> timestamps;
 
 private:
     const Context* context;
