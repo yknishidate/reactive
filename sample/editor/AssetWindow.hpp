@@ -13,7 +13,7 @@ public:
         this->iconManager = &iconManager;
     }
 
-    void importTexture(const char* filepath) {
+    void importTexture(const char* filepath) const {
         Texture texture;
         texture.name = "Texture " + std::to_string(scene->textures.size());
         texture.filepath = filepath;
@@ -29,7 +29,7 @@ public:
         iconManager->addIcon(texture.name, texture.image);
     }
 
-    void openImportDialog() {
+    void openImportDialog() const {
         nfdchar_t* outPath = NULL;
         nfdresult_t result = NFD_OpenDialog("png,jpg,hdr", NULL, &outPath);
         if (result == NFD_OKAY) {
@@ -38,7 +38,7 @@ public:
         }
     }
 
-    void show() {
+    void show() const {
         if (ImGui::Begin("Asset")) {
             // Show icons
             float padding = 16.0f;
@@ -50,16 +50,16 @@ public:
 
             for (auto& mesh : scene->meshes) {
                 iconManager->showDraggableIcon("asset_mesh", mesh.name, thumbnailSize,
-                                               ImVec4(0, 0, 0, 1), [] {});
+                                               ImVec4(0, 0, 0, 1));
             }
 
             for (auto& material : scene->materials) {
                 iconManager->showDraggableIcon("asset_material", material.name, thumbnailSize,
-                                               ImVec4(0, 0, 0, 1), [] {});
+                                               ImVec4(0, 0, 0, 1));
             }
             for (auto& texture : scene->textures) {
                 iconManager->showDraggableIcon(texture.name, texture.name, thumbnailSize,
-                                               ImVec4(0, 0, 0, 1), [] {});
+                                               ImVec4(0, 0, 0, 1));
             }
 
             ImGui::Columns(1);

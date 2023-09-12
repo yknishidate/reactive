@@ -9,6 +9,7 @@ enum Type {
     TransformChanged = 1 << 0,
     MaterialChanged = 1 << 1,
     CameraChanged = 1 << 2,
+    TextureAdded = 1 << 3,
 };
 }
 
@@ -65,7 +66,7 @@ public:
                         Texture& texture = scene->textures[i];
                         if (std::strcmp(texture.name.c_str(), droppedName) == 0) {
                             node->material->baseColorTextureIndex = i;
-                            spdlog::info("[UI] Apply texture: {}", droppedName);
+                            spdlog::info("[UI] Apply base color texture: {}", droppedName);
                             changed = true;
                         }
                     }
