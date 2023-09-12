@@ -53,25 +53,43 @@ public:
             .viewport = "dynamic",
             .scissor = "dynamic",
         });
+
+        gpuTimer = context.createGPUTimer({});
     }
 
     void onRender(const CommandBuffer& commandBuffer) override {
-        ImGui::SliderInt("Test slider", &testInt, 0, 100);
+        if (frame > 0) {
+            for (int i = 0; i < TIME_BUFFER_SIZE - 1; i++) {
+                times[i] = times[i + 1];
+            }
+            double time = gpuTimer->elapsedInMilli();
+            times[TIME_BUFFER_SIZE - 1] = time;
+            ImGui::Text("GPU timer: %.3f ms", time);
+            ImGui::PlotLines("Times", times, TIME_BUFFER_SIZE, 0, nullptr, FLT_MAX, FLT_MAX,
+                             {300, 150});
+        }
+
         commandBuffer.clearColorImage(getCurrentColorImage(), {0.0f, 0.0f, 0.5f, 1.0f});
         commandBuffer.clearDepthStencilImage(getDefaultDepthImage(), 1.0f, 0);
         commandBuffer.setViewport(width, height);
         commandBuffer.setScissor(width, height);
         commandBuffer.bindDescriptorSet(descSet, pipeline);
         commandBuffer.bindPipeline(pipeline);
+        commandBuffer.beginTimestamp(gpuTimer);
         commandBuffer.beginRendering(getCurrentColorImage(), getDefaultDepthImage(), {0, 0},
                                      {width, height});
         commandBuffer.draw(3, 1, 0, 0);
         commandBuffer.endRendering();
+        commandBuffer.endTimestamp(gpuTimer);
+        frame++;
     }
 
+    static constexpr int TIME_BUFFER_SIZE = 300;
+    float times[TIME_BUFFER_SIZE] = {0};
     DescriptorSetHandle descSet;
     GraphicsPipelineHandle pipeline;
-    int testInt = 0;
+    GPUTimerHandle gpuTimer;
+    int frame = 0;
 };
 
 int main() {
