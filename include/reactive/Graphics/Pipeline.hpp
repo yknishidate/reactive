@@ -91,17 +91,6 @@ public:
 protected:
     friend class CommandBuffer;
 
-    void bind(vk::CommandBuffer commandBuffer) { commandBuffer.bindPipeline(bindPoint, *pipeline); }
-
-    void pushConstants(vk::CommandBuffer commandBuffer, const void* pushData) {
-        commandBuffer.pushConstants(*pipelineLayout, shaderStageFlags, 0, pushSize, pushData);
-    }
-
-    void dispatch(vk::CommandBuffer commandBuffer,
-                  uint32_t groupCountX,
-                  uint32_t groupCountY,
-                  uint32_t groupCountZ) const;
-
     const Context* context;
     vk::UniquePipelineLayout pipelineLayout;
     vk::UniquePipeline pipeline;
@@ -123,13 +112,6 @@ public:
 class ComputePipeline : public Pipeline {
 public:
     ComputePipeline(const Context* context, ComputePipelineCreateInfo createInfo);
-
-private:
-    friend class CommandBuffer;
-    void dispatch(vk::CommandBuffer commandBuffer,
-                  uint32_t groupCountX,
-                  uint32_t groupCountY,
-                  uint32_t groupCountZ) const;
 };
 
 class RayTracingPipeline : public Pipeline {

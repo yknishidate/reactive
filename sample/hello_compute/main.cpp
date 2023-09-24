@@ -44,7 +44,7 @@ public:
         commandBuffer.bindDescriptorSet(descSet, pipeline);
         commandBuffer.bindPipeline(pipeline);
         commandBuffer.pushConstants(pipeline, &frame);
-        commandBuffer.dispatch(pipeline, width, height, 1);
+        commandBuffer.dispatch(width, height, 1);
         commandBuffer.copyImage(image, getCurrentColorImage(), vk::ImageLayout::eGeneral,
                                 vk::ImageLayout::ePresentSrcKHR);
     }

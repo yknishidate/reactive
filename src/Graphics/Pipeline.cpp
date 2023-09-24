@@ -341,13 +341,6 @@ ComputePipeline::ComputePipeline(const Context* context, ComputePipelineCreateIn
     pipeline = std::move(res.value.front());
 }
 
-void ComputePipeline::dispatch(vk::CommandBuffer commandBuffer,
-                               uint32_t groupCountX,
-                               uint32_t groupCountY,
-                               uint32_t groupCountZ) const {
-    commandBuffer.dispatch(groupCountX, groupCountY, groupCountZ);
-}
-
 RayTracingPipeline::RayTracingPipeline(const Context* context,
                                        RayTracingPipelineCreateInfo createInfo)
     : Pipeline{context} {

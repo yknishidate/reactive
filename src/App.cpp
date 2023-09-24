@@ -35,11 +35,8 @@ void App::run() {
         ImGui::NewFrame();
 
         // Wait fence
-        vk::Result waitResult =
-            context.getDevice().waitForFences(*fences[frameIndex], VK_TRUE, UINT64_MAX);
-        if (waitResult != vk::Result::eSuccess) {
-            throw std::runtime_error("Failed to wait for fence");
-        }
+        vk::resultCheck(context.getDevice().waitForFences(*fences[frameIndex], VK_TRUE, UINT64_MAX),
+                        "Failed to wait for fence");
 
         // Acquire next image
         auto acquireResult = context.getDevice().acquireNextImageKHR(*swapchain, UINT64_MAX,

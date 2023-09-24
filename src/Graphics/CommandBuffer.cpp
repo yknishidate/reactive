@@ -17,11 +17,12 @@ void CommandBuffer::bindDescriptorSet(DescriptorSetHandle descSet, PipelineHandl
 }
 
 void CommandBuffer::bindPipeline(PipelineHandle pipeline) const {
-    pipeline->bind(commandBuffer);
+    commandBuffer.bindPipeline(pipeline->bindPoint, *pipeline->pipeline);
 }
 
 void CommandBuffer::pushConstants(PipelineHandle pipeline, const void* pushData) const {
-    pipeline->pushConstants(commandBuffer, pushData);
+    commandBuffer.pushConstants(*pipeline->pipelineLayout, pipeline->shaderStageFlags, 0,
+                                pipeline->pushSize, pushData);
 }
 
 void CommandBuffer::bindVertexBuffer(BufferHandle buffer, vk::DeviceSize offset) const {
@@ -39,11 +40,10 @@ void CommandBuffer::traceRays(RayTracingPipelineHandle pipeline,
     pipeline->traceRays(commandBuffer, countX, countY, countZ);
 }
 
-void CommandBuffer::dispatch(ComputePipelineHandle pipeline,
-                             uint32_t countX,
+void CommandBuffer::dispatch(uint32_t countX,
                              uint32_t countY,
                              uint32_t countZ) const {
-    pipeline->dispatch(commandBuffer, countX, countY, countZ);
+    commandBuffer.dispatch(countX, countY, countZ);
 }
 
 void CommandBuffer::dispatchIndirect(BufferHandle buffer, vk::DeviceSize offset) const {

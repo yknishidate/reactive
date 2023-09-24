@@ -32,8 +32,7 @@ public:
                    uint32_t countX,
                    uint32_t countY,
                    uint32_t countZ) const;
-    void dispatch(ComputePipelineHandle pipeline,
-                  uint32_t countX,
+    void dispatch(uint32_t countX,
                   uint32_t countY,
                   uint32_t countZ) const;
 
