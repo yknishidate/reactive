@@ -45,7 +45,6 @@ public:
             .stage = vk::ShaderStageFlagBits::eClosestHitKHR,
         });
 
-        std::vector<rv::ImageHandle> textures;
         for (auto& texture : scene->textures) {
             textures.push_back(texture.image);
         }
@@ -411,6 +410,7 @@ public:
     rv::ImageHandle accumImage;
     rv::ImageHandle colorImage;
     vk::DescriptorSet imguiDescSet;
+    std::vector<rv::ImageHandle> textures;
 
     rv::DescriptorSetHandle descSet;
     rv::RayTracingPipelineHandle pipeline;
