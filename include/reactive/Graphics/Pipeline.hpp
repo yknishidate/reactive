@@ -121,10 +121,6 @@ public:
 
 private:
     friend class CommandBuffer;
-    void traceRays(vk::CommandBuffer commandBuffer,
-                   uint32_t countX,
-                   uint32_t countY,
-                   uint32_t countZ) const;
 
     std::vector<vk::ShaderModule> shaderModules;
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;

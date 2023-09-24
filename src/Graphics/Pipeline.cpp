@@ -461,11 +461,4 @@ RayTracingPipeline::RayTracingPipeline(const Context* context,
     hitRegion.setStride(rtProperties.shaderGroupHandleAlignment);
     hitRegion.setSize(rtProperties.shaderGroupHandleAlignment);
 }
-
-void RayTracingPipeline::traceRays(vk::CommandBuffer commandBuffer,
-                                   uint32_t countX,
-                                   uint32_t countY,
-                                   uint32_t countZ) const {
-    commandBuffer.traceRaysKHR(raygenRegion, missRegion, hitRegion, {}, countX, countY, countZ);
-}
 }  // namespace rv

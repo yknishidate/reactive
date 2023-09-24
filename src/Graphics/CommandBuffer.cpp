@@ -37,7 +37,8 @@ void CommandBuffer::traceRays(RayTracingPipelineHandle pipeline,
                               uint32_t countX,
                               uint32_t countY,
                               uint32_t countZ) const {
-    pipeline->traceRays(commandBuffer, countX, countY, countZ);
+    commandBuffer.traceRaysKHR(pipeline->raygenRegion, pipeline->missRegion, pipeline->hitRegion, {}, 
+                               countX, countY, countZ);
 }
 
 void CommandBuffer::dispatch(uint32_t countX,
