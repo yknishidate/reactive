@@ -43,14 +43,14 @@ cmake . -B build -D CMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cma
 mkdir project_name
 cd project_name
 git init
-git submodule add https://github.com/yknishidate/Reactive.git
+git submodule add https://github.com/yknishidate/reactive.git
 ```
 
 2. Add `main.cpp`
 
 ```
 project_name/
- - Reactive/
+ - reactive/
  - main.cpp
 ```
 
@@ -79,7 +79,7 @@ int main() {
 
 ```
 project_name/
-  - Reactive/
+  - reactive/
   - main.cpp
   - CMakeLists.txt
 ```
@@ -91,17 +91,17 @@ project(project_name LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 
 set(REACTIVE_BUILD_SAMPLES OFF CACHE BOOL "" FORCE) # Remove samples
-add_subdirectory(Reactive) # Add Reactive
+add_subdirectory(reactive) # Add Reactive
 
 add_executable(${PROJECT_NAME} main.cpp)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC 
-    Reactive
+    reactive
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${PROJECT_SOURCE_DIR}
-    Reactive/source
+    reactive/include
 )
 ```
 

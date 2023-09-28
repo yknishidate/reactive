@@ -14,8 +14,6 @@ find_package(imgui CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(tinyobjloader CONFIG REQUIRED)
-find_package(imguizmo CONFIG REQUIRED)
-find_package(unofficial-nativefiledialog CONFIG REQUIRED)
 
 set(VULKAN_LIB $ENV{VULKAN_SDK}/Lib)
 set(VULKAN_INCLUDE $ENV{VULKAN_SDK}/Include)
@@ -27,8 +25,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     spdlog::spdlog
     spdlog::spdlog_header_only
     tinyobjloader::tinyobjloader
-    imguizmo::imguizmo
-    unofficial::nativefiledialog::nfd
 
     optimized ${VULKAN_LIB}/spirv-cross-core.lib
     optimized ${VULKAN_LIB}/spirv-cross-cpp.lib
@@ -82,5 +78,4 @@ if (REACTIVE_BUILD_SAMPLES)
     add_subdirectory(sample/hello_raytracing)
     add_subdirectory(sample/hello_compute)
     add_subdirectory(sample/hello_mesh_shader)
-    add_subdirectory(sample/editor)
 endif()
