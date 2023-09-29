@@ -158,23 +158,11 @@ void Context::submit(CommandBufferHandle commandBuffer, vk::Fence fence) const {
 }
 
 void Context::oneTimeSubmit(const std::function<void(CommandBufferHandle)>& command) const {
-    vk::CommandBufferAllocateInfo commandBufferInfo;
-    commandBufferInfo.setCommandPool(*commandPool);
-    commandBufferInfo.setLevel(vk::CommandBufferLevel::ePrimary);
-    commandBufferInfo.setCommandBufferCount(1);
-
-    vk::CommandBuffer _commandBuffer = device->allocateCommandBuffers(commandBufferInfo).front();
-
-    vk::CommandBufferBeginInfo beginInfo;
-    beginInfo.setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
-    _commandBuffer.begin(beginInfo);
-
-    CommandBufferHandle commandBuffer = std::make_shared<CommandBuffer>(this, _commandBuffer);
+    CommandBufferHandle commandBuffer = allocateCommandBuffer();
+    commandBuffer->begin(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
     command(commandBuffer);
-
-    _commandBuffer.end();
-
-    queue.submit(vk::SubmitInfo().setCommandBuffers(_commandBuffer));
+    commandBuffer->end();
+    submit(commandBuffer);
     queue.waitIdle();
 }
 

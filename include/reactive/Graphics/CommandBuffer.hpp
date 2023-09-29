@@ -27,8 +27,9 @@ public:
         : context{context},
           commandBuffer{commandBuffer, {context->getDevice(), *context->commandPool}} {}
 
-    void begin() const {
+    void begin(vk::CommandBufferUsageFlags flags = {}) const {
         vk::CommandBufferBeginInfo beginInfo;
+        beginInfo.setFlags(flags);
         commandBuffer->begin(beginInfo);
     }
 

@@ -160,7 +160,7 @@ public:
 
     CommandBufferHandle allocateCommandBuffer() const;
 
-    void submit(CommandBufferHandle commandBuffer, vk::Fence fence) const;
+    void submit(CommandBufferHandle commandBuffer, vk::Fence fence = {}) const;
 
     void oneTimeSubmit(const std::function<void(CommandBufferHandle)>& command) const;
 
