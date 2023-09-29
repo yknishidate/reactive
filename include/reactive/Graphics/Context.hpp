@@ -111,28 +111,38 @@ static constexpr vk::MemoryPropertyFlags DeviceHost =
     vk::MemoryPropertyFlagBits::eDeviceLocal |
     vk::MemoryPropertyFlagBits::eHostVisible |
     vk::MemoryPropertyFlagBits::eHostCoherent;
-};  // namespace MemoryUsage
+}  // namespace MemoryUsage
 
 namespace ImageUsage {
-static vk::ImageUsageFlags ColorAttachment =
+static constexpr vk::ImageUsageFlags ColorAttachment =
     vk::ImageUsageFlagBits::eColorAttachment |
     vk::ImageUsageFlagBits::eTransferSrc |
     vk::ImageUsageFlagBits::eTransferDst;
-static vk::ImageUsageFlags DepthAttachment =
+static constexpr vk::ImageUsageFlags DepthAttachment =
     vk::ImageUsageFlagBits::eDepthStencilAttachment |
     vk::ImageUsageFlagBits::eTransferDst;
-static vk::ImageUsageFlags DepthStencilAttachment =
+static constexpr vk::ImageUsageFlags DepthStencilAttachment =
     vk::ImageUsageFlagBits::eDepthStencilAttachment |
     vk::ImageUsageFlagBits::eTransferDst;
-static vk::ImageUsageFlags Storage =
+static constexpr vk::ImageUsageFlags Storage =
     vk::ImageUsageFlagBits::eStorage |
     vk::ImageUsageFlagBits::eTransferDst |
     vk::ImageUsageFlagBits::eTransferSrc;
-static vk::ImageUsageFlags Sampled =
+static constexpr vk::ImageUsageFlags Sampled =
     vk::ImageUsageFlagBits::eSampled |
     vk::ImageUsageFlagBits::eTransferDst |
     vk::ImageUsageFlagBits::eTransferSrc;
-};  // namespace ImageUsage
+}  // namespace ImageUsage
+
+namespace QueueFlags{
+    static constexpr uint32_t General =
+        static_cast<uint32_t>(vk::QueueFlagBits::eGraphics |
+                              vk::QueueFlagBits::eCompute |
+                              vk::QueueFlagBits::eTransfer);
+    static constexpr uint32_t Graphics = static_cast<uint32_t>(vk::QueueFlagBits::eGraphics);
+    static constexpr uint32_t Compute =  static_cast<uint32_t>(vk::QueueFlagBits::eCompute);
+    static constexpr uint32_t Transfer = static_cast<uint32_t>(vk::QueueFlagBits::eTransfer);
+}
 // clang-format on
 
 class Context {
@@ -154,15 +164,21 @@ public:
     vk::Instance getInstance() const { return *instance; }
     vk::Device getDevice() const { return *device; }
     vk::PhysicalDevice getPhysicalDevice() const { return physicalDevice; }
-    vk::Queue getQueue() const { return queue; }
-    uint32_t getQueueFamily() const { return queueFamily; }
+    vk::Queue getQueue(uint32_t flag = QueueFlags::General) const { return queues.at(flag); }
+    uint32_t getQueueFamily(uint32_t flag = QueueFlags::General) const {
+        return queueFamilies.at(flag);
+    }
+    vk::CommandPool getCommandPool(uint32_t flag = QueueFlags::General) const {
+        return *commandPools.at(flag);
+    }
     vk::DescriptorPool getDescriptorPool() const { return *descriptorPool; }
 
-    CommandBufferHandle allocateCommandBuffer() const;
+    CommandBufferHandle allocateCommandBuffer(uint32_t flag = QueueFlags::General) const;
 
     void submit(CommandBufferHandle commandBuffer, vk::Fence fence = {}) const;
 
-    void oneTimeSubmit(const std::function<void(CommandBufferHandle)>& command) const;
+    void oneTimeSubmit(const std::function<void(CommandBufferHandle)>& command,
+                       uint32_t flag = QueueFlags::General) const;
 
     vk::UniqueDescriptorSet allocateDescriptorSet(vk::DescriptorSetLayout descSetLayout) const;
 
@@ -248,9 +264,10 @@ private:
     vk::UniqueDebugUtilsMessengerEXT debugMessenger;
     vk::UniqueDevice device;
     vk::PhysicalDevice physicalDevice;
-    uint32_t queueFamily = ~0u;
-    vk::Queue queue;
-    vk::UniqueCommandPool commandPool;
+
+    std::unordered_map<uint32_t, uint32_t> queueFamilies;
+    std::unordered_map<uint32_t, vk::Queue> queues;
+    std::unordered_map<uint32_t, vk::UniqueCommandPool> commandPools;
     vk::UniqueDescriptorPool descriptorPool;
 };
 }  // namespace rv

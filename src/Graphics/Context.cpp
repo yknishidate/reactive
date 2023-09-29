@@ -1,5 +1,7 @@
 #include "Graphics/Context.hpp"
 
+#include <ranges>
+
 #include "Graphics/Accel.hpp"
 #include "Graphics/CommandBuffer.hpp"
 #include "Graphics/DescriptorSet.hpp"
@@ -53,6 +55,8 @@ void Context::initInstance(bool enableValidation,
 }
 
 void Context::initPhysicalDevice(vk::SurfaceKHR surface) {
+    spdlog::info("Context::initPhysicalDevice");
+
     // Select discrete gpu
     for (auto gpu : instance->enumeratePhysicalDevices()) {
         if (gpu.getProperties().deviceType == vk::PhysicalDeviceType::eDiscreteGpu) {
@@ -66,23 +70,63 @@ void Context::initPhysicalDevice(vk::SurfaceKHR surface) {
     spdlog::info("Selected GPU: {}", std::string(physicalDevice.getProperties().deviceName.data()));
 
     // Find queue family
+    spdlog::info("Selected queue families:");
     std::vector properties = physicalDevice.getQueueFamilyProperties();
     for (uint32_t index = 0; index < properties.size(); index++) {
         auto supportGraphics = properties[index].queueFlags & vk::QueueFlagBits::eGraphics;
         auto supportCompute = properties[index].queueFlags & vk::QueueFlagBits::eCompute;
+        auto supportTransfer = properties[index].queueFlags & vk::QueueFlagBits::eTransfer;
         if (surface) {
             auto supportPresent = physicalDevice.getSurfaceSupportKHR(index, surface);
-            if (supportGraphics && supportCompute && supportPresent) {
-                queueFamily = index;
+            if (supportGraphics && supportCompute && supportPresent && supportTransfer) {
+                if (!queueFamilies.contains(QueueFlags::General)) {
+                    queueFamilies[QueueFlags::General] = index;
+                    spdlog::info("  General: {}", index);
+                    continue;
+                }
+            }
+            if (supportGraphics && supportPresent) {
+                if (!queueFamilies.contains(QueueFlags::Graphics)) {
+                    queueFamilies[QueueFlags::Graphics] = index;
+                    spdlog::info("  Graphics: {}", index);
+                    continue;
+                }
             }
         } else {
-            if (supportGraphics && supportCompute) {
-                queueFamily = index;
+            if (supportGraphics && supportCompute && supportTransfer) {
+                if (!queueFamilies.contains(QueueFlags::General)) {
+                    queueFamilies[QueueFlags::General] = index;
+                    spdlog::info("  General: {}", index);
+                    continue;
+                }
+            }
+            if (supportGraphics) {
+                if (!queueFamilies.contains(QueueFlags::Graphics)) {
+                    queueFamilies[QueueFlags::Graphics] = index;
+                    spdlog::info("  Graphics: {}", index);
+                    continue;
+                }
+            }
+        }
+
+        // These are not related to surface
+        if (supportCompute) {
+            if (!queueFamilies.contains(QueueFlags::Compute)) {
+                queueFamilies[QueueFlags::Compute] = index;
+                spdlog::info("  Compute: {}", index);
+                continue;
+            }
+        }
+        if (supportTransfer) {
+            if (!queueFamilies.contains(QueueFlags::Transfer)) {
+                queueFamilies[QueueFlags::Transfer] = index;
+                spdlog::info("  Transfer: {}", index);
             }
         }
     }
-    if (queueFamily == ~0u) {
-        throw std::runtime_error("Failed to find queue family.");
+
+    if (!queueFamilies.contains(QueueFlags::General)) {
+        throw std::runtime_error("Failed to find general queue family.");
     }
 }
 
@@ -92,10 +136,14 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
                          bool enableRayTracing) {
     // Create device
     float queuePriority = 1.0f;
-    vk::DeviceQueueCreateInfo queueInfo;
-    queueInfo.setQueueFamilyIndex(queueFamily);
-    queueInfo.setQueueCount(1);
-    queueInfo.setPQueuePriorities(&queuePriority);
+    std::vector<vk::DeviceQueueCreateInfo> queueInfo;
+    for (const auto& queueFamily : queueFamilies | std::views::values) {
+        vk::DeviceQueueCreateInfo info;
+        info.setQueueFamilyIndex(queueFamily);
+        info.setQueueCount(1);
+        info.setPQueuePriorities(&queuePriority);
+        queueInfo.push_back(info);
+    }
 
     checkDeviceExtensionSupport(deviceExtensions);
 
@@ -112,13 +160,17 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
     }
 
     // Get queue
-    queue = device->getQueue(queueFamily, 0);
+    for (const auto& [flag, queueFamily] : queueFamilies) {
+        queues[flag] = device->getQueue(queueFamily, 0);
+    }
 
     // Create command pool
-    vk::CommandPoolCreateInfo commandPoolCreateInfo;
-    commandPoolCreateInfo.setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer);
-    commandPoolCreateInfo.setQueueFamilyIndex(queueFamily);
-    commandPool = device->createCommandPoolUnique(commandPoolCreateInfo);
+    for (const auto& [flag, queueFamily] : queueFamilies) {
+        vk::CommandPoolCreateInfo commandPoolCreateInfo;
+        commandPoolCreateInfo.setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer);
+        commandPoolCreateInfo.setQueueFamilyIndex(queueFamily);
+        commandPools[flag] = device->createCommandPoolUnique(commandPoolCreateInfo);
+    }
 
     // Create descriptor pool
     std::vector<vk::DescriptorPoolSize> poolSizes{
@@ -141,29 +193,30 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
     descriptorPool = device->createDescriptorPoolUnique(descriptorPoolCreateInfo);
 }
 
-CommandBufferHandle Context::allocateCommandBuffer() const {
+CommandBufferHandle Context::allocateCommandBuffer(uint32_t flag) const {
     vk::CommandBufferAllocateInfo commandBufferInfo;
-    commandBufferInfo.setCommandPool(*commandPool);
+    commandBufferInfo.setCommandPool(*commandPools.at(flag));
     commandBufferInfo.setLevel(vk::CommandBufferLevel::ePrimary);
     commandBufferInfo.setCommandBufferCount(1);
 
     vk::CommandBuffer _commandBuffer = device->allocateCommandBuffers(commandBufferInfo).front();
-    return std::make_shared<CommandBuffer>(this, _commandBuffer);
+    return std::make_shared<CommandBuffer>(this, _commandBuffer, flag);
 }
 
 void Context::submit(CommandBufferHandle commandBuffer, vk::Fence fence) const {
     vk::SubmitInfo submitInfo;
     submitInfo.setCommandBuffers(*commandBuffer->commandBuffer);
-    queue.submit(submitInfo, fence);
+    queues.at(commandBuffer->getQueueFlags()).submit(submitInfo, fence);
 }
 
-void Context::oneTimeSubmit(const std::function<void(CommandBufferHandle)>& command) const {
-    CommandBufferHandle commandBuffer = allocateCommandBuffer();
+void Context::oneTimeSubmit(const std::function<void(CommandBufferHandle)>& command,
+                            uint32_t flag) const {
+    CommandBufferHandle commandBuffer = allocateCommandBuffer(flag);
     commandBuffer->begin(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
     command(commandBuffer);
     commandBuffer->end();
     submit(commandBuffer);
-    queue.waitIdle();
+    queues.at(flag).waitIdle();
 }
 
 vk::UniqueDescriptorSet Context::allocateDescriptorSet(

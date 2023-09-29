@@ -23,9 +23,13 @@ class CommandBuffer {
 public:
     CommandBuffer() = default;
 
-    CommandBuffer(const Context* context, vk::CommandBuffer commandBuffer)
+    CommandBuffer(const Context* context, vk::CommandBuffer commandBuffer, uint32_t queueFlags)
         : context{context},
-          commandBuffer{commandBuffer, {context->getDevice(), *context->commandPool}} {}
+          queueFlags{queueFlags},
+          commandBuffer{commandBuffer,
+                        {context->getDevice(), context->getCommandPool(queueFlags)}} {}
+
+    uint32_t getQueueFlags() const { return queueFlags; }
 
     void begin(vk::CommandBufferUsageFlags flags = {}) const {
         vk::CommandBufferBeginInfo beginInfo;
@@ -209,5 +213,6 @@ public:
 
     const Context* context = nullptr;
     vk::UniqueCommandBuffer commandBuffer;
+    uint32_t queueFlags;
 };
 }  // namespace rv
