@@ -8,6 +8,8 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include "CommandBuffer.hpp"
+
 namespace rv {
 struct ImageCreateInfo;
 struct BufferCreateInfo;
@@ -53,6 +55,7 @@ using RayTracingPipelineHandle = std::shared_ptr<RayTracingPipeline>;
 using BottomAccelHandle = std::shared_ptr<BottomAccel>;
 using TopAccelHandle = std::shared_ptr<TopAccel>;
 using GPUTimerHandle = std::shared_ptr<GPUTimer>;
+using CommandBufferHandle = std::shared_ptr<CommandBuffer>;
 
 // clang-format off
 namespace BufferUsage {
@@ -155,20 +158,25 @@ public:
     uint32_t getQueueFamily() const { return queueFamily; }
     vk::DescriptorPool getDescriptorPool() const { return *descriptorPool; }
 
-    std::vector<vk::UniqueCommandBuffer> allocateCommandBuffers(uint32_t count) const;
+    CommandBufferHandle allocateCommandBuffer() const {
+        vk::CommandBufferAllocateInfo commandBufferInfo;
+        commandBufferInfo.setCommandPool(*commandPool);
+        commandBufferInfo.setLevel(vk::CommandBufferLevel::ePrimary);
+        commandBufferInfo.setCommandBufferCount(1);
 
-    vk::UniqueCommandBuffer allocateCommandBuffer() const {
-        return std::move(allocateCommandBuffers(1).front());
+        vk::UniqueCommandBuffer _commandBuffer =
+            std::move(device->allocateCommandBuffersUnique(commandBufferInfo).front());
+
+        return std::make_shared<CommandBuffer>(this, _commandBuffer);
     }
 
-    void submit(vk::CommandBuffer commandBuffer, vk::Fence fence) const {
+    void submit(CommandBufferHandle commandBuffer, vk::Fence fence) const {
         vk::SubmitInfo submitInfo;
-        submitInfo.setCommandBuffers(commandBuffer);
+        submitInfo.setCommandBuffers(*commandBuffer->commandBuffer);
         queue.submit(submitInfo, fence);
     }
 
-    void oneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command) const;
-    void oneTimeSubmit(const std::function<void(CommandBuffer)>& command) const;
+    void oneTimeSubmit(const std::function<void(CommandBufferHandle)>& command) const;
 
     vk::UniqueDescriptorSet allocateDescriptorSet(vk::DescriptorSetLayout descSetLayout) const;
 

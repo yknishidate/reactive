@@ -23,6 +23,13 @@ struct AccelInstance {
     uint32_t sbtOffset = 0;
 };
 
+inline vk::TransformMatrixKHR toVkMatrix(const glm::mat4& matrix) {
+    const glm::mat4 transposedMatrix = glm::transpose(matrix);
+    vk::TransformMatrixKHR vkMatrix;
+    std::memcpy(&vkMatrix, &transposedMatrix, sizeof(vk::TransformMatrixKHR));
+    return vkMatrix;
+}
+
 struct TopAccelCreateInfo {
     ArrayProxy<AccelInstance> accelInstances;
     vk::GeometryFlagsKHR geometryFlags = vk::GeometryFlagBitsKHR::eOpaque;
@@ -46,10 +53,10 @@ private:
 };
 
 class TopAccel {
+    friend class CommandBuffer;
+
 public:
     TopAccel(const Context* context, TopAccelCreateInfo createInfo);
-
-    void update(vk::CommandBuffer commandBuffer, ArrayProxy<AccelInstance> accelInstances);
 
     vk::AccelerationStructureKHR getAccel() const { return *accel; }
     vk::WriteDescriptorSetAccelerationStructureKHR getInfo() const { return {*accel}; }

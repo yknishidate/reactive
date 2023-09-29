@@ -13,54 +13,54 @@
 
 namespace rv {
 void CommandBuffer::bindDescriptorSet(DescriptorSetHandle descSet, PipelineHandle pipeline) const {
-    descSet->bind(commandBuffer, pipeline->getPipelineBindPoint(), pipeline->getPipelineLayout());
+    descSet->bind(*commandBuffer, pipeline->getPipelineBindPoint(), pipeline->getPipelineLayout());
 }
 
 void CommandBuffer::bindPipeline(PipelineHandle pipeline) const {
-    commandBuffer.bindPipeline(pipeline->bindPoint, *pipeline->pipeline);
+    commandBuffer->bindPipeline(pipeline->bindPoint, *pipeline->pipeline);
 }
 
 void CommandBuffer::pushConstants(PipelineHandle pipeline, const void* pushData) const {
-    commandBuffer.pushConstants(*pipeline->pipelineLayout, pipeline->shaderStageFlags, 0,
+    commandBuffer->pushConstants(*pipeline->pipelineLayout, pipeline->shaderStageFlags, 0,
                                 pipeline->pushSize, pushData);
 }
 
 void CommandBuffer::bindVertexBuffer(BufferHandle buffer, vk::DeviceSize offset) const {
-    commandBuffer.bindVertexBuffers(0, buffer->getBuffer(), offset);
+    commandBuffer->bindVertexBuffers(0, buffer->getBuffer(), offset);
 }
 
 void CommandBuffer::bindIndexBuffer(BufferHandle buffer, vk::DeviceSize offset) const {
-    commandBuffer.bindIndexBuffer(buffer->getBuffer(), 0, vk::IndexType::eUint32);
+    commandBuffer->bindIndexBuffer(buffer->getBuffer(), 0, vk::IndexType::eUint32);
 }
 
 void CommandBuffer::traceRays(RayTracingPipelineHandle pipeline,
                               uint32_t countX,
                               uint32_t countY,
                               uint32_t countZ) const {
-    commandBuffer.traceRaysKHR(pipeline->raygenRegion, pipeline->missRegion, pipeline->hitRegion, {}, 
+    commandBuffer->traceRaysKHR(pipeline->raygenRegion, pipeline->missRegion, pipeline->hitRegion, {}, 
                                countX, countY, countZ);
 }
 
 void CommandBuffer::dispatch(uint32_t countX,
                              uint32_t countY,
                              uint32_t countZ) const {
-    commandBuffer.dispatch(countX, countY, countZ);
+    commandBuffer->dispatch(countX, countY, countZ);
 }
 
 void CommandBuffer::dispatchIndirect(BufferHandle buffer, vk::DeviceSize offset) const {
-    commandBuffer.dispatchIndirect(buffer->getBuffer(), offset);
+    commandBuffer->dispatchIndirect(buffer->getBuffer(), offset);
 }
 
 void CommandBuffer::clearColorImage(ImageHandle image, std::array<float, 4> color) const {
-    image->transitionLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);
-    commandBuffer.clearColorImage(
+    image->transitionLayout(*commandBuffer, vk::ImageLayout::eTransferDstOptimal);
+    commandBuffer->clearColorImage(
         image->getImage(), vk::ImageLayout::eTransferDstOptimal, vk::ClearColorValue{color},
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1});
 }
 
 void CommandBuffer::clearDepthStencilImage(ImageHandle image, float depth, uint32_t stencil) const {
-    image->transitionLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);
-    commandBuffer.clearDepthStencilImage(
+    image->transitionLayout(*commandBuffer, vk::ImageLayout::eTransferDstOptimal);
+    commandBuffer->clearDepthStencilImage(
         image->getImage(), vk::ImageLayout::eTransferDstOptimal,
         vk::ClearDepthStencilValue{depth, stencil},
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eDepth, 0, 1, 0, 1});
@@ -89,14 +89,14 @@ void CommandBuffer::beginRendering(ImageHandle colorImage,
         renderingInfo.setPDepthAttachment(&depthStencilAttachment);
     }
 
-    commandBuffer.beginRendering(renderingInfo);
+    commandBuffer->beginRendering(renderingInfo);
 }
 
 void CommandBuffer::draw(uint32_t vertexCount,
                          uint32_t instanceCount,
                          uint32_t firstVertex,
                          uint32_t firstInstance) const {
-    commandBuffer.draw(vertexCount, instanceCount, firstVertex, firstInstance);
+    commandBuffer->draw(vertexCount, instanceCount, firstVertex, firstInstance);
 }
 
 void CommandBuffer::drawIndexed(uint32_t indexCount,
@@ -104,7 +104,7 @@ void CommandBuffer::drawIndexed(uint32_t indexCount,
                                 uint32_t firstIndex,
                                 int32_t vertexOffset,
                                 uint32_t firstInstance) const {
-    commandBuffer.drawIndexed(indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
+    commandBuffer->drawIndexed(indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 }
 
 void CommandBuffer::drawIndexed(BufferHandle vertexBuffer,
@@ -114,36 +114,36 @@ void CommandBuffer::drawIndexed(BufferHandle vertexBuffer,
                                 uint32_t instanceCount,
                                 uint32_t firstInstance) const {
     vk::DeviceSize offsets{0};
-    commandBuffer.bindVertexBuffers(0, vertexBuffer->getBuffer(), offsets);
-    commandBuffer.bindIndexBuffer(indexBuffer->getBuffer(), 0, vk::IndexType::eUint32);
-    commandBuffer.drawIndexed(indexCount, instanceCount, firstIndex, 0, firstInstance);
+    commandBuffer->bindVertexBuffers(0, vertexBuffer->getBuffer(), offsets);
+    commandBuffer->bindIndexBuffer(indexBuffer->getBuffer(), 0, vk::IndexType::eUint32);
+    commandBuffer->drawIndexed(indexCount, instanceCount, firstIndex, 0, firstInstance);
 }
 
 void CommandBuffer::drawMeshTasks(uint32_t groupCountX,
                                   uint32_t groupCountY,
                                   uint32_t groupCountZ) const {
-    commandBuffer.drawMeshTasksEXT(groupCountX, groupCountY, groupCountZ);
+    commandBuffer->drawMeshTasksEXT(groupCountX, groupCountY, groupCountZ);
 }
 
 void CommandBuffer::drawIndirect(BufferHandle buffer,
                                  vk::DeviceSize offset,
                                  uint32_t drawCount,
                                  uint32_t stride) const {
-    commandBuffer.drawIndirect(buffer->getBuffer(), offset, drawCount, stride);
+    commandBuffer->drawIndirect(buffer->getBuffer(), offset, drawCount, stride);
 }
 
 void CommandBuffer::drawIndexedIndirect(BufferHandle buffer,
                                         vk::DeviceSize offset,
                                         uint32_t drawCount,
                                         uint32_t stride) const {
-    commandBuffer.drawIndexedIndirect(buffer->getBuffer(), offset, drawCount, stride);
+    commandBuffer->drawIndexedIndirect(buffer->getBuffer(), offset, drawCount, stride);
 }
 
 void CommandBuffer::drawMeshTasksIndirect(BufferHandle buffer,
                                           vk::DeviceSize offset,
                                           uint32_t drawCount,
                                           uint32_t stride) const {
-    commandBuffer.drawMeshTasksIndirectEXT(buffer->getBuffer(), offset, drawCount, stride);
+    commandBuffer->drawMeshTasksIndirectEXT(buffer->getBuffer(), offset, drawCount, stride);
 }
 
 void CommandBuffer::bufferBarrier(vk::PipelineStageFlags srcStageMask,
@@ -161,7 +161,7 @@ void CommandBuffer::bufferBarrier(vk::PipelineStageFlags srcStageMask,
     bufferMemoryBarrier.offset = 0;
     bufferMemoryBarrier.size = VK_WHOLE_SIZE;
 
-    commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, nullptr,
+    commandBuffer->pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, nullptr,
                                   bufferMemoryBarrier, nullptr);
 }
 
@@ -185,12 +185,12 @@ void CommandBuffer::imageBarrier(vk::PipelineStageFlags srcStageMask,
     memoryBarrier.subresourceRange.layerCount = 1;
     memoryBarrier.subresourceRange.levelCount = 1;
 
-    commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, nullptr, nullptr,
+    commandBuffer->pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, nullptr, nullptr,
                                   memoryBarrier);
 }
 
 void CommandBuffer::transitionLayout(ImageHandle image, vk::ImageLayout newLayout) const {
-    image->transitionLayout(commandBuffer, newLayout);
+    image->transitionLayout(*commandBuffer, newLayout);
 }
 
 void CommandBuffer::copyImage(ImageHandle srcImage,
@@ -204,26 +204,26 @@ void CommandBuffer::copyImage(ImageHandle srcImage,
               srcExtent.width, srcExtent.height, srcExtent.depth,  // break
               dstExtent.width, dstExtent.height, dstExtent.depth);
 
-    srcImage->transitionLayout(commandBuffer, vk::ImageLayout::eTransferSrcOptimal);
-    dstImage->transitionLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);
+    srcImage->transitionLayout(*commandBuffer, vk::ImageLayout::eTransferSrcOptimal);
+    dstImage->transitionLayout(*commandBuffer, vk::ImageLayout::eTransferDstOptimal);
 
     vk::ImageCopy copyRegion;
     copyRegion.setSrcSubresource({vk::ImageAspectFlagBits::eColor, 0, 0, 1});
     copyRegion.setDstSubresource({vk::ImageAspectFlagBits::eColor, 0, 0, 1});
     copyRegion.setExtent(srcImage->getExtent());
-    commandBuffer.copyImage(srcImage->getImage(), vk::ImageLayout::eTransferSrcOptimal,  // src
+    commandBuffer->copyImage(srcImage->getImage(), vk::ImageLayout::eTransferSrcOptimal,  // src
                             dstImage->getImage(), vk::ImageLayout::eTransferDstOptimal,  // dst
                             copyRegion);
 
-    srcImage->transitionLayout(commandBuffer, newSrcLayout);
-    dstImage->transitionLayout(commandBuffer, newDstLayout);
+    srcImage->transitionLayout(*commandBuffer, newSrcLayout);
+    dstImage->transitionLayout(*commandBuffer, newDstLayout);
 }
 
 void CommandBuffer::copyImageToBuffer(ImageHandle srcImage, BufferHandle dstBuffer) const {
     vk::BufferImageCopy region;
     region.setImageExtent(srcImage->getExtent());
     region.setImageSubresource({srcImage->getAspectMask(), 0, 0, 1});
-    commandBuffer.copyImageToBuffer(srcImage->getImage(), srcImage->getLayout(),
+    commandBuffer->copyImageToBuffer(srcImage->getImage(), srcImage->getLayout(),
                                     dstBuffer->getBuffer(), region);
 }
 
@@ -231,7 +231,7 @@ void CommandBuffer::copyBufferToImage(BufferHandle srcBuffer, ImageHandle dstIma
     vk::BufferImageCopy region;
     region.setImageExtent(dstImage->getExtent());
     region.setImageSubresource({dstImage->getAspectMask(), 0, 0, 1});
-    commandBuffer.copyBufferToImage(srcBuffer->getBuffer(), dstImage->getImage(),
+    commandBuffer->copyBufferToImage(srcBuffer->getBuffer(), dstImage->getImage(),
                                     dstImage->getLayout(), region);
 }
 
@@ -239,14 +239,14 @@ void CommandBuffer::fillBuffer(BufferHandle dstBuffer,
                                vk::DeviceSize dstOffset,
                                vk::DeviceSize size,
                                uint32_t data) const {
-    commandBuffer.fillBuffer(dstBuffer->getBuffer(), dstOffset, size, data);
+    commandBuffer->fillBuffer(dstBuffer->getBuffer(), dstOffset, size, data);
 }
 
 void CommandBuffer::beginTimestamp(GPUTimerHandle gpuTimer) const {
-    gpuTimer->beginTimestamp(commandBuffer);
+    gpuTimer->beginTimestamp(*commandBuffer);
 }
 
 void CommandBuffer::endTimestamp(GPUTimerHandle gpuTimer) const {
-    gpuTimer->endTimestamp(commandBuffer);
+    gpuTimer->endTimestamp(*commandBuffer);
 }
 }  // namespace rv

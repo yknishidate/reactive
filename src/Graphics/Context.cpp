@@ -141,33 +141,26 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
     descriptorPool = device->createDescriptorPoolUnique(descriptorPoolCreateInfo);
 }
 
-std::vector<vk::UniqueCommandBuffer> Context::allocateCommandBuffers(uint32_t count) const {
-    return device->allocateCommandBuffersUnique(vk::CommandBufferAllocateInfo()
-                                                    .setCommandPool(*commandPool)
-                                                    .setLevel(vk::CommandBufferLevel::ePrimary)
-                                                    .setCommandBufferCount(count));
-}
+void Context::oneTimeSubmit(const std::function<void(CommandBufferHandle)>& command) const {
+    vk::CommandBufferAllocateInfo commandBufferInfo;
+    commandBufferInfo.setCommandPool(*commandPool);
+    commandBufferInfo.setLevel(vk::CommandBufferLevel::ePrimary);
+    commandBufferInfo.setCommandBufferCount(1);
 
-void Context::oneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command) const {
-    vk::UniqueCommandBuffer commandBuffer = allocateCommandBuffer();
+    vk::UniqueCommandBuffer _commandBuffer =
+        std::move(device->allocateCommandBuffersUnique(commandBufferInfo).front());
 
     vk::CommandBufferBeginInfo beginInfo;
     beginInfo.setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
-    commandBuffer->begin(beginInfo);
+    _commandBuffer->begin(beginInfo);
 
-    command(*commandBuffer);
+    CommandBufferHandle commandBuffer = std::make_shared<CommandBuffer>(this, _commandBuffer);
+    command(commandBuffer);
 
-    commandBuffer->end();
+    _commandBuffer->end();
 
-    queue.submit(vk::SubmitInfo().setCommandBuffers(*commandBuffer));
+    queue.submit(vk::SubmitInfo().setCommandBuffers(*_commandBuffer));
     queue.waitIdle();
-}
-
-void Context::oneTimeSubmit(const std::function<void(CommandBuffer)>& command) const {
-    oneTimeSubmit([&](vk::CommandBuffer _commandBuffer) {
-        CommandBuffer commandBuffer = {this, _commandBuffer};
-        command(commandBuffer);
-    });
 }
 
 vk::UniqueDescriptorSet Context::allocateDescriptorSet(
