@@ -54,83 +54,85 @@ using BottomAccelHandle = std::shared_ptr<BottomAccel>;
 using TopAccelHandle = std::shared_ptr<TopAccel>;
 using GPUTimerHandle = std::shared_ptr<GPUTimer>;
 
+// clang-format off
 namespace BufferUsage {
-static constexpr vk::BufferUsageFlags Uniform =  // break
-    vk::BufferUsageFlagBits::eUniformBuffer |    // break
-    vk::BufferUsageFlagBits::eTransferDst |      // break
+static constexpr vk::BufferUsageFlags Uniform =
+    vk::BufferUsageFlagBits::eUniformBuffer |
+    vk::BufferUsageFlagBits::eTransferDst |
     vk::BufferUsageFlagBits::eShaderDeviceAddress;
-static constexpr vk::BufferUsageFlags Storage =  // break
-    vk::BufferUsageFlagBits::eStorageBuffer |    // break
-    vk::BufferUsageFlagBits::eTransferDst |      // break
+static constexpr vk::BufferUsageFlags Storage =
+    vk::BufferUsageFlagBits::eStorageBuffer |
+    vk::BufferUsageFlagBits::eTransferDst |
     vk::BufferUsageFlagBits::eShaderDeviceAddress;
-static constexpr vk::BufferUsageFlags Staging =  // break
-    vk::BufferUsageFlagBits::eTransferSrc |      // break
+static constexpr vk::BufferUsageFlags Staging =
+    vk::BufferUsageFlagBits::eTransferSrc |
     vk::BufferUsageFlagBits::eTransferDst;
-static constexpr vk::BufferUsageFlags Vertex =                              // break
-    vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |  // break
-    vk::BufferUsageFlagBits::eStorageBuffer |                               // break
-    vk::BufferUsageFlagBits::eShaderDeviceAddress |                         // break
-    vk::BufferUsageFlagBits::eVertexBuffer |                                // break
+static constexpr vk::BufferUsageFlags Vertex =
+    vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
+    vk::BufferUsageFlagBits::eStorageBuffer |
+    vk::BufferUsageFlagBits::eShaderDeviceAddress |
+    vk::BufferUsageFlagBits::eVertexBuffer |
     vk::BufferUsageFlagBits::eTransferDst;
-static constexpr vk::BufferUsageFlags Index =                               // break
-    vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |  // break
-    vk::BufferUsageFlagBits::eStorageBuffer |                               // break
-    vk::BufferUsageFlagBits::eShaderDeviceAddress |                         // break
-    vk::BufferUsageFlagBits::eIndexBuffer |                                 // break
+static constexpr vk::BufferUsageFlags Index =
+    vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
+    vk::BufferUsageFlagBits::eStorageBuffer |
+    vk::BufferUsageFlagBits::eShaderDeviceAddress |
+    vk::BufferUsageFlagBits::eIndexBuffer |
     vk::BufferUsageFlagBits::eTransferDst;
-static constexpr vk::BufferUsageFlags Indirect =  // break
-    vk::BufferUsageFlagBits::eStorageBuffer |     // break
-    vk::BufferUsageFlagBits::eTransferDst |       // break
+static constexpr vk::BufferUsageFlags Indirect =
+    vk::BufferUsageFlagBits::eStorageBuffer |
+    vk::BufferUsageFlagBits::eTransferDst |
     vk::BufferUsageFlagBits::eIndirectBuffer;
-static constexpr vk::BufferUsageFlags AccelStorage =             // break
-    vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR |  // break
+static constexpr vk::BufferUsageFlags AccelStorage =
+    vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR |
     vk::BufferUsageFlagBits::eShaderDeviceAddress;
-static constexpr vk::BufferUsageFlags AccelInput =                          // break
-    vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |  // break
-    vk::BufferUsageFlagBits::eStorageBuffer |                               // break
-    vk::BufferUsageFlagBits::eShaderDeviceAddress |                         // break
+static constexpr vk::BufferUsageFlags AccelInput =
+    vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
+    vk::BufferUsageFlagBits::eStorageBuffer |
+    vk::BufferUsageFlagBits::eShaderDeviceAddress |
     vk::BufferUsageFlagBits::eTransferDst;
-static constexpr vk::BufferUsageFlags ShaderBindingTable =  // break
-    vk::BufferUsageFlagBits::eShaderBindingTableKHR |       // break
-    vk::BufferUsageFlagBits::eShaderDeviceAddress |         // break
+static constexpr vk::BufferUsageFlags ShaderBindingTable =
+    vk::BufferUsageFlagBits::eShaderBindingTableKHR |
+    vk::BufferUsageFlagBits::eShaderDeviceAddress |
     vk::BufferUsageFlagBits::eTransferDst;
-static constexpr vk::BufferUsageFlags Scratch =  // break
-    vk::BufferUsageFlagBits::eStorageBuffer |    // break
+static constexpr vk::BufferUsageFlags Scratch =
+    vk::BufferUsageFlagBits::eStorageBuffer |
     vk::BufferUsageFlagBits::eShaderDeviceAddress;
 }  // namespace BufferUsage
 
 namespace MemoryUsage {
-static constexpr vk::MemoryPropertyFlags Device =  // break
+static constexpr vk::MemoryPropertyFlags Device =
     vk::MemoryPropertyFlagBits::eDeviceLocal;
-static constexpr vk::MemoryPropertyFlags Host =  // break
-    vk::MemoryPropertyFlagBits::eHostVisible |   // break
+static constexpr vk::MemoryPropertyFlags Host =
+    vk::MemoryPropertyFlagBits::eHostVisible |
     vk::MemoryPropertyFlagBits::eHostCoherent;
-static constexpr vk::MemoryPropertyFlags DeviceHost =  // break
-    vk::MemoryPropertyFlagBits::eDeviceLocal |         // break
-    vk::MemoryPropertyFlagBits::eHostVisible |         // break
+static constexpr vk::MemoryPropertyFlags DeviceHost =
+    vk::MemoryPropertyFlagBits::eDeviceLocal |
+    vk::MemoryPropertyFlagBits::eHostVisible |
     vk::MemoryPropertyFlagBits::eHostCoherent;
 };  // namespace MemoryUsage
 
 namespace ImageUsage {
-static vk::ImageUsageFlags ColorAttachment =    // break
-    vk::ImageUsageFlagBits::eColorAttachment |  // break
-    vk::ImageUsageFlagBits::eTransferSrc |      // break
+static vk::ImageUsageFlags ColorAttachment =
+    vk::ImageUsageFlagBits::eColorAttachment |
+    vk::ImageUsageFlagBits::eTransferSrc |
     vk::ImageUsageFlagBits::eTransferDst;
-static vk::ImageUsageFlags DepthAttachment =           // break
-    vk::ImageUsageFlagBits::eDepthStencilAttachment |  // break
+static vk::ImageUsageFlags DepthAttachment =
+    vk::ImageUsageFlagBits::eDepthStencilAttachment |
     vk::ImageUsageFlagBits::eTransferDst;
-static vk::ImageUsageFlags DepthStencilAttachment =    // break
-    vk::ImageUsageFlagBits::eDepthStencilAttachment |  // break
+static vk::ImageUsageFlags DepthStencilAttachment =
+    vk::ImageUsageFlagBits::eDepthStencilAttachment |
     vk::ImageUsageFlagBits::eTransferDst;
-static vk::ImageUsageFlags Storage =        // break
-    vk::ImageUsageFlagBits::eStorage |      // break
-    vk::ImageUsageFlagBits::eTransferDst |  // break
+static vk::ImageUsageFlags Storage =
+    vk::ImageUsageFlagBits::eStorage |
+    vk::ImageUsageFlagBits::eTransferDst |
     vk::ImageUsageFlagBits::eTransferSrc;
-static vk::ImageUsageFlags Sampled =        // break
-    vk::ImageUsageFlagBits::eSampled |      // break
-    vk::ImageUsageFlagBits::eTransferDst |  // break
+static vk::ImageUsageFlags Sampled =
+    vk::ImageUsageFlagBits::eSampled |
+    vk::ImageUsageFlagBits::eTransferDst |
     vk::ImageUsageFlagBits::eTransferSrc;
 };  // namespace ImageUsage
+// clang-format on
 
 class Context {
 public:
