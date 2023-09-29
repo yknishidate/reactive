@@ -42,6 +42,8 @@ struct DescriptorSetCreateInfo {
 };
 
 class DescriptorSet {
+    friend class CommandBuffer;
+
 public:
     DescriptorSet(const Context* context, DescriptorSetCreateInfo createInfo);
 

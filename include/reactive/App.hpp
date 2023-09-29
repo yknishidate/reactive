@@ -62,7 +62,7 @@ public:
 
     virtual void onStart() {}
     virtual void onUpdate() {}
-    virtual void onRender(const CommandBuffer& commandBuffer) {}
+    virtual void onRender(const CommandBufferHandle& commandBuffer) {}
 
     // Getter
     ImageHandle getCurrentColorImage() const {
@@ -139,7 +139,7 @@ protected:
 
     vk::UniqueSemaphore imageAcquiredSemaphore;
     vk::UniqueSemaphore renderCompleteSemaphore;
-    std::vector<vk::UniqueCommandBuffer> commandBuffers{};
+    std::vector<CommandBufferHandle> commandBuffers{};
     std::vector<vk::UniqueFence> fences{};
 };
 }  // namespace rv

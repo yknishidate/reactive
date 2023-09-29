@@ -9,15 +9,6 @@ GPUTimer::GPUTimer(const Context* context, GPUTimerCreateInfo createInfo) : cont
     timestampPeriod = context->getPhysicalDevice().getProperties().limits.timestampPeriod;
 }
 
-void GPUTimer::beginTimestamp(vk::CommandBuffer commandBuffer) const {
-    commandBuffer.resetQueryPool(*queryPool, 0, 2);
-    commandBuffer.writeTimestamp(vk::PipelineStageFlagBits::eTopOfPipe, *queryPool, 0);
-}
-
-void GPUTimer::endTimestamp(vk::CommandBuffer commandBuffer) const {
-    commandBuffer.writeTimestamp(vk::PipelineStageFlagBits::eBottomOfPipe, *queryPool, 1);
-}
-
 double GPUTimer::elapsedInNano() {
     timestamps.fill(0);
     vk::resultCheck(context->getDevice().getQueryPoolResults(

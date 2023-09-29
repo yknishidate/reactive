@@ -52,37 +52,39 @@ void App::run() {
         // Begin command buffer
         // NOTE: Since the command pool is created with the Reset flag,
         //       the command buffer is implicitly reset at begin.
-        commandBuffers[frameIndex]->begin(
-            vk::CommandBufferBeginInfo().setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
+        commandBuffers[frameIndex]->begin();
 
         // Render
-        CommandBuffer commandBuffer = {&context, *commandBuffers[frameIndex]};
-        onRender(commandBuffer);
+        onRender(commandBuffers[frameIndex]);
 
         // Draw GUI
         {
             // Begin render pass
-            commandBuffer.beginRendering(getCurrentColorImage(), {}, {0, 0}, {width, height});
+            commandBuffers[frameIndex]->beginRendering(getCurrentColorImage(), {}, {0, 0},
+                                                       {width, height});
 
             // Render
+            // TODO: create ImGui wrapper
             ImGui::Render();
             ImDrawData* drawData = ImGui::GetDrawData();
-            ImGui_ImplVulkan_RenderDrawData(drawData, *commandBuffers[frameIndex]);
+            ImGui_ImplVulkan_RenderDrawData(drawData, *commandBuffers[frameIndex]->commandBuffer);
 
             // End render pass
-            commandBuffer.endRendering();
+            commandBuffers[frameIndex]->endRendering();
         }
 
-        commandBuffer.transitionLayout(getCurrentColorImage(), vk::ImageLayout::ePresentSrcKHR);
+        commandBuffers[frameIndex]->transitionLayout(getCurrentColorImage(),
+                                                     vk::ImageLayout::ePresentSrcKHR);
 
         // End command buffer
         commandBuffers[frameIndex]->end();
 
         // Submit
+        // TODO: use Context::submit()
         vk::PipelineStageFlags waitStage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
         vk::SubmitInfo submitInfo;
         submitInfo.setWaitDstStageMask(waitStage);
-        submitInfo.setCommandBuffers(*commandBuffers[frameIndex]);
+        submitInfo.setCommandBuffers(*commandBuffers[frameIndex]->commandBuffer);
         submitInfo.setWaitSemaphores(*imageAcquiredSemaphore);
         submitInfo.setSignalSemaphores(*renderCompleteSemaphore);
         context.getQueue().submit(submitInfo, *fences[frameIndex]);
@@ -263,13 +265,13 @@ void App::initVulkan(ArrayProxy<Layer> requiredLayers, ArrayProxy<Extension> req
 
     // Allocate command buffers
     size_t imageCount = swapchainImages.size();
-    commandBuffers = context.allocateCommandBuffers(imageCount);
-
-    // Create sync objects
+    // Create command buffers and sync objects
+    commandBuffers.resize(imageCount);
     fences.resize(imageCount);
     imageAcquiredSemaphore = context.getDevice().createSemaphoreUnique({});
     renderCompleteSemaphore = context.getDevice().createSemaphoreUnique({});
     for (uint32_t i = 0; i < imageCount; i++) {
+        commandBuffers[i] = context.allocateCommandBuffer();
         fences[i] = context.getDevice().createFenceUnique(
             vk::FenceCreateInfo().setFlags(vk::FenceCreateFlagBits::eSignaled));
     }
@@ -379,8 +381,8 @@ void App::initImGui() {
     std::string fontFile = ASSET_DIR + "Roboto-Medium.ttf";
     io.Fonts->AddFontFromFileTTF(fontFile.c_str(), 24.0f);
     {
-        context.oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
-            ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
+        context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
+            ImGui_ImplVulkan_CreateFontsTexture(*commandBuffer->commandBuffer);
         });
         ImGui_ImplVulkan_DestroyFontUploadObjects();
     }
@@ -425,9 +427,12 @@ void App::createDepthImage() {
         .usage = ImageUsage::DepthAttachment,
         .extent = {width, height, 1},
         .format = vk::Format::eD32Sfloat,
-        .layout = vk::ImageLayout::eDepthAttachmentOptimal,
         .aspect = vk::ImageAspectFlagBits::eDepth,
         .debugName = "App::depthImage",
+    });
+
+    context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
+        commandBuffer->transitionLayout(depthImage, vk::ImageLayout::eDepthAttachmentOptimal);
     });
 }
 

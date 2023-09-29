@@ -1,5 +1,6 @@
 #include "Graphics/Image.hpp"
 #include "Graphics/Buffer.hpp"
+#include "Graphics/CommandBuffer.hpp"
 #include "common.hpp"
 
 namespace {
@@ -13,7 +14,6 @@ Image::Image(const Context* context,
              vk::ImageUsageFlags usage,
              vk::Extent3D extent,
              vk::Format format,
-             vk::ImageLayout layout,
              vk::ImageAspectFlags aspect,
              uint32_t mipLevels,
              const char* debugName)
@@ -89,10 +89,11 @@ Image::Image(const Context* context,
     samplerInfo.setAddressModeW(vk::SamplerAddressMode::eRepeat);
     sampler = context->getDevice().createSampler(samplerInfo);
 
-    if (layout != vk::ImageLayout::eUndefined) {
-        context->oneTimeSubmit(
-            [&](vk::CommandBuffer commandBuffer) { transitionLayout(commandBuffer, layout); });
-    }
+    // TODO: transition layout
+    // if (layout != vk::ImageLayout::eUndefined) {
+    //    context->oneTimeSubmit(
+    //        [&](CommandBufferHandle commandBuffer) { commandBuffer->transitionLayout(); });
+    //}
 
     if (debugName) {
         context->setDebugName(image, debugName);
@@ -114,7 +115,6 @@ ImageHandle Image::loadFromFile(const Context& context,
         .usage = ImageUsage::Sampled,
         .extent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1},
         .format = vk::Format::eR8G8B8A8Unorm,
-        .layout = vk::ImageLayout::eTransferDstOptimal,
         .mipLevels = mipLevels,
         .debugName = filepath.c_str(),
     });
@@ -127,31 +127,15 @@ ImageHandle Image::loadFromFile(const Context& context,
         .data = reinterpret_cast<void*>(pixels),
     });
 
-    context.oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
-        vk::ImageSubresourceLayers subresourceLayers;
-        subresourceLayers.setAspectMask(vk::ImageAspectFlagBits::eColor);
-        subresourceLayers.setMipLevel(0);
-        subresourceLayers.setBaseArrayLayer(0);
-        subresourceLayers.setLayerCount(1);
-
-        vk::Extent3D extent;
-        extent.setWidth(static_cast<uint32_t>(width));
-        extent.setHeight(static_cast<uint32_t>(height));
-        extent.setDepth(1);
-
-        vk::BufferImageCopy region;
-        region.imageSubresource = subresourceLayers;
-        region.imageExtent = extent;
-
-        image->transitionLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);
-        commandBuffer.copyBufferToImage(stagingBuffer->getBuffer(), image->getImage(),
-                                        vk::ImageLayout::eTransferDstOptimal, region);
+    context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
+        commandBuffer->transitionLayout(image, vk::ImageLayout::eTransferDstOptimal);
+        commandBuffer->copyBufferToImage(stagingBuffer, image);
 
         vk::ImageLayout newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
         if (mipLevels > 1) {
             newLayout = vk::ImageLayout::eTransferSrcOptimal;
         }
-        image->transitionLayout(commandBuffer, newLayout);
+        commandBuffer->transitionLayout(image, newLayout);
     });
 
     if (mipLevels > 1) {
@@ -176,7 +160,6 @@ ImageHandle Image::loadFromFileHDR(const Context& context, const std::string& fi
         .usage = ImageUsage::Sampled,
         .extent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1},
         .format = vk::Format::eR32G32B32A32Sfloat,
-        .layout = vk::ImageLayout::eTransferDstOptimal,
     });
 
     // Copy to image
@@ -187,27 +170,10 @@ ImageHandle Image::loadFromFileHDR(const Context& context, const std::string& fi
         .data = reinterpret_cast<void*>(pixels),
     });
 
-    context.oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
-        vk::ImageSubresourceLayers subresourceLayers;
-        subresourceLayers.setAspectMask(vk::ImageAspectFlagBits::eColor);
-        subresourceLayers.setMipLevel(0);
-        subresourceLayers.setBaseArrayLayer(0);
-        subresourceLayers.setLayerCount(1);
-
-        vk::Extent3D extent;
-        extent.setWidth(static_cast<uint32_t>(width));
-        extent.setHeight(static_cast<uint32_t>(height));
-        extent.setDepth(1);
-
-        vk::BufferImageCopy region;
-        region.imageSubresource = subresourceLayers;
-        region.imageExtent = extent;
-
-        image->transitionLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal);
-        commandBuffer.copyBufferToImage(stagingBuffer->getBuffer(), image->getImage(),
-                                        vk::ImageLayout::eTransferDstOptimal, region);
-        image->transitionLayout(commandBuffer, vk::ImageLayout::eShaderReadOnlyOptimal);
-        image->layout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
+        commandBuffer->transitionLayout(image, vk::ImageLayout::eTransferDstOptimal);
+        commandBuffer->copyBufferToImage(stagingBuffer, image);
+        commandBuffer->transitionLayout(image, vk::ImageLayout::eShaderReadOnlyOptimal);
     });
 
     stbi_image_free(pixels);
@@ -235,7 +201,7 @@ void Image::generateMipmaps() {
     }
 
     // TODO: support 3D
-    context->oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
+    context->oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
         vk::ImageMemoryBarrier barrier{};
         barrier.image = image;
         barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -255,9 +221,9 @@ void Image::generateMipmaps() {
             barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
             barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
 
-            commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer,
-                                          vk::PipelineStageFlagBits::eTransfer, {}, nullptr,
-                                          nullptr, barrier);
+            commandBuffer->pipelineBarrier(vk::PipelineStageFlagBits::eTransfer,
+                                           vk::PipelineStageFlagBits::eTransfer, {}, nullptr,
+                                           nullptr, barrier);
 
             vk::ImageBlit blit{};
             blit.srcOffsets[0] = vk::Offset3D{0, 0, 0};
@@ -274,17 +240,18 @@ void Image::generateMipmaps() {
             blit.dstSubresource.baseArrayLayer = 0;
             blit.dstSubresource.layerCount = 1;
 
-            commandBuffer.blitImage(image, vk::ImageLayout::eTransferSrcOptimal, image,
-                                    vk::ImageLayout::eTransferDstOptimal, blit, filter);
+            commandBuffer->commandBuffer->blitImage(image, vk::ImageLayout::eTransferSrcOptimal,
+                                                    image, vk::ImageLayout::eTransferDstOptimal,
+                                                    blit, filter);
 
             barrier.oldLayout = vk::ImageLayout::eTransferSrcOptimal;
             barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
             barrier.srcAccessMask = vk::AccessFlagBits::eTransferRead;
             barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
 
-            commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer,
-                                          vk::PipelineStageFlagBits::eFragmentShader, {}, nullptr,
-                                          nullptr, barrier);
+            commandBuffer->pipelineBarrier(vk::PipelineStageFlagBits::eTransfer,
+                                           vk::PipelineStageFlagBits::eFragmentShader, {}, nullptr,
+                                           nullptr, barrier);
 
             if (mipWidth > 1)
                 mipWidth /= 2;
@@ -298,71 +265,9 @@ void Image::generateMipmaps() {
         barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
         barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
 
-        commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer,
-                                      vk::PipelineStageFlagBits::eAllCommands, {}, nullptr, nullptr,
-                                      barrier);
+        commandBuffer->pipelineBarrier(vk::PipelineStageFlagBits::eTransfer,
+                                       vk::PipelineStageFlagBits::eAllCommands, {}, nullptr,
+                                       nullptr, barrier);
     });
-}
-
-void Image::transitionLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout newLayout) {
-    vk::PipelineStageFlags srcStageMask = vk::PipelineStageFlagBits::eAllCommands;
-    vk::PipelineStageFlags dstStageMask = vk::PipelineStageFlagBits::eAllCommands;
-
-    vk::ImageMemoryBarrier barrier{};
-    barrier.setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
-    barrier.setSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
-    barrier.setImage(image);
-    barrier.setOldLayout(layout);
-    barrier.setNewLayout(newLayout);
-    barrier.setSubresourceRange({aspect, 0, mipLevels, 0, 1});
-
-    switch (layout) {
-        case vk::ImageLayout::eTransferDstOptimal:
-            barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
-            break;
-        case vk::ImageLayout::eTransferSrcOptimal:
-            barrier.srcAccessMask = vk::AccessFlagBits::eTransferRead;
-            break;
-        case vk::ImageLayout::eColorAttachmentOptimal:
-            barrier.srcAccessMask = vk::AccessFlagBits::eColorAttachmentRead;
-            break;
-        case vk::ImageLayout::eDepthStencilAttachmentOptimal:
-            barrier.srcAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentRead;
-            break;
-        case vk::ImageLayout::eShaderReadOnlyOptimal:
-            barrier.srcAccessMask = vk::AccessFlagBits::eShaderRead;
-            break;
-        case vk::ImageLayout::ePresentSrcKHR:
-            barrier.srcAccessMask = vk::AccessFlagBits::eMemoryRead;
-            break;
-        default:
-            break;
-    }
-
-    switch (newLayout) {
-        case vk::ImageLayout::eTransferDstOptimal:
-            barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
-            break;
-        case vk::ImageLayout::eTransferSrcOptimal:
-            barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
-            break;
-        case vk::ImageLayout::eColorAttachmentOptimal:
-            barrier.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
-            break;
-        case vk::ImageLayout::eDepthStencilAttachmentOptimal:
-            barrier.dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
-            break;
-        case vk::ImageLayout::eShaderReadOnlyOptimal:
-            barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
-            break;
-        case vk::ImageLayout::ePresentSrcKHR:
-            barrier.dstAccessMask = vk::AccessFlagBits::eMemoryRead;
-            break;
-        default:
-            break;
-    }
-
-    commandBuffer.pipelineBarrier(srcStageMask, dstStageMask, {}, {}, {}, barrier);
-    layout = newLayout;
 }
 }  // namespace rv

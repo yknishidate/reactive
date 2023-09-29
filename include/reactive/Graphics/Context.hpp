@@ -53,6 +53,7 @@ using RayTracingPipelineHandle = std::shared_ptr<RayTracingPipeline>;
 using BottomAccelHandle = std::shared_ptr<BottomAccel>;
 using TopAccelHandle = std::shared_ptr<TopAccel>;
 using GPUTimerHandle = std::shared_ptr<GPUTimer>;
+using CommandBufferHandle = std::shared_ptr<CommandBuffer>;
 
 // clang-format off
 namespace BufferUsage {
@@ -135,6 +136,8 @@ static vk::ImageUsageFlags Sampled =
 // clang-format on
 
 class Context {
+    friend class CommandBuffer;
+
 public:
     void initInstance(bool enableValidation,
                       const std::vector<const char*>& layers,
@@ -155,20 +158,11 @@ public:
     uint32_t getQueueFamily() const { return queueFamily; }
     vk::DescriptorPool getDescriptorPool() const { return *descriptorPool; }
 
-    std::vector<vk::UniqueCommandBuffer> allocateCommandBuffers(uint32_t count) const;
+    CommandBufferHandle allocateCommandBuffer() const;
 
-    vk::UniqueCommandBuffer allocateCommandBuffer() const {
-        return std::move(allocateCommandBuffers(1).front());
-    }
+    void submit(CommandBufferHandle commandBuffer, vk::Fence fence = {}) const;
 
-    void submit(vk::CommandBuffer commandBuffer, vk::Fence fence) const {
-        vk::SubmitInfo submitInfo;
-        submitInfo.setCommandBuffers(commandBuffer);
-        queue.submit(submitInfo, fence);
-    }
-
-    void oneTimeSubmit(const std::function<void(vk::CommandBuffer)>& command) const;
-    void oneTimeSubmit(const std::function<void(CommandBuffer)>& command) const;
+    void oneTimeSubmit(const std::function<void(CommandBufferHandle)>& command) const;
 
     vk::UniqueDescriptorSet allocateDescriptorSet(vk::DescriptorSetLayout descSetLayout) const;
 
