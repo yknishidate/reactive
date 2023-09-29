@@ -4,26 +4,17 @@
 #include <vector>
 
 #include <GLFW/glfw3.h>
-#include <spdlog/spdlog.h>
 #include <vulkan/vulkan.hpp>
 
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <spdlog/spdlog.h>
 #include <memory>
 #include "Graphics/CommandBuffer.hpp"
 #include "Graphics/Context.hpp"
 #include "Graphics/DescriptorSet.hpp"
 #include "Graphics/Image.hpp"
 #include "Graphics/Pipeline.hpp"
-#include "Graphics/Shader.hpp"
-#include "Scene/AABB.hpp"
-#include "Scene/Camera.hpp"
 #include "Scene/Loader.hpp"
 #include "Scene/Mesh.hpp"
 #include "Scene/Object.hpp"
-#include "Timer/CPUTimer.hpp"
-#include "Timer/GPUTimer.hpp"
 
 namespace rv {
 struct StructureChain {
