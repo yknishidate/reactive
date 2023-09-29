@@ -30,6 +30,16 @@ void Context::initInstance(bool enableValidation,
                                             .setPEnabledLayerNames(layers));
     VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
 
+    spdlog::info("Enabled layers:");
+    for (auto& layer: layers) {
+        spdlog::info("  {}", layer);
+    }
+
+    spdlog::info("Enabled instance extensions:");
+    for (auto& extension : instanceExtensions) {
+        spdlog::info("  {}", extension);
+    }
+
     // Create debug messenger
     if (enableValidation) {
         debugMessenger = instance->createDebugUtilsMessengerEXTUnique(
@@ -43,8 +53,17 @@ void Context::initInstance(bool enableValidation,
 }
 
 void Context::initPhysicalDevice(vk::SurfaceKHR surface) {
-    // Pick GPU
-    physicalDevice = instance->enumeratePhysicalDevices().front();
+    // Select discrete gpu
+    for (auto gpu : instance->enumeratePhysicalDevices()) {
+        if (gpu.getProperties().deviceType == vk::PhysicalDeviceType::eDiscreteGpu) {
+            physicalDevice = gpu;
+        }
+    }
+    // If discrete gpu not found, select first gpu
+    if (!physicalDevice) {
+        physicalDevice = instance->enumeratePhysicalDevices().front();
+    }
+    spdlog::info("Selected GPU: {}", std::string(physicalDevice.getProperties().deviceName.data()));
 
     // Find queue family
     std::vector properties = physicalDevice.getQueueFamilyProperties();
