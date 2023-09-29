@@ -31,7 +31,7 @@ void Context::initInstance(bool enableValidation,
     VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
 
     spdlog::info("Enabled layers:");
-    for (auto& layer: layers) {
+    for (auto& layer : layers) {
         spdlog::info("  {}", layer);
     }
 
@@ -105,6 +105,11 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
     deviceInfo.setPEnabledFeatures(&deviceFeatures);
     deviceInfo.setPNext(deviceCreateInfoPNext);
     device = physicalDevice.createDeviceUnique(deviceInfo);
+
+    spdlog::info("Enabled device extensions:");
+    for (auto& extension : deviceExtensions) {
+        spdlog::info("  {}", extension);
+    }
 
     // Get queue
     queue = device->getQueue(queueFamily, 0);
