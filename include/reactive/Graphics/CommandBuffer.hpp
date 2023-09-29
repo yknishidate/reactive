@@ -1,6 +1,8 @@
 #pragma once
+#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include "Accel.hpp"
 #include "Context.hpp"
+#include "Image.hpp"
 
 namespace rv {
 class App;
@@ -20,8 +22,12 @@ class AccelInstance;
 
 class CommandBuffer {
 public:
-    CommandBuffer(const Context* context, vk::UniqueCommandBuffer commandBuffer)
-        : context{context}, commandBuffer{std::move(commandBuffer)} {}
+    CommandBuffer() = default;
+
+    CommandBuffer(const Context* context, vk::CommandBuffer _commandBuffer) : context{context} {
+        commandBuffer =
+            vk::UniqueCommandBuffer{_commandBuffer, {context->getDevice(), *context->commandPool}};
+    }
 
     void begin() const {
         vk::CommandBufferBeginInfo beginInfo;
@@ -149,6 +155,14 @@ public:
     void copyImageToBuffer(ImageHandle srcImage, BufferHandle dstBuffer) const;
     void copyBufferToImage(BufferHandle srcBuffer, ImageHandle dstImage) const;
 
+    void blitImage(ImageHandle srcImage,
+                   ImageHandle dstImage,
+                   vk::ImageBlit blit,
+                   vk::Filter filter) const {
+        commandBuffer->blitImage(srcImage->image, srcImage->layout, dstImage->image,
+                                 dstImage->layout, blit, filter);
+    }
+
     void fillBuffer(BufferHandle dstBuffer,
                     vk::DeviceSize dstOffset,
                     vk::DeviceSize size,
@@ -248,7 +262,7 @@ public:
         }
     }
 
-    const Context* context;
+    const Context* context = nullptr;
     vk::UniqueCommandBuffer commandBuffer;
 };
 }  // namespace rv

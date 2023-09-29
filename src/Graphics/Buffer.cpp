@@ -1,5 +1,6 @@
 #include "Graphics/Buffer.hpp"
 
+#include "Graphics/CommandBuffer.hpp"
 #include "common.hpp"
 
 namespace rv {
@@ -62,6 +63,7 @@ void Buffer::unmap() {
     mapped = nullptr;
 }
 
+// TODO: move to CommandBuffer
 void Buffer::copy(const void* data) {
     if (isHostVisible) {
         map();
@@ -73,9 +75,9 @@ void Buffer::copy(const void* data) {
             .size = size,
             .data = data,
         });
-        context->oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
+        context->oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
             vk::BufferCopy region{0, 0, size};
-            commandBuffer.copyBuffer(stagingBuffer->getBuffer(), *buffer, region);
+            commandBuffer->commandBuffer->copyBuffer(stagingBuffer->getBuffer(), *buffer, region);
         });
     }
 }

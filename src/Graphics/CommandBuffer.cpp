@@ -22,7 +22,7 @@ void CommandBuffer::bindPipeline(PipelineHandle pipeline) const {
 
 void CommandBuffer::pushConstants(PipelineHandle pipeline, const void* pushData) const {
     commandBuffer->pushConstants(*pipeline->pipelineLayout, pipeline->shaderStageFlags, 0,
-                                pipeline->pushSize, pushData);
+                                 pipeline->pushSize, pushData);
 }
 
 void CommandBuffer::bindVertexBuffer(BufferHandle buffer, vk::DeviceSize offset) const {
@@ -37,13 +37,11 @@ void CommandBuffer::traceRays(RayTracingPipelineHandle pipeline,
                               uint32_t countX,
                               uint32_t countY,
                               uint32_t countZ) const {
-    commandBuffer->traceRaysKHR(pipeline->raygenRegion, pipeline->missRegion, pipeline->hitRegion, {}, 
-                               countX, countY, countZ);
+    commandBuffer->traceRaysKHR(pipeline->raygenRegion, pipeline->missRegion, pipeline->hitRegion,
+                                {}, countX, countY, countZ);
 }
 
-void CommandBuffer::dispatch(uint32_t countX,
-                             uint32_t countY,
-                             uint32_t countZ) const {
+void CommandBuffer::dispatch(uint32_t countX, uint32_t countY, uint32_t countZ) const {
     commandBuffer->dispatch(countX, countY, countZ);
 }
 
@@ -52,14 +50,14 @@ void CommandBuffer::dispatchIndirect(BufferHandle buffer, vk::DeviceSize offset)
 }
 
 void CommandBuffer::clearColorImage(ImageHandle image, std::array<float, 4> color) const {
-    image->transitionLayout(*commandBuffer, vk::ImageLayout::eTransferDstOptimal);
+    transitionLayout(image, vk::ImageLayout::eTransferDstOptimal);
     commandBuffer->clearColorImage(
         image->getImage(), vk::ImageLayout::eTransferDstOptimal, vk::ClearColorValue{color},
         vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1});
 }
 
 void CommandBuffer::clearDepthStencilImage(ImageHandle image, float depth, uint32_t stencil) const {
-    image->transitionLayout(*commandBuffer, vk::ImageLayout::eTransferDstOptimal);
+    transitionLayout(image, vk::ImageLayout::eTransferDstOptimal);
     commandBuffer->clearDepthStencilImage(
         image->getImage(), vk::ImageLayout::eTransferDstOptimal,
         vk::ClearDepthStencilValue{depth, stencil},
@@ -162,7 +160,7 @@ void CommandBuffer::bufferBarrier(vk::PipelineStageFlags srcStageMask,
     bufferMemoryBarrier.size = VK_WHOLE_SIZE;
 
     commandBuffer->pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, nullptr,
-                                  bufferMemoryBarrier, nullptr);
+                                   bufferMemoryBarrier, nullptr);
 }
 
 void CommandBuffer::imageBarrier(vk::PipelineStageFlags srcStageMask,
@@ -186,11 +184,69 @@ void CommandBuffer::imageBarrier(vk::PipelineStageFlags srcStageMask,
     memoryBarrier.subresourceRange.levelCount = 1;
 
     commandBuffer->pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, nullptr, nullptr,
-                                  memoryBarrier);
+                                   memoryBarrier);
 }
 
 void CommandBuffer::transitionLayout(ImageHandle image, vk::ImageLayout newLayout) const {
-    image->transitionLayout(*commandBuffer, newLayout);
+    vk::PipelineStageFlags srcStageMask = vk::PipelineStageFlagBits::eAllCommands;
+    vk::PipelineStageFlags dstStageMask = vk::PipelineStageFlagBits::eAllCommands;
+
+    vk::ImageMemoryBarrier barrier{};
+    barrier.setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
+    barrier.setSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
+    barrier.setImage(image->image);
+    barrier.setOldLayout(image->layout);
+    barrier.setNewLayout(newLayout);
+    barrier.setSubresourceRange({image->aspect, 0, image->mipLevels, 0, 1});
+
+    switch (image->layout) {
+        case vk::ImageLayout::eTransferDstOptimal:
+            barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+            break;
+        case vk::ImageLayout::eTransferSrcOptimal:
+            barrier.srcAccessMask = vk::AccessFlagBits::eTransferRead;
+            break;
+        case vk::ImageLayout::eColorAttachmentOptimal:
+            barrier.srcAccessMask = vk::AccessFlagBits::eColorAttachmentRead;
+            break;
+        case vk::ImageLayout::eDepthStencilAttachmentOptimal:
+            barrier.srcAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentRead;
+            break;
+        case vk::ImageLayout::eShaderReadOnlyOptimal:
+            barrier.srcAccessMask = vk::AccessFlagBits::eShaderRead;
+            break;
+        case vk::ImageLayout::ePresentSrcKHR:
+            barrier.srcAccessMask = vk::AccessFlagBits::eMemoryRead;
+            break;
+        default:
+            break;
+    }
+
+    switch (newLayout) {
+        case vk::ImageLayout::eTransferDstOptimal:
+            barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
+            break;
+        case vk::ImageLayout::eTransferSrcOptimal:
+            barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
+            break;
+        case vk::ImageLayout::eColorAttachmentOptimal:
+            barrier.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+            break;
+        case vk::ImageLayout::eDepthStencilAttachmentOptimal:
+            barrier.dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+            break;
+        case vk::ImageLayout::eShaderReadOnlyOptimal:
+            barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+            break;
+        case vk::ImageLayout::ePresentSrcKHR:
+            barrier.dstAccessMask = vk::AccessFlagBits::eMemoryRead;
+            break;
+        default:
+            break;
+    }
+
+    commandBuffer->pipelineBarrier(srcStageMask, dstStageMask, {}, {}, {}, barrier);
+    image->layout = newLayout;
 }
 
 void CommandBuffer::copyImage(ImageHandle srcImage,
@@ -204,19 +260,19 @@ void CommandBuffer::copyImage(ImageHandle srcImage,
               srcExtent.width, srcExtent.height, srcExtent.depth,  // break
               dstExtent.width, dstExtent.height, dstExtent.depth);
 
-    srcImage->transitionLayout(*commandBuffer, vk::ImageLayout::eTransferSrcOptimal);
-    dstImage->transitionLayout(*commandBuffer, vk::ImageLayout::eTransferDstOptimal);
+    transitionLayout(srcImage, vk::ImageLayout::eTransferSrcOptimal);
+    transitionLayout(dstImage, vk::ImageLayout::eTransferDstOptimal);
 
     vk::ImageCopy copyRegion;
     copyRegion.setSrcSubresource({vk::ImageAspectFlagBits::eColor, 0, 0, 1});
     copyRegion.setDstSubresource({vk::ImageAspectFlagBits::eColor, 0, 0, 1});
     copyRegion.setExtent(srcImage->getExtent());
     commandBuffer->copyImage(srcImage->getImage(), vk::ImageLayout::eTransferSrcOptimal,  // src
-                            dstImage->getImage(), vk::ImageLayout::eTransferDstOptimal,  // dst
-                            copyRegion);
+                             dstImage->getImage(), vk::ImageLayout::eTransferDstOptimal,  // dst
+                             copyRegion);
 
-    srcImage->transitionLayout(*commandBuffer, newSrcLayout);
-    dstImage->transitionLayout(*commandBuffer, newDstLayout);
+    transitionLayout(srcImage, newSrcLayout);
+    transitionLayout(dstImage, newDstLayout);
 }
 
 void CommandBuffer::copyImageToBuffer(ImageHandle srcImage, BufferHandle dstBuffer) const {
@@ -224,7 +280,7 @@ void CommandBuffer::copyImageToBuffer(ImageHandle srcImage, BufferHandle dstBuff
     region.setImageExtent(srcImage->getExtent());
     region.setImageSubresource({srcImage->getAspectMask(), 0, 0, 1});
     commandBuffer->copyImageToBuffer(srcImage->getImage(), srcImage->getLayout(),
-                                    dstBuffer->getBuffer(), region);
+                                     dstBuffer->getBuffer(), region);
 }
 
 void CommandBuffer::copyBufferToImage(BufferHandle srcBuffer, ImageHandle dstImage) const {
@@ -232,7 +288,7 @@ void CommandBuffer::copyBufferToImage(BufferHandle srcBuffer, ImageHandle dstIma
     region.setImageExtent(dstImage->getExtent());
     region.setImageSubresource({dstImage->getAspectMask(), 0, 0, 1});
     commandBuffer->copyBufferToImage(srcBuffer->getBuffer(), dstImage->getImage(),
-                                    dstImage->getLayout(), region);
+                                     dstImage->getLayout(), region);
 }
 
 void CommandBuffer::fillBuffer(BufferHandle dstBuffer,

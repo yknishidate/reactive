@@ -141,6 +141,22 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
     descriptorPool = device->createDescriptorPoolUnique(descriptorPoolCreateInfo);
 }
 
+CommandBufferHandle Context::allocateCommandBuffer() const {
+    vk::CommandBufferAllocateInfo commandBufferInfo;
+    commandBufferInfo.setCommandPool(*commandPool);
+    commandBufferInfo.setLevel(vk::CommandBufferLevel::ePrimary);
+    commandBufferInfo.setCommandBufferCount(1);
+
+    vk::CommandBuffer _commandBuffer = device->allocateCommandBuffers(commandBufferInfo).front();
+    return std::make_shared<CommandBuffer>(this, _commandBuffer);
+}
+
+void Context::submit(CommandBufferHandle commandBuffer, vk::Fence fence) const {
+    vk::SubmitInfo submitInfo;
+    submitInfo.setCommandBuffers(*commandBuffer->commandBuffer);
+    queue.submit(submitInfo, fence);
+}
+
 void Context::oneTimeSubmit(const std::function<void(CommandBufferHandle)>& command) const {
     vk::CommandBufferAllocateInfo commandBufferInfo;
     commandBufferInfo.setCommandPool(*commandPool);

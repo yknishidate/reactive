@@ -1,5 +1,7 @@
 #include "Graphics/Accel.hpp"
 
+#include "Graphics/CommandBuffer.hpp"
+
 namespace rv {
 BottomAccel::BottomAccel(const Context* context, BottomAccelCreateInfo createInfo)
     : context{context} {
@@ -50,13 +52,14 @@ BottomAccel::BottomAccel(const Context* context, BottomAccelCreateInfo createInf
     buildGeometryInfo.setDstAccelerationStructure(*accel);
     buildGeometryInfo.setScratchData(scratchBuffer->getAddress());
 
-    context->oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
+    context->oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
         vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo{};
         buildRangeInfo.setPrimitiveCount(primitiveCount);
         buildRangeInfo.setPrimitiveOffset(0);
         buildRangeInfo.setFirstVertex(0);
         buildRangeInfo.setTransformOffset(0);
-        commandBuffer.buildAccelerationStructuresKHR(buildGeometryInfo, &buildRangeInfo);
+        commandBuffer->commandBuffer->buildAccelerationStructuresKHR(buildGeometryInfo,
+                                                                     &buildRangeInfo);
     });
 }
 
@@ -124,13 +127,14 @@ TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo)
     buildGeometryInfo.setDstAccelerationStructure(*accel);
     buildGeometryInfo.setScratchData(scratchBuffer->getAddress());
 
-    context->oneTimeSubmit([&](vk::CommandBuffer commandBuffer) {
+    context->oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
         vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo{};
         buildRangeInfo.setPrimitiveCount(primitiveCount);
         buildRangeInfo.setPrimitiveOffset(0);
         buildRangeInfo.setFirstVertex(0);
         buildRangeInfo.setTransformOffset(0);
-        commandBuffer.buildAccelerationStructuresKHR(buildGeometryInfo, &buildRangeInfo);
+        commandBuffer->commandBuffer->buildAccelerationStructuresKHR(buildGeometryInfo,
+                                                                     &buildRangeInfo);
     });
 }
 }  // namespace rv

@@ -17,6 +17,8 @@ struct ImageCreateInfo {
 };
 
 class Image {
+    friend class CommandBuffer;
+
 public:
     Image(const Context* context,
           vk::ImageUsageFlags usage,
@@ -65,8 +67,6 @@ public:
 
     // mipmap is not supported
     static ImageHandle loadFromFileHDR(const Context& context, const std::string& filepath);
-
-    void transitionLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout newLayout);
 
 private:
     const Context* context;

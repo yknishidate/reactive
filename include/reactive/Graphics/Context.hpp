@@ -8,8 +8,6 @@
 
 #include <vulkan/vulkan.hpp>
 
-#include "CommandBuffer.hpp"
-
 namespace rv {
 struct ImageCreateInfo;
 struct BufferCreateInfo;
@@ -138,6 +136,8 @@ static vk::ImageUsageFlags Sampled =
 // clang-format on
 
 class Context {
+    friend class CommandBuffer;
+
 public:
     void initInstance(bool enableValidation,
                       const std::vector<const char*>& layers,
@@ -158,23 +158,9 @@ public:
     uint32_t getQueueFamily() const { return queueFamily; }
     vk::DescriptorPool getDescriptorPool() const { return *descriptorPool; }
 
-    CommandBufferHandle allocateCommandBuffer() const {
-        vk::CommandBufferAllocateInfo commandBufferInfo;
-        commandBufferInfo.setCommandPool(*commandPool);
-        commandBufferInfo.setLevel(vk::CommandBufferLevel::ePrimary);
-        commandBufferInfo.setCommandBufferCount(1);
+    CommandBufferHandle allocateCommandBuffer() const;
 
-        vk::UniqueCommandBuffer _commandBuffer =
-            std::move(device->allocateCommandBuffersUnique(commandBufferInfo).front());
-
-        return std::make_shared<CommandBuffer>(this, _commandBuffer);
-    }
-
-    void submit(CommandBufferHandle commandBuffer, vk::Fence fence) const {
-        vk::SubmitInfo submitInfo;
-        submitInfo.setCommandBuffers(*commandBuffer->commandBuffer);
-        queue.submit(submitInfo, fence);
-    }
+    void submit(CommandBufferHandle commandBuffer, vk::Fence fence) const;
 
     void oneTimeSubmit(const std::function<void(CommandBufferHandle)>& command) const;
 
