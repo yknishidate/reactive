@@ -1,19 +1,16 @@
 #include "Graphics/CommandBuffer.hpp"
 
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-
 #include "Graphics/Buffer.hpp"
 #include "Graphics/Context.hpp"
 #include "Graphics/Image.hpp"
 #include "Graphics/Pipeline.hpp"
-#include "Scene/Mesh.hpp"
 #include "Timer/GPUTimer.hpp"
 #include "common.hpp"
 
 namespace rv {
 void CommandBuffer::bindDescriptorSet(DescriptorSetHandle descSet, PipelineHandle pipeline) const {
-    descSet->bind(*commandBuffer, pipeline->getPipelineBindPoint(), pipeline->getPipelineLayout());
+    commandBuffer->bindDescriptorSets(pipeline->getPipelineBindPoint(),
+                                      pipeline->getPipelineLayout(), 0, *descSet->descSet, nullptr);
 }
 
 void CommandBuffer::bindPipeline(PipelineHandle pipeline) const {
@@ -299,10 +296,13 @@ void CommandBuffer::fillBuffer(BufferHandle dstBuffer,
 }
 
 void CommandBuffer::beginTimestamp(GPUTimerHandle gpuTimer) const {
-    gpuTimer->beginTimestamp(*commandBuffer);
+    commandBuffer->resetQueryPool(*gpuTimer->queryPool, 0, 2);
+    commandBuffer->writeTimestamp(vk::PipelineStageFlagBits::eTopOfPipe, *gpuTimer->queryPool, 0);
 }
 
 void CommandBuffer::endTimestamp(GPUTimerHandle gpuTimer) const {
-    gpuTimer->endTimestamp(*commandBuffer);
+    commandBuffer->writeTimestamp(vk::PipelineStageFlagBits::eBottomOfPipe, *gpuTimer->queryPool,
+                                  1);
+    ;
 }
 }  // namespace rv
