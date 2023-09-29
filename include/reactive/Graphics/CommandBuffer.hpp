@@ -18,7 +18,6 @@ class Buffer;
 class GPUTimer;
 class Buffer;
 class DescriptorSet;
-class AccelInstance;
 
 class CommandBuffer {
 public:
@@ -167,61 +166,7 @@ public:
                     vk::DeviceSize size,
                     uint32_t data) const;
 
-    void updateTopAccel(TopAccelHandle topAccel, ArrayProxy<AccelInstance> accelInstances) {
-        std::vector<vk::AccelerationStructureInstanceKHR> instances;
-        for (auto& instance : accelInstances) {
-            instances.push_back(
-                vk::AccelerationStructureInstanceKHR()
-                    .setTransform(toVkMatrix(instance.transform))
-                    .setInstanceCustomIndex(0)
-                    .setMask(0xFF)
-                    .setInstanceShaderBindingTableRecordOffset(instance.sbtOffset)
-                    .setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable)
-                    .setAccelerationStructureReference(instance.bottomAccel->getBufferAddress()));
-        }
-
-        topAccel->instanceBuffer->copy(instances.data());
-
-        vk::AccelerationStructureGeometryInstancesDataKHR instancesData;
-        instancesData.setArrayOfPointers(false);
-        instancesData.setData(topAccel->instanceBuffer->getAddress());
-
-        vk::AccelerationStructureGeometryKHR geometry;
-        geometry.setGeometryType(vk::GeometryTypeKHR::eInstances);
-        geometry.setGeometry({instancesData});
-        geometry.setFlags(topAccel->geometryFlags);
-
-        vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
-        buildGeometryInfo.setType(vk::AccelerationStructureTypeKHR::eTopLevel);
-        buildGeometryInfo.setFlags(topAccel->buildFlags);
-        buildGeometryInfo.setGeometries(geometry);
-
-        buildGeometryInfo.setMode(vk::BuildAccelerationStructureModeKHR::eUpdate);
-        buildGeometryInfo.setDstAccelerationStructure(*topAccel->accel);
-        buildGeometryInfo.setSrcAccelerationStructure(*topAccel->accel);
-        buildGeometryInfo.setScratchData(topAccel->scratchBuffer->getAddress());
-
-        vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo{};
-        buildRangeInfo.setPrimitiveCount(instances.size());
-        buildRangeInfo.setPrimitiveOffset(0);
-        buildRangeInfo.setFirstVertex(0);
-        buildRangeInfo.setTransformOffset(0);
-        commandBuffer->buildAccelerationStructuresKHR(buildGeometryInfo, &buildRangeInfo);
-
-        // Create a memory barrier for the acceleration structure
-        vk::MemoryBarrier2 memoryBarrier{};
-        memoryBarrier.setSrcStageMask(vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR);
-        memoryBarrier.setDstStageMask(vk::PipelineStageFlagBits2::eRayTracingShaderKHR);
-        memoryBarrier.setSrcAccessMask(vk::AccessFlagBits2::eAccelerationStructureWriteKHR);
-        memoryBarrier.setDstAccessMask(vk::AccessFlagBits2::eAccelerationStructureReadKHR);
-
-        // Pipeline barrier to ensure that the build has finished before the ray tracing shader
-        // starts
-        vk::DependencyInfoKHR dependencyInfo{};
-        dependencyInfo.setMemoryBarrierCount(1);
-        dependencyInfo.setPMemoryBarriers(&memoryBarrier);
-        commandBuffer->pipelineBarrier2(dependencyInfo);
-    }
+    void updateTopAccel(TopAccelHandle topAccel, ArrayProxy<AccelInstance> accelInstances);
 
     // timestamp
     void beginTimestamp(GPUTimerHandle gpuTimer) const;
