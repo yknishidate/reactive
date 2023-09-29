@@ -163,19 +163,18 @@ void Context::oneTimeSubmit(const std::function<void(CommandBufferHandle)>& comm
     commandBufferInfo.setLevel(vk::CommandBufferLevel::ePrimary);
     commandBufferInfo.setCommandBufferCount(1);
 
-    vk::UniqueCommandBuffer _commandBuffer =
-        std::move(device->allocateCommandBuffersUnique(commandBufferInfo).front());
+    vk::CommandBuffer _commandBuffer = device->allocateCommandBuffers(commandBufferInfo).front();
 
     vk::CommandBufferBeginInfo beginInfo;
     beginInfo.setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
-    _commandBuffer->begin(beginInfo);
+    _commandBuffer.begin(beginInfo);
 
     CommandBufferHandle commandBuffer = std::make_shared<CommandBuffer>(this, _commandBuffer);
     command(commandBuffer);
 
-    _commandBuffer->end();
+    _commandBuffer.end();
 
-    queue.submit(vk::SubmitInfo().setCommandBuffers(*_commandBuffer));
+    queue.submit(vk::SubmitInfo().setCommandBuffers(_commandBuffer));
     queue.waitIdle();
 }
 
