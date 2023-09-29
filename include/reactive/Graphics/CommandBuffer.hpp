@@ -24,10 +24,9 @@ class CommandBuffer {
 public:
     CommandBuffer() = default;
 
-    CommandBuffer(const Context* context, vk::CommandBuffer _commandBuffer) : context{context} {
-        commandBuffer =
-            vk::UniqueCommandBuffer{_commandBuffer, {context->getDevice(), *context->commandPool}};
-    }
+    CommandBuffer(const Context* context, vk::CommandBuffer commandBuffer)
+        : context{context},
+          commandBuffer{commandBuffer, {context->getDevice(), *context->commandPool}} {}
 
     void begin() const {
         vk::CommandBufferBeginInfo beginInfo;
