@@ -14,7 +14,6 @@ Image::Image(const Context* context,
              vk::ImageUsageFlags usage,
              vk::Extent3D extent,
              vk::Format format,
-             vk::ImageLayout layout,
              vk::ImageAspectFlags aspect,
              uint32_t mipLevels,
              const char* debugName)
@@ -116,7 +115,6 @@ ImageHandle Image::loadFromFile(const Context& context,
         .usage = ImageUsage::Sampled,
         .extent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1},
         .format = vk::Format::eR8G8B8A8Unorm,
-        .layout = vk::ImageLayout::eTransferDstOptimal,
         .mipLevels = mipLevels,
         .debugName = filepath.c_str(),
     });
@@ -162,7 +160,6 @@ ImageHandle Image::loadFromFileHDR(const Context& context, const std::string& fi
         .usage = ImageUsage::Sampled,
         .extent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1},
         .format = vk::Format::eR32G32B32A32Sfloat,
-        .layout = vk::ImageLayout::eTransferDstOptimal,
     });
 
     // Copy to image

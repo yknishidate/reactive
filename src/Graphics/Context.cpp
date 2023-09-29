@@ -227,8 +227,7 @@ RayTracingPipelineHandle Context::createRayTracingPipeline(
 
 ImageHandle Context::createImage(ImageCreateInfo createInfo) const {
     return std::make_shared<Image>(this, createInfo.usage, createInfo.extent, createInfo.format,
-                                   createInfo.layout, createInfo.aspect, createInfo.mipLevels,
-                                   createInfo.debugName);
+                                   createInfo.aspect, createInfo.mipLevels, createInfo.debugName);
 }
 
 BufferHandle Context::createBuffer(BufferCreateInfo createInfo) const {

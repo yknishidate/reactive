@@ -427,9 +427,12 @@ void App::createDepthImage() {
         .usage = ImageUsage::DepthAttachment,
         .extent = {width, height, 1},
         .format = vk::Format::eD32Sfloat,
-        .layout = vk::ImageLayout::eDepthAttachmentOptimal,
         .aspect = vk::ImageAspectFlagBits::eDepth,
         .debugName = "App::depthImage",
+    });
+
+    context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
+        commandBuffer->transitionLayout(depthImage, vk::ImageLayout::eDepthAttachmentOptimal);
     });
 }
 
