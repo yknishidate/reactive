@@ -131,7 +131,7 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
         {vk::DescriptorType::eInputAttachment, 100},
     };
     if (enableRayTracing) {
-        poolSizes.push_back({vk::DescriptorType::eAccelerationStructureKHR, 100});
+        poolSizes.emplace_back(vk::DescriptorType::eAccelerationStructureKHR, 100);
     }
 
     vk::DescriptorPoolCreateInfo descriptorPoolCreateInfo;
