@@ -81,14 +81,14 @@ void Context::initPhysicalDevice(vk::SurfaceKHR surface) {
             if (supportGraphics && supportCompute && supportPresent && supportTransfer) {
                 if (!queueFamilies.contains(QueueFlags::General)) {
                     queueFamilies[QueueFlags::General] = index;
-                    spdlog::info("  General: {}", index);
+                    spdlog::info("  General: {} x {}", index, properties[index].queueCount);
                     continue;
                 }
             }
             if (supportGraphics && supportPresent) {
                 if (!queueFamilies.contains(QueueFlags::Graphics)) {
                     queueFamilies[QueueFlags::Graphics] = index;
-                    spdlog::info("  Graphics: {}", index);
+                    spdlog::info("  Graphics: {} x {}", index, properties[index].queueCount);
                     continue;
                 }
             }
@@ -96,14 +96,14 @@ void Context::initPhysicalDevice(vk::SurfaceKHR surface) {
             if (supportGraphics && supportCompute && supportTransfer) {
                 if (!queueFamilies.contains(QueueFlags::General)) {
                     queueFamilies[QueueFlags::General] = index;
-                    spdlog::info("  General: {}", index);
+                    spdlog::info("  General: {} x {}", index, properties[index].queueCount);
                     continue;
                 }
             }
             if (supportGraphics) {
                 if (!queueFamilies.contains(QueueFlags::Graphics)) {
                     queueFamilies[QueueFlags::Graphics] = index;
-                    spdlog::info("  Graphics: {}", index);
+                    spdlog::info("  Graphics: {} x {}", index, properties[index].queueCount);
                     continue;
                 }
             }
@@ -113,14 +113,14 @@ void Context::initPhysicalDevice(vk::SurfaceKHR surface) {
         if (supportCompute) {
             if (!queueFamilies.contains(QueueFlags::Compute)) {
                 queueFamilies[QueueFlags::Compute] = index;
-                spdlog::info("  Compute: {}", index);
+                spdlog::info("  Compute: {} x {}", index, properties[index].queueCount);
                 continue;
             }
         }
         if (supportTransfer) {
             if (!queueFamilies.contains(QueueFlags::Transfer)) {
                 queueFamilies[QueueFlags::Transfer] = index;
-                spdlog::info("  Transfer: {}", index);
+                spdlog::info("  Transfer: {} x {}", index, properties[index].queueCount);
             }
         }
     }
@@ -136,13 +136,20 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
                          bool enableRayTracing) {
     // Create device
     float queuePriority = 1.0f;
+    std::unordered_map<uint32_t, std::vector<float>> queuePriorities;
     std::vector<vk::DeviceQueueCreateInfo> queueInfo;
-    for (const auto& queueFamily : queueFamilies | std::views::values) {
+    for (const auto& [flag, queueFamily] : queueFamilies) {
+        uint32_t queueCount = physicalDevice.getQueueFamilyProperties()[queueFamily].queueCount;
+        queuePriorities[flag] = {};
+        queuePriorities[flag].resize(queueCount);
+        std::ranges::fill(queuePriorities[flag], 1.0f);
+
         vk::DeviceQueueCreateInfo info;
         info.setQueueFamilyIndex(queueFamily);
-        info.setQueueCount(1);
-        info.setPQueuePriorities(&queuePriority);
+        info.setQueuePriorities(queuePriorities[flag]);
         queueInfo.push_back(info);
+        queues[flag] = {};
+        queues.at(flag).resize(queueCount);
     }
 
     checkDeviceExtensionSupport(deviceExtensions);
@@ -161,7 +168,9 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
 
     // Get queue
     for (const auto& [flag, queueFamily] : queueFamilies) {
-        queues[flag] = device->getQueue(queueFamily, 0);
+        for (int i = 0; i < queues[flag].size(); i++) {
+            queues[flag][i] = device->getQueue(queueFamily, i);
+        }
     }
 
     // Create command pool
@@ -169,7 +178,12 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
         vk::CommandPoolCreateInfo commandPoolCreateInfo;
         commandPoolCreateInfo.setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer);
         commandPoolCreateInfo.setQueueFamilyIndex(queueFamily);
-        commandPools[flag] = device->createCommandPoolUnique(commandPoolCreateInfo);
+        commandPools[flag] = std::vector<vk::UniqueCommandPool>(queues[flag].size());
+
+        for (int i = 0; i < queues[flag].size(); i++) {
+            commandPools[flag][i] =
+                std::move(device->createCommandPoolUnique(commandPoolCreateInfo));
+        }
     }
 
     // Create descriptor pool
@@ -194,8 +208,10 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
 }
 
 CommandBufferHandle Context::allocateCommandBuffer(uint32_t flag) const {
+    uint32_t queueIndex = getQueueIndexByThreadId();
+
     vk::CommandBufferAllocateInfo commandBufferInfo;
-    commandBufferInfo.setCommandPool(*commandPools.at(flag));
+    commandBufferInfo.setCommandPool(*commandPools.at(flag)[queueIndex]);
     commandBufferInfo.setLevel(vk::CommandBufferLevel::ePrimary);
     commandBufferInfo.setCommandBufferCount(1);
 
@@ -204,19 +220,22 @@ CommandBufferHandle Context::allocateCommandBuffer(uint32_t flag) const {
 }
 
 void Context::submit(CommandBufferHandle commandBuffer, vk::Fence fence) const {
+    uint32_t queueIndex = getQueueIndexByThreadId();
+
     vk::SubmitInfo submitInfo;
     submitInfo.setCommandBuffers(*commandBuffer->commandBuffer);
-    queues.at(commandBuffer->getQueueFlags()).submit(submitInfo, fence);
+    queues.at(commandBuffer->getQueueFlags())[queueIndex].submit(submitInfo, fence);
 }
 
 void Context::oneTimeSubmit(const std::function<void(CommandBufferHandle)>& command,
                             uint32_t flag) const {
+    uint32_t queueIndex = getQueueIndexByThreadId();
     CommandBufferHandle commandBuffer = allocateCommandBuffer(flag);
     commandBuffer->begin(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
     command(commandBuffer);
     commandBuffer->end();
     submit(commandBuffer);
-    queues.at(flag).waitIdle();
+    queues.at(flag)[queueIndex].waitIdle();
 }
 
 vk::UniqueDescriptorSet Context::allocateDescriptorSet(

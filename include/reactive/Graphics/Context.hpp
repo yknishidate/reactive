@@ -164,12 +164,14 @@ public:
     vk::Instance getInstance() const { return *instance; }
     vk::Device getDevice() const { return *device; }
     vk::PhysicalDevice getPhysicalDevice() const { return physicalDevice; }
-    vk::Queue getQueue(uint32_t flag = QueueFlags::General) const { return queues.at(flag); }
+    vk::Queue getQueue(uint32_t flag = QueueFlags::General) const {
+        return queues.at(flag)[getQueueIndexByThreadId()];
+    }
     uint32_t getQueueFamily(uint32_t flag = QueueFlags::General) const {
         return queueFamilies.at(flag);
     }
     vk::CommandPool getCommandPool(uint32_t flag = QueueFlags::General) const {
-        return *commandPools.at(flag);
+        return *commandPools.at(flag)[getQueueIndexByThreadId()];
     }
     vk::DescriptorPool getDescriptorPool() const { return *descriptorPool; }
 
@@ -260,14 +262,27 @@ private:
         }
     }
 
+    uint32_t getQueueIndexByThreadId() const {
+        std::thread::id id = std::this_thread::get_id();
+        uint32_t queueIndex;
+        if (queueIndices.contains(id)) {
+            queueIndex = queueIndices.at(id);
+        } else {
+            queueIndex = queueIndices.size();
+            queueIndices[id] = queueIndex;
+        }
+        return queueIndex;
+    }
+
     vk::UniqueInstance instance;
     vk::UniqueDebugUtilsMessengerEXT debugMessenger;
     vk::UniqueDevice device;
     vk::PhysicalDevice physicalDevice;
 
+    mutable std::unordered_map<std::thread::id, uint32_t> queueIndices;
     std::unordered_map<uint32_t, uint32_t> queueFamilies;
-    std::unordered_map<uint32_t, vk::Queue> queues;
-    std::unordered_map<uint32_t, vk::UniqueCommandPool> commandPools;
+    std::unordered_map<uint32_t, std::vector<vk::Queue>> queues;
+    std::unordered_map<uint32_t, std::vector<vk::UniqueCommandPool>> commandPools;
     vk::UniqueDescriptorPool descriptorPool;
 };
 }  // namespace rv
