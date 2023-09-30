@@ -64,8 +64,8 @@ bool FPSCamera::processInput() {
 }
 
 void FPSCamera::processDragDelta(glm::vec2 dragDelta) {
-    yaw = glm::mod(yaw - dragDelta.x * 0.1f, 360.0f);
-    pitch = glm::clamp(pitch + dragDelta.y * 0.1f, -89.9f, 89.9f);
+    yaw = yaw - dragDelta.x * 0.1f;
+    pitch = pitch + dragDelta.y * 0.1f;
 }
 
 void FPSCamera::processMouseScroll(float scroll) {}
