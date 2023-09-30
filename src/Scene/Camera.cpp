@@ -20,16 +20,21 @@ glm::vec3 Camera::getRight() const {
     return glm::normalize(glm::cross(-getUp(), getFront()));
 }
 
-void FPSCamera::processInput() {
+bool FPSCamera::processInput() {
     if (!app) {
-        return;
+        return false;
     }
 
+    bool updated = false;
     static glm::vec2 lastCursorPos{0.0f};
     glm::vec2 cursorPos = app->getCursorPos();
     glm::vec2 cursorOffset = cursorPos - lastCursorPos;
     lastCursorPos = cursorPos;
     if (app->isMouseButtonDown(GLFW_MOUSE_BUTTON_1)) {
+        if (cursorOffset != glm::vec2(0.0)) {
+            updated = true;
+        }
+
         processDragDelta(cursorOffset);
     }
 
@@ -37,19 +42,25 @@ void FPSCamera::processInput() {
     glm::vec3 right = glm::normalize(glm::cross(-up, front));
     if (app->isKeyDown(GLFW_KEY_W)) {
         position += front * 0.15f * speed;
+        updated = true;
     }
     if (app->isKeyDown(GLFW_KEY_S)) {
         position -= front * 0.15f * speed;
+        updated = true;
     }
     if (app->isKeyDown(GLFW_KEY_D)) {
         position += right * 0.1f * speed;
+        updated = true;
     }
     if (app->isKeyDown(GLFW_KEY_A)) {
         position -= right * 0.1f * speed;
+        updated = true;
     }
     if (app->isKeyDown(GLFW_KEY_SPACE)) {
         position.y -= 0.05f * speed;
+        updated = true;
     }
+    return updated;
 }
 
 void FPSCamera::processDragDelta(glm::vec2 dragDelta) {
@@ -78,16 +89,21 @@ glm::vec3 FPSCamera::getFront() const {
     return glm::normalize(glm::vec3{rotation * glm::vec4{0, 0, -1, 1}});
 }
 
-void OrbitalCamera::processInput() {
+bool OrbitalCamera::processInput() {
     if (!app) {
-        return;
+        return false;
     }
 
+    bool updated = false;
     static glm::vec2 lastCursorPos{0.0f};
     glm::vec2 cursorPos = app->getCursorPos();
     glm::vec2 cursorOffset = cursorPos - lastCursorPos;
     lastCursorPos = cursorPos;
     if (app->isMouseButtonDown(GLFW_MOUSE_BUTTON_1)) {
+        if (cursorOffset != glm::vec2(0.0)) {
+            updated = true;
+        }
+
         processDragDelta(cursorOffset);
     }
 
@@ -96,6 +112,10 @@ void OrbitalCamera::processInput() {
     float wheelOffset = wheel - lastWheel;
     lastWheel = wheel;
     distance = std::max(distance - wheelOffset, 0.001f);
+    if (wheelOffset != 0.0f) {
+        updated = true;
+    }
+    return updated;
 }
 
 void OrbitalCamera::processDragDelta(glm::vec2 dragDelta) {

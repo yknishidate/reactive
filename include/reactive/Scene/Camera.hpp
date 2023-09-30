@@ -10,7 +10,7 @@ struct Camera {
     Camera(const App* app, uint32_t width, uint32_t height)
         : app{app}, aspect{static_cast<float>(width) / static_cast<float>(height)} {}
 
-    virtual void processInput() = 0;
+    virtual bool processInput() = 0;
     virtual void processDragDelta(glm::vec2 dragDelta) = 0;
     virtual void processMouseScroll(float scroll) = 0;
 
@@ -37,7 +37,7 @@ struct FPSCamera : public Camera {
     FPSCamera(const App* app, uint32_t width, uint32_t height) : Camera{app, width, height} {}
 
     // Override
-    void processInput() override;
+    bool processInput() override;
     void processDragDelta(glm::vec2 dragDelta) override;
     void processMouseScroll(float scroll) override;
 
@@ -57,7 +57,7 @@ struct OrbitalCamera : public Camera {
     OrbitalCamera(const App* app, uint32_t width, uint32_t height) : Camera{app, width, height} {}
 
     // Override
-    void processInput() override;
+    bool processInput() override;
     void processDragDelta(glm::vec2 dragDelta) override;
     void processMouseScroll(float scroll) override;
 
