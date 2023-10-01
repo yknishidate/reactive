@@ -93,16 +93,16 @@ public:
                                uint32_t stride) const;
 
     // barrier
-    void bufferBarrier(BufferHandle buffer,
+    void bufferBarrier(const vk::ArrayProxy<const vk::BufferMemoryBarrier>& bufferMemoryBarriers,
+                       vk::PipelineStageFlags srcStageMask,
+                       vk::PipelineStageFlags dstStageMask,
+                       vk::DependencyFlags dependencyFlags = {}) const;
+
+    void bufferBarrier(ArrayProxy<BufferHandle> buffers,
                        vk::PipelineStageFlags srcStageMask,
                        vk::PipelineStageFlags dstStageMask,
                        vk::AccessFlags srcAccessMask,
                        vk::AccessFlags dstAccessMask,
-                       vk::DependencyFlags dependencyFlags = {}) const;
-
-    void bufferBarrier(const vk::ArrayProxy<const vk::BufferMemoryBarrier>& bufferMemoryBarriers,
-                       vk::PipelineStageFlags srcStageMask,
-                       vk::PipelineStageFlags dstStageMask,
                        vk::DependencyFlags dependencyFlags = {}) const;
 
     void imageBarrier(const vk::ArrayProxy<const vk::ImageMemoryBarrier>& imageMemoryBarriers,
@@ -110,17 +110,12 @@ public:
                       vk::PipelineStageFlags dstStageMask,
                       vk::DependencyFlags dependencyFlags = {}) const;
 
-    void imageBarrier(ImageHandle image,
+    void imageBarrier(ArrayProxy<ImageHandle> images,
                       vk::PipelineStageFlags srcStageMask,
                       vk::PipelineStageFlags dstStageMask,
                       vk::AccessFlags srcAccessMask,
                       vk::AccessFlags dstAccessMask,
                       vk::DependencyFlags dependencyFlags = {}) const;
-
-    void memoryBarrier(vk::PipelineStageFlags srcStageMask,
-                       vk::PipelineStageFlags dstStageMask,
-                       vk::DependencyFlags dependencyFlags,
-                       const vk::ArrayProxy<const vk::MemoryBarrier>& memoryBarriers) const;
 
     void memoryBarrier(vk::PipelineStageFlags srcStageMask,
                        vk::PipelineStageFlags dstStageMask,
