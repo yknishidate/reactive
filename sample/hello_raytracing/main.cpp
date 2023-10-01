@@ -31,8 +31,13 @@ public:
             .vertexCount = mesh.getVertexCount(),
             .triangleCount = mesh.getTriangleCount(),
         });
+        context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
+            commandBuffer->buildBottomAccel(bottomAccel);
+        });
 
-        topAccel = context.createTopAccel({.accelInstances = {{bottomAccel}}});
+        topAccel = context.createTopAccel({
+            .accelInstances = {{bottomAccel}},
+        });
 
         image = context.createImage({
             .usage = ImageUsage::Storage,
@@ -41,6 +46,7 @@ public:
         });
 
         context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
+            commandBuffer->buildTopAccel(topAccel);
             commandBuffer->transitionLayout(image, vk::ImageLayout::eGeneral);
         });
 
