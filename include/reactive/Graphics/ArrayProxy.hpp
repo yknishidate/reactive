@@ -76,8 +76,13 @@ public:
         return false;
     }
 
+    const T& operator[](int i) noexcept {
+        assert(0 <= i && i < m_count);
+        return m_ptr[i];
+    }
+
 private:
     uint32_t m_count;
-    T const* m_ptr;
+    const T* m_ptr;
 };
 }  // namespace rv
