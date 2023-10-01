@@ -11,11 +11,11 @@ class Fence {
 public:
     Fence(const Context* context, FenceCreateInfo createInfo);
 
+    auto getFence() const -> vk::Fence { return *fence; }
+
     void wait() const;
-
-    auto finished() const -> bool;
-
     void reset() const;
+    auto finished() const -> bool;
 
 private:
     const Context* context = nullptr;

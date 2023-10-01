@@ -1,6 +1,7 @@
 #include "Graphics/Accel.hpp"
 
 #include "Graphics/CommandBuffer.hpp"
+#include "common.hpp"
 
 namespace rv {
 BottomAccel::BottomAccel(const Context* context, BottomAccelCreateInfo createInfo)

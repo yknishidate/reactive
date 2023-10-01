@@ -16,11 +16,11 @@ void Fence::wait() const {
                     "Failed to wait for fence");
 }
 
-auto Fence::finished() const -> bool {
-    return context->getDevice().getFenceStatus(*fence) == vk::Result::eSuccess;
-}
-
 void Fence::reset() const {
     context->getDevice().resetFences(*fence);
+}
+
+auto Fence::finished() const -> bool {
+    return context->getDevice().getFenceStatus(*fence) == vk::Result::eSuccess;
 }
 }  // namespace rv

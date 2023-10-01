@@ -10,8 +10,6 @@
 
 #include <vulkan/vulkan.hpp>
 
-#include "common.hpp"
-
 namespace std {
 template <>
 struct hash<vk::QueueFlags> {
@@ -198,7 +196,13 @@ public:
     auto allocateCommandBuffer(vk::QueueFlags flag = QueueFlags::General) const
         -> CommandBufferHandle;
 
-    void submit(CommandBufferHandle commandBuffer, vk::Fence fence = {}) const;
+    void submit(CommandBufferHandle commandBuffer,
+                vk::PipelineStageFlags waitStage,
+                vk::Semaphore waitSemaphore,
+                vk::Semaphore signalSemaphore,
+                FenceHandle fence = {}) const;
+
+    void submit(CommandBufferHandle commandBuffer, FenceHandle fence = {}) const;
 
     void oneTimeSubmit(const std::function<void(CommandBufferHandle)>& command,
                        vk::QueueFlags flag = QueueFlags::General) const;

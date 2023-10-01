@@ -10,6 +10,7 @@
 #include "Graphics/Pipeline.hpp"
 #include "Graphics/Shader.hpp"
 #include "Timer/GPUTimer.hpp"
+#include "common.hpp"
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
@@ -228,12 +229,29 @@ auto Context::allocateCommandBuffer(vk::QueueFlags flag) const -> CommandBufferH
     return std::make_shared<CommandBuffer>(this, commandBuffer, commandPool, flag);
 }
 
-void Context::submit(CommandBufferHandle commandBuffer, vk::Fence fence) const {
+void Context::submit(CommandBufferHandle commandBuffer,
+                     vk::PipelineStageFlags waitStage,
+                     vk::Semaphore waitSemaphore,
+                     vk::Semaphore signalSemaphore,
+                     FenceHandle fence) const {
+    uint32_t queueIndex = getQueueIndexByThreadId();
+
+    vk::SubmitInfo submitInfo;
+    submitInfo.setWaitDstStageMask(waitStage);
+    submitInfo.setCommandBuffers(*commandBuffer->commandBuffer);
+    submitInfo.setWaitSemaphores(waitSemaphore);
+    submitInfo.setSignalSemaphores(signalSemaphore);
+    queues.at(commandBuffer->getQueueFlags())[queueIndex].submit(
+        submitInfo, fence ? fence->getFence() : nullptr);
+}
+
+void Context::submit(CommandBufferHandle commandBuffer, FenceHandle fence) const {
     uint32_t queueIndex = getQueueIndexByThreadId();
 
     vk::SubmitInfo submitInfo;
     submitInfo.setCommandBuffers(*commandBuffer->commandBuffer);
-    queues.at(commandBuffer->getQueueFlags())[queueIndex].submit(submitInfo, fence);
+    queues.at(commandBuffer->getQueueFlags())[queueIndex].submit(
+        submitInfo, fence ? fence->getFence() : nullptr);
 }
 
 void Context::oneTimeSubmit(const std::function<void(CommandBufferHandle)>& command,

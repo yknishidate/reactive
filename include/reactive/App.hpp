@@ -130,6 +130,6 @@ protected:
     vk::UniqueSemaphore imageAcquiredSemaphore;
     vk::UniqueSemaphore renderCompleteSemaphore;
     std::vector<CommandBufferHandle> commandBuffers{};
-    std::vector<vk::UniqueFence> fences{};
+    std::vector<FenceHandle> fences{};
 };
 }  // namespace rv

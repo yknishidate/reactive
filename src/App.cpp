@@ -9,6 +9,8 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
 
+#include "Graphics/Fence.hpp"
+
 namespace rv {
 App::App(AppCreateInfo createInfo) : width{createInfo.width}, height{createInfo.height} {
     spdlog::set_pattern("[%^%l%$] %v");
@@ -35,8 +37,7 @@ void App::run() {
         ImGui::NewFrame();
 
         // Wait fence
-        vk::resultCheck(context.getDevice().waitForFences(*fences[frameIndex], VK_TRUE, UINT64_MAX),
-                        "Failed to wait for fence");
+        fences[frameIndex]->wait();
 
         // Acquire next image
         auto acquireResult = context.getDevice().acquireNextImageKHR(*swapchain, UINT64_MAX,
@@ -47,7 +48,7 @@ void App::run() {
         frameIndex = acquireResult.value;
 
         // Reset fence
-        context.getDevice().resetFences(*fences[frameIndex]);
+        fences[frameIndex]->reset();
 
         // Begin command buffer
         // NOTE: Since the command pool is created with the Reset flag,
@@ -80,14 +81,9 @@ void App::run() {
         commandBuffers[frameIndex]->end();
 
         // Submit
-        // TODO: use Context::submit()
         vk::PipelineStageFlags waitStage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-        vk::SubmitInfo submitInfo;
-        submitInfo.setWaitDstStageMask(waitStage);
-        submitInfo.setCommandBuffers(*commandBuffers[frameIndex]->commandBuffer);
-        submitInfo.setWaitSemaphores(*imageAcquiredSemaphore);
-        submitInfo.setSignalSemaphores(*renderCompleteSemaphore);
-        context.getQueue().submit(submitInfo, *fences[frameIndex]);
+        context.submit(commandBuffers[frameIndex], waitStage, *imageAcquiredSemaphore,
+                       *renderCompleteSemaphore, fences[frameIndex]);
 
         // Present image
         vk::PresentInfoKHR presentInfo;
@@ -285,8 +281,7 @@ void App::initVulkan(ArrayProxy<Layer> requiredLayers, ArrayProxy<Extension> req
     renderCompleteSemaphore = context.getDevice().createSemaphoreUnique({});
     for (uint32_t i = 0; i < imageCount; i++) {
         commandBuffers[i] = context.allocateCommandBuffer();
-        fences[i] = context.getDevice().createFenceUnique(
-            vk::FenceCreateInfo().setFlags(vk::FenceCreateFlagBits::eSignaled));
+        fences[i] = context.createFence({.signaled = true});
     }
 }
 
