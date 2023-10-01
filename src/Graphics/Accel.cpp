@@ -4,8 +4,10 @@
 
 namespace rv {
 BottomAccel::BottomAccel(const Context* context, BottomAccelCreateInfo createInfo)
-    : context{context} {
-    vk::AccelerationStructureGeometryTrianglesDataKHR trianglesData;
+    : context{context},
+      geometryFlags{createInfo.geometryFlags},
+      buildFlags{createInfo.buildFlags},
+      buildType{createInfo.buildType} {
     trianglesData.setVertexFormat(vk::Format::eR32G32B32Sfloat);
     trianglesData.setVertexData(createInfo.vertexBuffer->getAddress());
     trianglesData.setVertexStride(createInfo.vertexStride);
@@ -19,16 +21,16 @@ BottomAccel::BottomAccel(const Context* context, BottomAccelCreateInfo createInf
     vk::AccelerationStructureGeometryKHR geometry;
     geometry.setGeometryType(vk::GeometryTypeKHR::eTriangles);
     geometry.setGeometry({geometryData});
-    geometry.setFlags(createInfo.geometryFlags);
+    geometry.setFlags(geometryFlags);
 
     vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
     buildGeometryInfo.setType(vk::AccelerationStructureTypeKHR::eBottomLevel);
-    buildGeometryInfo.setFlags(createInfo.buildFlags);
+    buildGeometryInfo.setFlags(buildFlags);
     buildGeometryInfo.setGeometries(geometry);
 
-    size_t primitiveCount = createInfo.triangleCount;
+    primitiveCount = createInfo.triangleCount;
     auto buildSizesInfo = context->getDevice().getAccelerationStructureBuildSizesKHR(
-        createInfo.buildType, buildGeometryInfo, primitiveCount);
+        buildType, buildGeometryInfo, primitiveCount);
 
     buffer = context->createBuffer({
         .usage = BufferUsage::AccelStorage,
@@ -42,24 +44,10 @@ BottomAccel::BottomAccel(const Context* context, BottomAccelCreateInfo createInf
             .setSize(buildSizesInfo.accelerationStructureSize)
             .setType(vk::AccelerationStructureTypeKHR::eBottomLevel));
 
-    BufferHandle scratchBuffer = context->createBuffer({
+    scratchBuffer = context->createBuffer({
         .usage = BufferUsage::Scratch,
         .memory = MemoryUsage::Host,
         .size = buildSizesInfo.buildScratchSize,
-    });
-
-    buildGeometryInfo.setMode(vk::BuildAccelerationStructureModeKHR::eBuild);
-    buildGeometryInfo.setDstAccelerationStructure(*accel);
-    buildGeometryInfo.setScratchData(scratchBuffer->getAddress());
-
-    context->oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
-        vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo{};
-        buildRangeInfo.setPrimitiveCount(primitiveCount);
-        buildRangeInfo.setPrimitiveOffset(0);
-        buildRangeInfo.setFirstVertex(0);
-        buildRangeInfo.setTransformOffset(0);
-        commandBuffer->commandBuffer->buildAccelerationStructuresKHR(buildGeometryInfo,
-                                                                     &buildRangeInfo);
     });
 }
 

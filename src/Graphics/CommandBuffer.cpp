@@ -426,6 +426,32 @@ void CommandBuffer::buildTopAccel(TopAccelHandle topAccel) const {
     commandBuffer->buildAccelerationStructuresKHR(buildGeometryInfo, &buildRangeInfo);
 }
 
+void CommandBuffer::buildBottomAccel(BottomAccelHandle bottomAccel) const {
+    vk::AccelerationStructureGeometryDataKHR geometryData;
+    geometryData.setTriangles(bottomAccel->trianglesData);
+
+    vk::AccelerationStructureGeometryKHR geometry;
+    geometry.setGeometryType(vk::GeometryTypeKHR::eTriangles);
+    geometry.setGeometry({geometryData});
+    geometry.setFlags(bottomAccel->geometryFlags);
+
+    vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
+    buildGeometryInfo.setType(vk::AccelerationStructureTypeKHR::eBottomLevel);
+    buildGeometryInfo.setFlags(bottomAccel->buildFlags);
+    buildGeometryInfo.setGeometries(geometry);
+
+    buildGeometryInfo.setMode(vk::BuildAccelerationStructureModeKHR::eBuild);
+    buildGeometryInfo.setDstAccelerationStructure(*bottomAccel->accel);
+    buildGeometryInfo.setScratchData(bottomAccel->scratchBuffer->getAddress());
+
+    vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo{};
+    buildRangeInfo.setPrimitiveCount(bottomAccel->primitiveCount);
+    buildRangeInfo.setPrimitiveOffset(0);
+    buildRangeInfo.setFirstVertex(0);
+    buildRangeInfo.setTransformOffset(0);
+    commandBuffer->buildAccelerationStructuresKHR(buildGeometryInfo, &buildRangeInfo);
+}
+
 void CommandBuffer::beginTimestamp(GPUTimerHandle gpuTimer) const {
     commandBuffer->resetQueryPool(*gpuTimer->queryPool, 0, 2);
     commandBuffer->writeTimestamp(vk::PipelineStageFlagBits::eTopOfPipe, *gpuTimer->queryPool, 0);

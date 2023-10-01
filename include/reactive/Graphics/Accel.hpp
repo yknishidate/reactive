@@ -52,6 +52,8 @@ struct TopAccelCreateInfo {
 };
 
 class BottomAccel {
+    friend class CommandBuffer;
+
 public:
     BottomAccel(const Context* context, BottomAccelCreateInfo createInfo);
 
@@ -63,6 +65,13 @@ private:
     vk::UniqueAccelerationStructureKHR accel;
 
     BufferHandle buffer;
+    BufferHandle scratchBuffer;
+
+    uint32_t primitiveCount;
+    vk::AccelerationStructureGeometryTrianglesDataKHR trianglesData;
+    vk::GeometryFlagsKHR geometryFlags;
+    vk::BuildAccelerationStructureFlagsKHR buildFlags;
+    vk::AccelerationStructureBuildTypeKHR buildType;
 };
 
 class TopAccel {
