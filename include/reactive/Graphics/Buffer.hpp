@@ -21,9 +21,9 @@ public:
            vk::DeviceSize size,
            const char* debugName);
 
-    auto getBuffer() const -> vk::Buffer;
-    auto getSize() const -> vk::DeviceSize;
-    auto getInfo() const -> vk::DescriptorBufferInfo;
+    auto getBuffer() const -> vk::Buffer { return *buffer; }
+    auto getSize() const -> vk::DeviceSize { return size; }
+    auto getInfo() const -> vk::DescriptorBufferInfo { return {*buffer, 0, size}; }
     auto getAddress() const -> vk::DeviceAddress;
 
     auto map() -> void*;

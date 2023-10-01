@@ -38,18 +38,6 @@ Buffer::Buffer(const Context* context,
     }
 }
 
-auto Buffer::getBuffer() const -> vk::Buffer {
-    return *buffer;
-}
-
-auto Buffer::getSize() const -> vk::DeviceSize {
-    return size;
-}
-
-auto Buffer::getInfo() const -> vk::DescriptorBufferInfo {
-    return {*buffer, 0, size};
-}
-
 auto Buffer::getAddress() const -> vk::DeviceAddress {
     vk::BufferDeviceAddressInfo addressInfo{*buffer};
     return context->getDevice().getBufferAddress(&addressInfo);

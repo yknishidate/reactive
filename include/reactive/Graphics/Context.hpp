@@ -179,29 +179,17 @@ public:
                     bool enableRayTracing);
 
     // Getter
-    auto getInstance() const -> vk::Instance {
-        return *instance;
-    }
+    auto getInstance() const -> vk::Instance { return *instance; }
 
-    auto getDevice() const -> vk::Device {
-        return *device;
-    }
+    auto getDevice() const -> vk::Device { return *device; }
 
-    auto getPhysicalDevice() const -> vk::PhysicalDevice {
-        return physicalDevice;
-    }
+    auto getPhysicalDevice() const -> vk::PhysicalDevice { return physicalDevice; }
 
-    auto getQueue(vk::QueueFlags flag = QueueFlags::General) const -> vk::Queue {
-        return queues.at(flag)[getQueueIndexByThreadId()];
-    }
+    auto getQueue(vk::QueueFlags flag = QueueFlags::General) const -> vk::Queue;
 
-    auto getQueueFamily(vk::QueueFlags flag = QueueFlags::General) const -> uint32_t {
-        return queueFamilies.at(flag);
-    }
+    auto getQueueFamily(vk::QueueFlags flag = QueueFlags::General) const -> uint32_t;
 
-    auto getDescriptorPool() const -> vk::DescriptorPool {
-        return *descriptorPool;
-    }
+    auto getDescriptorPool() const -> vk::DescriptorPool { return *descriptorPool; }
 
     // Command buffer
     auto allocateCommandBuffer(vk::QueueFlags flag = QueueFlags::General) const
@@ -226,14 +214,10 @@ public:
         return props;
     }
 
-    auto getPhysicalDeviceLimits() const -> vk::PhysicalDeviceLimits {
-        return physicalDevice.getProperties().limits;
-    }
+    auto getPhysicalDeviceLimits() const -> vk::PhysicalDeviceLimits;
 
     // Debug
-    auto debugEnabled() const -> bool {
-        return debugMessenger.get();
-    }
+    auto debugEnabled() const -> bool { return debugMessenger.get(); }
 
     template <typename T, typename = std::enable_if_t<vk::isVulkanHandleType<T>::value>>
     void setDebugName(T object, const char* debugName) const {

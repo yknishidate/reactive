@@ -23,7 +23,9 @@ public:
     WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
                        ArrayProxy<vk::WriteDescriptorSetAccelerationStructureKHR> infos);
 
-    vk::WriteDescriptorSet get() const { return write; }
+    auto get() const -> vk::WriteDescriptorSet {
+        return write;
+    }
 
 private:
     WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding);
@@ -55,7 +57,9 @@ public:
 
     void addResources(ShaderHandle shader);
 
-    vk::DescriptorSetLayout getLayout() const { return *descSetLayout; }
+    vk::DescriptorSetLayout getLayout() const {
+        return *descSetLayout;
+    }
 
 private:
     void updateBindingMap(const spirv_cross::Resource& resource,

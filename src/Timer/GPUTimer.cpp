@@ -9,7 +9,7 @@ GPUTimer::GPUTimer(const Context* context, GPUTimerCreateInfo createInfo) : cont
     timestampPeriod = context->getPhysicalDevice().getProperties().limits.timestampPeriod;
 }
 
-double GPUTimer::elapsedInNano() {
+auto GPUTimer::elapsedInNano() -> double {
     timestamps.fill(0);
     vk::resultCheck(context->getDevice().getQueryPoolResults(
                         *queryPool, 0, 2,
@@ -21,7 +21,7 @@ double GPUTimer::elapsedInNano() {
     return timestampPeriod * static_cast<double>(timestamps[1] - timestamps[0]);
 }
 
-double GPUTimer::elapsedInMilli() {
+auto GPUTimer::elapsedInMilli() -> double {
     return elapsedInNano() / 1000000.0;
 }
 }  // namespace rv

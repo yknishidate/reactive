@@ -100,6 +100,15 @@ Image::Image(const Context* context,
     }
 }
 
+Image::~Image() {
+    if (hasOwnership) {
+        context->getDevice().destroySampler(sampler);
+        context->getDevice().destroyImageView(view);
+        context->getDevice().freeMemory(memory);
+        context->getDevice().destroyImage(image);
+    }
+}
+
 ImageHandle Image::loadFromFile(const Context& context,
                                 const std::string& filepath,
                                 uint32_t mipLevels) {
@@ -201,6 +210,7 @@ void Image::generateMipmaps() {
     }
 
     // TODO: support 3D
+    // TODO: move to command buffer
     context->oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
         vk::ImageMemoryBarrier barrier{};
         barrier.image = image;

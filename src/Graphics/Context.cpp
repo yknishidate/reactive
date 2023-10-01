@@ -208,6 +208,14 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
     descriptorPool = device->createDescriptorPoolUnique(descriptorPoolCreateInfo);
 }
 
+auto Context::getQueue(vk::QueueFlags flag) const -> vk::Queue {
+    return queues.at(flag)[getQueueIndexByThreadId()];
+}
+
+auto Context::getQueueFamily(vk::QueueFlags flag) const -> uint32_t {
+    return queueFamilies.at(flag);
+}
+
 auto Context::allocateCommandBuffer(vk::QueueFlags flag) const -> CommandBufferHandle {
     uint32_t queueIndex = getQueueIndexByThreadId();
 
@@ -254,6 +262,10 @@ auto Context::findMemoryTypeIndex(vk::MemoryRequirements requirements,
         }
     }
     throw std::runtime_error("Failed to find memory type index.");
+}
+
+auto Context::getPhysicalDeviceLimits() const -> vk::PhysicalDeviceLimits {
+    return physicalDevice.getProperties().limits;
 }
 
 auto Context::createShader(ShaderCreateInfo createInfo) const -> ShaderHandle {

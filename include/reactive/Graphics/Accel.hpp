@@ -55,9 +55,7 @@ class BottomAccel {
 public:
     BottomAccel(const Context* context, BottomAccelCreateInfo createInfo);
 
-    auto getBufferAddress() const -> uint64_t {
-        return buffer->getAddress();
-    }
+    auto getBufferAddress() const -> uint64_t { return buffer->getAddress(); }
 
 private:
     const Context* context;
@@ -73,13 +71,9 @@ class TopAccel {
 public:
     TopAccel(const Context* context, TopAccelCreateInfo createInfo);
 
-    auto getAccel() const -> vk::AccelerationStructureKHR {
-        return *accel;
-    }
+    auto getAccel() const -> vk::AccelerationStructureKHR { return *accel; }
 
-    auto getInfo() const -> vk::WriteDescriptorSetAccelerationStructureKHR {
-        return {*accel};
-    }
+    auto getInfo() const -> vk::WriteDescriptorSetAccelerationStructureKHR { return {*accel}; }
 
     void updateInstances(ArrayProxy<AccelInstance> accelInstances) const;
 

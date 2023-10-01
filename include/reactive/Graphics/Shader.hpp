@@ -1,9 +1,4 @@
 #pragma once
-#include <filesystem>
-#include <spirv_glsl.hpp>
-#include <string>
-#include <string_view>
-#include <unordered_map>
 #include "Compiler/Compiler.hpp"
 #include "Context.hpp"
 

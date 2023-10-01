@@ -12,6 +12,7 @@ class Image;
 struct GraphicsPipelineCreateInfo {
     // Layout
     vk::DescriptorSetLayout descSetLayout = {};
+
     uint32_t pushSize = 0;
 
     // Shader
@@ -85,8 +86,8 @@ class Pipeline {
 public:
     Pipeline(const Context* context) : context{context} {}
 
-    vk::PipelineBindPoint getPipelineBindPoint() const { return bindPoint; }
-    vk::PipelineLayout getPipelineLayout() const { return *pipelineLayout; }
+    auto getPipelineBindPoint() const -> vk::PipelineBindPoint { return bindPoint; }
+    auto getPipelineLayout() const -> vk::PipelineLayout { return *pipelineLayout; }
 
 protected:
     friend class CommandBuffer;

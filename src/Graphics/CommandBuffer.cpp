@@ -348,6 +348,14 @@ void CommandBuffer::fillBuffer(BufferHandle dstBuffer,
     commandBuffer->fillBuffer(dstBuffer->getBuffer(), dstOffset, size, data);
 }
 
+void CommandBuffer::copyBuffer(BufferHandle buffer, const void* data) const {
+    buffer->prepareStagingBuffer();
+    buffer->stagingBuffer->copy(data);
+
+    vk::BufferCopy region{0, 0, buffer->getSize()};
+    commandBuffer->copyBuffer(buffer->stagingBuffer->getBuffer(), buffer->getBuffer(), region);
+}
+
 void CommandBuffer::updateTopAccel(TopAccelHandle topAccel) const {
     vk::AccelerationStructureGeometryInstancesDataKHR instancesData;
     instancesData.setArrayOfPointers(false);
