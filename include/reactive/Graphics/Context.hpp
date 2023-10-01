@@ -39,6 +39,7 @@ struct RayTracingPipelineCreateInfo;
 struct BottomAccelCreateInfo;
 struct TopAccelCreateInfo;
 struct GPUTimerCreateInfo;
+struct FenceCreateInfo;
 class Buffer;
 class Image;
 class Mesh;
@@ -53,6 +54,7 @@ class BottomAccel;
 class TopAccel;
 class GPUTimer;
 class CommandBuffer;
+class Fence;
 
 using BufferHandle = std::shared_ptr<Buffer>;
 using ImageHandle = std::shared_ptr<Image>;
@@ -67,6 +69,7 @@ using BottomAccelHandle = std::shared_ptr<BottomAccel>;
 using TopAccelHandle = std::shared_ptr<TopAccel>;
 using GPUTimerHandle = std::shared_ptr<GPUTimer>;
 using CommandBufferHandle = std::shared_ptr<CommandBuffer>;
+using FenceHandle = std::shared_ptr<Fence>;
 
 // clang-format off
 namespace BufferUsage {
@@ -255,6 +258,8 @@ public:
     auto createTopAccel(TopAccelCreateInfo createInfo) const -> TopAccelHandle;
 
     auto createGPUTimer(GPUTimerCreateInfo createInfo) const -> GPUTimerHandle;
+
+    auto createFence(FenceCreateInfo createInfo) const -> FenceHandle;
 
 private:
     static auto VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,

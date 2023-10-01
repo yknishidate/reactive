@@ -5,6 +5,7 @@
 #include "Graphics/Accel.hpp"
 #include "Graphics/CommandBuffer.hpp"
 #include "Graphics/DescriptorSet.hpp"
+#include "Graphics/Fence.hpp"
 #include "Graphics/Image.hpp"
 #include "Graphics/Pipeline.hpp"
 #include "Graphics/Shader.hpp"
@@ -314,6 +315,10 @@ auto Context::createTopAccel(TopAccelCreateInfo createInfo) const -> TopAccelHan
 
 auto Context::createGPUTimer(GPUTimerCreateInfo createInfo) const -> GPUTimerHandle {
     return std::make_shared<GPUTimer>(this, createInfo);
+}
+
+auto Context::createFence(FenceCreateInfo createInfo) const -> FenceHandle {
+    return std::make_shared<Fence>(this, createInfo);
 }
 
 void Context::checkDeviceExtensionSupport(
