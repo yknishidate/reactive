@@ -150,11 +150,14 @@ static constexpr vk::ImageUsageFlags Sampled =
 namespace QueueFlags{
     static constexpr vk::QueueFlags General =
         vk::QueueFlagBits::eGraphics |
-                              vk::QueueFlagBits::eCompute |
-                              vk::QueueFlagBits::eTransfer;
-    static constexpr vk::QueueFlags Graphics = vk::QueueFlagBits::eGraphics;
-    static constexpr vk::QueueFlags Compute =  vk::QueueFlagBits::eCompute;
-    static constexpr vk::QueueFlags Transfer = vk::QueueFlagBits::eTransfer;
+        vk::QueueFlagBits::eCompute |
+        vk::QueueFlagBits::eTransfer;
+    static constexpr vk::QueueFlags Graphics = 
+        vk::QueueFlagBits::eGraphics;
+    static constexpr vk::QueueFlags Compute =  
+        vk::QueueFlagBits::eCompute;
+    static constexpr vk::QueueFlags Transfer = 
+        vk::QueueFlagBits::eTransfer;
 }
 // clang-format on
 
@@ -162,6 +165,7 @@ class Context {
     friend class CommandBuffer;
 
 public:
+    // Initialization
     void initInstance(bool enableValidation,
                       const std::vector<const char*>& layers,
                       const std::vector<const char*>& instanceExtensions,
@@ -174,32 +178,47 @@ public:
                     const void* deviceCreateInfoPNext,
                     bool enableRayTracing);
 
-    vk::Instance getInstance() const { return *instance; }
+    // Getter
+    auto getInstance() const -> vk::Instance {
+        return *instance;
+    }
 
-    vk::Device getDevice() const { return *device; }
+    auto getDevice() const -> vk::Device {
+        return *device;
+    }
 
-    vk::PhysicalDevice getPhysicalDevice() const { return physicalDevice; }
+    auto getPhysicalDevice() const -> vk::PhysicalDevice {
+        return physicalDevice;
+    }
 
-    vk::Queue getQueue(vk::QueueFlags flag = QueueFlags::General) const;
+    auto getQueue(vk::QueueFlags flag = QueueFlags::General) const -> vk::Queue {
+        return queues.at(flag)[getQueueIndexByThreadId()];
+    }
 
-    uint32_t getQueueFamily(vk::QueueFlags flag = QueueFlags::General) const;
+    auto getQueueFamily(vk::QueueFlags flag = QueueFlags::General) const -> uint32_t {
+        return queueFamilies.at(flag);
+    }
 
-    vk::DescriptorPool getDescriptorPool() const { return *descriptorPool; }
+    auto getDescriptorPool() const -> vk::DescriptorPool {
+        return *descriptorPool;
+    }
 
-    CommandBufferHandle allocateCommandBuffer(vk::QueueFlags flag = QueueFlags::General) const;
+    // Command buffer
+    auto allocateCommandBuffer(vk::QueueFlags flag = QueueFlags::General) const
+        -> CommandBufferHandle;
 
     void submit(CommandBufferHandle commandBuffer, vk::Fence fence = {}) const;
 
     void oneTimeSubmit(const std::function<void(CommandBufferHandle)>& command,
                        vk::QueueFlags flag = QueueFlags::General) const;
 
-    vk::UniqueDescriptorSet allocateDescriptorSet(vk::DescriptorSetLayout descSetLayout) const;
+    // Memory
+    auto findMemoryTypeIndex(vk::MemoryRequirements requirements,
+                             vk::MemoryPropertyFlags memoryProp) const -> uint32_t;
 
-    uint32_t findMemoryTypeIndex(vk::MemoryRequirements requirements,
-                                 vk::MemoryPropertyFlags memoryProp) const;
-
+    // Physical device
     template <typename T>
-    T getPhysicalDeviceProperties2() const {
+    auto getPhysicalDeviceProperties2() const -> T {
         vk::PhysicalDeviceProperties2 props2;
         T props;
         props2.pNext = &props;
@@ -207,12 +226,14 @@ public:
         return props;
     }
 
-    vk::PhysicalDeviceLimits getPhysicalDeviceLimits() const {
-        vk::PhysicalDeviceProperties props = physicalDevice.getProperties();
-        return props.limits;
+    auto getPhysicalDeviceLimits() const -> vk::PhysicalDeviceLimits {
+        return physicalDevice.getProperties().limits;
     }
 
-    bool debugEnabled() const { return debugMessenger.get(); }
+    // Debug
+    auto debugEnabled() const -> bool {
+        return debugMessenger.get();
+    }
 
     template <typename T, typename = std::enable_if_t<vk::isVulkanHandleType<T>::value>>
     void setDebugName(T object, const char* debugName) const {
@@ -225,26 +246,37 @@ public:
         }
     }
 
-    ShaderHandle createShader(ShaderCreateInfo createInfo) const;
-    DescriptorSetHandle createDescriptorSet(DescriptorSetCreateInfo createInfo) const;
-    GraphicsPipelineHandle createGraphicsPipeline(GraphicsPipelineCreateInfo createInfo) const;
-    MeshShaderPipelineHandle createMeshShaderPipeline(
-        MeshShaderPipelineCreateInfo createInfo) const;
-    ComputePipelineHandle createComputePipeline(ComputePipelineCreateInfo createInfo) const;
-    RayTracingPipelineHandle createRayTracingPipeline(
-        RayTracingPipelineCreateInfo createInfo) const;
-    ImageHandle createImage(ImageCreateInfo createInfo) const;
-    BufferHandle createBuffer(BufferCreateInfo createInfo) const;
-    BottomAccelHandle createBottomAccel(BottomAccelCreateInfo createInfo) const;
-    TopAccelHandle createTopAccel(TopAccelCreateInfo createInfo) const;
-    GPUTimerHandle createGPUTimer(GPUTimerCreateInfo createInfo) const;
+    // Resource
+    auto createShader(ShaderCreateInfo createInfo) const -> ShaderHandle;
+
+    auto createDescriptorSet(DescriptorSetCreateInfo createInfo) const -> DescriptorSetHandle;
+
+    auto createGraphicsPipeline(GraphicsPipelineCreateInfo createInfo) const
+        -> GraphicsPipelineHandle;
+
+    auto createMeshShaderPipeline(MeshShaderPipelineCreateInfo createInfo) const
+        -> MeshShaderPipelineHandle;
+
+    auto createComputePipeline(ComputePipelineCreateInfo createInfo) const -> ComputePipelineHandle;
+
+    auto createRayTracingPipeline(RayTracingPipelineCreateInfo createInfo) const
+        -> RayTracingPipelineHandle;
+
+    auto createImage(ImageCreateInfo createInfo) const -> ImageHandle;
+
+    auto createBuffer(BufferCreateInfo createInfo) const -> BufferHandle;
+
+    auto createBottomAccel(BottomAccelCreateInfo createInfo) const -> BottomAccelHandle;
+
+    auto createTopAccel(TopAccelCreateInfo createInfo) const -> TopAccelHandle;
+
+    auto createGPUTimer(GPUTimerCreateInfo createInfo) const -> GPUTimerHandle;
 
 private:
-    static VKAPI_ATTR VkBool32 VKAPI_CALL
-    debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-                  VkDebugUtilsMessageTypeFlagsEXT messageTypes,
-                  VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData,
-                  void* pUserData) {
+    static auto VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                                         VkDebugUtilsMessageTypeFlagsEXT messageTypes,
+                                         VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData,
+                                         void* pUserData) -> VkBool32 {
         if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
             spdlog::warn(pCallbackData->pMessage);
         } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
@@ -253,38 +285,9 @@ private:
         return VK_FALSE;
     }
 
-    void checkDeviceExtensionSupport(const std::vector<const char*>& requiredExtensions) const {
-        std::vector<vk::ExtensionProperties> availableExtensions =
-            physicalDevice.enumerateDeviceExtensionProperties();
-        std::vector<std::string> requiredExtensionNames(requiredExtensions.begin(),
-                                                        requiredExtensions.end());
+    void checkDeviceExtensionSupport(const std::vector<const char*>& requiredExtensions) const;
 
-        for (const auto& extension : availableExtensions) {
-            std::erase(requiredExtensionNames, extension.extensionName);
-        }
-
-        if (!requiredExtensionNames.empty()) {
-            std::string message =
-                "The following required extensions are not supported by the device:\n";
-            for (const auto& name : requiredExtensionNames) {
-                message.append("\t" + name + "\n");
-            }
-            throw std::runtime_error(message);
-        }
-    }
-
-    uint32_t getQueueIndexByThreadId() const {
-        std::thread::id tid = std::this_thread::get_id();
-        if (queueIndices.contains(tid)) {
-            return queueIndices.at(tid);
-        } else {
-            uint32_t queueIndex = queueIndices.size();
-            RV_ASSERT(queueIndex < maxQueueCount,  // break
-                      "Too many threads: {} < {}", queueIndex, maxQueueCount);
-            queueIndices[tid] = queueIndex;
-            return queueIndex;
-        }
-    }
+    auto getQueueIndexByThreadId() const -> uint32_t;
 
     vk::UniqueInstance instance;
     vk::UniqueDebugUtilsMessengerEXT debugMessenger;

@@ -112,14 +112,27 @@ void App::run() {
     ImGui::DestroyContext();
 }
 
-glm::vec2 App::getCursorPos() const {
+auto App::getCursorPos() const -> glm::vec2 {
     double xPos{};
     double yPos{};
     glfwGetCursorPos(window, &xPos, &yPos);
     return {xPos, yPos};
 }
 
-bool App::isKeyDown(int key) const {
+auto App::getMouseWheel() const -> glm::vec2 {
+    return mouseWheel;
+}
+
+auto App::getCurrentColorImage() const -> ImageHandle {
+    return std::make_shared<Image>(swapchainImages[frameIndex], *swapchainImageViews[frameIndex],
+                                   vk::Extent3D{width, height, 1}, vk::ImageAspectFlagBits::eColor);
+}
+
+auto App::getDefaultDepthImage() const -> ImageHandle {
+    return depthImage;
+}
+
+auto App::isKeyDown(int key) const -> bool {
     ImGuiIO& io = ImGui::GetIO();
     if (key < GLFW_KEY_SPACE || key > GLFW_KEY_LAST || io.WantCaptureKeyboard) {
         return false;
@@ -127,7 +140,7 @@ bool App::isKeyDown(int key) const {
     return glfwGetKey(window, key) == GLFW_PRESS;
 }
 
-bool App::isMouseButtonDown(int button) const {
+auto App::isMouseButtonDown(int button) const -> bool {
     ImGuiIO& io = ImGui::GetIO();
     if (button < GLFW_MOUSE_BUTTON_1 || button > GLFW_MOUSE_BUTTON_LAST || io.WantCaptureMouse) {
         return false;
@@ -434,6 +447,15 @@ void App::createDepthImage() {
     context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
         commandBuffer->transitionLayout(depthImage, vk::ImageLayout::eDepthAttachmentOptimal);
     });
+}
+
+void App::listSurfaceFormats() {
+    auto surfaceFormats = context.getPhysicalDevice().getSurfaceFormatsKHR(*surface);
+    spdlog::info("Supported formats:");
+    for (const auto& surfaceFormat : surfaceFormats) {
+        spdlog::info("  Format: {}, Color Space: {}",  // break
+                     vk::to_string(surfaceFormat.format), vk::to_string(surfaceFormat.colorSpace));
+    }
 }
 
 void App::onWindowSize(int _width, int _height) {

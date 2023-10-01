@@ -92,9 +92,14 @@ void DescriptorSet::allocate() {
         bindings.push_back(binding);
     }
 
-    descSetLayout = context->getDevice().createDescriptorSetLayoutUnique(
-        vk::DescriptorSetLayoutCreateInfo().setBindings(bindings));
-    descSet = context->allocateDescriptorSet(*descSetLayout);
+    vk::DescriptorSetLayoutCreateInfo layoutInfo;
+    layoutInfo.setBindings(bindings);
+    descSetLayout = context->getDevice().createDescriptorSetLayoutUnique(layoutInfo);
+
+    vk::DescriptorSetAllocateInfo descSetInfo;
+    descSetInfo.setDescriptorPool(context->getDescriptorPool());
+    descSetInfo.setSetLayouts(*descSetLayout);
+    descSet = std::move(context->getDevice().allocateDescriptorSetsUnique(descSetInfo).front());
 }
 
 void DescriptorSet::update() {

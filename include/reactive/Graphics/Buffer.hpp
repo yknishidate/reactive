@@ -5,7 +5,9 @@ namespace rv {
 struct BufferCreateInfo {
     vk::BufferUsageFlags usage;
     vk::MemoryPropertyFlags memory;
+
     size_t size = 0;
+
     const void* data = nullptr;
     const char* debugName = nullptr;
 };
@@ -19,25 +21,22 @@ public:
            const void* data,
            const char* debugName);
 
-    vk::Buffer getBuffer() const { return *buffer; }
+    auto getBuffer() const -> vk::Buffer;
+    auto getSize() const -> vk::DeviceSize;
+    auto getInfo() const -> vk::DescriptorBufferInfo;
+    auto getAddress() const -> vk::DeviceAddress;
 
-    vk::DeviceSize getSize() const { return size; }
-
-    vk::DescriptorBufferInfo getInfo() const { return {*buffer, 0, size}; }
-
-    vk::DeviceAddress getAddress() const;
-
-    void* map();
-
+    auto map() -> void*;
     void unmap();
-
     void copy(const void* data);
 
 private:
     const Context* context = nullptr;
+
     vk::UniqueBuffer buffer;
     vk::UniqueDeviceMemory memory;
     vk::DeviceSize size = 0u;
+
     void* mapped = nullptr;
     bool isHostVisible;
 };

@@ -59,24 +59,21 @@ public:
     App(AppCreateInfo createInfo);
 
     virtual void run();
-
     virtual void onStart() {}
     virtual void onUpdate() {}
     virtual void onRender(const CommandBufferHandle& commandBuffer) {}
 
     // Getter
-    ImageHandle getCurrentColorImage() const {
-        return std::make_shared<Image>(
-            swapchainImages[frameIndex], *swapchainImageViews[frameIndex],
-            vk::Extent3D{width, height, 1}, vk::ImageAspectFlagBits::eColor);
-    }
-    ImageHandle getDefaultDepthImage() const { return depthImage; }
+    auto getCurrentColorImage() const -> ImageHandle;
+    auto getDefaultDepthImage() const -> ImageHandle;
 
     // Input
-    bool isKeyDown(int key) const;
-    bool isMouseButtonDown(int button) const;
-    glm::vec2 getCursorPos() const;
-    glm::vec2 getMouseWheel() const { return mouseWheel; }
+    auto isKeyDown(int key) const -> bool;
+    auto isMouseButtonDown(int button) const -> bool;
+
+    auto getCursorPos() const -> glm::vec2;
+    auto getMouseWheel() const -> glm::vec2;
+
     virtual void onReset() {}
     virtual void onKey(int key, int scancode, int action, int mods) {}
     virtual void onChar(unsigned int codepoint) {}
@@ -105,14 +102,7 @@ protected:
     void createSwapchain();
     void createDepthImage();
 
-    void listSurfaceFormats() {
-        auto surfaceFormats = context.getPhysicalDevice().getSurfaceFormatsKHR(*surface);
-        std::cout << "Supported formats:\n";
-        for (const auto& surfaceFormat : surfaceFormats) {
-            std::cout << "  - Format: " << vk::to_string(surfaceFormat.format)
-                      << ", Color Space: " << vk::to_string(surfaceFormat.colorSpace) << "\n";
-        }
-    }
+    void listSurfaceFormats();
 
     // GLFW
     GLFWwindow* window = nullptr;

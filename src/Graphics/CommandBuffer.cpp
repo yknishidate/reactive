@@ -8,6 +8,20 @@
 #include "common.hpp"
 
 namespace rv {
+auto CommandBuffer::getQueueFlags() const -> vk::QueueFlags {
+    return queueFlags;
+}
+
+void CommandBuffer::begin(vk::CommandBufferUsageFlags flags) const {
+    vk::CommandBufferBeginInfo beginInfo;
+    beginInfo.setFlags(flags);
+    commandBuffer->begin(beginInfo);
+}
+
+void CommandBuffer::end() const {
+    commandBuffer->end();
+}
+
 void CommandBuffer::bindDescriptorSet(DescriptorSetHandle descSet, PipelineHandle pipeline) const {
     commandBuffer->bindDescriptorSets(pipeline->getPipelineBindPoint(),
                                       pipeline->getPipelineLayout(), 0, *descSet->descSet, nullptr);
@@ -87,6 +101,10 @@ void CommandBuffer::beginRendering(ImageHandle colorImage,
     commandBuffer->beginRendering(renderingInfo);
 }
 
+void CommandBuffer::endRendering() const {
+    commandBuffer->endRendering();
+}
+
 void CommandBuffer::draw(uint32_t vertexCount,
                          uint32_t instanceCount,
                          uint32_t firstVertex,
@@ -158,6 +176,24 @@ void CommandBuffer::bufferBarrier(vk::PipelineStageFlags srcStageMask,
 
     commandBuffer->pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, nullptr,
                                    bufferMemoryBarrier, nullptr);
+}
+
+void CommandBuffer::bufferBarrier(
+    vk::PipelineStageFlags srcStageMask,
+    vk::PipelineStageFlags dstStageMask,
+    vk::DependencyFlags dependencyFlags,
+    const vk::ArrayProxy<const vk::BufferMemoryBarrier>& bufferMemoryBarriers) const {
+    commandBuffer->pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, nullptr,
+                                   bufferMemoryBarriers, nullptr);
+}
+
+void CommandBuffer::imageBarrier(
+    vk::PipelineStageFlags srcStageMask,
+    vk::PipelineStageFlags dstStageMask,
+    vk::DependencyFlags dependencyFlags,
+    const vk::ArrayProxy<const vk::ImageMemoryBarrier>& imageMemoryBarriers) const {
+    commandBuffer->pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, nullptr, nullptr,
+                                   imageMemoryBarriers);
 }
 
 void CommandBuffer::imageBarrier(vk::PipelineStageFlags srcStageMask,
@@ -246,6 +282,15 @@ void CommandBuffer::transitionLayout(ImageHandle image, vk::ImageLayout newLayou
     image->layout = newLayout;
 }
 
+void CommandBuffer::memoryBarrier(
+    vk::PipelineStageFlags srcStageMask,
+    vk::PipelineStageFlags dstStageMask,
+    vk::DependencyFlags dependencyFlags,
+    vk::ArrayProxy<const vk::MemoryBarrier> const& memoryBarriers) const {
+    commandBuffer->pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, memoryBarriers,
+                                   nullptr, nullptr);
+}
+
 void CommandBuffer::copyImage(ImageHandle srcImage,
                               ImageHandle dstImage,
                               vk::ImageLayout newSrcLayout,
@@ -286,6 +331,14 @@ void CommandBuffer::copyBufferToImage(BufferHandle srcBuffer, ImageHandle dstIma
     region.setImageSubresource({dstImage->getAspectMask(), 0, 0, 1});
     commandBuffer->copyBufferToImage(srcBuffer->getBuffer(), dstImage->getImage(),
                                      dstImage->getLayout(), region);
+}
+
+void CommandBuffer::blitImage(ImageHandle srcImage,
+                              ImageHandle dstImage,
+                              vk::ImageBlit blit,
+                              vk::Filter filter) const {
+    commandBuffer->blitImage(srcImage->image, srcImage->layout, dstImage->image, dstImage->layout,
+                             blit, filter);
 }
 
 void CommandBuffer::fillBuffer(BufferHandle dstBuffer,
@@ -360,5 +413,46 @@ void CommandBuffer::beginTimestamp(GPUTimerHandle gpuTimer) const {
 void CommandBuffer::endTimestamp(GPUTimerHandle gpuTimer) const {
     commandBuffer->writeTimestamp(vk::PipelineStageFlagBits::eBottomOfPipe, *gpuTimer->queryPool,
                                   1);
+}
+
+void CommandBuffer::setLineWidth(float lineWidth) const {
+    commandBuffer->setLineWidth(lineWidth);
+}
+
+void CommandBuffer::setViewport(const vk::Viewport& viewport) const {
+    commandBuffer->setViewport(0, 1, &viewport);
+}
+
+void CommandBuffer::setViewport(uint32_t width, uint32_t height) const {
+    vk::Viewport viewport{
+        0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, 1.0f,
+    };
+    commandBuffer->setViewport(0, 1, &viewport);
+}
+
+void CommandBuffer::setScissor(const vk::Rect2D& scissor) const {
+    commandBuffer->setScissor(0, 1, &scissor);
+}
+
+void CommandBuffer::setScissor(uint32_t width, uint32_t height) const {
+    vk::Rect2D scissor{
+        {0, 0},
+        {width, height},
+    };
+    commandBuffer->setScissor(0, 1, &scissor);
+}
+
+void CommandBuffer::beginDebugLabel(const char* labelName) const {
+    if (context->debugEnabled()) {
+        vk::DebugUtilsLabelEXT label;
+        label.setPLabelName(labelName);
+        commandBuffer->beginDebugUtilsLabelEXT(label);
+    }
+}
+
+void CommandBuffer::endDebugLabel() const {
+    if (context->debugEnabled()) {
+        commandBuffer->endDebugUtilsLabelEXT();
+    }
 }
 }  // namespace rv

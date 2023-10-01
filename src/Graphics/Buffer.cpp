@@ -44,12 +44,24 @@ Buffer::Buffer(const Context* context,
     }
 }
 
-vk::DeviceAddress Buffer::getAddress() const {
-    vk::BufferDeviceAddressInfo bufferDeviceAI{*buffer};
-    return context->getDevice().getBufferAddress(&bufferDeviceAI);
+auto Buffer::getBuffer() const -> vk::Buffer {
+    return *buffer;
 }
 
-void* Buffer::map() {
+auto Buffer::getSize() const -> vk::DeviceSize {
+    return size;
+}
+
+auto Buffer::getInfo() const -> vk::DescriptorBufferInfo {
+    return {*buffer, 0, size};
+}
+
+auto Buffer::getAddress() const -> vk::DeviceAddress {
+    vk::BufferDeviceAddressInfo addressInfo{*buffer};
+    return context->getDevice().getBufferAddress(&addressInfo);
+}
+
+auto Buffer::map() -> void* {
     RV_ASSERT(isHostVisible, "");
     if (!mapped) {
         mapped = context->getDevice().mapMemory(*memory, 0, VK_WHOLE_SIZE);

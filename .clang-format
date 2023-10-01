@@ -4,3 +4,4 @@ TabWidth: 4
 ColumnLimit: 100
 UseTab: Never
 AccessModifierOffset: -4
+AllowShortFunctionsOnASingleLine: Empty

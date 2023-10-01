@@ -70,14 +70,14 @@ TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo)
       buildType{createInfo.buildType} {
     std::vector<vk::AccelerationStructureInstanceKHR> instances;
     for (auto& instance : createInfo.accelInstances) {
-        instances.push_back(
-            vk::AccelerationStructureInstanceKHR()
-                .setTransform(toVkMatrix(instance.transform))
-                .setInstanceCustomIndex(0)
-                .setMask(0xFF)
-                .setInstanceShaderBindingTableRecordOffset(instance.sbtOffset)
-                .setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable)
-                .setAccelerationStructureReference(instance.bottomAccel->getBufferAddress()));
+        vk::AccelerationStructureInstanceKHR inst;
+        inst.setTransform(toVkMatrix(instance.transform));
+        inst.setInstanceCustomIndex(0);
+        inst.setMask(0xFF);
+        inst.setInstanceShaderBindingTableRecordOffset(instance.sbtOffset);
+        inst.setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);
+        inst.setAccelerationStructureReference(instance.bottomAccel->getBufferAddress());
+        instances.push_back(inst);
     }
 
     instanceBuffer = context->createBuffer({
