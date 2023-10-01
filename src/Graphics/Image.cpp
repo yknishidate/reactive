@@ -231,8 +231,8 @@ void Image::generateMipmaps() {
             barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
             barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
 
-            commandBuffer->imageBarrier(vk::PipelineStageFlagBits::eTransfer,
-                                        vk::PipelineStageFlagBits::eTransfer, {}, barrier);
+            commandBuffer->imageBarrier(barrier, vk::PipelineStageFlagBits::eTransfer,
+                                        vk::PipelineStageFlagBits::eTransfer);
 
             vk::ImageBlit blit{};
             blit.srcOffsets[0] = vk::Offset3D{0, 0, 0};
@@ -258,8 +258,8 @@ void Image::generateMipmaps() {
             barrier.srcAccessMask = vk::AccessFlagBits::eTransferRead;
             barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
 
-            commandBuffer->imageBarrier(vk::PipelineStageFlagBits::eTransfer,
-                                        vk::PipelineStageFlagBits::eFragmentShader, {}, barrier);
+            commandBuffer->imageBarrier(barrier, vk::PipelineStageFlagBits::eTransfer,
+                                        vk::PipelineStageFlagBits::eFragmentShader);
 
             if (mipWidth > 1)
                 mipWidth /= 2;
@@ -273,8 +273,8 @@ void Image::generateMipmaps() {
         barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
         barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
 
-        commandBuffer->imageBarrier(vk::PipelineStageFlagBits::eTransfer,
-                                    vk::PipelineStageFlagBits::eAllCommands, {}, barrier);
+        commandBuffer->imageBarrier(barrier, vk::PipelineStageFlagBits::eTransfer,
+                                    vk::PipelineStageFlagBits::eAllCommands);
     });
 }
 }  // namespace rv

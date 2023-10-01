@@ -93,31 +93,29 @@ public:
                                uint32_t stride) const;
 
     // barrier
-    void bufferBarrier(vk::PipelineStageFlags srcStageMask,
+    void bufferBarrier(BufferHandle buffer,
+                       vk::PipelineStageFlags srcStageMask,
                        vk::PipelineStageFlags dstStageMask,
-                       vk::DependencyFlags dependencyFlags,
-                       BufferHandle buffer,
                        vk::AccessFlags srcAccessMask,
-                       vk::AccessFlags dstAccessMask) const;
+                       vk::AccessFlags dstAccessMask,
+                       vk::DependencyFlags dependencyFlags = {}) const;
 
-    void bufferBarrier(
-        vk::PipelineStageFlags srcStageMask,
-        vk::PipelineStageFlags dstStageMask,
-        vk::DependencyFlags dependencyFlags,
-        const vk::ArrayProxy<const vk::BufferMemoryBarrier>& bufferMemoryBarriers) const;
+    void bufferBarrier(const vk::ArrayProxy<const vk::BufferMemoryBarrier>& bufferMemoryBarriers,
+                       vk::PipelineStageFlags srcStageMask,
+                       vk::PipelineStageFlags dstStageMask,
+                       vk::DependencyFlags dependencyFlags = {}) const;
 
-    void imageBarrier(
-        vk::PipelineStageFlags srcStageMask,
-        vk::PipelineStageFlags dstStageMask,
-        vk::DependencyFlags dependencyFlags,
-        const vk::ArrayProxy<const vk::ImageMemoryBarrier>& imageMemoryBarriers) const;
-
-    void imageBarrier(vk::PipelineStageFlags srcStageMask,
+    void imageBarrier(const vk::ArrayProxy<const vk::ImageMemoryBarrier>& imageMemoryBarriers,
+                      vk::PipelineStageFlags srcStageMask,
                       vk::PipelineStageFlags dstStageMask,
-                      vk::DependencyFlags dependencyFlags,
-                      ImageHandle image,
+                      vk::DependencyFlags dependencyFlags = {}) const;
+
+    void imageBarrier(ImageHandle image,
+                      vk::PipelineStageFlags srcStageMask,
+                      vk::PipelineStageFlags dstStageMask,
                       vk::AccessFlags srcAccessMask,
-                      vk::AccessFlags dstAccessMask) const;
+                      vk::AccessFlags dstAccessMask,
+                      vk::DependencyFlags dependencyFlags = {}) const;
 
     void memoryBarrier(vk::PipelineStageFlags srcStageMask,
                        vk::PipelineStageFlags dstStageMask,
@@ -126,15 +124,9 @@ public:
 
     void memoryBarrier(vk::PipelineStageFlags srcStageMask,
                        vk::PipelineStageFlags dstStageMask,
-                       vk::DependencyFlags dependencyFlags,
                        vk::AccessFlags srcAccessMask,
-                       vk::AccessFlags dstAccessMask) {
-        vk::MemoryBarrier memoryBarrier{};
-        memoryBarrier.setSrcAccessMask(srcAccessMask);
-        memoryBarrier.setDstAccessMask(dstAccessMask);
-        commandBuffer->pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, memoryBarrier,
-                                       nullptr, nullptr);
-    }
+                       vk::AccessFlags dstAccessMask,
+                       vk::DependencyFlags dependencyFlags = {});
 
     // image
     void transitionLayout(ImageHandle image, vk::ImageLayout newLayout) const;

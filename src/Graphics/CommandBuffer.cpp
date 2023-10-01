@@ -159,12 +159,12 @@ void CommandBuffer::drawMeshTasksIndirect(BufferHandle buffer,
     commandBuffer->drawMeshTasksIndirectEXT(buffer->getBuffer(), offset, drawCount, stride);
 }
 
-void CommandBuffer::bufferBarrier(vk::PipelineStageFlags srcStageMask,
+void CommandBuffer::bufferBarrier(BufferHandle buffer,
+                                  vk::PipelineStageFlags srcStageMask,
                                   vk::PipelineStageFlags dstStageMask,
-                                  vk::DependencyFlags dependencyFlags,
-                                  BufferHandle buffer,
                                   vk::AccessFlags srcAccessMask,
-                                  vk::AccessFlags dstAccessMask) const {
+                                  vk::AccessFlags dstAccessMask,
+                                  vk::DependencyFlags dependencyFlags) const {
     vk::BufferMemoryBarrier bufferMemoryBarrier;
     bufferMemoryBarrier.srcAccessMask = srcAccessMask;
     bufferMemoryBarrier.dstAccessMask = dstAccessMask;
@@ -179,29 +179,29 @@ void CommandBuffer::bufferBarrier(vk::PipelineStageFlags srcStageMask,
 }
 
 void CommandBuffer::bufferBarrier(
+    const vk::ArrayProxy<const vk::BufferMemoryBarrier>& bufferMemoryBarriers,
     vk::PipelineStageFlags srcStageMask,
     vk::PipelineStageFlags dstStageMask,
-    vk::DependencyFlags dependencyFlags,
-    const vk::ArrayProxy<const vk::BufferMemoryBarrier>& bufferMemoryBarriers) const {
+    vk::DependencyFlags dependencyFlags) const {
     commandBuffer->pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, nullptr,
                                    bufferMemoryBarriers, nullptr);
 }
 
 void CommandBuffer::imageBarrier(
+    const vk::ArrayProxy<const vk::ImageMemoryBarrier>& imageMemoryBarriers,
     vk::PipelineStageFlags srcStageMask,
     vk::PipelineStageFlags dstStageMask,
-    vk::DependencyFlags dependencyFlags,
-    const vk::ArrayProxy<const vk::ImageMemoryBarrier>& imageMemoryBarriers) const {
+    vk::DependencyFlags dependencyFlags) const {
     commandBuffer->pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, nullptr, nullptr,
                                    imageMemoryBarriers);
 }
 
-void CommandBuffer::imageBarrier(vk::PipelineStageFlags srcStageMask,
+void CommandBuffer::imageBarrier(ImageHandle image,
+                                 vk::PipelineStageFlags srcStageMask,
                                  vk::PipelineStageFlags dstStageMask,
-                                 vk::DependencyFlags dependencyFlags,
-                                 ImageHandle image,
                                  vk::AccessFlags srcAccessMask,
-                                 vk::AccessFlags dstAccessMask) const {
+                                 vk::AccessFlags dstAccessMask,
+                                 vk::DependencyFlags dependencyFlags) const {
     // NOTE: Since layout transition is not required,
     // oldLayout and newLayout are not specified.
     vk::ImageMemoryBarrier memoryBarrier;
@@ -291,6 +291,18 @@ void CommandBuffer::memoryBarrier(
                                    nullptr, nullptr);
 }
 
+void CommandBuffer::memoryBarrier(vk::PipelineStageFlags srcStageMask,
+                                  vk::PipelineStageFlags dstStageMask,
+                                  vk::AccessFlags srcAccessMask,
+                                  vk::AccessFlags dstAccessMask,
+                                  vk::DependencyFlags dependencyFlags) {
+    vk::MemoryBarrier memoryBarrier{};
+    memoryBarrier.setSrcAccessMask(srcAccessMask);
+    memoryBarrier.setDstAccessMask(dstAccessMask);
+    commandBuffer->pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, memoryBarrier,
+                                   nullptr, nullptr);
+}
+
 void CommandBuffer::copyImage(ImageHandle srcImage,
                               ImageHandle dstImage,
                               vk::ImageLayout newSrcLayout,
@@ -300,7 +312,7 @@ void CommandBuffer::copyImage(ImageHandle srcImage,
     RV_ASSERT(srcExtent == dstExtent,
               "srcImage({}, {}, {}) and dstImage({}, {}, {}) must have same extents.",
               srcExtent.width, srcExtent.height, srcExtent.depth,  // break
-              dstExtent.width, dstExtent.height, dstExtent.depth);
+              dstExtent.width, dstExtent.height, dstExtent.depth)
 
     transitionLayout(srcImage, vk::ImageLayout::eTransferSrcOptimal);
     transitionLayout(dstImage, vk::ImageLayout::eTransferDstOptimal);

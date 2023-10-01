@@ -135,7 +135,6 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
                          const void* deviceCreateInfoPNext,
                          bool enableRayTracing) {
     // Create device
-    float queuePriority = 1.0f;
     std::unordered_map<vk::QueueFlags, std::vector<float>> queuePriorities;
     std::vector<vk::DeviceQueueCreateInfo> queueInfo;
     for (const auto& [flag, queueFamily] : queueFamilies) {
@@ -182,8 +181,7 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
         commandPools[flag] = std::vector<vk::UniqueCommandPool>(queues[flag].size());
 
         for (int i = 0; i < queues[flag].size(); i++) {
-            commandPools[flag][i] =
-                std::move(device->createCommandPoolUnique(commandPoolCreateInfo));
+            commandPools[flag][i] = device->createCommandPoolUnique(commandPoolCreateInfo);
         }
     }
 
