@@ -1,15 +1,37 @@
-#version 460
+#version 450
 
-layout(local_size_x = 1, local_size_y = 1) in;
-layout(binding = 0, rgba8) uniform image2D outputImage;
-layout(push_constant) uniform PushConstants {
-    int frame;
+layout (local_size_x = 16, local_size_y = 16) in;
+
+layout (binding = 0, rgba32f) uniform writeonly image2D outputImage;
+
+layout (binding = 1) uniform MandelbrotParams {
+    vec2 lowerLeft;
+    vec2 upperRight;
+    int maxIterations;
 };
 
-void main()
-{
-    vec2 resolution = vec2(gl_WorkGroupSize.xy * gl_NumWorkGroups.xy);
-    vec2 uv = vec2(gl_GlobalInvocationID.xy) / resolution;
+void main() {
+    ivec2 storePos = ivec2(gl_GlobalInvocationID.xy);
 
-    imageStore(outputImage, ivec2(gl_GlobalInvocationID.xy), vec4(uv, sin(frame * 0.05) * 0.5 + 0.5, 1));
+    vec2 normCoordinates = vec2(
+        float(storePos.x) / float(imageSize(outputImage).x),
+        float(storePos.y) / float(imageSize(outputImage).y)
+    );
+
+    vec2 c = mix(lowerLeft, upperRight, normCoordinates);
+    vec2 z = vec2(0.0, 0.0);
+
+    int i;
+    for (i = 0; i < maxIterations; i++) {
+        float x = (z.x * z.x - z.y * z.y) + c.x;
+        float y = (z.y * z.x + z.x * z.y) + c.y;
+
+        if ((x * x + y * y) > 4.0) break;
+
+        z.x = x;
+        z.y = y;
+    }
+
+    float color = float(i) / float(maxIterations);
+    imageStore(outputImage, storePos, vec4(vec3(color), 1.0));
 }
