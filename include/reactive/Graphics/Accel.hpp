@@ -96,6 +96,7 @@ private:
     BufferHandle scratchBuffer;
 
     uint32_t primitiveCount;
+    vk::AccelerationStructureGeometryInstancesDataKHR instancesData;
     vk::GeometryFlagsKHR geometryFlags;
     vk::BuildAccelerationStructureFlagsKHR buildFlags;
     vk::AccelerationStructureBuildTypeKHR buildType;

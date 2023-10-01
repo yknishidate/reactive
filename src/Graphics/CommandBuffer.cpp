@@ -357,13 +357,9 @@ void CommandBuffer::copyBuffer(BufferHandle buffer, const void* data) const {
 }
 
 void CommandBuffer::updateTopAccel(TopAccelHandle topAccel) const {
-    vk::AccelerationStructureGeometryInstancesDataKHR instancesData;
-    instancesData.setArrayOfPointers(false);
-    instancesData.setData(topAccel->instanceBuffer->getAddress());
-
     vk::AccelerationStructureGeometryKHR geometry;
     geometry.setGeometryType(vk::GeometryTypeKHR::eInstances);
-    geometry.setGeometry({instancesData});
+    geometry.setGeometry({topAccel->instancesData});
     geometry.setFlags(topAccel->geometryFlags);
 
     vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
@@ -400,13 +396,9 @@ void CommandBuffer::updateTopAccel(TopAccelHandle topAccel) const {
 }
 
 void CommandBuffer::buildTopAccel(TopAccelHandle topAccel) const {
-    vk::AccelerationStructureGeometryInstancesDataKHR instancesData;
-    instancesData.setArrayOfPointers(false);
-    instancesData.setData(topAccel->instanceBuffer->getAddress());
-
     vk::AccelerationStructureGeometryKHR geometry;
     geometry.setGeometryType(vk::GeometryTypeKHR::eInstances);
-    geometry.setGeometry({instancesData});
+    geometry.setGeometry({topAccel->instancesData});
     geometry.setFlags(topAccel->geometryFlags);
 
     vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;

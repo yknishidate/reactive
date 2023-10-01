@@ -76,16 +76,15 @@ TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo)
     });
     instanceBuffer->copy(instances.data());
 
-    vk::AccelerationStructureGeometryInstancesDataKHR instancesData;
-    vk::AccelerationStructureGeometryKHR geometry;
-    vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
     instancesData.setArrayOfPointers(false);
     instancesData.setData(instanceBuffer->getAddress());
 
+    vk::AccelerationStructureGeometryKHR geometry;
     geometry.setGeometryType(vk::GeometryTypeKHR::eInstances);
     geometry.setGeometry({instancesData});
     geometry.setFlags(geometryFlags);
 
+    vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
     buildGeometryInfo.setType(vk::AccelerationStructureTypeKHR::eTopLevel);
     buildGeometryInfo.setFlags(buildFlags);
     buildGeometryInfo.setGeometries(geometry);
