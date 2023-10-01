@@ -378,21 +378,6 @@ void CommandBuffer::updateTopAccel(TopAccelHandle topAccel) const {
     buildRangeInfo.setFirstVertex(0);
     buildRangeInfo.setTransformOffset(0);
     commandBuffer->buildAccelerationStructuresKHR(buildGeometryInfo, &buildRangeInfo);
-
-    // TODO: remove this
-    // Create a memory barrier for the acceleration structure
-    vk::MemoryBarrier2 memoryBarrier{};
-    memoryBarrier.setSrcStageMask(vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR);
-    memoryBarrier.setDstStageMask(vk::PipelineStageFlagBits2::eRayTracingShaderKHR);
-    memoryBarrier.setSrcAccessMask(vk::AccessFlagBits2::eAccelerationStructureWriteKHR);
-    memoryBarrier.setDstAccessMask(vk::AccessFlagBits2::eAccelerationStructureReadKHR);
-
-    // Pipeline barrier to ensure that the build has finished before the ray tracing shader
-    // starts
-    vk::DependencyInfoKHR dependencyInfo{};
-    dependencyInfo.setMemoryBarrierCount(1);
-    dependencyInfo.setPMemoryBarriers(&memoryBarrier);
-    commandBuffer->pipelineBarrier2(dependencyInfo);
 }
 
 void CommandBuffer::buildTopAccel(TopAccelHandle topAccel) const {

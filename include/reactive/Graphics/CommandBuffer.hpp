@@ -124,6 +124,18 @@ public:
                        vk::DependencyFlags dependencyFlags,
                        const vk::ArrayProxy<const vk::MemoryBarrier>& memoryBarriers) const;
 
+    void memoryBarrier(vk::PipelineStageFlags srcStageMask,
+                       vk::PipelineStageFlags dstStageMask,
+                       vk::DependencyFlags dependencyFlags,
+                       vk::AccessFlags srcAccessMask,
+                       vk::AccessFlags dstAccessMask) {
+        vk::MemoryBarrier memoryBarrier{};
+        memoryBarrier.setSrcAccessMask(srcAccessMask);
+        memoryBarrier.setDstAccessMask(dstAccessMask);
+        commandBuffer->pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, memoryBarrier,
+                                       nullptr, nullptr);
+    }
+
     // image
     void transitionLayout(ImageHandle image, vk::ImageLayout newLayout) const;
 
