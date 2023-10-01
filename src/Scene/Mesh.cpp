@@ -1,5 +1,7 @@
 #include "Scene/Mesh.hpp"
 
+#include "Graphics/CommandBuffer.hpp"
+
 namespace rv {
 Mesh::Mesh(const Context& context,
            const std::vector<Vertex>& vertices,
@@ -10,15 +12,19 @@ Mesh::Mesh(const Context& context,
         .usage = BufferUsage::Vertex,
         .memory = MemoryUsage::Device,
         .size = sizeof(Vertex) * vertices.size(),
-        .data = vertices.data(),
         .debugName = (name + "::vertexBuffer").c_str(),
     });
+
     indexBuffer = context.createBuffer({
         .usage = BufferUsage::Index,
         .memory = MemoryUsage::Device,
         .size = sizeof(uint32_t) * indices.size(),
-        .data = indices.data(),
         .debugName = (name + "::indexBuffer").c_str(),
+    });
+
+    context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
+        commandBuffer->copyBuffer(vertexBuffer, vertices.data());
+        commandBuffer->copyBuffer(indexBuffer, indices.data());
     });
 }
 

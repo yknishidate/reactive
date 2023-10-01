@@ -124,8 +124,8 @@ ImageHandle Image::loadFromFile(const Context& context,
         .usage = BufferUsage::Staging,
         .memory = MemoryUsage::Host,
         .size = width * height * comp * sizeof(unsigned char),
-        .data = reinterpret_cast<void*>(pixels),
     });
+    stagingBuffer->copy(pixels);
 
     context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
         commandBuffer->transitionLayout(image, vk::ImageLayout::eTransferDstOptimal);
@@ -167,8 +167,8 @@ ImageHandle Image::loadFromFileHDR(const Context& context, const std::string& fi
         .usage = BufferUsage::Staging,
         .memory = MemoryUsage::Host,
         .size = width * height * comp * sizeof(float),
-        .data = reinterpret_cast<void*>(pixels),
     });
+    stagingBuffer->copy(pixels);
 
     context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
         commandBuffer->transitionLayout(image, vk::ImageLayout::eTransferDstOptimal);

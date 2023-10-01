@@ -144,6 +144,14 @@ public:
                     vk::DeviceSize size,
                     uint32_t data) const;
 
+    void copyBuffer(BufferHandle buffer, const void* data) {
+        buffer->prepareStagingBuffer();
+        buffer->stagingBuffer->copy(data);
+
+        vk::BufferCopy region{0, 0, buffer->getSize()};
+        commandBuffer->copyBuffer(buffer->stagingBuffer->getBuffer(), buffer->getBuffer(), region);
+    }
+
     // accel struct
     void updateTopAccel(TopAccelHandle topAccel) const;
 

@@ -85,8 +85,8 @@ TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo)
         .usage = BufferUsage::AccelInput,
         .memory = MemoryUsage::DeviceHost,
         .size = sizeof(vk::AccelerationStructureInstanceKHR) * instances.size(),
-        .data = instances.data(),
     });
+    instanceBuffer->copy(instances.data());
 
     vk::AccelerationStructureGeometryInstancesDataKHR instancesData;
     vk::AccelerationStructureGeometryKHR geometry;

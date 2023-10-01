@@ -8,7 +8,6 @@ Buffer::Buffer(const Context* context,
                vk::BufferUsageFlags usage,
                vk::MemoryPropertyFlags memoryProp,
                vk::DeviceSize size,
-               const void* data,
                const char* debugName)
     : context{context}, size(size) {
     // Create buffer
@@ -32,11 +31,6 @@ Buffer::Buffer(const Context* context,
 
     // Bind memory
     context->getDevice().bindBufferMemory(*buffer, *memory, 0);
-
-    // Copy data
-    if (data) {
-        copy(data);
-    }
 
     if (debugName) {
         context->setDebugName(*buffer, debugName);
@@ -70,26 +64,24 @@ auto Buffer::map() -> void* {
 }
 
 void Buffer::unmap() {
-    RV_ASSERT(isHostVisible, "");
+    RV_ASSERT(isHostVisible, "This buffer is not host visible.");
     context->getDevice().unmapMemory(*memory);
     mapped = nullptr;
 }
 
-// TODO: move to CommandBuffer
 void Buffer::copy(const void* data) {
-    if (isHostVisible) {
-        map();
-        std::memcpy(mapped, data, size);
-    } else {
-        BufferHandle stagingBuffer = context->createBuffer({
+    RV_ASSERT(isHostVisible, "This buffer is not host visible.");
+    map();
+    std::memcpy(mapped, data, size);
+}
+
+void Buffer::prepareStagingBuffer() {
+    RV_ASSERT(!isHostVisible, "This buffer is not device buffer.");
+    if (!stagingBuffer) {
+        stagingBuffer = context->createBuffer({
             .usage = BufferUsage::Staging,
             .memory = MemoryUsage::Host,
             .size = size,
-            .data = data,
-        });
-        context->oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
-            vk::BufferCopy region{0, 0, size};
-            commandBuffer->commandBuffer->copyBuffer(stagingBuffer->getBuffer(), *buffer, region);
         });
     }
 }

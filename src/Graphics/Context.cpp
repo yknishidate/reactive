@@ -291,7 +291,7 @@ auto Context::createImage(ImageCreateInfo createInfo) const -> ImageHandle {
 
 auto Context::createBuffer(BufferCreateInfo createInfo) const -> BufferHandle {
     return std::make_shared<Buffer>(this, createInfo.usage, createInfo.memory, createInfo.size,
-                                    createInfo.data, createInfo.debugName);
+                                    createInfo.debugName);
 }
 
 auto Context::createBottomAccel(BottomAccelCreateInfo createInfo) const -> BottomAccelHandle {

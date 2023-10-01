@@ -8,17 +8,17 @@ struct BufferCreateInfo {
 
     size_t size = 0;
 
-    const void* data = nullptr;
     const char* debugName = nullptr;
 };
 
 class Buffer {
+    friend class CommandBuffer;
+
 public:
     Buffer(const Context* context,
            vk::BufferUsageFlags usage,
            vk::MemoryPropertyFlags memoryProp,
            vk::DeviceSize size,
-           const void* data,
            const char* debugName);
 
     auto getBuffer() const -> vk::Buffer;
@@ -30,6 +30,8 @@ public:
     void unmap();
     void copy(const void* data);
 
+    void prepareStagingBuffer();
+
 private:
     const Context* context = nullptr;
 
@@ -37,7 +39,11 @@ private:
     vk::UniqueDeviceMemory memory;
     vk::DeviceSize size = 0u;
 
+    // For host buffer
     void* mapped = nullptr;
     bool isHostVisible;
+
+    // For device buffer
+    BufferHandle stagingBuffer;
 };
 }  // namespace rv
