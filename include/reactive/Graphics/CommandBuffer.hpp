@@ -145,16 +145,9 @@ public:
                     uint32_t data) const;
 
     // accel struct
-    void updateTopAccel(TopAccelHandle topAccel, ArrayProxy<AccelInstance> accelInstances) const;
+    void updateTopAccel(TopAccelHandle topAccel) const;
 
-    void buildTopAccel(TopAccelHandle topAccel) const {
-        vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo{};
-        buildRangeInfo.setPrimitiveCount(topAccel->primitiveCount);
-        buildRangeInfo.setPrimitiveOffset(0);
-        buildRangeInfo.setFirstVertex(0);
-        buildRangeInfo.setTransformOffset(0);
-        commandBuffer->buildAccelerationStructuresKHR(topAccel->buildGeometryInfo, &buildRangeInfo);
-    }
+    void buildTopAccel(TopAccelHandle topAccel) const;
 
     // timestamp
     void beginTimestamp(GPUTimerHandle gpuTimer) const;

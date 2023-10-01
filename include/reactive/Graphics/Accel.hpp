@@ -81,22 +81,20 @@ public:
         return {*accel};
     }
 
+    void updateInstances(ArrayProxy<AccelInstance> accelInstances) const;
+
 private:
     const Context* context;
 
     vk::UniqueAccelerationStructureKHR accel;
 
-    uint32_t primitiveCount;
     BufferHandle buffer;
     BufferHandle instanceBuffer;
     BufferHandle scratchBuffer;
 
+    uint32_t primitiveCount;
     vk::GeometryFlagsKHR geometryFlags;
-    vk::AccelerationStructureGeometryInstancesDataKHR instancesData;
-    vk::AccelerationStructureGeometryKHR geometry;
-    vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
     vk::BuildAccelerationStructureFlagsKHR buildFlags;
     vk::AccelerationStructureBuildTypeKHR buildType;
-    vk::DeviceSize buildScratchSize;
 };
 }  // namespace rv

@@ -348,22 +348,7 @@ void CommandBuffer::fillBuffer(BufferHandle dstBuffer,
     commandBuffer->fillBuffer(dstBuffer->getBuffer(), dstOffset, size, data);
 }
 
-void CommandBuffer::updateTopAccel(TopAccelHandle topAccel,
-                                   ArrayProxy<AccelInstance> accelInstances) const {
-    std::vector<vk::AccelerationStructureInstanceKHR> instances;
-    for (auto& instance : accelInstances) {
-        vk::AccelerationStructureInstanceKHR inst;
-        inst.setTransform(toVkMatrix(instance.transform));
-        inst.setInstanceCustomIndex(0);
-        inst.setMask(0xFF);
-        inst.setInstanceShaderBindingTableRecordOffset(instance.sbtOffset);
-        inst.setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);
-        inst.setAccelerationStructureReference(instance.bottomAccel->getBufferAddress());
-        instances.push_back(inst);
-    }
-
-    topAccel->instanceBuffer->copy(instances.data());
-
+void CommandBuffer::updateTopAccel(TopAccelHandle topAccel) const {
     vk::AccelerationStructureGeometryInstancesDataKHR instancesData;
     instancesData.setArrayOfPointers(false);
     instancesData.setData(topAccel->instanceBuffer->getAddress());
@@ -378,18 +363,19 @@ void CommandBuffer::updateTopAccel(TopAccelHandle topAccel,
     buildGeometryInfo.setFlags(topAccel->buildFlags);
     buildGeometryInfo.setGeometries(geometry);
 
-    buildGeometryInfo.setMode(vk::BuildAccelerationStructureModeKHR::eUpdate);
+    buildGeometryInfo.setMode(vk::BuildAccelerationStructureModeKHR::eUpdate);  // for update
+    buildGeometryInfo.setSrcAccelerationStructure(*topAccel->accel);            // for update
     buildGeometryInfo.setDstAccelerationStructure(*topAccel->accel);
-    buildGeometryInfo.setSrcAccelerationStructure(*topAccel->accel);
     buildGeometryInfo.setScratchData(topAccel->scratchBuffer->getAddress());
 
     vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo{};
-    buildRangeInfo.setPrimitiveCount(instances.size());
+    buildRangeInfo.setPrimitiveCount(topAccel->primitiveCount);
     buildRangeInfo.setPrimitiveOffset(0);
     buildRangeInfo.setFirstVertex(0);
     buildRangeInfo.setTransformOffset(0);
     commandBuffer->buildAccelerationStructuresKHR(buildGeometryInfo, &buildRangeInfo);
 
+    // TODO: remove this
     // Create a memory barrier for the acceleration structure
     vk::MemoryBarrier2 memoryBarrier{};
     memoryBarrier.setSrcStageMask(vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR);
@@ -403,6 +389,33 @@ void CommandBuffer::updateTopAccel(TopAccelHandle topAccel,
     dependencyInfo.setMemoryBarrierCount(1);
     dependencyInfo.setPMemoryBarriers(&memoryBarrier);
     commandBuffer->pipelineBarrier2(dependencyInfo);
+}
+
+void CommandBuffer::buildTopAccel(TopAccelHandle topAccel) const {
+    vk::AccelerationStructureGeometryInstancesDataKHR instancesData;
+    instancesData.setArrayOfPointers(false);
+    instancesData.setData(topAccel->instanceBuffer->getAddress());
+
+    vk::AccelerationStructureGeometryKHR geometry;
+    geometry.setGeometryType(vk::GeometryTypeKHR::eInstances);
+    geometry.setGeometry({instancesData});
+    geometry.setFlags(topAccel->geometryFlags);
+
+    vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
+    buildGeometryInfo.setType(vk::AccelerationStructureTypeKHR::eTopLevel);
+    buildGeometryInfo.setFlags(topAccel->buildFlags);
+    buildGeometryInfo.setGeometries(geometry);
+
+    buildGeometryInfo.setMode(vk::BuildAccelerationStructureModeKHR::eBuild);  // for build
+    buildGeometryInfo.setDstAccelerationStructure(*topAccel->accel);
+    buildGeometryInfo.setScratchData(topAccel->scratchBuffer->getAddress());
+
+    vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo{};
+    buildRangeInfo.setPrimitiveCount(topAccel->primitiveCount);
+    buildRangeInfo.setPrimitiveOffset(0);
+    buildRangeInfo.setFirstVertex(0);
+    buildRangeInfo.setTransformOffset(0);
+    commandBuffer->buildAccelerationStructuresKHR(buildGeometryInfo, &buildRangeInfo);
 }
 
 void CommandBuffer::beginTimestamp(GPUTimerHandle gpuTimer) const {
