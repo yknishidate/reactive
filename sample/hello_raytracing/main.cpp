@@ -1,4 +1,4 @@
-#include <reactive/App.hpp>
+#include <reactive/reactive.hpp>
 
 using namespace rv;
 
@@ -38,7 +38,10 @@ public:
             .usage = ImageUsage::Storage,
             .extent = {width, height, 1},
             .format = vk::Format::eB8G8R8A8Unorm,
-            .layout = vk::ImageLayout::eGeneral,
+        });
+
+        context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
+            commandBuffer->transitionLayout(image, vk::ImageLayout::eGeneral);
         });
 
         std::vector<ShaderHandle> shaders(3);
@@ -78,15 +81,15 @@ public:
         pushConstants.invView = camera.getInvView();
     }
 
-    void onRender(const CommandBuffer& commandBuffer) override {
+    void onRender(const CommandBufferHandle& commandBuffer) override {
         ImGui::SliderInt("Test slider", &testInt, 0, 100);
 
-        commandBuffer.bindDescriptorSet(descSet, pipeline);
-        commandBuffer.bindPipeline(pipeline);
-        commandBuffer.pushConstants(pipeline, &pushConstants);
-        commandBuffer.traceRays(pipeline, width, height, 1);
-        commandBuffer.copyImage(image, getCurrentColorImage(), vk::ImageLayout::eGeneral,
-                                vk::ImageLayout::ePresentSrcKHR);
+        commandBuffer->bindDescriptorSet(descSet, pipeline);
+        commandBuffer->bindPipeline(pipeline);
+        commandBuffer->pushConstants(pipeline, &pushConstants);
+        commandBuffer->traceRays(pipeline, width, height, 1);
+        commandBuffer->copyImage(image, getCurrentColorImage(), vk::ImageLayout::eGeneral,
+                                 vk::ImageLayout::ePresentSrcKHR);
     }
 
     std::vector<Vertex> vertices{{{-1, 0, 0}}, {{0, -1, 0}}, {{1, 0, 0}}};

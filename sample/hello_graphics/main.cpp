@@ -1,4 +1,4 @@
-#include <reactive/App.hpp>
+#include <reactive/reactive.hpp>
 
 using namespace rv;
 
@@ -57,7 +57,7 @@ public:
         gpuTimer = context.createGPUTimer({});
     }
 
-    void onRender(const CommandBuffer& commandBuffer) override {
+    void onRender(const CommandBufferHandle& commandBuffer) override {
         if (frame > 0) {
             for (int i = 0; i < TIME_BUFFER_SIZE - 1; i++) {
                 times[i] = times[i + 1];
@@ -69,18 +69,18 @@ public:
                              {300, 150});
         }
 
-        commandBuffer.clearColorImage(getCurrentColorImage(), {0.0f, 0.0f, 0.5f, 1.0f});
-        commandBuffer.clearDepthStencilImage(getDefaultDepthImage(), 1.0f, 0);
-        commandBuffer.setViewport(width, height);
-        commandBuffer.setScissor(width, height);
-        commandBuffer.bindDescriptorSet(descSet, pipeline);
-        commandBuffer.bindPipeline(pipeline);
-        commandBuffer.beginTimestamp(gpuTimer);
-        commandBuffer.beginRendering(getCurrentColorImage(), getDefaultDepthImage(), {0, 0},
-                                     {width, height});
-        commandBuffer.draw(3, 1, 0, 0);
-        commandBuffer.endRendering();
-        commandBuffer.endTimestamp(gpuTimer);
+        commandBuffer->clearColorImage(getCurrentColorImage(), {0.0f, 0.0f, 0.5f, 1.0f});
+        commandBuffer->clearDepthStencilImage(getDefaultDepthImage(), 1.0f, 0);
+        commandBuffer->setViewport(width, height);
+        commandBuffer->setScissor(width, height);
+        commandBuffer->bindDescriptorSet(descSet, pipeline);
+        commandBuffer->bindPipeline(pipeline);
+        commandBuffer->beginTimestamp(gpuTimer);
+        commandBuffer->beginRendering(getCurrentColorImage(), getDefaultDepthImage(), {0, 0},
+                                      {width, height});
+        commandBuffer->draw(3, 1, 0, 0);
+        commandBuffer->endRendering();
+        commandBuffer->endTimestamp(gpuTimer);
         frame++;
     }
 

@@ -1,4 +1,4 @@
-#include <reactive/App.hpp>
+#include <reactive/reactive.hpp>
 
 using namespace rv;
 
@@ -17,7 +17,10 @@ public:
             .usage = ImageUsage::Storage,
             .extent = {width, height, 1},
             .format = vk::Format::eB8G8R8A8Unorm,
-            .layout = vk::ImageLayout::eGeneral,
+        });
+
+        context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
+            commandBuffer->transitionLayout(image, vk::ImageLayout::eGeneral);
         });
 
         ShaderHandle compShader = context.createShader({
@@ -39,14 +42,14 @@ public:
 
     void onUpdate() override { frame++; }
 
-    void onRender(const CommandBuffer& commandBuffer) override {
+    void onRender(const CommandBufferHandle& commandBuffer) override {
         ImGui::SliderInt("Test slider", &testInt, 0, 100);
-        commandBuffer.bindDescriptorSet(descSet, pipeline);
-        commandBuffer.bindPipeline(pipeline);
-        commandBuffer.pushConstants(pipeline, &frame);
-        commandBuffer.dispatch(width, height, 1);
-        commandBuffer.copyImage(image, getCurrentColorImage(), vk::ImageLayout::eGeneral,
-                                vk::ImageLayout::ePresentSrcKHR);
+        commandBuffer->bindDescriptorSet(descSet, pipeline);
+        commandBuffer->bindPipeline(pipeline);
+        commandBuffer->pushConstants(pipeline, &frame);
+        commandBuffer->dispatch(width, height, 1);
+        commandBuffer->copyImage(image, getCurrentColorImage(), vk::ImageLayout::eGeneral,
+                                 vk::ImageLayout::ePresentSrcKHR);
     }
 
     ImageHandle image;
