@@ -144,7 +144,17 @@ public:
                     vk::DeviceSize size,
                     uint32_t data) const;
 
-    void updateTopAccel(TopAccelHandle topAccel, ArrayProxy<AccelInstance> accelInstances);
+    // accel struct
+    void updateTopAccel(TopAccelHandle topAccel, ArrayProxy<AccelInstance> accelInstances) const;
+
+    void buildTopAccel(TopAccelHandle topAccel) const {
+        vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo{};
+        buildRangeInfo.setPrimitiveCount(topAccel->primitiveCount);
+        buildRangeInfo.setPrimitiveOffset(0);
+        buildRangeInfo.setFirstVertex(0);
+        buildRangeInfo.setTransformOffset(0);
+        commandBuffer->buildAccelerationStructuresKHR(topAccel->buildGeometryInfo, &buildRangeInfo);
+    }
 
     // timestamp
     void beginTimestamp(GPUTimerHandle gpuTimer) const;

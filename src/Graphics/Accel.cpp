@@ -87,23 +87,22 @@ TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo)
         .data = instances.data(),
     });
 
-    vk::AccelerationStructureGeometryInstancesDataKHR instancesData;
     instancesData.setArrayOfPointers(false);
     instancesData.setData(instanceBuffer->getAddress());
 
-    vk::AccelerationStructureGeometryKHR geometry;
     geometry.setGeometryType(vk::GeometryTypeKHR::eInstances);
     geometry.setGeometry({instancesData});
     geometry.setFlags(geometryFlags);
 
-    vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
     buildGeometryInfo.setType(vk::AccelerationStructureTypeKHR::eTopLevel);
     buildGeometryInfo.setFlags(buildFlags);
     buildGeometryInfo.setGeometries(geometry);
 
-    const uint32_t primitiveCount = instances.size();
+    primitiveCount = instances.size();
     auto buildSizesInfo = context->getDevice().getAccelerationStructureBuildSizesKHR(
         buildType, buildGeometryInfo, primitiveCount);
+
+    buildScratchSize = buildSizesInfo.buildScratchSize;
 
     buffer = context->createBuffer({
         .usage = BufferUsage::AccelStorage,
@@ -120,21 +119,11 @@ TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo)
     scratchBuffer = context->createBuffer({
         .usage = BufferUsage::Scratch,
         .memory = MemoryUsage::Device,
-        .size = buildSizesInfo.buildScratchSize,
+        .size = buildScratchSize,
     });
 
     buildGeometryInfo.setMode(vk::BuildAccelerationStructureModeKHR::eBuild);
     buildGeometryInfo.setDstAccelerationStructure(*accel);
     buildGeometryInfo.setScratchData(scratchBuffer->getAddress());
-
-    context->oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
-        vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo{};
-        buildRangeInfo.setPrimitiveCount(primitiveCount);
-        buildRangeInfo.setPrimitiveOffset(0);
-        buildRangeInfo.setFirstVertex(0);
-        buildRangeInfo.setTransformOffset(0);
-        commandBuffer->commandBuffer->buildAccelerationStructuresKHR(buildGeometryInfo,
-                                                                     &buildRangeInfo);
-    });
 }
 }  // namespace rv

@@ -86,12 +86,17 @@ private:
 
     vk::UniqueAccelerationStructureKHR accel;
 
+    uint32_t primitiveCount;
     BufferHandle buffer;
     BufferHandle instanceBuffer;
     BufferHandle scratchBuffer;
 
     vk::GeometryFlagsKHR geometryFlags;
+    vk::AccelerationStructureGeometryInstancesDataKHR instancesData;
+    vk::AccelerationStructureGeometryKHR geometry;
+    vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
     vk::BuildAccelerationStructureFlagsKHR buildFlags;
     vk::AccelerationStructureBuildTypeKHR buildType;
+    vk::DeviceSize buildScratchSize;
 };
 }  // namespace rv

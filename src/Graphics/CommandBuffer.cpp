@@ -349,7 +349,7 @@ void CommandBuffer::fillBuffer(BufferHandle dstBuffer,
 }
 
 void CommandBuffer::updateTopAccel(TopAccelHandle topAccel,
-                                   ArrayProxy<AccelInstance> accelInstances) {
+                                   ArrayProxy<AccelInstance> accelInstances) const {
     std::vector<vk::AccelerationStructureInstanceKHR> instances;
     for (auto& instance : accelInstances) {
         vk::AccelerationStructureInstanceKHR inst;
