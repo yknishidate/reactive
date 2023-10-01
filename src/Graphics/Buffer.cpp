@@ -8,7 +8,6 @@ Buffer::Buffer(const Context* context,
                vk::BufferUsageFlags usage,
                vk::MemoryPropertyFlags memoryProp,
                vk::DeviceSize size,
-               const void* data,
                const char* debugName)
     : context{context}, size(size) {
     // Create buffer
@@ -33,23 +32,18 @@ Buffer::Buffer(const Context* context,
     // Bind memory
     context->getDevice().bindBufferMemory(*buffer, *memory, 0);
 
-    // Copy data
-    if (data) {
-        copy(data);
-    }
-
     if (debugName) {
         context->setDebugName(*buffer, debugName);
         context->setDebugName(*memory, debugName);
     }
 }
 
-vk::DeviceAddress Buffer::getAddress() const {
-    vk::BufferDeviceAddressInfo bufferDeviceAI{*buffer};
-    return context->getDevice().getBufferAddress(&bufferDeviceAI);
+auto Buffer::getAddress() const -> vk::DeviceAddress {
+    vk::BufferDeviceAddressInfo addressInfo{*buffer};
+    return context->getDevice().getBufferAddress(&addressInfo);
 }
 
-void* Buffer::map() {
+auto Buffer::map() -> void* {
     RV_ASSERT(isHostVisible, "");
     if (!mapped) {
         mapped = context->getDevice().mapMemory(*memory, 0, VK_WHOLE_SIZE);
@@ -58,26 +52,24 @@ void* Buffer::map() {
 }
 
 void Buffer::unmap() {
-    RV_ASSERT(isHostVisible, "");
+    RV_ASSERT(isHostVisible, "This buffer is not host visible.");
     context->getDevice().unmapMemory(*memory);
     mapped = nullptr;
 }
 
-// TODO: move to CommandBuffer
 void Buffer::copy(const void* data) {
-    if (isHostVisible) {
-        map();
-        std::memcpy(mapped, data, size);
-    } else {
-        BufferHandle stagingBuffer = context->createBuffer({
+    RV_ASSERT(isHostVisible, "This buffer is not host visible.");
+    map();
+    std::memcpy(mapped, data, size);
+}
+
+void Buffer::prepareStagingBuffer() {
+    RV_ASSERT(!isHostVisible, "This buffer is not device buffer.");
+    if (!stagingBuffer) {
+        stagingBuffer = context->createBuffer({
             .usage = BufferUsage::Staging,
             .memory = MemoryUsage::Host,
             .size = size,
-            .data = data,
-        });
-        context->oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
-            vk::BufferCopy region{0, 0, size};
-            commandBuffer->commandBuffer->copyBuffer(stagingBuffer->getBuffer(), *buffer, region);
         });
     }
 }

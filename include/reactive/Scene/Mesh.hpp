@@ -21,17 +21,11 @@ struct Vertex {
     glm::vec3 normal{0.0};
     glm::vec2 texCoord{0.0};
 
-    static std::vector<VertexAttributeDescription> getAttributeDescriptions() {
-        return {
-            {.offset = offsetof(Vertex, pos), .format = vk::Format::eR32G32B32Sfloat},
-            {.offset = offsetof(Vertex, normal), .format = vk::Format::eR32G32B32Sfloat},
-            {.offset = offsetof(Vertex, texCoord), .format = vk::Format::eR32G32Sfloat},
-        };
-    }
-
-    bool operator==(const Vertex& other) const {
+    auto operator==(const Vertex& other) const -> bool {
         return pos == other.pos && normal == other.normal && texCoord == other.texCoord;
     }
+
+    static auto getAttributeDescriptions() -> std::vector<VertexAttributeDescription>;
 };
 
 struct SphereMeshCreateInfo {
@@ -71,27 +65,25 @@ struct Mesh {
          const std::vector<Vertex>& vertices,
          const std::vector<uint32_t>& indices,
          const std::string& name);
-    static Mesh createSphereMesh(const Context& context, SphereMeshCreateInfo createInfo);
-    static Mesh createPlaneMesh(const Context& context, PlaneMeshCreateInfo createInfo);
-    static Mesh createPlaneLineMesh(const Context& context, PlaneLineMeshCreateInfo createInfo);
-    static Mesh createCubeMesh(const Context& context, CubeMeshCreateInfo createInfo);
-    static Mesh createCubeLineMesh(const Context& context, CubeLineMeshCreateInfo createInfo);
+    static auto createSphereMesh(const Context& context, SphereMeshCreateInfo createInfo) -> Mesh;
+    static auto createPlaneMesh(const Context& context, PlaneMeshCreateInfo createInfo) -> Mesh;
+    static auto createCubeMesh(const Context& context, CubeMeshCreateInfo createInfo) -> Mesh;
+    static auto createPlaneLineMesh(const Context& context, PlaneLineMeshCreateInfo createInfo)
+        -> Mesh;
+    static auto createCubeLineMesh(const Context& context, CubeLineMeshCreateInfo createInfo)
+        -> Mesh;
 
-    uint32_t getVertexCount() const { return vertices.size(); }
-    uint32_t getIndicesCount() const { return indices.size(); }
-    uint32_t getTriangleCount() const { return indices.size() / 3; }
-
-    void drawIndexed(vk::CommandBuffer commandBuffer, uint32_t instanceCount) const {
-        vk::DeviceSize offsets{0};
-        commandBuffer.bindVertexBuffers(0, vertexBuffer->getBuffer(), offsets);
-        commandBuffer.bindIndexBuffer(indexBuffer->getBuffer(), 0, vk::IndexType::eUint32);
-        commandBuffer.drawIndexed(static_cast<uint32_t>(indices.size()), instanceCount, 0, 0, 0);
-    }
+    auto getVertexCount() const -> uint32_t { return vertices.size(); }
+    auto getIndicesCount() const -> uint32_t { return indices.size(); }
+    auto getTriangleCount() const -> uint32_t { return indices.size() / 3; }
 
     const Context* context;
+
     std::string name;
+
     BufferHandle vertexBuffer;
     BufferHandle indexBuffer;
+
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
 };
@@ -100,7 +92,7 @@ struct Mesh {
 namespace std {
 template <>
 struct hash<rv::Vertex> {
-    size_t operator()(const rv::Vertex& vertex) const {
+    auto operator()(const rv::Vertex& vertex) const -> size_t {
         return ((hash<glm::vec3>()(vertex.pos) ^ (hash<glm::vec3>()(vertex.normal) << 1)) >> 1) ^
                (hash<glm::vec2>()(vertex.texCoord) << 1);
     }

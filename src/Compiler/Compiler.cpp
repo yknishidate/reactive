@@ -7,7 +7,7 @@
 
 namespace rv {
 namespace File {
-std::string readFile(const std::filesystem::path& path) {
+auto readFile(const std::filesystem::path& path) -> std::string {
     std::ifstream input_file{path};
     if (!input_file.is_open()) {
         throw std::runtime_error("Failed to open file: " + path.string());
@@ -15,8 +15,8 @@ std::string readFile(const std::filesystem::path& path) {
     return {(std::istreambuf_iterator<char>{input_file}), std::istreambuf_iterator<char>{}};
 }
 
-std::filesystem::file_time_type getLastWriteTimeWithIncludeFiles(
-    const std::filesystem::path& filepath) {
+auto getLastWriteTimeWithIncludeFiles(const std::filesystem::path& filepath)
+    -> std::filesystem::file_time_type {
     auto directory = filepath.parent_path();
     auto writeTime = std::filesystem::last_write_time(filepath);
     std::string code = File::readFile(filepath);
@@ -148,7 +148,7 @@ const TBuiltInResource DefaultTBuiltInResource = {
         /* .generalConstantMatrixVectorIndexing = */ 1,
     }};
 
-vk::ShaderStageFlagBits getShaderStage(const std::string& filepath) {
+auto getShaderStage(const std::string& filepath) -> vk::ShaderStageFlagBits {
     if (filepath.ends_with("vert"))
         return vk::ShaderStageFlagBits::eVertex;
     if (filepath.ends_with("frag"))
@@ -168,9 +168,10 @@ vk::ShaderStageFlagBits getShaderStage(const std::string& filepath) {
     if (filepath.ends_with("task"))
         return vk::ShaderStageFlagBits::eTaskEXT;
     assert(false && "Unknown shader stage");
+    return {};
 }
 
-EShLanguage translateShaderStage(vk::ShaderStageFlagBits shaderStage) {
+auto translateShaderStage(vk::ShaderStageFlagBits shaderStage) -> EShLanguage {
     if (shaderStage == vk::ShaderStageFlagBits::eVertex)
         return EShLangVertex;
     if (shaderStage == vk::ShaderStageFlagBits::eFragment)
@@ -190,9 +191,10 @@ EShLanguage translateShaderStage(vk::ShaderStageFlagBits shaderStage) {
     if (shaderStage == vk::ShaderStageFlagBits::eTaskEXT)
         return EShLangTask;
     assert(false && "Unknown shader stage");
+    return {};
 }
 
-std::string include(const std::string& filepath, const std::string& sourceText) {
+auto include(const std::string& filepath, const std::string& sourceText) -> std::string {
     std::filesystem::path dir = std::filesystem::path{filepath}.parent_path();
 
     std::string included = sourceText;
@@ -226,7 +228,7 @@ void addDefines(std::string& glslCode, const std::vector<Define>& defines) {
     }
 }
 
-std::string addLineNumbersToCode(const std::string& code) {
+auto addLineNumbersToCode(const std::string& code) -> std::string {
     std::string addedCode;
     int lineIndex = 1;
     std::string line;
@@ -239,7 +241,7 @@ std::string addLineNumbersToCode(const std::string& code) {
 }
 
 // Main compile function
-std::vector<uint32_t> compileToSPV(const std::string& glslCode, EShLanguage stage) {
+auto compileToSPV(const std::string& glslCode, EShLanguage stage) -> std::vector<uint32_t> {
     glslang::InitializeProcess();
 
     const char* shaderStrings = glslCode.data();
@@ -278,8 +280,8 @@ std::vector<uint32_t> compileToSPV(const std::string& glslCode, EShLanguage stag
 }
 
 // Support include directive
-std::vector<uint32_t> compileToSPV(const std::string& filepath,
-                                   const std::vector<Define>& defines) {
+auto compileToSPV(const std::string& filepath, const std::vector<Define>& defines)
+    -> std::vector<uint32_t> {
     std::string glslCode = File::readFile(filepath);
     EShLanguage stage = translateShaderStage(getShaderStage(filepath));
     std::string included = include(filepath, glslCode);
@@ -289,14 +291,16 @@ std::vector<uint32_t> compileToSPV(const std::string& filepath,
 
 // Don't support include directive
 // This is for hardcoded shader in C++
-std::vector<uint32_t> compileToSPV(const std::string& glslCode,
-                                   vk::ShaderStageFlagBits shaderStage,
-                                   const std::vector<Define>& defines) {
+auto compileToSPV(const std::string& glslCode,
+                  vk::ShaderStageFlagBits shaderStage,
+                  const std::vector<Define>& defines) -> std::vector<uint32_t> {
     EShLanguage stage = translateShaderStage(shaderStage);
-    return compileToSPV(glslCode, stage);
+    std::string copied = glslCode;
+    addDefines(copied, defines);
+    return compileToSPV(copied, stage);
 }
 
-std::vector<std::string> getAllIncludedFiles(const std::string& code) {
+auto getAllIncludedFiles(const std::string& code) -> std::vector<std::string> {
     std::string includePrefix = "#include \"";
     std::string includeSuffix = "\"";
     std::string::size_type startPos = 0;

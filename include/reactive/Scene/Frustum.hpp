@@ -19,7 +19,7 @@ struct Plane {
 };
 
 struct Frustum {
-    // Frustum(const Camera& camera) {}
+    Frustum(const Camera& camera);
 
     Plane topFace;
     Plane bottomFace;
@@ -31,20 +31,20 @@ struct Frustum {
     Plane nearFace;
 };
 
-// inline Frustum::Frustum(const Camera& camera) {
-//     const float halfVSide = camera.zFar * tanf(camera.fovY * .5f);
-//     const float halfHSide = halfVSide * camera.aspect;
-//     const glm::vec3 position = camera.getPosition();
-//     const glm::vec3 front = camera.getFront();
-//     const glm::vec3 up = camera.getUp();
-//     const glm::vec3 right = camera.getRight();
-//     const glm::vec3 frontMultFar = camera.zFar * front;
-//
-//     nearFace = {position + camera.zNear * front, front};
-//     farFace = {position + frontMultFar, -front};
-//     rightFace = {position, glm::cross(frontMultFar - right * halfHSide, up)};
-//     leftFace = {position, glm::cross(up, frontMultFar + right * halfHSide)};
-//     topFace = {position, glm::cross(right, frontMultFar - up * halfVSide)};
-//     bottomFace = {position, glm::cross(frontMultFar + up * halfVSide, right)};
-// }
+inline Frustum::Frustum(const Camera& camera) {
+    const float halfVSide = camera.zFar * tanf(camera.fovY * .5f);
+    const float halfHSide = halfVSide * camera.aspect;
+    const glm::vec3 position = camera.getPosition();
+    const glm::vec3 front = camera.getFront();
+    const glm::vec3 up = camera.getUp();
+    const glm::vec3 right = camera.getRight();
+    const glm::vec3 frontMultFar = camera.zFar * front;
+
+    nearFace = {position + camera.zNear * front, front};
+    farFace = {position + frontMultFar, -front};
+    rightFace = {position, glm::cross(frontMultFar - right * halfHSide, up)};
+    leftFace = {position, glm::cross(up, frontMultFar + right * halfHSide)};
+    topFace = {position, glm::cross(right, frontMultFar - up * halfVSide)};
+    bottomFace = {position, glm::cross(frontMultFar + up * halfVSide, right)};
+}
 }  // namespace rv

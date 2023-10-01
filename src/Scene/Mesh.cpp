@@ -1,6 +1,16 @@
 #include "Scene/Mesh.hpp"
 
+#include "Graphics/CommandBuffer.hpp"
+
 namespace rv {
+auto Vertex::getAttributeDescriptions() -> std::vector<VertexAttributeDescription> {
+    return {
+        {.offset = offsetof(Vertex, pos), .format = vk::Format::eR32G32B32Sfloat},
+        {.offset = offsetof(Vertex, normal), .format = vk::Format::eR32G32B32Sfloat},
+        {.offset = offsetof(Vertex, texCoord), .format = vk::Format::eR32G32Sfloat},
+    };
+}
+
 Mesh::Mesh(const Context& context,
            const std::vector<Vertex>& vertices,
            const std::vector<uint32_t>& indices,
@@ -10,19 +20,23 @@ Mesh::Mesh(const Context& context,
         .usage = BufferUsage::Vertex,
         .memory = MemoryUsage::Device,
         .size = sizeof(Vertex) * vertices.size(),
-        .data = vertices.data(),
         .debugName = (name + "::vertexBuffer").c_str(),
     });
+
     indexBuffer = context.createBuffer({
         .usage = BufferUsage::Index,
         .memory = MemoryUsage::Device,
         .size = sizeof(uint32_t) * indices.size(),
-        .data = indices.data(),
         .debugName = (name + "::indexBuffer").c_str(),
+    });
+
+    context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
+        commandBuffer->copyBuffer(vertexBuffer, vertices.data());
+        commandBuffer->copyBuffer(indexBuffer, indices.data());
     });
 }
 
-Mesh Mesh::createSphereMesh(const Context& context, SphereMeshCreateInfo createInfo) {
+auto Mesh::createSphereMesh(const Context& context, SphereMeshCreateInfo createInfo) -> Mesh {
     int n_stacks = createInfo.numStacks;
     int n_slices = createInfo.numSlices;
     float radius = createInfo.radius;
@@ -86,7 +100,7 @@ Mesh Mesh::createSphereMesh(const Context& context, SphereMeshCreateInfo createI
     return {context, vertices, indices, createInfo.name};
 }
 
-Mesh Mesh::createPlaneMesh(const Context& context, PlaneMeshCreateInfo createInfo) {
+auto Mesh::createPlaneMesh(const Context& context, PlaneMeshCreateInfo createInfo) -> Mesh {
     float width = createInfo.width;
     float height = createInfo.height;
     uint32_t widthSegments = createInfo.widthSegments;
@@ -127,7 +141,7 @@ Mesh Mesh::createPlaneMesh(const Context& context, PlaneMeshCreateInfo createInf
     return {context, vertices, indices, createInfo.name};
 }
 
-Mesh Mesh::createPlaneLineMesh(const Context& context, PlaneLineMeshCreateInfo createInfo) {
+auto Mesh::createPlaneLineMesh(const Context& context, PlaneLineMeshCreateInfo createInfo) -> Mesh {
     float width = createInfo.width;
     float height = createInfo.height;
     uint32_t widthSegments = createInfo.widthSegments;
@@ -173,7 +187,7 @@ Mesh Mesh::createPlaneLineMesh(const Context& context, PlaneLineMeshCreateInfo c
     return {context, vertices, indices, createInfo.name};
 }
 
-Mesh Mesh::createCubeMesh(const Context& context, CubeMeshCreateInfo createInfo) {
+auto Mesh::createCubeMesh(const Context& context, CubeMeshCreateInfo createInfo) -> Mesh {
     std::vector<glm::vec3> positions{
         {-1.0, -1.0, -1.0}, {1.0, -1.0, -1.0}, {1.0, -1.0, 1.0}, {-1.0, -1.0, 1.0},
         {-1.0, 1.0, -1.0},  {1.0, 1.0, -1.0},  {1.0, 1.0, 1.0},  {-1.0, 1.0, 1.0},
@@ -230,7 +244,7 @@ Mesh Mesh::createCubeMesh(const Context& context, CubeMeshCreateInfo createInfo)
     return {context, vertices, indices, createInfo.name};
 }
 
-Mesh Mesh::createCubeLineMesh(const Context& context, CubeLineMeshCreateInfo createInfo) {
+auto Mesh::createCubeLineMesh(const Context& context, CubeLineMeshCreateInfo createInfo) -> Mesh {
     std::vector<Vertex> vertices = {
         {glm::vec3(-1.0, -1.0, -1.0)}, {glm::vec3(1.0, -1.0, -1.0)}, {glm::vec3(1.0, -1.0, 1.0)},
         {glm::vec3(-1.0, -1.0, 1.0)},  {glm::vec3(-1.0, 1.0, -1.0)}, {glm::vec3(1.0, 1.0, -1.0)},

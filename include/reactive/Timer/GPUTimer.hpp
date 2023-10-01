@@ -11,14 +11,16 @@ public:
     GPUTimer() = default;
     GPUTimer(const Context* context, GPUTimerCreateInfo createInfo);
 
-    double elapsedInNano();
-    double elapsedInMilli();
-
-    std::array<uint64_t, 2> timestamps;
+    auto elapsedInNano() -> double;
+    auto elapsedInMilli() -> double;
 
 private:
     const Context* context;
-    vk::UniqueQueryPool queryPool;
+
     float timestampPeriod;
+
+    vk::UniqueQueryPool queryPool;
+
+    std::array<uint64_t, 2> timestamps;
 };
 }  // namespace rv

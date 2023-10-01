@@ -3,7 +3,8 @@
 namespace rv {
 Shader::Shader(const Context* context, ShaderCreateInfo createInfo)
     : spvCode(createInfo.code), stage(createInfo.stage) {
-    shaderModule = context->getDevice().createShaderModuleUnique(
-        vk::ShaderModuleCreateInfo().setCode(spvCode));
+    vk::ShaderModuleCreateInfo moduleInfo;
+    moduleInfo.setCode(spvCode);
+    shaderModule = context->getDevice().createShaderModuleUnique(moduleInfo);
 }
 }  // namespace rv

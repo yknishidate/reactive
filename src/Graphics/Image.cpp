@@ -100,6 +100,15 @@ Image::Image(const Context* context,
     }
 }
 
+Image::~Image() {
+    if (hasOwnership) {
+        context->getDevice().destroySampler(sampler);
+        context->getDevice().destroyImageView(view);
+        context->getDevice().freeMemory(memory);
+        context->getDevice().destroyImage(image);
+    }
+}
+
 ImageHandle Image::loadFromFile(const Context& context,
                                 const std::string& filepath,
                                 uint32_t mipLevels) {
@@ -124,8 +133,8 @@ ImageHandle Image::loadFromFile(const Context& context,
         .usage = BufferUsage::Staging,
         .memory = MemoryUsage::Host,
         .size = width * height * comp * sizeof(unsigned char),
-        .data = reinterpret_cast<void*>(pixels),
     });
+    stagingBuffer->copy(pixels);
 
     context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
         commandBuffer->transitionLayout(image, vk::ImageLayout::eTransferDstOptimal);
@@ -167,8 +176,8 @@ ImageHandle Image::loadFromFileHDR(const Context& context, const std::string& fi
         .usage = BufferUsage::Staging,
         .memory = MemoryUsage::Host,
         .size = width * height * comp * sizeof(float),
-        .data = reinterpret_cast<void*>(pixels),
     });
+    stagingBuffer->copy(pixels);
 
     context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
         commandBuffer->transitionLayout(image, vk::ImageLayout::eTransferDstOptimal);
@@ -201,6 +210,7 @@ void Image::generateMipmaps() {
     }
 
     // TODO: support 3D
+    // TODO: move to command buffer
     context->oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
         vk::ImageMemoryBarrier barrier{};
         barrier.image = image;
@@ -221,9 +231,8 @@ void Image::generateMipmaps() {
             barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
             barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
 
-            commandBuffer->pipelineBarrier(vk::PipelineStageFlagBits::eTransfer,
-                                           vk::PipelineStageFlagBits::eTransfer, {}, nullptr,
-                                           nullptr, barrier);
+            commandBuffer->imageBarrier(vk::PipelineStageFlagBits::eTransfer,
+                                        vk::PipelineStageFlagBits::eTransfer, {}, barrier);
 
             vk::ImageBlit blit{};
             blit.srcOffsets[0] = vk::Offset3D{0, 0, 0};
@@ -249,9 +258,8 @@ void Image::generateMipmaps() {
             barrier.srcAccessMask = vk::AccessFlagBits::eTransferRead;
             barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
 
-            commandBuffer->pipelineBarrier(vk::PipelineStageFlagBits::eTransfer,
-                                           vk::PipelineStageFlagBits::eFragmentShader, {}, nullptr,
-                                           nullptr, barrier);
+            commandBuffer->imageBarrier(vk::PipelineStageFlagBits::eTransfer,
+                                        vk::PipelineStageFlagBits::eFragmentShader, {}, barrier);
 
             if (mipWidth > 1)
                 mipWidth /= 2;
@@ -265,9 +273,8 @@ void Image::generateMipmaps() {
         barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
         barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
 
-        commandBuffer->pipelineBarrier(vk::PipelineStageFlagBits::eTransfer,
-                                       vk::PipelineStageFlagBits::eAllCommands, {}, nullptr,
-                                       nullptr, barrier);
+        commandBuffer->imageBarrier(vk::PipelineStageFlagBits::eTransfer,
+                                    vk::PipelineStageFlagBits::eAllCommands, {}, barrier);
     });
 }
 }  // namespace rv

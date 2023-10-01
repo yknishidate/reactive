@@ -4,8 +4,10 @@
 
 namespace rv {
 BottomAccel::BottomAccel(const Context* context, BottomAccelCreateInfo createInfo)
-    : context{context} {
-    vk::AccelerationStructureGeometryTrianglesDataKHR trianglesData;
+    : context{context},
+      geometryFlags{createInfo.geometryFlags},
+      buildFlags{createInfo.buildFlags},
+      buildType{createInfo.buildType} {
     trianglesData.setVertexFormat(vk::Format::eR32G32B32Sfloat);
     trianglesData.setVertexData(createInfo.vertexBuffer->getAddress());
     trianglesData.setVertexStride(createInfo.vertexStride);
@@ -19,16 +21,16 @@ BottomAccel::BottomAccel(const Context* context, BottomAccelCreateInfo createInf
     vk::AccelerationStructureGeometryKHR geometry;
     geometry.setGeometryType(vk::GeometryTypeKHR::eTriangles);
     geometry.setGeometry({geometryData});
-    geometry.setFlags(createInfo.geometryFlags);
+    geometry.setFlags(geometryFlags);
 
     vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
     buildGeometryInfo.setType(vk::AccelerationStructureTypeKHR::eBottomLevel);
-    buildGeometryInfo.setFlags(createInfo.buildFlags);
+    buildGeometryInfo.setFlags(buildFlags);
     buildGeometryInfo.setGeometries(geometry);
 
-    size_t primitiveCount = createInfo.triangleCount;
+    primitiveCount = createInfo.triangleCount;
     auto buildSizesInfo = context->getDevice().getAccelerationStructureBuildSizesKHR(
-        createInfo.buildType, buildGeometryInfo, primitiveCount);
+        buildType, buildGeometryInfo, primitiveCount);
 
     buffer = context->createBuffer({
         .usage = BufferUsage::AccelStorage,
@@ -42,24 +44,10 @@ BottomAccel::BottomAccel(const Context* context, BottomAccelCreateInfo createInf
             .setSize(buildSizesInfo.accelerationStructureSize)
             .setType(vk::AccelerationStructureTypeKHR::eBottomLevel));
 
-    BufferHandle scratchBuffer = context->createBuffer({
+    scratchBuffer = context->createBuffer({
         .usage = BufferUsage::Scratch,
         .memory = MemoryUsage::Host,
         .size = buildSizesInfo.buildScratchSize,
-    });
-
-    buildGeometryInfo.setMode(vk::BuildAccelerationStructureModeKHR::eBuild);
-    buildGeometryInfo.setDstAccelerationStructure(*accel);
-    buildGeometryInfo.setScratchData(scratchBuffer->getAddress());
-
-    context->oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
-        vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo{};
-        buildRangeInfo.setPrimitiveCount(primitiveCount);
-        buildRangeInfo.setPrimitiveOffset(0);
-        buildRangeInfo.setFirstVertex(0);
-        buildRangeInfo.setTransformOffset(0);
-        commandBuffer->commandBuffer->buildAccelerationStructuresKHR(buildGeometryInfo,
-                                                                     &buildRangeInfo);
     });
 }
 
@@ -70,24 +58,24 @@ TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo)
       buildType{createInfo.buildType} {
     std::vector<vk::AccelerationStructureInstanceKHR> instances;
     for (auto& instance : createInfo.accelInstances) {
-        instances.push_back(
-            vk::AccelerationStructureInstanceKHR()
-                .setTransform(toVkMatrix(instance.transform))
-                .setInstanceCustomIndex(0)
-                .setMask(0xFF)
-                .setInstanceShaderBindingTableRecordOffset(instance.sbtOffset)
-                .setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable)
-                .setAccelerationStructureReference(instance.bottomAccel->getBufferAddress()));
+        vk::AccelerationStructureInstanceKHR inst;
+        inst.setTransform(toVkMatrix(instance.transform));
+        inst.setInstanceCustomIndex(0);
+        inst.setMask(0xFF);
+        inst.setInstanceShaderBindingTableRecordOffset(instance.sbtOffset);
+        inst.setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);
+        inst.setAccelerationStructureReference(instance.bottomAccel->getBufferAddress());
+        instances.push_back(inst);
     }
 
+    primitiveCount = instances.size();
     instanceBuffer = context->createBuffer({
         .usage = BufferUsage::AccelInput,
         .memory = MemoryUsage::DeviceHost,
         .size = sizeof(vk::AccelerationStructureInstanceKHR) * instances.size(),
-        .data = instances.data(),
     });
+    instanceBuffer->copy(instances.data());
 
-    vk::AccelerationStructureGeometryInstancesDataKHR instancesData;
     instancesData.setArrayOfPointers(false);
     instancesData.setData(instanceBuffer->getAddress());
 
@@ -101,9 +89,8 @@ TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo)
     buildGeometryInfo.setFlags(buildFlags);
     buildGeometryInfo.setGeometries(geometry);
 
-    const uint32_t primitiveCount = instances.size();
     auto buildSizesInfo = context->getDevice().getAccelerationStructureBuildSizesKHR(
-        buildType, buildGeometryInfo, primitiveCount);
+        buildType, buildGeometryInfo, instances.size());
 
     buffer = context->createBuffer({
         .usage = BufferUsage::AccelStorage,
@@ -122,19 +109,25 @@ TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo)
         .memory = MemoryUsage::Device,
         .size = buildSizesInfo.buildScratchSize,
     });
+}
 
-    buildGeometryInfo.setMode(vk::BuildAccelerationStructureModeKHR::eBuild);
-    buildGeometryInfo.setDstAccelerationStructure(*accel);
-    buildGeometryInfo.setScratchData(scratchBuffer->getAddress());
+void TopAccel::updateInstances(ArrayProxy<AccelInstance> accelInstances) const {
+    RV_ASSERT(primitiveCount == accelInstances.size(), "Instance count was changed. {} == {}",
+              primitiveCount, accelInstances.size());
 
-    context->oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
-        vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo{};
-        buildRangeInfo.setPrimitiveCount(primitiveCount);
-        buildRangeInfo.setPrimitiveOffset(0);
-        buildRangeInfo.setFirstVertex(0);
-        buildRangeInfo.setTransformOffset(0);
-        commandBuffer->commandBuffer->buildAccelerationStructuresKHR(buildGeometryInfo,
-                                                                     &buildRangeInfo);
-    });
+    std::vector<vk::AccelerationStructureInstanceKHR> instances;
+    for (auto& instance : accelInstances) {
+        vk::AccelerationStructureInstanceKHR inst;
+        inst.setTransform(toVkMatrix(instance.transform));
+        inst.setInstanceCustomIndex(0);
+        inst.setMask(0xFF);
+        inst.setInstanceShaderBindingTableRecordOffset(instance.sbtOffset);
+        inst.setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);
+        inst.setAccelerationStructureReference(instance.bottomAccel->getBufferAddress());
+        instances.push_back(inst);
+    }
+
+    // TODO: use CommandBuffer::copy()
+    instanceBuffer->copy(instances.data());
 }
 }  // namespace rv

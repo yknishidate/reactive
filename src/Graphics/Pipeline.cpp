@@ -5,6 +5,7 @@
 
 #include "Compiler/Compiler.hpp"
 #include "Graphics/ArrayProxy.hpp"
+#include "Graphics/CommandBuffer.hpp"
 #include "Graphics/Image.hpp"
 #include "Scene/Mesh.hpp"
 #include "Scene/Object.hpp"
@@ -434,19 +435,24 @@ RayTracingPipeline::RayTracingPipeline(const Context* context,
         .usage = BufferUsage::ShaderBindingTable,
         .memory = MemoryUsage::Device,
         .size = handleSize * rgenCount,
-        .data = shaderHandleStorage.data() + 0 * handleSizeAligned,
     });
     missSBT = context->createBuffer({
         .usage = BufferUsage::ShaderBindingTable,
         .memory = MemoryUsage::Device,
         .size = handleSize * missCount,
-        .data = shaderHandleStorage.data() + (rgenCount)*handleSizeAligned,
     });
     hitSBT = context->createBuffer({
         .usage = BufferUsage::ShaderBindingTable,
         .memory = MemoryUsage::Device,
         .size = handleSize * hitCount,
-        .data = shaderHandleStorage.data() + (rgenCount + missCount) * handleSizeAligned,
+    });
+    context->oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
+        commandBuffer->copyBuffer(  // break
+            raygenSBT, shaderHandleStorage.data() + 0 * handleSizeAligned);
+        commandBuffer->copyBuffer(  // break
+            missSBT, shaderHandleStorage.data() + rgenCount * handleSizeAligned);
+        commandBuffer->copyBuffer(  // break
+            hitSBT, shaderHandleStorage.data() + (rgenCount + missCount) * handleSizeAligned);
     });
 
     raygenRegion.setDeviceAddress(raygenSBT->getAddress());

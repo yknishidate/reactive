@@ -4,10 +4,10 @@
 
 namespace rv {
 namespace File {
-std::string readFile(const std::filesystem::path& path);
+auto readFile(const std::filesystem::path& path) -> std::string;
 
-std::filesystem::file_time_type getLastWriteTimeWithIncludeFiles(
-    const std::filesystem::path& filepath);
+auto getLastWriteTimeWithIncludeFiles(const std::filesystem::path& filepath)
+    -> std::filesystem::file_time_type;
 
 template <typename T>
 void writeBinary(const std::filesystem::path& filepath, const std::vector<T>& vec) {
@@ -33,22 +33,22 @@ void readBinary(const std::filesystem::path& filepath, std::vector<T>& vec) {
 }  // namespace File
 
 namespace Compiler {
-vk::ShaderStageFlagBits getShaderStage(const std::string& filepath);
+auto getShaderStage(const std::string& filepath) -> vk::ShaderStageFlagBits;
 
 using Define = std::pair<std::string, std::string>;
 
 void addDefines(std::string& glslCode, const std::vector<Define>& defines);
 
 // This supports include directive
-std::vector<uint32_t> compileToSPV(const std::string& filepath,
-                                   const std::vector<Define>& defines = {});
+auto compileToSPV(const std::string& filepath, const std::vector<Define>& defines = {})
+    -> std::vector<uint32_t>;
 
 // This doesn't support include directive
 // This is for hardcoded shader in C++
-std::vector<uint32_t> compileToSPV(const std::string& glslCode,
-                                   vk::ShaderStageFlagBits shaderStage,
-                                   const std::vector<Define>& defines = {});
+auto compileToSPV(const std::string& glslCode,
+                  vk::ShaderStageFlagBits shaderStage,
+                  const std::vector<Define>& defines = {}) -> std::vector<uint32_t>;
 
-std::vector<std::string> getAllIncludedFiles(const std::string& code);
+auto getAllIncludedFiles(const std::string& code) -> std::vector<std::string>;
 }  // namespace Compiler
 }  // namespace rv

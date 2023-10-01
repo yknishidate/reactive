@@ -208,15 +208,15 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
     descriptorPool = device->createDescriptorPoolUnique(descriptorPoolCreateInfo);
 }
 
-vk::Queue Context::getQueue(vk::QueueFlags flag) const {
+auto Context::getQueue(vk::QueueFlags flag) const -> vk::Queue {
     return queues.at(flag)[getQueueIndexByThreadId()];
 }
 
-uint32_t Context::getQueueFamily(vk::QueueFlags flag) const {
+auto Context::getQueueFamily(vk::QueueFlags flag) const -> uint32_t {
     return queueFamilies.at(flag);
 }
 
-CommandBufferHandle Context::allocateCommandBuffer(vk::QueueFlags flag) const {
+auto Context::allocateCommandBuffer(vk::QueueFlags flag) const -> CommandBufferHandle {
     uint32_t queueIndex = getQueueIndexByThreadId();
 
     vk::CommandPool commandPool = *commandPools.at(flag)[queueIndex];
@@ -240,24 +240,20 @@ void Context::submit(CommandBufferHandle commandBuffer, vk::Fence fence) const {
 void Context::oneTimeSubmit(const std::function<void(CommandBufferHandle)>& command,
                             vk::QueueFlags flag) const {
     uint32_t queueIndex = getQueueIndexByThreadId();
+
     CommandBufferHandle commandBuffer = allocateCommandBuffer(flag);
+
     commandBuffer->begin(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
     command(commandBuffer);
     commandBuffer->end();
+
     submit(commandBuffer);
+
     queues.at(flag)[queueIndex].waitIdle();
 }
 
-vk::UniqueDescriptorSet Context::allocateDescriptorSet(
-    vk::DescriptorSetLayout descSetLayout) const {
-    vk::DescriptorSetAllocateInfo descSetInfo;
-    descSetInfo.setDescriptorPool(*descriptorPool);
-    descSetInfo.setSetLayouts(descSetLayout);
-    return std::move(device->allocateDescriptorSetsUnique(descSetInfo).front());
-}
-
-uint32_t Context::findMemoryTypeIndex(vk::MemoryRequirements requirements,
-                                      vk::MemoryPropertyFlags memoryProp) const {
+auto Context::findMemoryTypeIndex(vk::MemoryRequirements requirements,
+                                  vk::MemoryPropertyFlags memoryProp) const -> uint32_t {
     vk::PhysicalDeviceMemoryProperties memProperties = physicalDevice.getMemoryProperties();
     for (uint32_t i = 0; i != memProperties.memoryTypeCount; ++i) {
         if ((requirements.memoryTypeBits & (1 << i)) &&
@@ -268,52 +264,91 @@ uint32_t Context::findMemoryTypeIndex(vk::MemoryRequirements requirements,
     throw std::runtime_error("Failed to find memory type index.");
 }
 
-ShaderHandle Context::createShader(ShaderCreateInfo createInfo) const {
+auto Context::getPhysicalDeviceLimits() const -> vk::PhysicalDeviceLimits {
+    return physicalDevice.getProperties().limits;
+}
+
+auto Context::createShader(ShaderCreateInfo createInfo) const -> ShaderHandle {
     return std::make_shared<Shader>(this, createInfo);
 }
 
-DescriptorSetHandle Context::createDescriptorSet(DescriptorSetCreateInfo createInfo) const {
+auto Context::createDescriptorSet(DescriptorSetCreateInfo createInfo) const -> DescriptorSetHandle {
     return std::make_shared<DescriptorSet>(this, createInfo);
 }
 
-GraphicsPipelineHandle Context::createGraphicsPipeline(
-    GraphicsPipelineCreateInfo createInfo) const {
+auto Context::createGraphicsPipeline(GraphicsPipelineCreateInfo createInfo) const
+    -> GraphicsPipelineHandle {
     return std::make_shared<GraphicsPipeline>(this, createInfo);
 }
 
-MeshShaderPipelineHandle Context::createMeshShaderPipeline(
-    MeshShaderPipelineCreateInfo createInfo) const {
+auto Context::createMeshShaderPipeline(MeshShaderPipelineCreateInfo createInfo) const
+    -> MeshShaderPipelineHandle {
     return std::make_shared<MeshShaderPipeline>(this, createInfo);
 }
 
-ComputePipelineHandle Context::createComputePipeline(ComputePipelineCreateInfo createInfo) const {
+auto Context::createComputePipeline(ComputePipelineCreateInfo createInfo) const
+    -> ComputePipelineHandle {
     return std::make_shared<ComputePipeline>(this, createInfo);
 }
 
-RayTracingPipelineHandle Context::createRayTracingPipeline(
-    RayTracingPipelineCreateInfo createInfo) const {
+auto Context::createRayTracingPipeline(RayTracingPipelineCreateInfo createInfo) const
+    -> RayTracingPipelineHandle {
     return std::make_shared<RayTracingPipeline>(this, createInfo);
 }
 
-ImageHandle Context::createImage(ImageCreateInfo createInfo) const {
+auto Context::createImage(ImageCreateInfo createInfo) const -> ImageHandle {
     return std::make_shared<Image>(this, createInfo.usage, createInfo.extent, createInfo.format,
                                    createInfo.aspect, createInfo.mipLevels, createInfo.debugName);
 }
 
-BufferHandle Context::createBuffer(BufferCreateInfo createInfo) const {
+auto Context::createBuffer(BufferCreateInfo createInfo) const -> BufferHandle {
     return std::make_shared<Buffer>(this, createInfo.usage, createInfo.memory, createInfo.size,
-                                    createInfo.data, createInfo.debugName);
+                                    createInfo.debugName);
 }
 
-BottomAccelHandle Context::createBottomAccel(BottomAccelCreateInfo createInfo) const {
+auto Context::createBottomAccel(BottomAccelCreateInfo createInfo) const -> BottomAccelHandle {
     return std::make_shared<BottomAccel>(this, createInfo);
 }
 
-TopAccelHandle Context::createTopAccel(TopAccelCreateInfo createInfo) const {
+auto Context::createTopAccel(TopAccelCreateInfo createInfo) const -> TopAccelHandle {
     return std::make_shared<TopAccel>(this, createInfo);
 }
 
-GPUTimerHandle Context::createGPUTimer(GPUTimerCreateInfo createInfo) const {
+auto Context::createGPUTimer(GPUTimerCreateInfo createInfo) const -> GPUTimerHandle {
     return std::make_shared<GPUTimer>(this, createInfo);
+}
+
+void Context::checkDeviceExtensionSupport(
+    const std::vector<const char*>& requiredExtensions) const {
+    std::vector<vk::ExtensionProperties> availableExtensions =
+        physicalDevice.enumerateDeviceExtensionProperties();
+    std::vector<std::string> requiredExtensionNames(requiredExtensions.begin(),
+                                                    requiredExtensions.end());
+
+    for (const auto& extension : availableExtensions) {
+        std::erase(requiredExtensionNames, extension.extensionName);
+    }
+
+    if (!requiredExtensionNames.empty()) {
+        std::string message =
+            "The following required extensions are not supported by the device:\n";
+        for (const auto& name : requiredExtensionNames) {
+            message.append("\t" + name + "\n");
+        }
+        throw std::runtime_error(message);
+    }
+}
+
+auto Context::getQueueIndexByThreadId() const -> uint32_t {
+    std::thread::id tid = std::this_thread::get_id();
+    if (queueIndices.contains(tid)) {
+        return queueIndices.at(tid);
+    } else {
+        uint32_t queueIndex = queueIndices.size();
+        RV_ASSERT(queueIndex < maxQueueCount,  // break
+                  "Too many threads: {} < {}", queueIndex, maxQueueCount);
+        queueIndices[tid] = queueIndex;
+        return queueIndex;
+    }
 }
 }  // namespace rv

@@ -28,18 +28,13 @@ public:
                   vk::CommandPool commandPool,
                   vk::QueueFlags queueFlags)
         : context{context},
-          queueFlags{queueFlags},
-          commandBuffer{commandBuffer, {context->getDevice(), commandPool}} {}
+          commandBuffer{commandBuffer, {context->getDevice(), commandPool}},
+          queueFlags{queueFlags} {}
 
-    vk::QueueFlags getQueueFlags() const { return queueFlags; }
+    auto getQueueFlags() const -> vk::QueueFlags;
 
-    void begin(vk::CommandBufferUsageFlags flags = {}) const {
-        vk::CommandBufferBeginInfo beginInfo;
-        beginInfo.setFlags(flags);
-        commandBuffer->begin(beginInfo);
-    }
-
-    void end() const { commandBuffer->end(); }
+    void begin(vk::CommandBufferUsageFlags flags = {}) const;
+    void end() const;
 
     void bindDescriptorSet(DescriptorSetHandle descSet, PipelineHandle pipeline) const;
     void bindPipeline(PipelineHandle pipeline) const;
@@ -52,8 +47,8 @@ public:
                    uint32_t countX,
                    uint32_t countY,
                    uint32_t countZ) const;
-    void dispatch(uint32_t countX, uint32_t countY, uint32_t countZ) const;
 
+    void dispatch(uint32_t countX, uint32_t countY, uint32_t countZ) const;
     void dispatchIndirect(BufferHandle buffer, vk::DeviceSize offset) const;
 
     void clearColorImage(ImageHandle image, std::array<float, 4> color) const;
@@ -63,8 +58,7 @@ public:
                         ImageHandle depthImage,
                         std::array<int32_t, 2> offset,
                         std::array<uint32_t, 2> extent) const;
-
-    void endRendering() const { commandBuffer->endRendering(); }
+    void endRendering() const;
 
     // draw
     void draw(uint32_t vertexCount,
@@ -99,17 +93,6 @@ public:
                                uint32_t stride) const;
 
     // barrier
-    void pipelineBarrier(
-        vk::PipelineStageFlags srcStageMask,
-        vk::PipelineStageFlags dstStageMask,
-        vk::DependencyFlags dependencyFlags,
-        vk::ArrayProxy<const vk::MemoryBarrier> const& memoryBarriers,
-        vk::ArrayProxy<const vk::BufferMemoryBarrier> const& bufferMemoryBarriers,
-        vk::ArrayProxy<const vk::ImageMemoryBarrier> const& imageMemoryBarriers) const {
-        commandBuffer->pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, memoryBarriers,
-                                       bufferMemoryBarriers, imageMemoryBarriers);
-    }
-
     void bufferBarrier(vk::PipelineStageFlags srcStageMask,
                        vk::PipelineStageFlags dstStageMask,
                        vk::DependencyFlags dependencyFlags,
@@ -121,19 +104,13 @@ public:
         vk::PipelineStageFlags srcStageMask,
         vk::PipelineStageFlags dstStageMask,
         vk::DependencyFlags dependencyFlags,
-        vk::ArrayProxy<const vk::BufferMemoryBarrier> const& bufferMemoryBarriers) const {
-        commandBuffer->pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, nullptr,
-                                       bufferMemoryBarriers, nullptr);
-    }
+        const vk::ArrayProxy<const vk::BufferMemoryBarrier>& bufferMemoryBarriers) const;
 
     void imageBarrier(
         vk::PipelineStageFlags srcStageMask,
         vk::PipelineStageFlags dstStageMask,
         vk::DependencyFlags dependencyFlags,
-        vk::ArrayProxy<const vk::ImageMemoryBarrier> const& imageMemoryBarriers) const {
-        commandBuffer->pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, nullptr,
-                                       nullptr, imageMemoryBarriers);
-    }
+        const vk::ArrayProxy<const vk::ImageMemoryBarrier>& imageMemoryBarriers) const;
 
     void imageBarrier(vk::PipelineStageFlags srcStageMask,
                       vk::PipelineStageFlags dstStageMask,
@@ -142,15 +119,18 @@ public:
                       vk::AccessFlags srcAccessMask,
                       vk::AccessFlags dstAccessMask) const;
 
-    void transitionLayout(ImageHandle image, vk::ImageLayout newLayout) const;
-
     void memoryBarrier(vk::PipelineStageFlags srcStageMask,
                        vk::PipelineStageFlags dstStageMask,
                        vk::DependencyFlags dependencyFlags,
-                       vk::ArrayProxy<const vk::MemoryBarrier> const& memoryBarriers) const {
-        commandBuffer->pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, memoryBarriers,
-                                       nullptr, nullptr);
-    }
+                       const vk::ArrayProxy<const vk::MemoryBarrier>& memoryBarriers) const;
+
+    // image
+    void transitionLayout(ImageHandle image, vk::ImageLayout newLayout) const;
+
+    void blitImage(ImageHandle srcImage,
+                   ImageHandle dstImage,
+                   vk::ImageBlit blit,
+                   vk::Filter filter) const;
 
     void copyImage(ImageHandle srcImage,
                    ImageHandle dstImage,
@@ -158,60 +138,37 @@ public:
                    vk::ImageLayout newDstLayout) const;
 
     void copyImageToBuffer(ImageHandle srcImage, BufferHandle dstBuffer) const;
-    void copyBufferToImage(BufferHandle srcBuffer, ImageHandle dstImage) const;
 
-    void blitImage(ImageHandle srcImage,
-                   ImageHandle dstImage,
-                   vk::ImageBlit blit,
-                   vk::Filter filter) const {
-        commandBuffer->blitImage(srcImage->image, srcImage->layout, dstImage->image,
-                                 dstImage->layout, blit, filter);
-    }
-
+    // buffer
     void fillBuffer(BufferHandle dstBuffer,
                     vk::DeviceSize dstOffset,
                     vk::DeviceSize size,
                     uint32_t data) const;
 
-    void updateTopAccel(TopAccelHandle topAccel, ArrayProxy<AccelInstance> accelInstances);
+    void copyBuffer(BufferHandle buffer, const void* data) const;
+
+    void copyBufferToImage(BufferHandle srcBuffer, ImageHandle dstImage) const;
+
+    // accel struct
+    void updateTopAccel(TopAccelHandle topAccel) const;
+
+    void buildTopAccel(TopAccelHandle topAccel) const;
+
+    void buildBottomAccel(BottomAccelHandle bottomAccel) const;
 
     // timestamp
     void beginTimestamp(GPUTimerHandle gpuTimer) const;
     void endTimestamp(GPUTimerHandle gpuTimer) const;
 
     // dynamic state
-    void setLineWidth(float lineWidth) const { commandBuffer->setLineWidth(lineWidth); }
-    void setViewport(const vk::Viewport& viewport) const {
-        commandBuffer->setViewport(0, 1, &viewport);
-    }
-    void setViewport(uint32_t width, uint32_t height) const {
-        vk::Viewport viewport{
-            0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, 1.0f,
-        };
-        commandBuffer->setViewport(0, 1, &viewport);
-    }
-    void setScissor(const vk::Rect2D& scissor) const { commandBuffer->setScissor(0, 1, &scissor); }
-    void setScissor(uint32_t width, uint32_t height) const {
-        vk::Rect2D scissor{
-            {0, 0},
-            {width, height},
-        };
-        commandBuffer->setScissor(0, 1, &scissor);
-    }
+    void setLineWidth(float lineWidth) const;
+    void setViewport(const vk::Viewport& viewport) const;
+    void setViewport(uint32_t width, uint32_t height) const;
+    void setScissor(const vk::Rect2D& scissor) const;
+    void setScissor(uint32_t width, uint32_t height) const;
 
-    void beginDebugLabel(const char* labelName) const {
-        if (context->debugEnabled()) {
-            vk::DebugUtilsLabelEXT label;
-            label.setPLabelName(labelName);
-            commandBuffer->beginDebugUtilsLabelEXT(label);
-        }
-    }
-
-    void endDebugLabel() const {
-        if (context->debugEnabled()) {
-            commandBuffer->endDebugUtilsLabelEXT();
-        }
-    }
+    void beginDebugLabel(const char* labelName) const;
+    void endDebugLabel() const;
 
     const Context* context = nullptr;
     vk::UniqueCommandBuffer commandBuffer;

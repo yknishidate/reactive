@@ -8,6 +8,20 @@
 #include "common.hpp"
 
 namespace rv {
+auto CommandBuffer::getQueueFlags() const -> vk::QueueFlags {
+    return queueFlags;
+}
+
+void CommandBuffer::begin(vk::CommandBufferUsageFlags flags) const {
+    vk::CommandBufferBeginInfo beginInfo;
+    beginInfo.setFlags(flags);
+    commandBuffer->begin(beginInfo);
+}
+
+void CommandBuffer::end() const {
+    commandBuffer->end();
+}
+
 void CommandBuffer::bindDescriptorSet(DescriptorSetHandle descSet, PipelineHandle pipeline) const {
     commandBuffer->bindDescriptorSets(pipeline->getPipelineBindPoint(),
                                       pipeline->getPipelineLayout(), 0, *descSet->descSet, nullptr);
@@ -87,6 +101,10 @@ void CommandBuffer::beginRendering(ImageHandle colorImage,
     commandBuffer->beginRendering(renderingInfo);
 }
 
+void CommandBuffer::endRendering() const {
+    commandBuffer->endRendering();
+}
+
 void CommandBuffer::draw(uint32_t vertexCount,
                          uint32_t instanceCount,
                          uint32_t firstVertex,
@@ -158,6 +176,24 @@ void CommandBuffer::bufferBarrier(vk::PipelineStageFlags srcStageMask,
 
     commandBuffer->pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, nullptr,
                                    bufferMemoryBarrier, nullptr);
+}
+
+void CommandBuffer::bufferBarrier(
+    vk::PipelineStageFlags srcStageMask,
+    vk::PipelineStageFlags dstStageMask,
+    vk::DependencyFlags dependencyFlags,
+    const vk::ArrayProxy<const vk::BufferMemoryBarrier>& bufferMemoryBarriers) const {
+    commandBuffer->pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, nullptr,
+                                   bufferMemoryBarriers, nullptr);
+}
+
+void CommandBuffer::imageBarrier(
+    vk::PipelineStageFlags srcStageMask,
+    vk::PipelineStageFlags dstStageMask,
+    vk::DependencyFlags dependencyFlags,
+    const vk::ArrayProxy<const vk::ImageMemoryBarrier>& imageMemoryBarriers) const {
+    commandBuffer->pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, nullptr, nullptr,
+                                   imageMemoryBarriers);
 }
 
 void CommandBuffer::imageBarrier(vk::PipelineStageFlags srcStageMask,
@@ -246,6 +282,15 @@ void CommandBuffer::transitionLayout(ImageHandle image, vk::ImageLayout newLayou
     image->layout = newLayout;
 }
 
+void CommandBuffer::memoryBarrier(
+    vk::PipelineStageFlags srcStageMask,
+    vk::PipelineStageFlags dstStageMask,
+    vk::DependencyFlags dependencyFlags,
+    vk::ArrayProxy<const vk::MemoryBarrier> const& memoryBarriers) const {
+    commandBuffer->pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, memoryBarriers,
+                                   nullptr, nullptr);
+}
+
 void CommandBuffer::copyImage(ImageHandle srcImage,
                               ImageHandle dstImage,
                               vk::ImageLayout newSrcLayout,
@@ -288,6 +333,14 @@ void CommandBuffer::copyBufferToImage(BufferHandle srcBuffer, ImageHandle dstIma
                                      dstImage->getLayout(), region);
 }
 
+void CommandBuffer::blitImage(ImageHandle srcImage,
+                              ImageHandle dstImage,
+                              vk::ImageBlit blit,
+                              vk::Filter filter) const {
+    commandBuffer->blitImage(srcImage->image, srcImage->layout, dstImage->image, dstImage->layout,
+                             blit, filter);
+}
+
 void CommandBuffer::fillBuffer(BufferHandle dstBuffer,
                                vk::DeviceSize dstOffset,
                                vk::DeviceSize size,
@@ -295,29 +348,18 @@ void CommandBuffer::fillBuffer(BufferHandle dstBuffer,
     commandBuffer->fillBuffer(dstBuffer->getBuffer(), dstOffset, size, data);
 }
 
-void CommandBuffer::updateTopAccel(TopAccelHandle topAccel,
-                                   ArrayProxy<AccelInstance> accelInstances) {
-    std::vector<vk::AccelerationStructureInstanceKHR> instances;
-    for (auto& instance : accelInstances) {
-        vk::AccelerationStructureInstanceKHR inst;
-        inst.setTransform(toVkMatrix(instance.transform));
-        inst.setInstanceCustomIndex(0);
-        inst.setMask(0xFF);
-        inst.setInstanceShaderBindingTableRecordOffset(instance.sbtOffset);
-        inst.setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);
-        inst.setAccelerationStructureReference(instance.bottomAccel->getBufferAddress());
-        instances.push_back(inst);
-    }
+void CommandBuffer::copyBuffer(BufferHandle buffer, const void* data) const {
+    buffer->prepareStagingBuffer();
+    buffer->stagingBuffer->copy(data);
 
-    topAccel->instanceBuffer->copy(instances.data());
+    vk::BufferCopy region{0, 0, buffer->getSize()};
+    commandBuffer->copyBuffer(buffer->stagingBuffer->getBuffer(), buffer->getBuffer(), region);
+}
 
-    vk::AccelerationStructureGeometryInstancesDataKHR instancesData;
-    instancesData.setArrayOfPointers(false);
-    instancesData.setData(topAccel->instanceBuffer->getAddress());
-
+void CommandBuffer::updateTopAccel(TopAccelHandle topAccel) const {
     vk::AccelerationStructureGeometryKHR geometry;
     geometry.setGeometryType(vk::GeometryTypeKHR::eInstances);
-    geometry.setGeometry({instancesData});
+    geometry.setGeometry({topAccel->instancesData});
     geometry.setFlags(topAccel->geometryFlags);
 
     vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
@@ -325,18 +367,19 @@ void CommandBuffer::updateTopAccel(TopAccelHandle topAccel,
     buildGeometryInfo.setFlags(topAccel->buildFlags);
     buildGeometryInfo.setGeometries(geometry);
 
-    buildGeometryInfo.setMode(vk::BuildAccelerationStructureModeKHR::eUpdate);
+    buildGeometryInfo.setMode(vk::BuildAccelerationStructureModeKHR::eUpdate);  // for update
+    buildGeometryInfo.setSrcAccelerationStructure(*topAccel->accel);            // for update
     buildGeometryInfo.setDstAccelerationStructure(*topAccel->accel);
-    buildGeometryInfo.setSrcAccelerationStructure(*topAccel->accel);
     buildGeometryInfo.setScratchData(topAccel->scratchBuffer->getAddress());
 
     vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo{};
-    buildRangeInfo.setPrimitiveCount(instances.size());
+    buildRangeInfo.setPrimitiveCount(topAccel->primitiveCount);
     buildRangeInfo.setPrimitiveOffset(0);
     buildRangeInfo.setFirstVertex(0);
     buildRangeInfo.setTransformOffset(0);
     commandBuffer->buildAccelerationStructuresKHR(buildGeometryInfo, &buildRangeInfo);
 
+    // TODO: remove this
     // Create a memory barrier for the acceleration structure
     vk::MemoryBarrier2 memoryBarrier{};
     memoryBarrier.setSrcStageMask(vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR);
@@ -352,6 +395,55 @@ void CommandBuffer::updateTopAccel(TopAccelHandle topAccel,
     commandBuffer->pipelineBarrier2(dependencyInfo);
 }
 
+void CommandBuffer::buildTopAccel(TopAccelHandle topAccel) const {
+    vk::AccelerationStructureGeometryKHR geometry;
+    geometry.setGeometryType(vk::GeometryTypeKHR::eInstances);
+    geometry.setGeometry({topAccel->instancesData});
+    geometry.setFlags(topAccel->geometryFlags);
+
+    vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
+    buildGeometryInfo.setType(vk::AccelerationStructureTypeKHR::eTopLevel);
+    buildGeometryInfo.setFlags(topAccel->buildFlags);
+    buildGeometryInfo.setGeometries(geometry);
+
+    buildGeometryInfo.setMode(vk::BuildAccelerationStructureModeKHR::eBuild);  // for build
+    buildGeometryInfo.setDstAccelerationStructure(*topAccel->accel);
+    buildGeometryInfo.setScratchData(topAccel->scratchBuffer->getAddress());
+
+    vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo{};
+    buildRangeInfo.setPrimitiveCount(topAccel->primitiveCount);
+    buildRangeInfo.setPrimitiveOffset(0);
+    buildRangeInfo.setFirstVertex(0);
+    buildRangeInfo.setTransformOffset(0);
+    commandBuffer->buildAccelerationStructuresKHR(buildGeometryInfo, &buildRangeInfo);
+}
+
+void CommandBuffer::buildBottomAccel(BottomAccelHandle bottomAccel) const {
+    vk::AccelerationStructureGeometryDataKHR geometryData;
+    geometryData.setTriangles(bottomAccel->trianglesData);
+
+    vk::AccelerationStructureGeometryKHR geometry;
+    geometry.setGeometryType(vk::GeometryTypeKHR::eTriangles);
+    geometry.setGeometry({geometryData});
+    geometry.setFlags(bottomAccel->geometryFlags);
+
+    vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
+    buildGeometryInfo.setType(vk::AccelerationStructureTypeKHR::eBottomLevel);
+    buildGeometryInfo.setFlags(bottomAccel->buildFlags);
+    buildGeometryInfo.setGeometries(geometry);
+
+    buildGeometryInfo.setMode(vk::BuildAccelerationStructureModeKHR::eBuild);
+    buildGeometryInfo.setDstAccelerationStructure(*bottomAccel->accel);
+    buildGeometryInfo.setScratchData(bottomAccel->scratchBuffer->getAddress());
+
+    vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo{};
+    buildRangeInfo.setPrimitiveCount(bottomAccel->primitiveCount);
+    buildRangeInfo.setPrimitiveOffset(0);
+    buildRangeInfo.setFirstVertex(0);
+    buildRangeInfo.setTransformOffset(0);
+    commandBuffer->buildAccelerationStructuresKHR(buildGeometryInfo, &buildRangeInfo);
+}
+
 void CommandBuffer::beginTimestamp(GPUTimerHandle gpuTimer) const {
     commandBuffer->resetQueryPool(*gpuTimer->queryPool, 0, 2);
     commandBuffer->writeTimestamp(vk::PipelineStageFlagBits::eTopOfPipe, *gpuTimer->queryPool, 0);
@@ -360,5 +452,46 @@ void CommandBuffer::beginTimestamp(GPUTimerHandle gpuTimer) const {
 void CommandBuffer::endTimestamp(GPUTimerHandle gpuTimer) const {
     commandBuffer->writeTimestamp(vk::PipelineStageFlagBits::eBottomOfPipe, *gpuTimer->queryPool,
                                   1);
+}
+
+void CommandBuffer::setLineWidth(float lineWidth) const {
+    commandBuffer->setLineWidth(lineWidth);
+}
+
+void CommandBuffer::setViewport(const vk::Viewport& viewport) const {
+    commandBuffer->setViewport(0, 1, &viewport);
+}
+
+void CommandBuffer::setViewport(uint32_t width, uint32_t height) const {
+    vk::Viewport viewport{
+        0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, 1.0f,
+    };
+    commandBuffer->setViewport(0, 1, &viewport);
+}
+
+void CommandBuffer::setScissor(const vk::Rect2D& scissor) const {
+    commandBuffer->setScissor(0, 1, &scissor);
+}
+
+void CommandBuffer::setScissor(uint32_t width, uint32_t height) const {
+    vk::Rect2D scissor{
+        {0, 0},
+        {width, height},
+    };
+    commandBuffer->setScissor(0, 1, &scissor);
+}
+
+void CommandBuffer::beginDebugLabel(const char* labelName) const {
+    if (context->debugEnabled()) {
+        vk::DebugUtilsLabelEXT label;
+        label.setPLabelName(labelName);
+        commandBuffer->beginDebugUtilsLabelEXT(label);
+    }
+}
+
+void CommandBuffer::endDebugLabel() const {
+    if (context->debugEnabled()) {
+        commandBuffer->endDebugUtilsLabelEXT();
+    }
 }
 }  // namespace rv
