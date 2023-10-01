@@ -171,6 +171,7 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
         for (int i = 0; i < queues[flag].size(); i++) {
             queues[flag][i] = device->getQueue(queueFamily, i);
         }
+        maxQueueCount = std::min(maxQueueCount, static_cast<uint32_t>(queues[flag].size()));
     }
 
     // Create command pool

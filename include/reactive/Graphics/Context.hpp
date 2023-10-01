@@ -10,6 +10,8 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include "common.hpp"
+
 namespace std {
 template <>
 struct hash<vk::QueueFlags> {
@@ -272,15 +274,16 @@ private:
     }
 
     uint32_t getQueueIndexByThreadId() const {
-        std::thread::id id = std::this_thread::get_id();
-        uint32_t queueIndex;
-        if (queueIndices.contains(id)) {
-            queueIndex = queueIndices.at(id);
+        std::thread::id tid = std::this_thread::get_id();
+        if (queueIndices.contains(tid)) {
+            return queueIndices.at(tid);
         } else {
-            queueIndex = queueIndices.size();
-            queueIndices[id] = queueIndex;
+            uint32_t queueIndex = queueIndices.size();
+            RV_ASSERT(queueIndex < maxQueueCount,  // break
+                      "Too many threads: {} < {}", queueIndex, maxQueueCount);
+            queueIndices[tid] = queueIndex;
+            return queueIndex;
         }
-        return queueIndex;
     }
 
     vk::UniqueInstance instance;
@@ -288,6 +291,7 @@ private:
     vk::UniqueDevice device;
     vk::PhysicalDevice physicalDevice;
 
+    uint32_t maxQueueCount = std::numeric_limits<uint32_t>::max();
     mutable std::unordered_map<std::thread::id, uint32_t> queueIndices;
     std::unordered_map<vk::QueueFlags, uint32_t> queueFamilies;
     std::unordered_map<vk::QueueFlags, std::vector<vk::Queue>> queues;
