@@ -1,12 +1,23 @@
 #pragma once
 #define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 
+#include <cstddef>
 #include <regex>
+#include <type_traits>
 #include <vector>
 
 #include <spdlog/spdlog.h>
 
 #include <vulkan/vulkan.hpp>
+
+namespace std {
+template <>
+struct hash<vk::QueueFlags> {
+    std::size_t operator()(const vk::QueueFlags& flags) const {
+        return std::hash<uint32_t>()(static_cast<uint32_t>(flags));
+    }
+};
+}  // namespace std
 
 namespace rv {
 struct ImageCreateInfo;
@@ -135,13 +146,13 @@ static constexpr vk::ImageUsageFlags Sampled =
 }  // namespace ImageUsage
 
 namespace QueueFlags{
-    static constexpr uint32_t General =
-        static_cast<uint32_t>(vk::QueueFlagBits::eGraphics |
+    static constexpr vk::QueueFlags General =
+        vk::QueueFlagBits::eGraphics |
                               vk::QueueFlagBits::eCompute |
-                              vk::QueueFlagBits::eTransfer);
-    static constexpr uint32_t Graphics = static_cast<uint32_t>(vk::QueueFlagBits::eGraphics);
-    static constexpr uint32_t Compute =  static_cast<uint32_t>(vk::QueueFlagBits::eCompute);
-    static constexpr uint32_t Transfer = static_cast<uint32_t>(vk::QueueFlagBits::eTransfer);
+                              vk::QueueFlagBits::eTransfer;
+    static constexpr vk::QueueFlags Graphics = vk::QueueFlagBits::eGraphics;
+    static constexpr vk::QueueFlags Compute =  vk::QueueFlagBits::eCompute;
+    static constexpr vk::QueueFlags Transfer = vk::QueueFlagBits::eTransfer;
 }
 // clang-format on
 
@@ -164,23 +175,23 @@ public:
     vk::Instance getInstance() const { return *instance; }
     vk::Device getDevice() const { return *device; }
     vk::PhysicalDevice getPhysicalDevice() const { return physicalDevice; }
-    vk::Queue getQueue(uint32_t flag = QueueFlags::General) const {
+    vk::Queue getQueue(vk::QueueFlags flag = QueueFlags::General) const {
         return queues.at(flag)[getQueueIndexByThreadId()];
     }
-    uint32_t getQueueFamily(uint32_t flag = QueueFlags::General) const {
+    uint32_t getQueueFamily(vk::QueueFlags flag = QueueFlags::General) const {
         return queueFamilies.at(flag);
     }
-    vk::CommandPool getCommandPool(uint32_t flag = QueueFlags::General) const {
+    vk::CommandPool getCommandPool(vk::QueueFlags flag = QueueFlags::General) const {
         return *commandPools.at(flag)[getQueueIndexByThreadId()];
     }
     vk::DescriptorPool getDescriptorPool() const { return *descriptorPool; }
 
-    CommandBufferHandle allocateCommandBuffer(uint32_t flag = QueueFlags::General) const;
+    CommandBufferHandle allocateCommandBuffer(vk::QueueFlags flag = QueueFlags::General) const;
 
     void submit(CommandBufferHandle commandBuffer, vk::Fence fence = {}) const;
 
     void oneTimeSubmit(const std::function<void(CommandBufferHandle)>& command,
-                       uint32_t flag = QueueFlags::General) const;
+                       vk::QueueFlags flag = QueueFlags::General) const;
 
     vk::UniqueDescriptorSet allocateDescriptorSet(vk::DescriptorSetLayout descSetLayout) const;
 
@@ -280,9 +291,9 @@ private:
     vk::PhysicalDevice physicalDevice;
 
     mutable std::unordered_map<std::thread::id, uint32_t> queueIndices;
-    std::unordered_map<uint32_t, uint32_t> queueFamilies;
-    std::unordered_map<uint32_t, std::vector<vk::Queue>> queues;
-    std::unordered_map<uint32_t, std::vector<vk::UniqueCommandPool>> commandPools;
+    std::unordered_map<vk::QueueFlags, uint32_t> queueFamilies;
+    std::unordered_map<vk::QueueFlags, std::vector<vk::Queue>> queues;
+    std::unordered_map<vk::QueueFlags, std::vector<vk::UniqueCommandPool>> commandPools;
     vk::UniqueDescriptorPool descriptorPool;
 };
 }  // namespace rv

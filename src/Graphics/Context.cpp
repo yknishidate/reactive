@@ -136,7 +136,7 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
                          bool enableRayTracing) {
     // Create device
     float queuePriority = 1.0f;
-    std::unordered_map<uint32_t, std::vector<float>> queuePriorities;
+    std::unordered_map<vk::QueueFlags, std::vector<float>> queuePriorities;
     std::vector<vk::DeviceQueueCreateInfo> queueInfo;
     for (const auto& [flag, queueFamily] : queueFamilies) {
         uint32_t queueCount = physicalDevice.getQueueFamilyProperties()[queueFamily].queueCount;
@@ -207,7 +207,7 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
     descriptorPool = device->createDescriptorPoolUnique(descriptorPoolCreateInfo);
 }
 
-CommandBufferHandle Context::allocateCommandBuffer(uint32_t flag) const {
+CommandBufferHandle Context::allocateCommandBuffer(vk::QueueFlags flag) const {
     uint32_t queueIndex = getQueueIndexByThreadId();
 
     vk::CommandBufferAllocateInfo commandBufferInfo;
@@ -228,7 +228,7 @@ void Context::submit(CommandBufferHandle commandBuffer, vk::Fence fence) const {
 }
 
 void Context::oneTimeSubmit(const std::function<void(CommandBufferHandle)>& command,
-                            uint32_t flag) const {
+                            vk::QueueFlags flag) const {
     uint32_t queueIndex = getQueueIndexByThreadId();
     CommandBufferHandle commandBuffer = allocateCommandBuffer(flag);
     commandBuffer->begin(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
