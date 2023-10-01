@@ -25,11 +25,11 @@ public:
 
     CommandBuffer(const Context* context,
                   vk::CommandBuffer commandBuffer,
+                  vk::CommandPool commandPool,
                   vk::QueueFlags queueFlags)
         : context{context},
           queueFlags{queueFlags},
-          commandBuffer{commandBuffer,
-                        {context->getDevice(), context->getCommandPool(queueFlags)}} {}
+          commandBuffer{commandBuffer, {context->getDevice(), commandPool}} {}
 
     vk::QueueFlags getQueueFlags() const { return queueFlags; }
 

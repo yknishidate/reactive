@@ -173,17 +173,15 @@ public:
                     bool enableRayTracing);
 
     vk::Instance getInstance() const { return *instance; }
+
     vk::Device getDevice() const { return *device; }
+
     vk::PhysicalDevice getPhysicalDevice() const { return physicalDevice; }
-    vk::Queue getQueue(vk::QueueFlags flag = QueueFlags::General) const {
-        return queues.at(flag)[getQueueIndexByThreadId()];
-    }
-    uint32_t getQueueFamily(vk::QueueFlags flag = QueueFlags::General) const {
-        return queueFamilies.at(flag);
-    }
-    vk::CommandPool getCommandPool(vk::QueueFlags flag = QueueFlags::General) const {
-        return *commandPools.at(flag)[getQueueIndexByThreadId()];
-    }
+
+    vk::Queue getQueue(vk::QueueFlags flag = QueueFlags::General) const;
+
+    uint32_t getQueueFamily(vk::QueueFlags flag = QueueFlags::General) const;
+
     vk::DescriptorPool getDescriptorPool() const { return *descriptorPool; }
 
     CommandBufferHandle allocateCommandBuffer(vk::QueueFlags flag = QueueFlags::General) const;

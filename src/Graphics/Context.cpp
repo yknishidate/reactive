@@ -207,16 +207,25 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
     descriptorPool = device->createDescriptorPoolUnique(descriptorPoolCreateInfo);
 }
 
+vk::Queue Context::getQueue(vk::QueueFlags flag) const {
+    return queues.at(flag)[getQueueIndexByThreadId()];
+}
+
+uint32_t Context::getQueueFamily(vk::QueueFlags flag) const {
+    return queueFamilies.at(flag);
+}
+
 CommandBufferHandle Context::allocateCommandBuffer(vk::QueueFlags flag) const {
     uint32_t queueIndex = getQueueIndexByThreadId();
 
+    vk::CommandPool commandPool = *commandPools.at(flag)[queueIndex];
     vk::CommandBufferAllocateInfo commandBufferInfo;
-    commandBufferInfo.setCommandPool(*commandPools.at(flag)[queueIndex]);
+    commandBufferInfo.setCommandPool(commandPool);
     commandBufferInfo.setLevel(vk::CommandBufferLevel::ePrimary);
     commandBufferInfo.setCommandBufferCount(1);
 
-    vk::CommandBuffer _commandBuffer = device->allocateCommandBuffers(commandBufferInfo).front();
-    return std::make_shared<CommandBuffer>(this, _commandBuffer, flag);
+    vk::CommandBuffer commandBuffer = device->allocateCommandBuffers(commandBufferInfo).front();
+    return std::make_shared<CommandBuffer>(this, commandBuffer, commandPool, flag);
 }
 
 void Context::submit(CommandBufferHandle commandBuffer, vk::Fence fence) const {
