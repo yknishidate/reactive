@@ -4,7 +4,6 @@
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
-#include <spdlog/spdlog.h>
 
 #include "App.hpp"
 
