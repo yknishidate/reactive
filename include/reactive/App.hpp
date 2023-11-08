@@ -1,8 +1,6 @@
 #pragma once
 #define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 
-#include <vector>
-
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.hpp>
 
@@ -12,6 +10,7 @@
 #include "Graphics/DescriptorSet.hpp"
 #include "Graphics/Image.hpp"
 #include "Graphics/Pipeline.hpp"
+#include "Graphics/Swapchain.hpp"
 #include "Scene/Loader.hpp"
 #include "Scene/Mesh.hpp"
 #include "Scene/Object.hpp"
@@ -98,41 +97,29 @@ protected:
     static void windowSizeCallback(GLFWwindow* window, int width, int height);
 
     void initGLFW(bool resizable, const char* title);
-    void initVulkan(ArrayProxy<Layer> requiredLayers, ArrayProxy<Extension> requiredExtensions);
+
+    void initVulkan(ArrayProxy<Layer> requiredLayers,
+                    ArrayProxy<Extension> requiredExtensions,
+                    bool vsync);
+
     void initImGui();
 
-    void createSwapchain();
     void createDepthImage();
 
     void listSurfaceFormats();
 
-    // GLFW
     GLFWwindow* window = nullptr;
+
     glm::vec2 mouseWheel{0.0};
 
-    // Context
     Context context;
-    vk::UniqueSurfaceKHR surface;
 
-    // Swapchain
-    vk::UniqueSwapchainKHR swapchain;
-    std::vector<vk::Image> swapchainImages;
-    std::vector<vk::UniqueImageView> swapchainImageViews;
-    uint32_t width = 0;
-    uint32_t height = 0;
+    vk::UniqueSurfaceKHR surface;
+    std::unique_ptr<Swapchain> swapchain;
 
     ImageHandle depthImage;
 
-    bool swapchainRebuild = false;
-    int minImageCount = 3;
-    uint32_t frameIndex = 0;
-    uint32_t imageCount = 0;
-    uint32_t semaphoreIndex = 0;
-    vk::PresentModeKHR presentMode;
-
-    std::vector<vk::UniqueSemaphore> imageAcquiredSemaphores;
-    std::vector<vk::UniqueSemaphore> renderCompleteSemaphores;
-    std::vector<CommandBufferHandle> commandBuffers{};
-    std::vector<FenceHandle> fences{};
+    uint32_t width = 0;
+    uint32_t height = 0;
 };
 }  // namespace rv

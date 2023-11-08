@@ -1,0 +1,88 @@
+#include "Graphics/Swapchain.hpp"
+#include "Graphics/Fence.hpp"
+
+namespace rv {
+rv::Swapchain::Swapchain(const Context& context,
+                         vk::SurfaceKHR surface,
+                         uint32_t width,
+                         uint32_t height,
+                         vk::PresentModeKHR presentMode)
+    : context{&context}, surface{surface}, presentMode{presentMode} {
+    resize(width, height);
+}
+
+void Swapchain::resize(uint32_t width, uint32_t height) {
+    swapchainImageViews.clear();
+    swapchainImages.clear();
+    swapchain.reset();
+
+    // Create swapchain
+    uint32_t queueFamily = context->getQueueFamily();
+    swapchain = context->getDevice().createSwapchainKHRUnique(
+        vk::SwapchainCreateInfoKHR()
+            .setSurface(surface)
+            .setMinImageCount(minImageCount)
+            .setImageFormat(vk::Format::eB8G8R8A8Unorm)
+            .setImageColorSpace(vk::ColorSpaceKHR::eSrgbNonlinear)
+            .setImageExtent({width, height})
+            .setImageArrayLayers(1)
+            .setImageUsage(vk::ImageUsageFlagBits::eColorAttachment |
+                           vk::ImageUsageFlagBits::eTransferDst)
+            .setPreTransform(vk::SurfaceTransformFlagBitsKHR::eIdentity)
+            .setPresentMode(presentMode)
+            .setClipped(true)
+            .setQueueFamilyIndices(queueFamily));
+
+    // Get images
+    swapchainImages = context->getDevice().getSwapchainImagesKHR(*swapchain);
+
+    // Create image views
+    for (auto& image : swapchainImages) {
+        swapchainImageViews.push_back(context->getDevice().createImageViewUnique(
+            vk::ImageViewCreateInfo()
+                .setImage(image)
+                .setViewType(vk::ImageViewType::e2D)
+                .setFormat(vk::Format::eB8G8R8A8Unorm)
+                .setComponents({vk::ComponentSwizzle::eR, vk::ComponentSwizzle::eG,
+                                vk::ComponentSwizzle::eB, vk::ComponentSwizzle::eA})
+                .setSubresourceRange({vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1})));
+    }
+
+    // Create command buffers and sync objects
+    imageCount = static_cast<uint32_t>(swapchainImages.size());
+    commandBuffers.resize(imageCount);
+    fences.resize(imageCount);
+    imageAcquiredSemaphores.resize(imageCount);
+    renderCompleteSemaphores.resize(imageCount);
+    for (uint32_t i = 0; i < imageCount; i++) {
+        commandBuffers[i] = context->allocateCommandBuffer();
+        fences[i] = context->createFence({.signaled = true});
+        imageAcquiredSemaphores[i] = context->getDevice().createSemaphoreUnique({});
+        renderCompleteSemaphores[i] = context->getDevice().createSemaphoreUnique({});
+    }
+}
+
+void Swapchain::waitNextFrame() {
+    // Wait fence
+    fences[frameIndex]->wait();
+
+    // Acquire next image
+    auto acquireResult = context->getDevice().acquireNextImageKHR(
+        *swapchain, UINT64_MAX, *imageAcquiredSemaphores[semaphoreIndex]);
+    frameIndex = acquireResult.value;
+
+    // Reset fence
+    fences[frameIndex]->reset();
+}
+
+void Swapchain::presentImage() {
+    vk::PresentInfoKHR presentInfo;
+    presentInfo.setWaitSemaphores(*renderCompleteSemaphores[semaphoreIndex]);
+    presentInfo.setSwapchains(*swapchain);
+    presentInfo.setImageIndices(frameIndex);
+    if (context->getQueue().presentKHR(presentInfo) != vk::Result::eSuccess) {
+        return;
+    }
+    semaphoreIndex = (semaphoreIndex + 1) % swapchainImages.size();
+}
+}  // namespace rv

@@ -9,16 +9,13 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
 
-#include "Graphics/Fence.hpp"
-
 namespace rv {
+
 App::App(AppCreateInfo createInfo) : width{createInfo.width}, height{createInfo.height} {
     spdlog::set_pattern("[%^%l%$] %v");
 
-    presentMode = createInfo.vsync ? vk::PresentModeKHR::eFifo : vk::PresentModeKHR::eMailbox;
-
     initGLFW(createInfo.windowResizable, createInfo.title);
-    initVulkan(createInfo.layers, createInfo.extensions);
+    initVulkan(createInfo.layers, createInfo.extensions, createInfo.vsync);
     initImGui();
 }
 
@@ -38,66 +35,45 @@ void App::run() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // Wait fence
-        fences[frameIndex]->wait();
-
-        // Acquire next image
-        auto acquireResult = context.getDevice().acquireNextImageKHR(
-            *swapchain, UINT64_MAX, *imageAcquiredSemaphores[semaphoreIndex]);
-        if (acquireResult.result == vk::Result::eErrorOutOfDateKHR) {
-            continue;
-        }
-        frameIndex = acquireResult.value;
-
-        // Reset fence
-        fences[frameIndex]->reset();
+        swapchain->waitNextFrame();
 
         // Begin command buffer
         // NOTE: Since the command pool is created with the Reset flag,
         //       the command buffer is implicitly reset at begin.
-        commandBuffers[frameIndex]->begin();
+        auto commandBuffer = swapchain->getCurrentCommandBuffer();
+        commandBuffer->begin();
 
         // Render
-        onRender(commandBuffers[frameIndex]);
+        onRender(commandBuffer);
 
         // Draw GUI
         {
             // Begin render pass
-            commandBuffers[frameIndex]->beginRendering(getCurrentColorImage(), {}, {0, 0},
-                                                       {width, height});
+            commandBuffer->beginRendering(getCurrentColorImage(), {}, {0, 0}, {width, height});
 
             // Render
             // TODO: create ImGui wrapper
             ImGui::Render();
             ImDrawData* drawData = ImGui::GetDrawData();
-            ImGui_ImplVulkan_RenderDrawData(drawData, *commandBuffers[frameIndex]->commandBuffer);
+            ImGui_ImplVulkan_RenderDrawData(drawData, *commandBuffer->commandBuffer);
 
             // End render pass
-            commandBuffers[frameIndex]->endRendering();
+            commandBuffer->endRendering();
         }
 
-        commandBuffers[frameIndex]->transitionLayout(getCurrentColorImage(),
-                                                     vk::ImageLayout::ePresentSrcKHR);
+        commandBuffer->transitionLayout(getCurrentColorImage(), vk::ImageLayout::ePresentSrcKHR);
 
         // End command buffer
-        commandBuffers[frameIndex]->end();
+        commandBuffer->end();
 
         // Submit
         vk::PipelineStageFlags waitStage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-        context.submit(commandBuffers[frameIndex], waitStage,
-                       *imageAcquiredSemaphores[semaphoreIndex],
-                       *renderCompleteSemaphores[semaphoreIndex], fences[frameIndex]);
+        context.submit(commandBuffer, waitStage, swapchain->getCurrentImageAcquiredSemaphore(),
+                       swapchain->getCurrentRenderCompleteSemaphore(),
+                       swapchain->getCurrentFence());
 
         // Present image
-        vk::PresentInfoKHR presentInfo;
-        presentInfo.setWaitSemaphores(*renderCompleteSemaphores[semaphoreIndex]);
-        presentInfo.setSwapchains(*swapchain);
-        presentInfo.setImageIndices(frameIndex);
-        if (context.getQueue().presentKHR(presentInfo) != vk::Result::eSuccess) {
-            swapchainRebuild = true;
-            return;
-        }
-        semaphoreIndex = (semaphoreIndex + 1) % swapchainImages.size();
+        swapchain->presentImage();
     }
     context.getDevice().waitIdle();
 
@@ -123,7 +99,7 @@ auto App::getMouseWheel() const -> glm::vec2 {
 }
 
 auto App::getCurrentColorImage() const -> ImageHandle {
-    return std::make_shared<Image>(swapchainImages[frameIndex], *swapchainImageViews[frameIndex],
+    return std::make_shared<Image>(swapchain->getCurrentImage(), swapchain->getCurrentImageView(),
                                    vk::Extent3D{width, height, 1}, vk::ImageAspectFlagBits::eColor);
 }
 
@@ -177,7 +153,9 @@ void App::initGLFW(bool resizable, const char* title) {
     glfwSetWindowSizeCallback(window, windowSizeCallback);
 }
 
-void App::initVulkan(ArrayProxy<Layer> requiredLayers, ArrayProxy<Extension> requiredExtensions) {
+void App::initVulkan(ArrayProxy<Layer> requiredLayers,
+                     ArrayProxy<Extension> requiredExtensions,
+                     bool vsync) {
     bool enableValidation = requiredLayers.contains(Layer::Validation);
 
     uint32_t glfwExtensionCount = 0;
@@ -278,22 +256,10 @@ void App::initVulkan(ArrayProxy<Layer> requiredLayers, ArrayProxy<Extension> req
     context.initDevice(deviceExtensions, deviceFeatures, featuresChain.pFirst,
                        requiredExtensions.contains(Extension::RayTracing));
 
-    createSwapchain();
-    createDepthImage();
+    auto presentMode = vsync ? vk::PresentModeKHR::eFifo : vk::PresentModeKHR::eMailbox;
+    swapchain = std::make_unique<Swapchain>(context, *surface, width, height, presentMode);
 
-    // Allocate command buffers
-    size_t imageCount = swapchainImages.size();
-    // Create command buffers and sync objects
-    commandBuffers.resize(imageCount);
-    fences.resize(imageCount);
-    imageAcquiredSemaphores.resize(imageCount);
-    renderCompleteSemaphores.resize(imageCount);
-    for (uint32_t i = 0; i < imageCount; i++) {
-        commandBuffers[i] = context.allocateCommandBuffer();
-        fences[i] = context.createFence({.signaled = true});
-        imageAcquiredSemaphores[i] = context.getDevice().createSemaphoreUnique({});
-        renderCompleteSemaphores[i] = context.getDevice().createSemaphoreUnique({});
-    }
+    createDepthImage();
 }
 
 void setImGuiStyle() {
@@ -387,8 +353,8 @@ void App::initImGui() {
     initInfo.PipelineCache = nullptr;
     initInfo.DescriptorPool = context.getDescriptorPool();
     initInfo.Subpass = 0;
-    initInfo.MinImageCount = minImageCount;
-    initInfo.ImageCount = swapchainImages.size();
+    initInfo.MinImageCount = swapchain->getMinImageCount();
+    initInfo.ImageCount = swapchain->getImageCount();
     initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
     initInfo.Allocator = nullptr;
     initInfo.UseDynamicRendering = true;
@@ -404,40 +370,6 @@ void App::initImGui() {
             ImGui_ImplVulkan_CreateFontsTexture(*commandBuffer->commandBuffer);
         });
         ImGui_ImplVulkan_DestroyFontUploadObjects();
-    }
-}
-
-void App::createSwapchain() {
-    // Create swapchain
-    uint32_t queueFamily = context.getQueueFamily();
-    swapchain = context.getDevice().createSwapchainKHRUnique(
-        vk::SwapchainCreateInfoKHR()
-            .setSurface(*surface)
-            .setMinImageCount(minImageCount)
-            .setImageFormat(vk::Format::eB8G8R8A8Unorm)
-            .setImageColorSpace(vk::ColorSpaceKHR::eSrgbNonlinear)
-            .setImageExtent({width, height})
-            .setImageArrayLayers(1)
-            .setImageUsage(vk::ImageUsageFlagBits::eColorAttachment |
-                           vk::ImageUsageFlagBits::eTransferDst)
-            .setPreTransform(vk::SurfaceTransformFlagBitsKHR::eIdentity)
-            .setPresentMode(presentMode)
-            .setClipped(true)
-            .setQueueFamilyIndices(queueFamily));
-
-    // Get images
-    swapchainImages = context.getDevice().getSwapchainImagesKHR(*swapchain);
-
-    // Create image views
-    for (auto& image : swapchainImages) {
-        swapchainImageViews.push_back(context.getDevice().createImageViewUnique(
-            vk::ImageViewCreateInfo()
-                .setImage(image)
-                .setViewType(vk::ImageViewType::e2D)
-                .setFormat(vk::Format::eB8G8R8A8Unorm)
-                .setComponents({vk::ComponentSwizzle::eR, vk::ComponentSwizzle::eG,
-                                vk::ComponentSwizzle::eB, vk::ComponentSwizzle::eA})
-                .setSubresourceRange({vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1})));
     }
 }
 
@@ -474,12 +406,9 @@ void App::onWindowSize(int _width, int _height) {
     }
     context.getDevice().waitIdle();
 
-    depthImage.reset();
-    swapchainImageViews.clear();
-    swapchainImages.clear();
-    swapchain.reset();
+    swapchain->resize(width, height);
 
-    createSwapchain();
+    depthImage.reset();
     createDepthImage();
 }
 
