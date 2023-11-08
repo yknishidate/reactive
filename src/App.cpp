@@ -42,8 +42,8 @@ void App::run() {
         fences[frameIndex]->wait();
 
         // Acquire next image
-        auto acquireResult = context.getDevice().acquireNextImageKHR(*swapchain, UINT64_MAX,
-                                                                     *imageAcquiredSemaphore);
+        auto acquireResult = context.getDevice().acquireNextImageKHR(
+            *swapchain, UINT64_MAX, *imageAcquiredSemaphores[semaphoreIndex]);
         if (acquireResult.result == vk::Result::eErrorOutOfDateKHR) {
             continue;
         }
@@ -84,12 +84,13 @@ void App::run() {
 
         // Submit
         vk::PipelineStageFlags waitStage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-        context.submit(commandBuffers[frameIndex], waitStage, *imageAcquiredSemaphore,
-                       *renderCompleteSemaphore, fences[frameIndex]);
+        context.submit(commandBuffers[frameIndex], waitStage,
+                       *imageAcquiredSemaphores[semaphoreIndex],
+                       *renderCompleteSemaphores[semaphoreIndex], fences[frameIndex]);
 
         // Present image
         vk::PresentInfoKHR presentInfo;
-        presentInfo.setWaitSemaphores(*renderCompleteSemaphore);
+        presentInfo.setWaitSemaphores(*renderCompleteSemaphores[semaphoreIndex]);
         presentInfo.setSwapchains(*swapchain);
         presentInfo.setImageIndices(frameIndex);
         if (context.getQueue().presentKHR(presentInfo) != vk::Result::eSuccess) {
@@ -285,11 +286,13 @@ void App::initVulkan(ArrayProxy<Layer> requiredLayers, ArrayProxy<Extension> req
     // Create command buffers and sync objects
     commandBuffers.resize(imageCount);
     fences.resize(imageCount);
-    imageAcquiredSemaphore = context.getDevice().createSemaphoreUnique({});
-    renderCompleteSemaphore = context.getDevice().createSemaphoreUnique({});
+    imageAcquiredSemaphores.resize(imageCount);
+    renderCompleteSemaphores.resize(imageCount);
     for (uint32_t i = 0; i < imageCount; i++) {
         commandBuffers[i] = context.allocateCommandBuffer();
         fences[i] = context.createFence({.signaled = true});
+        imageAcquiredSemaphores[i] = context.getDevice().createSemaphoreUnique({});
+        renderCompleteSemaphores[i] = context.getDevice().createSemaphoreUnique({});
     }
 }
 

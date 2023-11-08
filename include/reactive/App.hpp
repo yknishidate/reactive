@@ -130,8 +130,8 @@ protected:
     uint32_t semaphoreIndex = 0;
     vk::PresentModeKHR presentMode;
 
-    vk::UniqueSemaphore imageAcquiredSemaphore;
-    vk::UniqueSemaphore renderCompleteSemaphore;
+    std::vector<vk::UniqueSemaphore> imageAcquiredSemaphores;
+    std::vector<vk::UniqueSemaphore> renderCompleteSemaphores;
     std::vector<CommandBufferHandle> commandBuffers{};
     std::vector<FenceHandle> fences{};
 };
