@@ -15,6 +15,8 @@ namespace rv {
 App::App(AppCreateInfo createInfo) : width{createInfo.width}, height{createInfo.height} {
     spdlog::set_pattern("[%^%l%$] %v");
 
+    presentMode = createInfo.vsync ? vk::PresentModeKHR::eFifo : vk::PresentModeKHR::eMailbox;
+
     initGLFW(createInfo.windowResizable, createInfo.title);
     initVulkan(createInfo.layers, createInfo.extensions);
     initImGui();
@@ -187,6 +189,9 @@ void App::initVulkan(ArrayProxy<Layer> requiredLayers, ArrayProxy<Extension> req
     if (enableValidation) {
         layers.push_back("VK_LAYER_KHRONOS_validation");
     }
+    if (requiredLayers.contains(Layer::FPSMonitor)) {
+        layers.push_back("VK_LAYER_LUNARG_monitor");
+    }
 
     // NOTE: Assuming Vulkan 1.3
     context.initInstance(enableValidation, layers, instanceExtensions, VK_API_VERSION_1_3);
@@ -243,6 +248,8 @@ void App::initVulkan(ArrayProxy<Layer> requiredLayers, ArrayProxy<Extension> req
 
     vk::PhysicalDeviceDynamicRenderingFeatures dynamicRenderingFeatures{true};
 
+    vk::PhysicalDeviceHostQueryResetFeaturesEXT hostQueryResetFeatures{true};
+
     StructureChain featuresChain;
     featuresChain.add(descFeatures);
     featuresChain.add(storage8BitFeatures);
@@ -251,6 +258,7 @@ void App::initVulkan(ArrayProxy<Layer> requiredLayers, ArrayProxy<Extension> req
     featuresChain.add(shaderObjectFeatures);
     featuresChain.add(synchronization2Features);
     featuresChain.add(dynamicRenderingFeatures);
+    featuresChain.add(hostQueryResetFeatures);
 
     vk::PhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures{true};
     vk::PhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures{true};
@@ -410,7 +418,7 @@ void App::createSwapchain() {
             .setImageUsage(vk::ImageUsageFlagBits::eColorAttachment |
                            vk::ImageUsageFlagBits::eTransferDst)
             .setPreTransform(vk::SurfaceTransformFlagBitsKHR::eIdentity)
-            .setPresentMode(vk::PresentModeKHR::eFifo)
+            .setPresentMode(presentMode)
             .setClipped(true)
             .setQueueFamilyIndices(queueFamily));
 

@@ -40,6 +40,7 @@ enum class Extension {
 
 enum class Layer {
     Validation,
+    FPSMonitor,
 };
 
 struct AppCreateInfo {
@@ -48,6 +49,7 @@ struct AppCreateInfo {
     uint32_t height = 0;
     const char* title = nullptr;
     bool windowResizable = true;
+    bool vsync = true;
 
     // Vulkan
     ArrayProxy<Layer> layers;
@@ -126,6 +128,7 @@ protected:
     uint32_t frameIndex = 0;
     uint32_t imageCount = 0;
     uint32_t semaphoreIndex = 0;
+    vk::PresentModeKHR presentMode;
 
     vk::UniqueSemaphore imageAcquiredSemaphore;
     vk::UniqueSemaphore renderCompleteSemaphore;
