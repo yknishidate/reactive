@@ -36,6 +36,8 @@ Personal Vulkan wrapper using
 
 # Windows
 cmake . -B build -D CMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake
+# or
+setup_build.bat
 
 # Linux
 cmake . -B build -D CMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake
