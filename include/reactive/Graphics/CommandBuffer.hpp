@@ -140,9 +140,9 @@ public:
 
     // buffer
     void fillBuffer(BufferHandle dstBuffer,
-                    vk::DeviceSize dstOffset,
-                    vk::DeviceSize size,
-                    uint32_t data) const;
+                    uint32_t data,
+                    vk::DeviceSize dstOffset = 0,
+                    vk::DeviceSize size = VK_WHOLE_SIZE) const;
 
     void copyBuffer(BufferHandle buffer, const void* data) const;
 

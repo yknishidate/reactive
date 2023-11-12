@@ -349,9 +349,9 @@ void CommandBuffer::blitImage(ImageHandle srcImage,
 }
 
 void CommandBuffer::fillBuffer(BufferHandle dstBuffer,
+                               uint32_t data,
                                vk::DeviceSize dstOffset,
-                               vk::DeviceSize size,
-                               uint32_t data) const {
+                               vk::DeviceSize size) const {
     commandBuffer->fillBuffer(dstBuffer->getBuffer(), dstOffset, size, data);
 }
 
