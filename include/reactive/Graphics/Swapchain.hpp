@@ -12,25 +12,27 @@ public:
 
     void resize(uint32_t width, uint32_t height);
 
-    void waitNextFrame();
+    auto waitNextFrame() -> vk::Result;
 
     void presentImage();
 
-    rv::CommandBufferHandle getCurrentCommandBuffer() const { return commandBuffers[frameIndex]; }
+    rv::CommandBufferHandle getCurrentCommandBuffer() const {
+        return commandBuffers[inflightIndex];
+    }
 
-    vk::Image getCurrentImage() const { return swapchainImages[frameIndex]; }
+    vk::Image getCurrentImage() const { return swapchainImages[imageIndex]; }
 
-    vk::ImageView getCurrentImageView() const { return *swapchainImageViews[frameIndex]; }
+    vk::ImageView getCurrentImageView() const { return *swapchainImageViews[imageIndex]; }
 
     vk::Semaphore getCurrentImageAcquiredSemaphore() const {
-        return *imageAcquiredSemaphores[semaphoreIndex];
+        return *imageAcquiredSemaphores[inflightIndex];
     }
 
     vk::Semaphore getCurrentRenderCompleteSemaphore() const {
-        return *renderCompleteSemaphores[semaphoreIndex];
+        return *renderCompleteSemaphores[inflightIndex];
     }
 
-    FenceHandle getCurrentFence() const { return fences[frameIndex]; }
+    FenceHandle getCurrentFence() const { return fences[inflightIndex]; }
 
     uint32_t getMinImageCount() const { return minImageCount; }
 
@@ -47,9 +49,11 @@ private:
     vk::PresentModeKHR presentMode;
 
     uint32_t minImageCount = 3;
-    uint32_t frameIndex = 0;
     uint32_t imageCount = 0;
-    uint32_t semaphoreIndex = 0;
+    uint32_t imageIndex = 0;
+
+    uint32_t inflightCount = 3;
+    uint32_t inflightIndex = 0;
 
     std::vector<vk::UniqueSemaphore> imageAcquiredSemaphores;
     std::vector<vk::UniqueSemaphore> renderCompleteSemaphores;

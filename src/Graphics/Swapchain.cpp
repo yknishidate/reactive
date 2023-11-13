@@ -50,11 +50,12 @@ void Swapchain::resize(uint32_t width, uint32_t height) {
 
     // Create command buffers and sync objects
     imageCount = static_cast<uint32_t>(swapchainImages.size());
-    commandBuffers.resize(imageCount);
-    fences.resize(imageCount);
-    imageAcquiredSemaphores.resize(imageCount);
-    renderCompleteSemaphores.resize(imageCount);
-    for (uint32_t i = 0; i < imageCount; i++) {
+
+    commandBuffers.resize(inflightCount);
+    fences.resize(inflightCount);
+    imageAcquiredSemaphores.resize(inflightCount);
+    renderCompleteSemaphores.resize(inflightCount);
+    for (uint32_t i = 0; i < inflightCount; i++) {
         commandBuffers[i] = context->allocateCommandBuffer();
         fences[i] = context->createFence({.signaled = true});
         imageAcquiredSemaphores[i] = context->getDevice().createSemaphoreUnique({});
@@ -62,27 +63,29 @@ void Swapchain::resize(uint32_t width, uint32_t height) {
     }
 }
 
-void Swapchain::waitNextFrame() {
+vk::Result Swapchain::waitNextFrame() {
     // Wait fence
-    fences[frameIndex]->wait();
+    vk::Result result = fences[inflightIndex]->wait();
 
     // Acquire next image
     auto acquireResult = context->getDevice().acquireNextImageKHR(
-        *swapchain, UINT64_MAX, *imageAcquiredSemaphores[semaphoreIndex]);
-    frameIndex = acquireResult.value;
+        *swapchain, UINT64_MAX, *imageAcquiredSemaphores[inflightIndex]);
+    imageIndex = acquireResult.value;
 
     // Reset fence
-    fences[frameIndex]->reset();
+    fences[inflightIndex]->reset();
+
+    return result;
 }
 
 void Swapchain::presentImage() {
     vk::PresentInfoKHR presentInfo;
-    presentInfo.setWaitSemaphores(*renderCompleteSemaphores[semaphoreIndex]);
+    presentInfo.setWaitSemaphores(*renderCompleteSemaphores[inflightIndex]);
     presentInfo.setSwapchains(*swapchain);
-    presentInfo.setImageIndices(frameIndex);
+    presentInfo.setImageIndices(imageIndex);
     if (context->getQueue().presentKHR(presentInfo) != vk::Result::eSuccess) {
         return;
     }
-    semaphoreIndex = (semaphoreIndex + 1) % swapchainImages.size();
+    inflightIndex = (inflightIndex + 1) % inflightCount;
 }
 }  // namespace rv
