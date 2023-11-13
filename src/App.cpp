@@ -201,6 +201,9 @@ void App::initVulkan(ArrayProxy<Layer> requiredLayers,
     if (requiredExtensions.contains(Extension::ShaderObject)) {
         deviceExtensions.push_back(VK_EXT_SHADER_OBJECT_EXTENSION_NAME);
     }
+    if (requiredExtensions.contains(Extension::DeviceFault)) {
+        deviceExtensions.push_back(VK_EXT_DEVICE_FAULT_EXTENSION_NAME);
+    }
 
     vk::PhysicalDeviceFeatures deviceFeatures;
     deviceFeatures.setShaderInt64(true);
@@ -251,6 +254,11 @@ void App::initVulkan(ArrayProxy<Layer> requiredLayers,
     vk::PhysicalDeviceMeshShaderFeaturesEXT meshShaderFeatures{true, true};
     if (requiredExtensions.contains(Extension::MeshShader)) {
         featuresChain.add(meshShaderFeatures);
+    }
+
+    vk::PhysicalDeviceFaultFeaturesEXT faultFeatures{true, true};
+    if (requiredExtensions.contains(Extension::MeshShader)) {
+        featuresChain.add(faultFeatures);
     }
 
     context.initDevice(deviceExtensions, deviceFeatures, featuresChain.pFirst,

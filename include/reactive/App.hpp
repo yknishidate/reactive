@@ -35,6 +35,7 @@ enum class Extension {
     RayTracing,
     MeshShader,
     ShaderObject,
+    DeviceFault,
 };
 
 enum class Layer {
