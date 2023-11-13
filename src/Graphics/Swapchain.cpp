@@ -63,9 +63,9 @@ void Swapchain::resize(uint32_t width, uint32_t height) {
     }
 }
 
-vk::Result Swapchain::waitNextFrame() {
+void Swapchain::waitNextFrame() {
     // Wait fence
-    vk::Result result = fences[inflightIndex]->wait();
+    fences[inflightIndex]->wait();
 
     // Acquire next image
     auto acquireResult = context->getDevice().acquireNextImageKHR(
@@ -74,8 +74,6 @@ vk::Result Swapchain::waitNextFrame() {
 
     // Reset fence
     fences[inflightIndex]->reset();
-
-    return result;
 }
 
 void Swapchain::presentImage() {

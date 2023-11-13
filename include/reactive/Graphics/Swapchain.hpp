@@ -12,7 +12,7 @@ public:
 
     void resize(uint32_t width, uint32_t height);
 
-    auto waitNextFrame() -> vk::Result;
+    void waitNextFrame();
 
     void presentImage();
 
