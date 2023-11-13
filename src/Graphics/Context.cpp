@@ -235,23 +235,25 @@ void Context::submit(CommandBufferHandle commandBuffer,
                      vk::Semaphore signalSemaphore,
                      FenceHandle fence) const {
     uint32_t queueIndex = getQueueIndexByThreadId();
+    vk::Queue queue = queues.at(commandBuffer->getQueueFlags())[queueIndex];
 
     vk::SubmitInfo submitInfo;
     submitInfo.setWaitDstStageMask(waitStage);
     submitInfo.setCommandBuffers(*commandBuffer->commandBuffer);
     submitInfo.setWaitSemaphores(waitSemaphore);
     submitInfo.setSignalSemaphores(signalSemaphore);
-    queues.at(commandBuffer->getQueueFlags())[queueIndex].submit(
-        submitInfo, fence ? fence->getFence() : nullptr);
+
+    queue.submit(submitInfo, fence ? fence->getFence() : nullptr);
 }
 
 void Context::submit(CommandBufferHandle commandBuffer, FenceHandle fence) const {
     uint32_t queueIndex = getQueueIndexByThreadId();
+    vk::Queue queue = queues.at(commandBuffer->getQueueFlags())[queueIndex];
 
     vk::SubmitInfo submitInfo;
     submitInfo.setCommandBuffers(*commandBuffer->commandBuffer);
-    queues.at(commandBuffer->getQueueFlags())[queueIndex].submit(
-        submitInfo, fence ? fence->getFence() : nullptr);
+
+    queue.submit(submitInfo, fence ? fence->getFence() : nullptr);
 }
 
 void Context::oneTimeSubmit(const std::function<void(CommandBufferHandle)>& command,
