@@ -17,7 +17,7 @@ auto GPUTimer::elapsedInNano() -> double {
                         timestamps.data(),                     // pData
                         sizeof(uint64_t),                      // stride
                         vk::QueryResultFlagBits::e64 | vk::QueryResultFlagBits::eWait),
-                    "Failed to get query pool results.");
+                    "Failed to get query pool results");
     return timestampPeriod * static_cast<double>(timestamps[1] - timestamps[0]);
 }
 
