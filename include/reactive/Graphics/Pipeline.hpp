@@ -24,8 +24,6 @@ struct GraphicsPipelineCreateInfo {
     ArrayProxy<VertexAttributeDescription> vertexAttributes = {};
 
     // Viewport
-    std::variant<vk::Viewport, std::string> viewport;
-    std::variant<vk::Rect2D, std::string> scissor;
     vk::Format colorFormat = vk::Format::eB8G8R8A8Unorm;
     vk::Format depthFormat = vk::Format::eD32Sfloat;
 
