@@ -165,6 +165,7 @@ public:
     void setViewport(uint32_t width, uint32_t height) const;
     void setScissor(const vk::Rect2D& scissor) const;
     void setScissor(uint32_t width, uint32_t height) const;
+    void setPolygonMode(vk::PolygonMode polygonMode) const;
 
     void beginDebugLabel(const char* labelName) const;
     void endDebugLabel() const;

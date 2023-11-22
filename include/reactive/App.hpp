@@ -36,6 +36,7 @@ enum class Extension {
     MeshShader,
     ShaderObject,
     DeviceFault,
+    ExtendedDynamicState,
 };
 
 enum class Layer {

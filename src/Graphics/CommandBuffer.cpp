@@ -473,6 +473,10 @@ void CommandBuffer::setScissor(uint32_t width, uint32_t height) const {
     commandBuffer->setScissor(0, 1, &scissor);
 }
 
+void CommandBuffer::setPolygonMode(vk::PolygonMode polygonMode) const {
+    commandBuffer->setPolygonModeEXT(polygonMode);
+}
+
 void CommandBuffer::beginDebugLabel(const char* labelName) const {
     if (context->debugEnabled()) {
         vk::DebugUtilsLabelEXT label;

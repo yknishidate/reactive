@@ -204,6 +204,9 @@ void App::initVulkan(ArrayProxy<Layer> requiredLayers,
     if (requiredExtensions.contains(Extension::DeviceFault)) {
         deviceExtensions.push_back(VK_EXT_DEVICE_FAULT_EXTENSION_NAME);
     }
+    if (requiredExtensions.contains(Extension::ExtendedDynamicState)) {
+        deviceExtensions.push_back(VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
+    }
 
     vk::PhysicalDeviceFeatures deviceFeatures;
     deviceFeatures.setShaderInt64(true);
@@ -224,20 +227,17 @@ void App::initVulkan(ArrayProxy<Layer> requiredLayers,
 
     vk::PhysicalDeviceBufferDeviceAddressFeatures bufferDeviceAddressFeatures{true};
 
-    vk::PhysicalDeviceShaderObjectFeaturesEXT shaderObjectFeatures{true};
-
     vk::PhysicalDeviceSynchronization2Features synchronization2Features{true};
 
     vk::PhysicalDeviceDynamicRenderingFeatures dynamicRenderingFeatures{true};
 
-    vk::PhysicalDeviceHostQueryResetFeaturesEXT hostQueryResetFeatures{true};
+    vk::PhysicalDeviceHostQueryResetFeatures hostQueryResetFeatures{true};
 
     StructureChain featuresChain;
     featuresChain.add(descFeatures);
     featuresChain.add(storage8BitFeatures);
     featuresChain.add(shaderFloat16Int8Features);
     featuresChain.add(bufferDeviceAddressFeatures);
-    featuresChain.add(shaderObjectFeatures);
     featuresChain.add(synchronization2Features);
     featuresChain.add(dynamicRenderingFeatures);
     featuresChain.add(hostQueryResetFeatures);
@@ -256,9 +256,20 @@ void App::initVulkan(ArrayProxy<Layer> requiredLayers,
         featuresChain.add(meshShaderFeatures);
     }
 
+    vk::PhysicalDeviceShaderObjectFeaturesEXT shaderObjectFeatures{true};
+    if (requiredExtensions.contains(Extension::ShaderObject)) {
+        featuresChain.add(shaderObjectFeatures);
+    }
+
     vk::PhysicalDeviceFaultFeaturesEXT faultFeatures{true, true};
-    if (requiredExtensions.contains(Extension::MeshShader)) {
+    if (requiredExtensions.contains(Extension::DeviceFault)) {
         featuresChain.add(faultFeatures);
+    }
+
+    vk::PhysicalDeviceExtendedDynamicState3FeaturesEXT extendedDynamicState3Features{};
+    extendedDynamicState3Features.setExtendedDynamicState3PolygonMode(true);
+    if (requiredExtensions.contains(Extension::ExtendedDynamicState)) {
+        featuresChain.add(extendedDynamicState3Features);
     }
 
     context.initDevice(deviceExtensions, deviceFeatures, featuresChain.pFirst,
