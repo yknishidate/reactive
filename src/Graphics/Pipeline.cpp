@@ -231,8 +231,14 @@ MeshShaderPipeline::MeshShaderPipeline(const Context* context,
     vk::PipelineRasterizationStateCreateInfo rasterization;
     rasterization.setDepthClampEnable(VK_FALSE);
     rasterization.setRasterizerDiscardEnable(VK_FALSE);
-    rasterization.setPolygonMode(createInfo.polygonMode);
     rasterization.setDepthBiasEnable(VK_FALSE);
+
+    if (std::holds_alternative<vk::PolygonMode>(createInfo.polygonMode)) {
+        rasterization.setPolygonMode(std::get<vk::PolygonMode>(createInfo.polygonMode));
+    } else {
+        assert(std::get<std::string>(createInfo.polygonMode) == "dynamic");
+        dynamicStates.push_back(vk::DynamicState::ePolygonModeEXT);
+    }
 
     if (std::holds_alternative<vk::FrontFace>(createInfo.frontFace)) {
         rasterization.setFrontFace(std::get<vk::FrontFace>(createInfo.frontFace));

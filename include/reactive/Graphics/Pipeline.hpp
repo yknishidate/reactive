@@ -55,7 +55,7 @@ struct MeshShaderPipelineCreateInfo {
     ShaderHandle fragmentShader;
 
     // Raster
-    vk::PolygonMode polygonMode = vk::PolygonMode::eFill;
+    std::variant<vk::PolygonMode, std::string> polygonMode = vk::PolygonMode::eFill;
     std::variant<vk::CullModeFlags, std::string> cullMode = vk::CullModeFlagBits::eNone;
     std::variant<vk::FrontFace, std::string> frontFace = vk::FrontFace::eCounterClockwise;
     std::variant<float, std::string> lineWidth = 1.0f;
