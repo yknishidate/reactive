@@ -54,10 +54,6 @@ struct MeshShaderPipelineCreateInfo {
     ShaderHandle meshShader;
     ShaderHandle fragmentShader;
 
-    // Viewport
-    std::variant<vk::Viewport, std::string> viewport;
-    std::variant<vk::Rect2D, std::string> scissor;
-
     // Raster
     vk::PolygonMode polygonMode = vk::PolygonMode::eFill;
     std::variant<vk::CullModeFlags, std::string> cullMode = vk::CullModeFlagBits::eNone;

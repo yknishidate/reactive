@@ -223,21 +223,10 @@ MeshShaderPipeline::MeshShaderPipeline(const Context* context,
     colorBlending.setLogicOpEnable(VK_FALSE);
 
     vk::PipelineViewportStateCreateInfo viewportState;
-    if (std::holds_alternative<vk::Viewport>(createInfo.viewport)) {
-        viewportState.setViewports(std::get<vk::Viewport>(createInfo.viewport));
-    } else {
-        assert(std::get<std::string>(createInfo.viewport) == "dynamic");
-        viewportState.setViewportCount(1);
-        dynamicStates.push_back(vk::DynamicState::eViewport);
-    }
-
-    if (std::holds_alternative<vk::Rect2D>(createInfo.scissor)) {
-        viewportState.setScissors(std::get<vk::Rect2D>(createInfo.scissor));
-    } else {
-        assert(std::get<std::string>(createInfo.scissor) == "dynamic");
-        viewportState.setScissorCount(1);
-        dynamicStates.push_back(vk::DynamicState::eScissor);
-    }
+    viewportState.setViewportCount(1);
+    viewportState.setScissorCount(1);
+    dynamicStates.push_back(vk::DynamicState::eViewport);
+    dynamicStates.push_back(vk::DynamicState::eScissor);
 
     vk::PipelineRasterizationStateCreateInfo rasterization;
     rasterization.setDepthClampEnable(VK_FALSE);
