@@ -16,6 +16,8 @@ public:
 
     void presentImage();
 
+    uint32_t getCurrentInFlightIndex() const { return inflightIndex; }
+
     rv::CommandBufferHandle getCurrentCommandBuffer() const {
         return commandBuffers[inflightIndex];
     }
@@ -37,6 +39,8 @@ public:
     uint32_t getMinImageCount() const { return minImageCount; }
 
     uint32_t getImageCount() const { return imageCount; }
+
+    uint32_t getInFlightCount() const { return inflightCount; }
 
 private:
     const Context* context = nullptr;
