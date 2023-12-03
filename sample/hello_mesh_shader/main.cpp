@@ -80,8 +80,6 @@ public:
             .taskShader = {},
             .meshShader = shaders[0],
             .fragmentShader = shaders[1],
-            .viewport = "dynamic",
-            .scissor = "dynamic",
         });
     }
 

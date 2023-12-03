@@ -51,8 +51,6 @@ public:
             .descSetLayout = descSet->getLayout(),
             .vertexShader = shaders[0],
             .fragmentShader = shaders[1],
-            .viewport = "dynamic",
-            .scissor = "dynamic",
         });
 
         gpuTimer = context.createGPUTimer({});
