@@ -61,7 +61,7 @@ public:
             for (int i = 0; i < TIME_BUFFER_SIZE - 1; i++) {
                 times[i] = times[i + 1];
             }
-            double time = gpuTimer->elapsedInMilli();
+            float time = gpuTimer->elapsedInMilli();
             times[TIME_BUFFER_SIZE - 1] = time;
             ImGui::Text("GPU timer: %.3f ms", time);
             ImGui::PlotLines("Times", times, TIME_BUFFER_SIZE, 0, nullptr, FLT_MAX, FLT_MAX,

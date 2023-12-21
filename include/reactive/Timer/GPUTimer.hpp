@@ -11,8 +11,8 @@ public:
     GPUTimer() = default;
     GPUTimer(const Context* context, GPUTimerCreateInfo createInfo);
 
-    auto elapsedInNano() -> double;
-    auto elapsedInMilli() -> double;
+    auto elapsedInNano() -> float;
+    auto elapsedInMilli() -> float;
 
 private:
     const Context* context;
@@ -21,6 +21,6 @@ private:
 
     vk::UniqueQueryPool queryPool;
 
-    std::array<uint64_t, 2> timestamps;
+    std::array<uint64_t, 2> timestamps{};
 };
 }  // namespace rv
