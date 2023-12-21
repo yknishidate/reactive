@@ -117,7 +117,7 @@ void DescriptorSet::update() {
 void DescriptorSet::addResources(ShaderHandle shader) {
     vk::ShaderStageFlags stage = shader->getStage();
     spirv_cross::CompilerGLSL glsl{shader->getSpvCode()};
-    spirv_cross::ShaderResources resources = glsl.get_shader_resources();
+    const spirv_cross::ShaderResources& resources = glsl.get_shader_resources();
 
     for (auto& resource : resources.uniform_buffers) {
         updateBindingMap(resource, glsl, stage, vk::DescriptorType::eUniformBuffer);
