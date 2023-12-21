@@ -69,7 +69,7 @@ TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo)
         instances.push_back(inst);
     }
 
-    primitiveCount = instances.size();
+    primitiveCount = static_cast<uint32_t>(instances.size());
     instanceBuffer = context->createBuffer({
         .usage = BufferUsage::AccelInput,
         .memory = MemoryUsage::DeviceHost,
@@ -91,7 +91,7 @@ TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo)
     buildGeometryInfo.setGeometries(geometry);
 
     auto buildSizesInfo = context->getDevice().getAccelerationStructureBuildSizesKHR(
-        buildType, buildGeometryInfo, instances.size());
+        buildType, buildGeometryInfo, static_cast<uint32_t>(instances.size()));
 
     buffer = context->createBuffer({
         .usage = BufferUsage::AccelStorage,

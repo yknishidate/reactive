@@ -347,7 +347,7 @@ RayTracingPipeline::RayTracingPipeline(const Context* context,
     hitCount = createInfo.chitShaders.size() + createInfo.ahitShaders.size();
 
     for (auto& shader : createInfo.rgenShaders) {
-        uint32_t index = shaderModules.size();
+        uint32_t index = static_cast<uint32_t>(shaderModules.size());
         shaderModules.push_back(shader->getModule());
 
         shaderStages.push_back(
@@ -357,7 +357,7 @@ RayTracingPipeline::RayTracingPipeline(const Context* context,
                                 VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR});
     }
     for (auto& shader : createInfo.missShaders) {
-        uint32_t index = shaderModules.size();
+        uint32_t index = static_cast<uint32_t>(shaderModules.size());
         shaderModules.push_back(shader->getModule());
 
         shaderStages.push_back(
@@ -367,7 +367,7 @@ RayTracingPipeline::RayTracingPipeline(const Context* context,
                                 VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR});
     }
     for (auto& shader : createInfo.chitShaders) {
-        uint32_t index = shaderModules.size();
+        uint32_t index = static_cast<uint32_t>(shaderModules.size());
         shaderModules.push_back(shader->getModule());
         shaderStages.push_back(
             {{}, vk::ShaderStageFlagBits::eClosestHitKHR, shaderModules.back(), "main"});
@@ -408,8 +408,8 @@ RayTracingPipeline::RayTracingPipeline(const Context* context,
 
     // Calculate SBT size
     uint32_t handleSize = rtProperties.shaderGroupHandleSize;
-    size_t handleSizeAligned = rtProperties.shaderGroupHandleAlignment;
-    size_t groupCount = shaderGroups.size();
+    uint32_t handleSizeAligned = rtProperties.shaderGroupHandleAlignment;
+    uint32_t groupCount = static_cast<uint32_t>(shaderGroups.size());
     size_t sbtSize = groupCount * handleSizeAligned;
 
     // Get shader group handles

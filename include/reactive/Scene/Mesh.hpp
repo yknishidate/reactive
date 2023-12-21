@@ -59,7 +59,8 @@ struct PlaneLineMeshCreateInfo {
     std::string name = "PlaneLine";
 };
 
-struct Mesh {
+class Mesh {
+public:
     Mesh() = default;
     Mesh(const Context& context,
          const std::vector<Vertex>& vertices,
@@ -73,9 +74,9 @@ struct Mesh {
     static auto createCubeLineMesh(const Context& context, CubeLineMeshCreateInfo createInfo)
         -> Mesh;
 
-    auto getVertexCount() const -> uint32_t { return vertices.size(); }
-    auto getIndicesCount() const -> uint32_t { return indices.size(); }
-    auto getTriangleCount() const -> uint32_t { return indices.size() / 3; }
+    auto getVertexCount() const -> uint32_t { return static_cast<uint32_t>(vertices.size()); }
+    auto getIndicesCount() const -> uint32_t { return static_cast<uint32_t>(indices.size()); }
+    auto getTriangleCount() const -> uint32_t { return static_cast<uint32_t>(indices.size() / 3); }
 
     const Context* context;
 

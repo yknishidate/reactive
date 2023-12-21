@@ -1,6 +1,5 @@
 #include "Compiler/Compiler.hpp"
 #include <GlslangToSpv.h>
-#include <spdlog/spdlog.h>
 #include <filesystem>
 #include <fstream>
 #include <regex>

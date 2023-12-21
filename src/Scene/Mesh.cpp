@@ -20,14 +20,14 @@ Mesh::Mesh(const Context& context,
         .usage = BufferUsage::Vertex,
         .memory = MemoryUsage::Device,
         .size = sizeof(Vertex) * vertices.size(),
-        .debugName = (name + "::vertexBuffer").c_str(),
+        .debugName = name + "::vertexBuffer",
     });
 
     indexBuffer = context.createBuffer({
         .usage = BufferUsage::Index,
         .memory = MemoryUsage::Device,
         .size = sizeof(uint32_t) * indices.size(),
-        .debugName = (name + "::indexBuffer").c_str(),
+        .debugName = name + "::indexBuffer",
     });
 
     context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
@@ -63,7 +63,7 @@ auto Mesh::createSphereMesh(const Context& context, SphereMeshCreateInfo createI
 
     // add bottom vertex
     vertices.push_back({{0, -radius, 0}, {0, -1, 0}});
-    uint32_t v1 = vertices.size() - 1;
+    uint32_t v1 = static_cast<uint32_t>(vertices.size()) - 1;
 
     // add top / bottom triangles
     for (int i = 0; i < n_slices; ++i) {

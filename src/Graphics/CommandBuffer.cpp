@@ -41,7 +41,7 @@ void CommandBuffer::bindVertexBuffer(BufferHandle buffer, vk::DeviceSize offset)
 }
 
 void CommandBuffer::bindIndexBuffer(BufferHandle buffer, vk::DeviceSize offset) const {
-    commandBuffer->bindIndexBuffer(buffer->getBuffer(), 0, vk::IndexType::eUint32);
+    commandBuffer->bindIndexBuffer(buffer->getBuffer(), offset, vk::IndexType::eUint32);
 }
 
 void CommandBuffer::traceRays(RayTracingPipelineHandle pipeline,
@@ -175,7 +175,7 @@ void CommandBuffer::bufferBarrier(ArrayProxy<BufferHandle> buffers,
                                   vk::AccessFlags dstAccessMask,
                                   vk::DependencyFlags dependencyFlags) const {
     std::vector<vk::BufferMemoryBarrier> barriers(buffers.size());
-    for (int i = 0; i < buffers.size(); i++) {
+    for (uint32_t i = 0; i < buffers.size(); i++) {
         barriers[i].srcAccessMask = srcAccessMask;
         barriers[i].dstAccessMask = dstAccessMask;
         barriers[i].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -207,7 +207,7 @@ void CommandBuffer::imageBarrier(ArrayProxy<ImageHandle> images,
     // NOTE: Since layout transition is not required,
     // oldLayout and newLayout are not specified.
     std::vector<vk::ImageMemoryBarrier> barriers(images.size());
-    for (int i = 0; i < images.size(); i++) {
+    for (uint32_t i = 0; i < images.size(); i++) {
         barriers[i].srcAccessMask = srcAccessMask;
         barriers[i].dstAccessMask = dstAccessMask;
         barriers[i].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;

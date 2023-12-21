@@ -367,7 +367,7 @@ auto Context::getQueueIndexByThreadId() const -> uint32_t {
     if (queueIndices.contains(tid)) {
         return queueIndices.at(tid);
     } else {
-        uint32_t queueIndex = queueIndices.size();
+        uint32_t queueIndex = static_cast<uint32_t>(queueIndices.size());
         RV_ASSERT(queueIndex < maxQueueCount,  // break
                   "Too many threads: {} < {}", queueIndex, maxQueueCount);
         queueIndices[tid] = queueIndex;

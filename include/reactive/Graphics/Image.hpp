@@ -58,7 +58,7 @@ public:
     static auto loadFromFileHDR(const Context& context, const std::string& filepath) -> ImageHandle;
 
 private:
-    const Context* context;
+    const Context* context = nullptr;
 
     vk::Image image;
     vk::DeviceMemory memory;
@@ -68,7 +68,7 @@ private:
     bool hasOwnership = false;
 
     vk::ImageLayout layout = vk::ImageLayout::eUndefined;
-    vk::Format format;
+    vk::Format format = {};
     vk::Extent3D extent;
 
     uint32_t mipLevels = 1;

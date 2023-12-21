@@ -8,7 +8,7 @@ Buffer::Buffer(const Context* context,
                vk::BufferUsageFlags usage,
                vk::MemoryPropertyFlags memoryProp,
                vk::DeviceSize size,
-               const char* debugName)
+               std::string debugName)
     : context{context}, size(size) {
     // Create buffer
     vk::BufferCreateInfo bufferInfo;
@@ -32,9 +32,9 @@ Buffer::Buffer(const Context* context,
     // Bind memory
     context->getDevice().bindBufferMemory(*buffer, *memory, 0);
 
-    if (debugName) {
-        context->setDebugName(*buffer, debugName);
-        context->setDebugName(*memory, debugName);
+    if (!debugName.empty()) {
+        context->setDebugName(*buffer, debugName.c_str());
+        context->setDebugName(*memory, debugName.c_str());
     }
 }
 

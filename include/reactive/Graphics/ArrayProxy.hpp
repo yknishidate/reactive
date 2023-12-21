@@ -68,7 +68,7 @@ public:
     T const* data() const noexcept { return m_ptr; }
 
     bool contains(const T& x) const noexcept {
-        for (int i = 0; i < m_count; i++) {
+        for (uint32_t i = 0; i < m_count; i++) {
             if (x == m_ptr[i]) {
                 return true;
             }
@@ -76,7 +76,7 @@ public:
         return false;
     }
 
-    const T& operator[](int i) noexcept {
+    const T& operator[](uint32_t i) noexcept {
         assert(0 <= i && i < m_count);
         return m_ptr[i];
     }

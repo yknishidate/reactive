@@ -8,7 +8,7 @@ struct BufferCreateInfo {
 
     size_t size = 0;
 
-    const char* debugName = nullptr;
+    std::string debugName;
 };
 
 class Buffer {
@@ -19,7 +19,7 @@ public:
            vk::BufferUsageFlags usage,
            vk::MemoryPropertyFlags memoryProp,
            vk::DeviceSize size,
-           const char* debugName);
+           std::string debugName);
 
     auto getBuffer() const -> vk::Buffer { return *buffer; }
     auto getSize() const -> vk::DeviceSize { return size; }

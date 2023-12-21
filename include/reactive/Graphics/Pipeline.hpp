@@ -90,7 +90,7 @@ protected:
     vk::UniquePipelineLayout pipelineLayout;
     vk::UniquePipeline pipeline;
     vk::ShaderStageFlags shaderStageFlags;
-    vk::PipelineBindPoint bindPoint;
+    vk::PipelineBindPoint bindPoint = {};
     uint32_t pushSize = 0;
 };
 

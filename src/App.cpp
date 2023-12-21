@@ -290,7 +290,6 @@ void setImGuiStyle() {
     ImVec4 white = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
     ImVec4 black = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
     ImVec4 gray80 = ImVec4(0.80f, 0.80f, 0.80f, 1.00f);
-    ImVec4 gray60 = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
     ImVec4 gray50 = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
     ImVec4 gray40 = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
     ImVec4 gray30 = ImVec4(0.30f, 0.30f, 0.30f, 1.00f);
