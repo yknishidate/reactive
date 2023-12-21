@@ -454,7 +454,7 @@ void App::mouseButtonCallback(GLFWwindow* window, int button, int action, int mo
 
 void App::cursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
     App* app = (App*)glfwGetWindowUserPointer(window);
-    app->onCursorPos(xpos, ypos);
+    app->onCursorPos(static_cast<float>(xpos), static_cast<float>(ypos));
 }
 
 void App::cursorEnterCallback(GLFWwindow* window, int entered) {
@@ -466,9 +466,9 @@ void App::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
     ImGuiIO& io = ImGui::GetIO();
     if (!io.WantCaptureMouse) {
         App* app = (App*)glfwGetWindowUserPointer(window);
-        app->mouseWheel.x += (float)xoffset;
-        app->mouseWheel.y += (float)yoffset;
-        app->onScroll(xoffset, yoffset);
+        app->mouseWheel.x += static_cast<float>(xoffset);
+        app->mouseWheel.y += static_cast<float>(yoffset);
+        app->onScroll(static_cast<float>(xoffset), static_cast<float>(yoffset));
     }
 }
 

@@ -54,12 +54,12 @@ public:
         });
     }
 
-    void onScroll(double xoffset, double yoffset) override {
+    void onScroll(float xoffset, float yoffset) override {
         spdlog::info("scroll: {}", yoffset);
         scale *= 1.0f + yoffset * 0.1f;
     }
 
-    void onCursorPos(double xpos, double ypos) override {
+    void onCursorPos(float xpos, float ypos) override {
         static glm::vec2 lastCursorPos{0.0f};
         glm::vec2 cursorPos = {xpos, ypos};
         glm::vec2 cursorOffset = cursorPos - lastCursorPos;
@@ -74,7 +74,7 @@ public:
         float aspect = width / static_cast<float>(height);
         params.lowerLeft = glm::vec2(-1 * aspect, -1) / scale + translate;
         params.upperRight = glm::vec2(1 * aspect, 1) / scale + translate;
-        params.maxIterations = scale * 10;
+        params.maxIterations = static_cast<int>(scale * 10);
 
         commandBuffer->copyBuffer(buffer, &params);
         commandBuffer->bindDescriptorSet(descSet, pipeline);

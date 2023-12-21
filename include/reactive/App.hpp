@@ -82,9 +82,9 @@ public:
     virtual void onChar(unsigned int codepoint) {}
     virtual void onCharMods(int codepoint, unsigned int mods) {}
     virtual void onMouseButton(int button, int action, int mods) {}
-    virtual void onCursorPos(double xpos, double ypos) {}
+    virtual void onCursorPos(float xpos, float ypos) {}
     virtual void onCursorEnter(int entered) {}
-    virtual void onScroll(double xoffset, double yoffset) {}
+    virtual void onScroll(float xoffset, float yoffset) {}
     virtual void onDrop(int count, const char** paths) {}
     virtual void onWindowSize(int width, int height);
 
