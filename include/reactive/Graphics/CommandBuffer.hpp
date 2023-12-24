@@ -58,6 +58,11 @@ public:
                         ImageHandle depthImage,
                         std::array<int32_t, 2> offset,
                         std::array<uint32_t, 2> extent) const;
+
+    void beginRendering(ArrayProxy<ImageHandle> colorImages,
+                        ImageHandle depthImage,
+                        std::array<int32_t, 2> offset,
+                        std::array<uint32_t, 2> extent) const;
     void endRendering() const;
 
     // draw

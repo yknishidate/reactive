@@ -266,11 +266,10 @@ public:
     auto createFence(FenceCreateInfo createInfo) const -> FenceHandle;
 
 private:
-    static auto VKAPI_CALL
-    debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-                  VkDebugUtilsMessageTypeFlagsEXT messageTypes,
-                  VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData,
-                  void* pUserData) -> VkBool32 {
+    static auto VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                                         VkDebugUtilsMessageTypeFlagsEXT messageTypes,
+                                         VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData,
+                                         void* pUserData) -> VkBool32 {
         if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
             spdlog::warn(pCallbackData->pMessage);
         } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {

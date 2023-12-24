@@ -40,24 +40,6 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
     // Pipeline states
     std::vector<vk::DynamicState> dynamicStates;
 
-    vk::PipelineColorBlendAttachmentState colorBlendState;
-    colorBlendState.setColorWriteMask(
-        vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
-        vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
-    if (createInfo.alphaBlending) {
-        colorBlendState.setBlendEnable(true);
-        colorBlendState.setSrcColorBlendFactor(vk::BlendFactor::eSrcAlpha);
-        colorBlendState.setDstColorBlendFactor(vk::BlendFactor::eOneMinusSrcAlpha);
-        colorBlendState.setColorBlendOp(vk::BlendOp::eAdd);
-        colorBlendState.setSrcAlphaBlendFactor(vk::BlendFactor::eOne);
-        colorBlendState.setDstAlphaBlendFactor(vk::BlendFactor::eZero);
-        colorBlendState.setAlphaBlendOp(vk::BlendOp::eAdd);
-    }
-
-    vk::PipelineColorBlendStateCreateInfo colorBlending;
-    colorBlending.setAttachments(colorBlendState);
-    colorBlending.setLogicOpEnable(VK_FALSE);
-
     vk::PipelineViewportStateCreateInfo viewportState;
     viewportState.setViewportCount(1);
     dynamicStates.push_back(vk::DynamicState::eViewport);
@@ -108,8 +90,30 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
     depthStencil.setStencilTestEnable(VK_FALSE);
 
     vk::PipelineRenderingCreateInfo renderingInfo;
-    renderingInfo.setColorAttachmentFormats(createInfo.colorFormat);
+    renderingInfo.setColorAttachmentFormats(createInfo.colorFormats);
     renderingInfo.setDepthAttachmentFormat(createInfo.depthFormat);
+
+    std::vector<vk::PipelineColorBlendAttachmentState> colorBlendStates;
+    for (uint32_t i = 0; i < createInfo.colorFormats.size(); i++) {
+        vk::PipelineColorBlendAttachmentState colorBlendState;
+        colorBlendState.setColorWriteMask(
+            vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+            vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
+        if (createInfo.alphaBlending) {
+            colorBlendState.setBlendEnable(true);
+            colorBlendState.setSrcColorBlendFactor(vk::BlendFactor::eSrcAlpha);
+            colorBlendState.setDstColorBlendFactor(vk::BlendFactor::eOneMinusSrcAlpha);
+            colorBlendState.setColorBlendOp(vk::BlendOp::eAdd);
+            colorBlendState.setSrcAlphaBlendFactor(vk::BlendFactor::eOne);
+            colorBlendState.setDstAlphaBlendFactor(vk::BlendFactor::eZero);
+            colorBlendState.setAlphaBlendOp(vk::BlendOp::eAdd);
+        }
+        colorBlendStates.push_back(colorBlendState);
+    }
+
+    vk::PipelineColorBlendStateCreateInfo colorBlending;
+    colorBlending.setAttachments(colorBlendStates);
+    colorBlending.setLogicOpEnable(VK_FALSE);
 
     vk::GraphicsPipelineCreateInfo pipelineInfo;
     pipelineInfo.setStages(shaderStages);

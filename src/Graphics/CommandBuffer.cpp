@@ -101,6 +101,36 @@ void CommandBuffer::beginRendering(ImageHandle colorImage,
     commandBuffer->beginRendering(renderingInfo);
 }
 
+void CommandBuffer::beginRendering(ArrayProxy<ImageHandle> colorImages,
+                                   ImageHandle depthImage,
+                                   std::array<int32_t, 2> offset,
+                                   std::array<uint32_t, 2> extent) const {
+    vk::RenderingInfo renderingInfo;
+    renderingInfo.setRenderArea({{offset[0], offset[1]}, {extent[0], extent[1]}});
+    renderingInfo.setLayerCount(1);
+
+    // NOTE: Attachments support only explicit clear commands.
+    // Therefore, clearing is not performed within beginRendering.
+    std::vector<vk::RenderingAttachmentInfo> colorAttachments;
+    for (auto& image : colorImages) {
+        vk::RenderingAttachmentInfo colorAttachment;
+        colorAttachment.setImageView(image->getView());
+        colorAttachment.setImageLayout(image->getLayout());
+        colorAttachments.push_back(colorAttachment);
+    }
+    renderingInfo.setColorAttachments(colorAttachments);
+
+    // Depth attachment
+    vk::RenderingAttachmentInfo depthStencilAttachment;
+    if (depthImage) {
+        depthStencilAttachment.setImageView(depthImage->getView());
+        depthStencilAttachment.setImageLayout(vk::ImageLayout::eAttachmentOptimal);
+        renderingInfo.setPDepthAttachment(&depthStencilAttachment);
+    }
+
+    commandBuffer->beginRendering(renderingInfo);
+}
+
 void CommandBuffer::endRendering() const {
     commandBuffer->endRendering();
 }

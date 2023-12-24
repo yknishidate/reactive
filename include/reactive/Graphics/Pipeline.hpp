@@ -24,8 +24,8 @@ struct GraphicsPipelineCreateInfo {
     ArrayProxy<VertexAttributeDescription> vertexAttributes = {};
 
     // Viewport
-    vk::Format colorFormat = vk::Format::eB8G8R8A8Unorm;
-    vk::Format depthFormat = vk::Format::eD32Sfloat;
+    ArrayProxy<vk::Format> colorFormats = {vk::Format::eB8G8R8A8Unorm};
+    vk::Format depthFormat = vk::Format::eD32Sfloat;  // TODO: change to undefined
 
     // Vertex input
     vk::PrimitiveTopology topology = vk::PrimitiveTopology::eTriangleList;
