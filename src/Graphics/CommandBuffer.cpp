@@ -507,6 +507,10 @@ void CommandBuffer::setPolygonMode(vk::PolygonMode polygonMode) const {
     commandBuffer->setPolygonModeEXT(polygonMode);
 }
 
+void CommandBuffer::setCullMode(vk::CullModeFlagBits cullMode) const {
+    commandBuffer->setCullMode(cullMode);
+}
+
 void CommandBuffer::beginDebugLabel(const char* labelName) const {
     if (context->debugEnabled()) {
         vk::DebugUtilsLabelEXT label;
