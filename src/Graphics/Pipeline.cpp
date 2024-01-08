@@ -346,41 +346,53 @@ RayTracingPipeline::RayTracingPipeline(const Context* context,
     bindPoint = vk::PipelineBindPoint::eRayTracingKHR;
     pushSize = createInfo.pushSize;
 
-    rgenCount = createInfo.rgenShaders.size();
-    missCount = createInfo.missShaders.size();
-    hitCount = createInfo.chitShaders.size() + createInfo.ahitShaders.size();
-
-    for (auto& shader : createInfo.rgenShaders) {
-        uint32_t index = static_cast<uint32_t>(shaderModules.size());
-        shaderModules.push_back(shader->getModule());
-
+    // Raygen
+    {
+        uint32_t rgenIndex = static_cast<uint32_t>(shaderModules.size());
+        rgenCount = 1;
+        shaderModules.push_back(createInfo.rgenGroup.raygenShader->getModule());
         shaderStages.push_back(
-            {{}, vk::ShaderStageFlagBits::eRaygenKHR, shaderModules[index], "main"});
-
-        shaderGroups.push_back({vk::RayTracingShaderGroupTypeKHR::eGeneral, index,
+            {{}, vk::ShaderStageFlagBits::eRaygenKHR, shaderModules.back(), "main"});
+        shaderGroups.push_back({vk::RayTracingShaderGroupTypeKHR::eGeneral, rgenIndex,
                                 VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR});
     }
-    for (auto& shader : createInfo.missShaders) {
-        uint32_t index = static_cast<uint32_t>(shaderModules.size());
-        shaderModules.push_back(shader->getModule());
 
+    // Miss
+    for (auto& group : createInfo.missGroups) {
+        auto& shader = group.missShader;
+        uint32_t missIndex = static_cast<uint32_t>(shaderModules.size());
+        missCount += 1;
+        shaderModules.push_back(shader->getModule());
         shaderStages.push_back(
             {{}, vk::ShaderStageFlagBits::eMissKHR, shaderModules.back(), "main"});
-
-        shaderGroups.push_back({vk::RayTracingShaderGroupTypeKHR::eGeneral, index,
+        shaderGroups.push_back({vk::RayTracingShaderGroupTypeKHR::eGeneral, missIndex,
                                 VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR});
     }
-    for (auto& shader : createInfo.chitShaders) {
-        uint32_t index = static_cast<uint32_t>(shaderModules.size());
-        shaderModules.push_back(shader->getModule());
-        shaderStages.push_back(
-            {{}, vk::ShaderStageFlagBits::eClosestHitKHR, shaderModules.back(), "main"});
 
+    // Hit
+    for (auto& group : createInfo.hitGroups) {
+        auto& chitShader = group.chitShader;
+        auto& ahitShader = group.ahitShader;
+
+        uint32_t chitIndex = VK_SHADER_UNUSED_KHR;
+        uint32_t ahitIndex = VK_SHADER_UNUSED_KHR;
+        if (chitShader) {
+            chitIndex = static_cast<uint32_t>(shaderModules.size());
+            hitCount += 1;
+            shaderModules.push_back(chitShader->getModule());
+            shaderStages.push_back(
+                {{}, vk::ShaderStageFlagBits::eClosestHitKHR, shaderModules.back(), "main"});
+        }
+        if (ahitShader) {
+            ahitIndex = static_cast<uint32_t>(shaderModules.size());
+            hitCount += 1;
+            shaderModules.push_back(ahitShader->getModule());
+            shaderStages.push_back(
+                {{}, vk::ShaderStageFlagBits::eAnyHitKHR, shaderModules.back(), "main"});
+        }
         shaderGroups.push_back({vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup,
-                                VK_SHADER_UNUSED_KHR, index, VK_SHADER_UNUSED_KHR,
-                                VK_SHADER_UNUSED_KHR});
+                                VK_SHADER_UNUSED_KHR, chitIndex, ahitIndex, VK_SHADER_UNUSED_KHR});
     }
-    // TODO: support any hit shader
 
     vk::PushConstantRange pushRange;
     pushRange.setOffset(0);

@@ -73,11 +73,13 @@ public:
         });
 
         pipeline = context.createRayTracingPipeline({
-            .rgenShaders = shaders[0],
-            .missShaders = shaders[1],
-            .chitShaders = shaders[2],
+            .rgenGroup = RaygenGroup{.raygenShader = shaders[0]},
+            .missGroups = {MissGroup{.missShader = shaders[1]}},
+            .hitGroups = {HitGroup{.chitShader = shaders[2]}},
+            .callableGroups = {},
             .descSetLayout = descSet->getLayout(),
             .pushSize = sizeof(PushConstants),
+            .maxRayRecursionDepth = 4,
         });
     }
 

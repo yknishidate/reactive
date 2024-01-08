@@ -64,11 +64,28 @@ struct MeshShaderPipelineCreateInfo {
     bool alphaBlending = false;
 };
 
+struct RaygenGroup {
+    ShaderHandle raygenShader;
+};
+
+struct MissGroup {
+    ShaderHandle missShader;
+};
+
+struct HitGroup {
+    ShaderHandle chitShader;
+    ShaderHandle ahitShader;
+};
+
+struct CallableGroup {
+    Shader callableShader;
+};
+
 struct RayTracingPipelineCreateInfo {
-    ArrayProxy<ShaderHandle> rgenShaders;
-    ArrayProxy<ShaderHandle> missShaders;
-    ArrayProxy<ShaderHandle> chitShaders;
-    ArrayProxy<ShaderHandle> ahitShaders;  // not supported
+    RaygenGroup rgenGroup;
+    ArrayProxy<MissGroup> missGroups;
+    ArrayProxy<HitGroup> hitGroups;
+    ArrayProxy<CallableGroup> callableGroups;
 
     vk::DescriptorSetLayout descSetLayout = {};
     uint32_t pushSize = 0;
@@ -124,6 +141,7 @@ private:
     vk::StridedDeviceAddressRegionKHR raygenRegion;
     vk::StridedDeviceAddressRegionKHR missRegion;
     vk::StridedDeviceAddressRegionKHR hitRegion;
+    vk::StridedDeviceAddressRegionKHR callableRegion;
 
     BufferHandle raygenSBT;
     BufferHandle missSBT;
