@@ -380,15 +380,8 @@ void App::initImGui() {
     ImGui_ImplVulkan_Init(&initInfo, {});
 
     // Setup font
-    // TODO: Fix this
     std::string fontFile = ASSET_DIR + "Roboto-Medium.ttf";
     io.Fonts->AddFontFromFileTTF(fontFile.c_str(), 24.0f);
-    {
-        context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
-            ImGui_ImplVulkan_CreateFontsTexture(*commandBuffer->commandBuffer);
-        });
-        ImGui_ImplVulkan_DestroyFontUploadObjects();
-    }
 }
 
 void App::createDepthImage() {
