@@ -134,6 +134,8 @@ public:
 private:
     friend class CommandBuffer;
 
+    void createSBT();
+
     std::vector<vk::ShaderModule> shaderModules;
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
     std::vector<vk::RayTracingShaderGroupCreateInfoKHR> shaderGroups;
@@ -143,9 +145,7 @@ private:
     vk::StridedDeviceAddressRegionKHR hitRegion;
     vk::StridedDeviceAddressRegionKHR callableRegion;
 
-    BufferHandle raygenSBT;
-    BufferHandle missSBT;
-    BufferHandle hitSBT;
+    BufferHandle sbtBuffer;
 
     uint32_t rgenCount = 0;
     uint32_t missCount = 0;

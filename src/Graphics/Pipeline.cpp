@@ -418,59 +418,79 @@ RayTracingPipeline::RayTracingPipeline(const Context* context,
     }
     pipeline = std::move(res.value);
 
+    createSBT();
+}
+
+void RayTracingPipeline::createSBT() {
     // Get Ray Tracing Properties
     auto rtProperties =
         context->getPhysicalDeviceProperties2<vk::PhysicalDeviceRayTracingPipelinePropertiesKHR>();
 
+    auto alignUp = [&](uint32_t size, uint32_t alignment) -> uint32_t {
+        return (size + alignment - 1) & ~(alignment - 1);
+    };
+
     // Calculate SBT size
     uint32_t handleSize = rtProperties.shaderGroupHandleSize;
-    uint32_t handleSizeAligned = rtProperties.shaderGroupHandleAlignment;
-    uint32_t groupCount = static_cast<uint32_t>(shaderGroups.size());
-    size_t sbtSize = groupCount * handleSizeAligned;
+    uint32_t handleAlignment = rtProperties.shaderGroupHandleAlignment;
+    uint32_t baseAlignment = rtProperties.shaderGroupBaseAlignment;
+    uint32_t handleSizeAligned = alignUp(handleSize, handleAlignment);
 
-    // Get shader group handles
-    std::vector<uint8_t> shaderHandleStorage(sbtSize);
-    vk::Result result = context->getDevice().getRayTracingShaderGroupHandlesKHR(
-        *pipeline, 0, groupCount, sbtSize, shaderHandleStorage.data());
-    if (result != vk::Result::eSuccess) {
-        throw std::runtime_error("failed to get ray tracing shader group handles.");
-    }
+    raygenRegion.setStride(alignUp(handleSizeAligned, baseAlignment));
+    raygenRegion.setSize(raygenRegion.stride);
+
+    missRegion.setStride(handleSizeAligned);
+    missRegion.setSize(alignUp(missCount * handleSizeAligned, baseAlignment));
+
+    hitRegion.setStride(handleSizeAligned);
+    hitRegion.setSize(alignUp(hitCount * handleSizeAligned, baseAlignment));
 
     // Create shader binding table
-    raygenSBT = context->createBuffer({
+    vk::DeviceSize sbtSize = raygenRegion.size + missRegion.size + hitRegion.size;
+    sbtBuffer = context->createBuffer({
         .usage = BufferUsage::ShaderBindingTable,
-        .memory = MemoryUsage::Device,
-        .size = handleSize * rgenCount,
-    });
-    missSBT = context->createBuffer({
-        .usage = BufferUsage::ShaderBindingTable,
-        .memory = MemoryUsage::Device,
-        .size = handleSize * missCount,
-    });
-    hitSBT = context->createBuffer({
-        .usage = BufferUsage::ShaderBindingTable,
-        .memory = MemoryUsage::Device,
-        .size = handleSize * hitCount,
-    });
-    context->oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
-        commandBuffer->copyBuffer(  // break
-            raygenSBT, shaderHandleStorage.data() + 0 * handleSizeAligned);
-        commandBuffer->copyBuffer(  // break
-            missSBT, shaderHandleStorage.data() + rgenCount * handleSizeAligned);
-        commandBuffer->copyBuffer(  // break
-            hitSBT, shaderHandleStorage.data() + (rgenCount + missCount) * handleSizeAligned);
+        .memory = MemoryUsage::Host,
+        .size = sbtSize,
     });
 
-    raygenRegion.setDeviceAddress(raygenSBT->getAddress());
-    raygenRegion.setStride(rtProperties.shaderGroupHandleAlignment);
-    raygenRegion.setSize(rtProperties.shaderGroupHandleAlignment);
+    // Get shader group handles
+    uint32_t handleCount = rgenCount + missCount + hitCount;
+    uint32_t handleStorageSize = handleCount * handleSize;
+    std::vector<uint8_t> handleStorage(handleStorageSize);
+    auto result = context->getDevice().getRayTracingShaderGroupHandlesKHR(
+        *pipeline, 0, handleCount, handleStorageSize, handleStorage.data());
+    if (result != vk::Result::eSuccess) {
+        std::cerr << "Failed to get ray tracing shader group handles.\n";
+        std::abort();
+    }
 
-    missRegion.setDeviceAddress(missSBT->getAddress());
-    missRegion.setStride(rtProperties.shaderGroupHandleAlignment);
-    missRegion.setSize(rtProperties.shaderGroupHandleAlignment);
+    // Copy handles
+    uint8_t* sbtHead = static_cast<uint8_t*>(sbtBuffer->map());
+    uint8_t* dstPtr = sbtHead;
+    auto copyHandle = [&](uint32_t index) {
+        std::memcpy(dstPtr, handleStorage.data() + handleSize * index, handleSize);
+    };
 
-    hitRegion.setDeviceAddress(hitSBT->getAddress());
-    hitRegion.setStride(rtProperties.shaderGroupHandleAlignment);
-    hitRegion.setSize(rtProperties.shaderGroupHandleAlignment);
+    // Raygen
+    uint32_t handleIndex = 0;
+    copyHandle(handleIndex++);
+
+    // Miss
+    dstPtr = sbtHead + raygenRegion.size;
+    for (uint32_t c = 0; c < missCount; c++) {
+        copyHandle(handleIndex++);
+        dstPtr += missRegion.stride;
+    }
+
+    // Hit
+    dstPtr = sbtHead + raygenRegion.size + missRegion.size;
+    for (uint32_t c = 0; c < hitCount; c++) {
+        copyHandle(handleIndex++);
+        dstPtr += hitRegion.stride;
+    }
+
+    raygenRegion.setDeviceAddress(sbtBuffer->getAddress());
+    missRegion.setDeviceAddress(sbtBuffer->getAddress() + raygenRegion.size);
+    hitRegion.setDeviceAddress(sbtBuffer->getAddress() + raygenRegion.size + missRegion.size);
 }
 }  // namespace rv
