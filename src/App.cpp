@@ -402,16 +402,23 @@ void App::listSurfaceFormats() {
     auto surfaceFormats = context.getPhysicalDevice().getSurfaceFormatsKHR(*surface);
     spdlog::info("Supported formats:");
     for (const auto& surfaceFormat : surfaceFormats) {
-        spdlog::info("  Format: {}, Color Space: {}",  // break
-                     vk::to_string(surfaceFormat.format), vk::to_string(surfaceFormat.colorSpace));
+        spdlog::info("  Format: {}", vk::to_string(surfaceFormat.format));
+        spdlog::info("  Color Space: {}", vk::to_string(surfaceFormat.colorSpace));
     }
 }
 
-void App::onWindowSize(int _width, int _height) {
+void App::onWindowSize() {
+    // NOTE:
+    // The value obtained from GLFW and the value obtained by
+    // getSurfaceCapabilitiesKHR() should be the same,
+    // but a validation error occurs if the Vulkan function is not called.
     vk::PhysicalDevice physicalDevice = context.getPhysicalDevice();
     vk::SurfaceCapabilitiesKHR capabilities = physicalDevice.getSurfaceCapabilitiesKHR(*surface);
     width = capabilities.currentExtent.width;
     height = capabilities.currentExtent.height;
+
+    spdlog::debug("Window resized: {} {}", width, height);
+
     if (width == 0 || height == 0) {
         return;
     }
@@ -427,38 +434,38 @@ void App::onWindowSize(int _width, int _height) {
 void App::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     ImGuiIO& io = ImGui::GetIO();
     if (!io.WantCaptureKeyboard) {
-        App* app = (App*)glfwGetWindowUserPointer(window);
+        App* app = static_cast<App*>(glfwGetWindowUserPointer(window));
         app->onKey(key, scancode, action, mods);
     }
 }
 
 void App::charModsCallback(GLFWwindow* window, unsigned int codepoint, int mods) {
-    App* app = (App*)glfwGetWindowUserPointer(window);
+    App* app = static_cast<App*>(glfwGetWindowUserPointer(window));
     app->onCharMods(codepoint, mods);
 }
 
 void App::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
     ImGuiIO& io = ImGui::GetIO();
     if (!io.WantCaptureMouse) {
-        App* app = (App*)glfwGetWindowUserPointer(window);
+        App* app = static_cast<App*>(glfwGetWindowUserPointer(window));
         app->onMouseButton(button, action, mods);
     }
 }
 
 void App::cursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
-    App* app = (App*)glfwGetWindowUserPointer(window);
+    App* app = static_cast<App*>(glfwGetWindowUserPointer(window));
     app->onCursorPos(static_cast<float>(xpos), static_cast<float>(ypos));
 }
 
 void App::cursorEnterCallback(GLFWwindow* window, int entered) {
-    App* app = (App*)glfwGetWindowUserPointer(window);
+    App* app = static_cast<App*>(glfwGetWindowUserPointer(window));
     app->onCursorEnter(entered);
 }
 
 void App::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
     ImGuiIO& io = ImGui::GetIO();
     if (!io.WantCaptureMouse) {
-        App* app = (App*)glfwGetWindowUserPointer(window);
+        App* app = static_cast<App*>(glfwGetWindowUserPointer(window));
         app->mouseWheel.x += static_cast<float>(xoffset);
         app->mouseWheel.y += static_cast<float>(yoffset);
         app->onScroll(static_cast<float>(xoffset), static_cast<float>(yoffset));
@@ -466,12 +473,12 @@ void App::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
 }
 
 void App::dropCallback(GLFWwindow* window, int count, const char** paths) {
-    App* app = (App*)glfwGetWindowUserPointer(window);
+    App* app = static_cast<App*>(glfwGetWindowUserPointer(window));
     app->onDrop(count, paths);
 }
 
 void App::windowSizeCallback(GLFWwindow* window, int width, int height) {
-    App* app = (App*)glfwGetWindowUserPointer(window);
-    app->onWindowSize(width, height);
+    App* app = static_cast<App*>(glfwGetWindowUserPointer(window));
+    app->onWindowSize();
 }
 }  // namespace rv

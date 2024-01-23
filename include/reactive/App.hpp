@@ -88,7 +88,7 @@ public:
     virtual void onCursorEnter(int entered) {}
     virtual void onScroll(float xoffset, float yoffset) {}
     virtual void onDrop(int count, const char** paths) {}
-    virtual void onWindowSize(int width, int height);
+    virtual void onWindowSize();
 
 protected:
     static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
