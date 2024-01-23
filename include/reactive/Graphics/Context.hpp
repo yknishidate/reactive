@@ -280,18 +280,21 @@ private:
 
     void checkDeviceExtensionSupport(const std::vector<const char*>& requiredExtensions) const;
 
-    auto getQueueIndexByThreadId() const -> uint32_t;
+    struct ThreadQueue {
+        std::thread::id tid{};
+        vk::Queue queue{};
+        vk::UniqueCommandPool commandPool;
+    };
+    auto getThreadQueue(vk::QueueFlags flag) const -> const ThreadQueue&;
 
     vk::UniqueInstance instance;
     vk::UniqueDebugUtilsMessengerEXT debugMessenger;
     vk::UniqueDevice device;
     vk::PhysicalDevice physicalDevice;
 
-    uint32_t maxQueueCount = std::numeric_limits<uint32_t>::max();
-    mutable std::unordered_map<std::thread::id, uint32_t> queueIndices;
+    mutable std::mutex queueMutex;
+    mutable std::map<vk::QueueFlags, std::vector<ThreadQueue>> queues;
     std::unordered_map<vk::QueueFlags, uint32_t> queueFamilies;
-    std::unordered_map<vk::QueueFlags, std::vector<vk::Queue>> queues;
-    std::unordered_map<vk::QueueFlags, std::vector<vk::UniqueCommandPool>> commandPools;
     vk::UniqueDescriptorPool descriptorPool;
 };
 }  // namespace rv

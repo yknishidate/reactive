@@ -149,8 +149,7 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
         info.setQueueFamilyIndex(queueFamily);
         info.setQueuePriorities(queuePriorities[flag]);
         queueInfo.push_back(info);
-        queues[flag] = {};
-        queues.at(flag).resize(queueCount);
+        queues[flag] = std::vector<ThreadQueue>(queueCount);
     }
 
     checkDeviceExtensionSupport(deviceExtensions);
@@ -167,23 +166,15 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
         spdlog::info("  {}", extension);
     }
 
-    // Get queue
+    // Get queue and command pool
     for (const auto& [flag, queueFamily] : queueFamilies) {
-        for (int i = 0; i < queues[flag].size(); i++) {
-            queues[flag][i] = device->getQueue(queueFamily, i);
-        }
-        maxQueueCount = std::min(maxQueueCount, static_cast<uint32_t>(queues[flag].size()));
-    }
+        for (uint32_t i = 0; i < queues[flag].size(); i++) {
+            queues[flag][i].queue = device->getQueue(queueFamily, i);
 
-    // Create command pool
-    for (const auto& [flag, queueFamily] : queueFamilies) {
-        vk::CommandPoolCreateInfo commandPoolCreateInfo;
-        commandPoolCreateInfo.setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer);
-        commandPoolCreateInfo.setQueueFamilyIndex(queueFamily);
-        commandPools[flag] = std::vector<vk::UniqueCommandPool>(queues[flag].size());
-
-        for (int i = 0; i < queues[flag].size(); i++) {
-            commandPools[flag][i] = device->createCommandPoolUnique(commandPoolCreateInfo);
+            vk::CommandPoolCreateInfo commandPoolCreateInfo;
+            commandPoolCreateInfo.setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer);
+            commandPoolCreateInfo.setQueueFamilyIndex(queueFamily);
+            queues[flag][i].commandPool = device->createCommandPoolUnique(commandPoolCreateInfo);
         }
     }
 
@@ -209,7 +200,7 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
 }
 
 auto Context::getQueue(vk::QueueFlags flag) const -> vk::Queue {
-    return queues.at(flag)[getQueueIndexByThreadId()];
+    return getThreadQueue(flag).queue;
 }
 
 auto Context::getQueueFamily(vk::QueueFlags flag) const -> uint32_t {
@@ -217,9 +208,7 @@ auto Context::getQueueFamily(vk::QueueFlags flag) const -> uint32_t {
 }
 
 auto Context::allocateCommandBuffer(vk::QueueFlags flag) const -> CommandBufferHandle {
-    uint32_t queueIndex = getQueueIndexByThreadId();
-
-    vk::CommandPool commandPool = *commandPools.at(flag)[queueIndex];
+    vk::CommandPool commandPool = *getThreadQueue(flag).commandPool;
     vk::CommandBufferAllocateInfo commandBufferInfo;
     commandBufferInfo.setCommandPool(commandPool);
     commandBufferInfo.setLevel(vk::CommandBufferLevel::ePrimary);
@@ -234,8 +223,7 @@ void Context::submit(CommandBufferHandle commandBuffer,
                      vk::Semaphore waitSemaphore,
                      vk::Semaphore signalSemaphore,
                      FenceHandle fence) const {
-    uint32_t queueIndex = getQueueIndexByThreadId();
-    vk::Queue queue = queues.at(commandBuffer->getQueueFlags())[queueIndex];
+    vk::Queue queue = getThreadQueue(commandBuffer->getQueueFlags()).queue;
 
     vk::SubmitInfo submitInfo;
     submitInfo.setWaitDstStageMask(waitStage);
@@ -247,8 +235,7 @@ void Context::submit(CommandBufferHandle commandBuffer,
 }
 
 void Context::submit(CommandBufferHandle commandBuffer, FenceHandle fence) const {
-    uint32_t queueIndex = getQueueIndexByThreadId();
-    vk::Queue queue = queues.at(commandBuffer->getQueueFlags())[queueIndex];
+    vk::Queue queue = getThreadQueue(commandBuffer->getQueueFlags()).queue;
 
     vk::SubmitInfo submitInfo;
     submitInfo.setCommandBuffers(*commandBuffer->commandBuffer);
@@ -258,8 +245,6 @@ void Context::submit(CommandBufferHandle commandBuffer, FenceHandle fence) const
 
 void Context::oneTimeSubmit(const std::function<void(CommandBufferHandle)>& command,
                             vk::QueueFlags flag) const {
-    uint32_t queueIndex = getQueueIndexByThreadId();
-
     CommandBufferHandle commandBuffer = allocateCommandBuffer(flag);
 
     commandBuffer->begin(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
@@ -268,7 +253,8 @@ void Context::oneTimeSubmit(const std::function<void(CommandBufferHandle)>& comm
 
     submit(commandBuffer);
 
-    queues.at(flag)[queueIndex].waitIdle();
+    vk::Queue queue = getThreadQueue(commandBuffer->getQueueFlags()).queue;
+    queue.waitIdle();
 }
 
 auto Context::findMemoryTypeIndex(vk::MemoryRequirements requirements,
@@ -362,16 +348,32 @@ void Context::checkDeviceExtensionSupport(
     }
 }
 
-auto Context::getQueueIndexByThreadId() const -> uint32_t {
+auto Context::getThreadQueue(vk::QueueFlags flag) const -> const ThreadQueue& {
     std::thread::id tid = std::this_thread::get_id();
-    if (queueIndices.contains(tid)) {
-        return queueIndices.at(tid);
-    } else {
-        uint32_t queueIndex = static_cast<uint32_t>(queueIndices.size());
-        RV_ASSERT(queueIndex < maxQueueCount,  // break
-                  "Too many threads: {} < {}", queueIndex, maxQueueCount);
-        queueIndices[tid] = queueIndex;
-        return queueIndex;
+    std::lock_guard<std::mutex> lock(queueMutex);
+
+    // Find used queue
+    auto& matchedQueues = queues.at(flag);
+    for (auto& queue : matchedQueues) {
+        if (queue.tid == tid) {
+            return queue;
+        }
     }
+
+    // Use new queue
+    for (auto& queue : matchedQueues) {
+        if (queue.tid == std::thread::id{}) {
+            std::ostringstream threadIdStream;
+            threadIdStream << std::setw(5) << std::setfill(' ') << tid;
+            std::string threadIdStr = threadIdStream.str();
+            spdlog::debug("Use new queue: {}", threadIdStr);
+
+            queue.tid = tid;
+            return queue;
+        }
+    }
+
+    // Not found
+    throw std::runtime_error("Failed to get new queue.");
 }
 }  // namespace rv
