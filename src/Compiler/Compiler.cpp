@@ -3,7 +3,6 @@
 #include <glslang/Public/ShaderLang.h>
 #include <filesystem>
 #include <fstream>
-#include <regex>
 
 namespace rv {
 namespace File {
@@ -19,7 +18,7 @@ auto getLastWriteTimeWithIncludeFiles(const std::filesystem::path& filepath)
     -> std::filesystem::file_time_type {
     auto directory = filepath.parent_path();
     auto writeTime = std::filesystem::last_write_time(filepath);
-    std::string code = File::readFile(filepath);
+    std::string code = readFile(filepath);
     for (auto& include : Compiler::getAllIncludedFiles(code)) {
         auto includeWriteTime = getLastWriteTimeWithIncludeFiles(directory / include);
         if (includeWriteTime > writeTime) {
@@ -31,7 +30,7 @@ auto getLastWriteTimeWithIncludeFiles(const std::filesystem::path& filepath)
 }  // namespace File
 
 namespace Compiler {
-const TBuiltInResource DefaultTBuiltInResource = {
+constexpr TBuiltInResource DefaultTBuiltInResource = {
     /* .MaxLights = */ 32,
     /* .MaxClipPlanes = */ 6,
     /* .MaxTextureUnits = */ 32,
