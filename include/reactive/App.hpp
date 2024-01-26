@@ -66,8 +66,6 @@ public:
     virtual void onUpdate() {}
     virtual void onRender(const CommandBufferHandle& commandBuffer) {}
 
-    void shutdown() const;
-
     // Getter
     auto getCurrentColorImage() const -> ImageHandle;
     auto getDefaultDepthImage() const -> ImageHandle;
