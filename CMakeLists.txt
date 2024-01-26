@@ -30,7 +30,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     optimized ${VULKAN_LIB}/spirv-cross-cpp.lib
     optimized ${VULKAN_LIB}/spirv-cross-glsl.lib
 
-    optimized ${VULKAN_LIB}/OGLCompiler.lib
     optimized ${VULKAN_LIB}/OSDependent.lib
     optimized ${VULKAN_LIB}/SPIRV-Tools.lib
     optimized ${VULKAN_LIB}/SPIRV-Tools-opt.lib
@@ -46,7 +45,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     debug ${VULKAN_LIB}/spirv-cross-cppd.lib
     debug ${VULKAN_LIB}/spirv-cross-glsld.lib
     
-    debug ${VULKAN_LIB}/OGLCompilerd.lib
     debug ${VULKAN_LIB}/OSDependentd.lib
     debug ${VULKAN_LIB}/SPIRV-Toolsd.lib
     debug ${VULKAN_LIB}/SPIRV-Tools-optd.lib

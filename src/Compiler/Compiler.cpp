@@ -1,5 +1,6 @@
 #include "Compiler/Compiler.hpp"
 #include <GlslangToSpv.h>
+#include <glslang/Public/ShaderLang.h>
 #include <filesystem>
 #include <fstream>
 #include <regex>
