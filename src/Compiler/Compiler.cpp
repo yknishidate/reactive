@@ -217,27 +217,25 @@ void addDefines(std::string& glslCode, const std::vector<Define>& defines) {
 
     // NOTE: initial offset is next line position of the #version directive
     size_t offset = glslCode.find('\n', versionPos) + 1;
+    std::stringstream defineStream;
+
     for (const auto& [name, value] : defines) {
-        std::string defineString = "#define ";  // "#define "
-        defineString.append(name);              // "#define HOGE"
-        defineString.append(" ");               // "#define HOGE "
-        defineString.append(value);             // "#define HOGE 0"
-        defineString.append("\n");              // "#define HOGE 0\n"
-        glslCode.insert(offset, defineString);
-        offset += defineString.size();
+        defineStream << "#define " << name << " " << value << "\n";
     }
+
+    glslCode.insert(offset, defineStream.str());
 }
 
 auto addLineNumbersToCode(const std::string& code) -> std::string {
-    std::string addedCode;
+    std::ostringstream addedCodeStream;
     int lineIndex = 1;
     std::string line;
     std::istringstream iss(code);
     while (std::getline(iss, line)) {
-        addedCode += std::to_string(lineIndex) + ": " + line + "\n";
+        addedCodeStream << lineIndex << ": " << line << "\n";
         lineIndex++;
     }
-    return addedCode;
+    return addedCodeStream.str();
 }
 
 // Main compile function
@@ -253,23 +251,25 @@ auto compileToSPV(const std::string& glslCode, EShLanguage stage) -> std::vector
     shader.setStrings(&shaderStrings, 1);
 
     auto messages = static_cast<EShMessages>(EShMsgSpvRules | EShMsgVulkanRules);
+    std::ostringstream errorMessageStream;
+
     if (!shader.parse(&DefaultTBuiltInResource, 100, false, messages)) {
-        std::string message = "Failed to parse:";
-        message += addLineNumbersToCode(glslCode);
-        message += "\n" + std::string(shader.getInfoLog());
-        message += "\n" + std::string(shader.getInfoDebugLog());
-        throw std::runtime_error(message);
+        errorMessageStream << "Failed to parse:\n";
+        errorMessageStream << addLineNumbersToCode(glslCode);
+        errorMessageStream << shader.getInfoLog() << '\n';
+        errorMessageStream << shader.getInfoDebugLog() << '\n';
+        throw std::runtime_error(errorMessageStream.str());
     }
 
     glslang::TProgram program;
     program.addShader(&shader);
+
     if (!program.link(messages)) {
-        // throw std::runtime_error("Failed to link:\n" + glslCode + "\n" + shader.getInfoLog());
-        std::string message = "Failed to link:";
-        message += addLineNumbersToCode(glslCode);
-        message += "\n" + std::string(shader.getInfoLog());
-        message += "\n" + std::string(shader.getInfoDebugLog());
-        throw std::runtime_error(message);
+        errorMessageStream << "Failed to link:\n";
+        errorMessageStream << addLineNumbersToCode(glslCode);
+        errorMessageStream << shader.getInfoLog() << '\n';
+        errorMessageStream << shader.getInfoDebugLog() << '\n';
+        throw std::runtime_error(errorMessageStream.str());
     }
 
     std::vector<uint32_t> spvShader;

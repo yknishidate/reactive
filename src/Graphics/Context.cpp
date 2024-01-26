@@ -339,12 +339,12 @@ void Context::checkDeviceExtensionSupport(
     }
 
     if (!requiredExtensionNames.empty()) {
-        std::string message =
-            "The following required extensions are not supported by the device:\n";
+        std::stringstream message;
+        message << "The following required extensions are not supported by the device:\n";
         for (const auto& name : requiredExtensionNames) {
-            message.append("\t" + name + "\n");
+            message << "\t" << name << "\n";
         }
-        throw std::runtime_error(message);
+        throw std::runtime_error(message.str());
     }
 }
 
