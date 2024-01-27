@@ -108,8 +108,7 @@ auto App::getDefaultDepthImage() const -> ImageHandle {
 }
 
 auto App::isKeyDown(int key) const -> bool {
-    ImGuiIO& io = ImGui::GetIO();
-    if (key < GLFW_KEY_SPACE || key > GLFW_KEY_LAST || io.WantCaptureKeyboard) {
+    if (key < GLFW_KEY_SPACE || key > GLFW_KEY_LAST) {
         return false;
     }
     return glfwGetKey(window, key) == GLFW_PRESS;

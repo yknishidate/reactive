@@ -32,15 +32,15 @@ struct Frustum {
 };
 
 inline Frustum::Frustum(const Camera& camera) {
-    const float halfVSide = camera.zFar * tanf(camera.fovY * .5f);
-    const float halfHSide = halfVSide * camera.aspect;
+    const float halfVSide = camera.getFar() * tanf(camera.getFovY() * .5f);
+    const float halfHSide = halfVSide * camera.getAspect();
     const glm::vec3 position = camera.getPosition();
     const glm::vec3 front = camera.getFront();
     const glm::vec3 up = camera.getUp();
     const glm::vec3 right = camera.getRight();
-    const glm::vec3 frontMultFar = camera.zFar * front;
+    const glm::vec3 frontMultFar = camera.getFar() * front;
 
-    nearFace = {position + camera.zNear * front, front};
+    nearFace = {position + camera.getNear() * front, front};
     farFace = {position + frontMultFar, -front};
     rightFace = {position, glm::cross(frontMultFar - right * halfHSide, up)};
     leftFace = {position, glm::cross(up, frontMultFar + right * halfHSide)};
