@@ -13,20 +13,6 @@ auto readFile(const std::filesystem::path& path) -> std::string {
     }
     return {(std::istreambuf_iterator<char>{input_file}), std::istreambuf_iterator<char>{}};
 }
-
-auto getLastWriteTimeWithIncludeFiles(const std::filesystem::path& filepath)
-    -> std::filesystem::file_time_type {
-    auto directory = filepath.parent_path();
-    auto writeTime = std::filesystem::last_write_time(filepath);
-    std::string code = readFile(filepath);
-    for (auto& include : Compiler::getAllIncludedFiles(code)) {
-        auto includeWriteTime = getLastWriteTimeWithIncludeFiles(directory / include);
-        if (includeWriteTime > writeTime) {
-            writeTime = includeWriteTime;
-        }
-    }
-    return writeTime;
-}
 }  // namespace File
 
 namespace Compiler {
@@ -146,6 +132,48 @@ constexpr TBuiltInResource DefaultTBuiltInResource = {
         /* .generalVariableIndexing = */ 1,
         /* .generalConstantMatrixVectorIndexing = */ 1,
     }};
+
+auto getLastWriteTimeWithIncludeFiles(const std::filesystem::path& filepath)
+    -> std::filesystem::file_time_type {
+    auto directory = filepath.parent_path();
+    auto writeTime = std::filesystem::last_write_time(filepath);
+    std::string code = File::readFile(filepath);
+    for (auto& include : Compiler::getAllIncludedFiles(code)) {
+        auto includeWriteTime = getLastWriteTimeWithIncludeFiles(directory / include);
+        if (includeWriteTime > writeTime) {
+            writeTime = includeWriteTime;
+        }
+    }
+    return writeTime;
+}
+
+auto shouldRecompile(const std::filesystem::path& glslFilepath,
+                     const std::filesystem::path& spvFilepath) -> bool {
+    if (!exists(glslFilepath)) {
+        throw std::runtime_error("GLSL file doesn't exists: " + glslFilepath.string());
+    }
+    if (!exists(spvFilepath)) {
+        return true;
+    }
+
+    std::filesystem::file_time_type glslWriteTime = getLastWriteTimeWithIncludeFiles(glslFilepath);
+    std::filesystem::file_time_type spvWriteTime = last_write_time(spvFilepath);
+    return glslWriteTime > spvWriteTime;
+}
+
+auto compileOrReadShader(const std::filesystem::path& glslFilepath,
+                         const std::filesystem::path& spvFilepath) -> std::vector<uint32_t> {
+    if (shouldRecompile(glslFilepath, spvFilepath)) {
+        spdlog::info("Compile shader: {}", glslFilepath.string());
+        std::vector<uint32_t> spvCode = Compiler::compileToSPV(glslFilepath.string());
+        File::writeBinary(spvFilepath, spvCode);  // Save to disk
+        return spvCode;
+    } else {
+        std::vector<uint32_t> spvCode;
+        File::readBinary(spvFilepath, spvCode);
+        return spvCode;
+    }
+}
 
 auto getShaderStage(const std::string& filepath) -> vk::ShaderStageFlagBits {
     if (filepath.ends_with("vert"))

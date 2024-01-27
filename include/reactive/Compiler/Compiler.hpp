@@ -6,9 +6,6 @@ namespace rv {
 namespace File {
 auto readFile(const std::filesystem::path& path) -> std::string;
 
-auto getLastWriteTimeWithIncludeFiles(const std::filesystem::path& filepath)
-    -> std::filesystem::file_time_type;
-
 template <typename T>
 void writeBinary(const std::filesystem::path& filepath, const std::vector<T>& vec) {
     std::ofstream ofs(filepath, std::ios::out | std::ios::binary);
@@ -33,6 +30,15 @@ void readBinary(const std::filesystem::path& filepath, std::vector<T>& vec) {
 }  // namespace File
 
 namespace Compiler {
+auto getLastWriteTimeWithIncludeFiles(const std::filesystem::path& filepath)
+    -> std::filesystem::file_time_type;
+
+auto shouldRecompile(const std::filesystem::path& glslFilepath,
+                     const std::filesystem::path& spvFilepath) -> bool;
+
+auto compileOrReadShader(const std::filesystem::path& glslFilepath,
+                         const std::filesystem::path& spvFilepath) -> std::vector<uint32_t>;
+
 auto getShaderStage(const std::string& filepath) -> vk::ShaderStageFlagBits;
 
 using Define = std::pair<std::string, std::string>;
