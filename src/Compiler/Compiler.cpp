@@ -136,9 +136,9 @@ constexpr TBuiltInResource DefaultTBuiltInResource = {
 auto getLastWriteTimeWithIncludeFiles(const std::filesystem::path& filepath)
     -> std::filesystem::file_time_type {
     auto directory = filepath.parent_path();
-    auto writeTime = std::filesystem::last_write_time(filepath);
+    auto writeTime = last_write_time(filepath);
     std::string code = File::readFile(filepath);
-    for (auto& include : Compiler::getAllIncludedFiles(code)) {
+    for (auto& include : getAllIncludedFiles(code)) {
         auto includeWriteTime = getLastWriteTimeWithIncludeFiles(directory / include);
         if (includeWriteTime > writeTime) {
             writeTime = includeWriteTime;
@@ -165,7 +165,7 @@ auto compileOrReadShader(const std::filesystem::path& glslFilepath,
                          const std::filesystem::path& spvFilepath) -> std::vector<uint32_t> {
     if (shouldRecompile(glslFilepath, spvFilepath)) {
         spdlog::info("Compile shader: {}", glslFilepath.string());
-        std::vector<uint32_t> spvCode = Compiler::compileToSPV(glslFilepath.string());
+        std::vector<uint32_t> spvCode = compileToSPV(glslFilepath.string());
         File::writeBinary(spvFilepath, spvCode);  // Save to disk
         return spvCode;
     } else {
@@ -221,8 +221,8 @@ auto translateShaderStage(vk::ShaderStageFlagBits shaderStage) -> EShLanguage {
     return {};
 }
 
-auto include(const std::string& filepath, const std::string& sourceText) -> std::string {
-    std::filesystem::path dir = std::filesystem::path{filepath}.parent_path();
+auto include(const std::filesystem::path& filepath, const std::string& sourceText) -> std::string {
+    std::filesystem::path dir = filepath.parent_path();
 
     std::string included = sourceText;
     std::regex regex{"#include \"(.*)\""};
@@ -307,10 +307,10 @@ auto compileToSPV(const std::string& glslCode, EShLanguage stage) -> std::vector
 }
 
 // Support include directive
-auto compileToSPV(const std::string& filepath, const std::vector<Define>& defines)
+auto compileToSPV(const std::filesystem::path& filepath, const std::vector<Define>& defines)
     -> std::vector<uint32_t> {
     std::string glslCode = File::readFile(filepath);
-    EShLanguage stage = translateShaderStage(getShaderStage(filepath));
+    EShLanguage stage = translateShaderStage(getShaderStage(filepath.string()));
     std::string included = include(filepath, glslCode);
     addDefines(included, defines);
     return compileToSPV(included, stage);

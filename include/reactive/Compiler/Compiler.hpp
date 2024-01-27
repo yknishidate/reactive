@@ -46,7 +46,7 @@ using Define = std::pair<std::string, std::string>;
 void addDefines(std::string& glslCode, const std::vector<Define>& defines);
 
 // This supports include directive
-auto compileToSPV(const std::string& filepath, const std::vector<Define>& defines = {})
+auto compileToSPV(const std::filesystem::path& filepath, const std::vector<Define>& defines = {})
     -> std::vector<uint32_t>;
 
 // This doesn't support include directive
