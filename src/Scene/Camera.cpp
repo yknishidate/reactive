@@ -167,4 +167,16 @@ void Camera::setDistance(float _distance) {
     auto& _params = std::get<OrbitalParams>(params);
     _params.distance = _distance;
 }
+
+void Camera::setPhi(float _phi) {
+    assert(type == Type::Orbital);
+    auto& _params = std::get<OrbitalParams>(params);
+    _params.phi = _phi;
+}
+
+void Camera::setTheta(float _theta) {
+    assert(type == Type::Orbital);
+    auto& _params = std::get<OrbitalParams>(params);
+    _params.theta = _theta;
+}
 }  // namespace rv

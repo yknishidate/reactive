@@ -65,6 +65,8 @@ public:
     void setAspect(float _aspect) { aspect = _aspect; }
     void setFovY(float _fovY) { fovY = _fovY; }
     void setDistance(float _distance);
+    void setPhi(float _phi);
+    void setTheta(float _theta);
 
 private:
     const App* app = nullptr;
