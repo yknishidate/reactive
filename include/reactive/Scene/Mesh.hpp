@@ -63,6 +63,7 @@ class Mesh {
 public:
     Mesh() = default;
     Mesh(const Context& context,
+         vk::MemoryPropertyFlags memoryProps,
          const std::vector<Vertex>& vertices,
          const std::vector<uint32_t>& indices,
          const std::string& name);

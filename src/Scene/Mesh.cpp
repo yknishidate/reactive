@@ -12,28 +12,34 @@ auto Vertex::getAttributeDescriptions() -> std::vector<VertexAttributeDescriptio
 }
 
 Mesh::Mesh(const Context& context,
+           vk::MemoryPropertyFlags memoryProps,
            const std::vector<Vertex>& vertices,
            const std::vector<uint32_t>& indices,
            const std::string& name)
     : context{&context}, vertices{vertices}, indices{indices}, name{name} {
     vertexBuffer = context.createBuffer({
         .usage = BufferUsage::Vertex,
-        .memory = MemoryUsage::Device,
+        .memory = memoryProps,
         .size = sizeof(Vertex) * vertices.size(),
         .debugName = name + "::vertexBuffer",
     });
 
     indexBuffer = context.createBuffer({
         .usage = BufferUsage::Index,
-        .memory = MemoryUsage::Device,
+        .memory = memoryProps,
         .size = sizeof(uint32_t) * indices.size(),
         .debugName = name + "::indexBuffer",
     });
 
-    context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
-        commandBuffer->copyBuffer(vertexBuffer, vertices.data());
-        commandBuffer->copyBuffer(indexBuffer, indices.data());
-    });
+    if (memoryProps & vk::MemoryPropertyFlagBits::eHostVisible) {
+        vertexBuffer->copy(vertices.data());
+        indexBuffer->copy(indices.data());
+    } else {
+        context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
+            commandBuffer->copyBuffer(vertexBuffer, vertices.data());
+            commandBuffer->copyBuffer(indexBuffer, indices.data());
+        });
+    }
 }
 
 auto Mesh::createSphereMesh(const Context& context, SphereMeshCreateInfo createInfo) -> Mesh {
@@ -97,7 +103,7 @@ auto Mesh::createSphereMesh(const Context& context, SphereMeshCreateInfo createI
         }
     }
 
-    return {context, vertices, indices, createInfo.name};
+    return {context, MemoryUsage::Device, vertices, indices, createInfo.name};
 }
 
 auto Mesh::createPlaneMesh(const Context& context, PlaneMeshCreateInfo createInfo) -> Mesh {
@@ -138,7 +144,7 @@ auto Mesh::createPlaneMesh(const Context& context, PlaneMeshCreateInfo createInf
         }
     }
 
-    return {context, vertices, indices, createInfo.name};
+    return {context, MemoryUsage::Device, vertices, indices, createInfo.name};
 }
 
 auto Mesh::createPlaneLineMesh(const Context& context, PlaneLineMeshCreateInfo createInfo) -> Mesh {
@@ -184,7 +190,7 @@ auto Mesh::createPlaneLineMesh(const Context& context, PlaneLineMeshCreateInfo c
     for (uint32_t i = 0; i < indicesCount; i++) {
         indices.push_back(i);
     }
-    return {context, vertices, indices, createInfo.name};
+    return {context, MemoryUsage::Device, vertices, indices, createInfo.name};
 }
 
 auto Mesh::createCubeMesh(const Context& context, CubeMeshCreateInfo createInfo) -> Mesh {
@@ -233,7 +239,7 @@ auto Mesh::createCubeMesh(const Context& context, CubeMeshCreateInfo createInfo)
     for (int i = 0; i < vertices.size(); i++) {
         indices.push_back(i);
     }
-    return {context, vertices, indices, createInfo.name};
+    return {context, MemoryUsage::Device, vertices, indices, createInfo.name};
 }
 
 auto Mesh::createCubeLineMesh(const Context& context, CubeLineMeshCreateInfo createInfo) -> Mesh {
@@ -244,6 +250,6 @@ auto Mesh::createCubeLineMesh(const Context& context, CubeLineMeshCreateInfo cre
     };
     std::vector<uint32_t> indices = {0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6,
                                      6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7};
-    return {context, vertices, indices, createInfo.name};
+    return {context, MemoryUsage::Device, vertices, indices, createInfo.name};
 }
 }  // namespace rv
