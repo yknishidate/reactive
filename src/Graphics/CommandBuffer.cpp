@@ -480,13 +480,22 @@ void CommandBuffer::setLineWidth(float lineWidth) const {
     commandBuffer->setLineWidth(lineWidth);
 }
 
-void CommandBuffer::setViewport(const vk::Viewport& viewport) const {
+void CommandBuffer::setViewport(vk::Viewport viewport) const {
+    // Invert Y
+    viewport.y = viewport.height;
+    viewport.height = -viewport.height;
     commandBuffer->setViewport(0, 1, &viewport);
 }
 
 void CommandBuffer::setViewport(uint32_t width, uint32_t height) const {
+    // Invert Y
     vk::Viewport viewport{
-        0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, 1.0f,
+        0.0f,
+        static_cast<float>(height),
+        static_cast<float>(width),
+        -static_cast<float>(height),
+        0.0f,
+        1.0f,
     };
     commandBuffer->setViewport(0, 1, &viewport);
 }
