@@ -188,53 +188,45 @@ auto Mesh::createPlaneLineMesh(const Context& context, PlaneLineMeshCreateInfo c
 }
 
 auto Mesh::createCubeMesh(const Context& context, CubeMeshCreateInfo createInfo) -> Mesh {
-    std::vector<glm::vec3> positions{
-        {-1.0, -1.0, -1.0}, {1.0, -1.0, -1.0}, {1.0, -1.0, 1.0}, {-1.0, -1.0, 1.0},
-        {-1.0, 1.0, -1.0},  {1.0, 1.0, -1.0},  {1.0, 1.0, 1.0},  {-1.0, 1.0, 1.0},
-    };
-    std::vector<glm::vec3> normals{
-        {1, 0, 0},   // 0 +X
-        {0, 1, 0},   // 1 +Y
-        {0, 0, 1},   // 2 +Z
-        {-1, 0, 0},  // 3 -X
-        {0, -1, 0},  // 4 -Y
-        {0, 0, -1},  // 5 -Z
-    };
-    //      3           2
-    //      +-----------+
-    //     /|         / |
-    //   /  |        /  |
-    // 0+---+-------+1  |
-    //  |  7+-------+---+6
-    //  |  /        |  /
-    //  |/          |/
-    // 4+-----------+5
+    // Y-up, Right-hand
+    glm::vec3 v0 = {-1, -1, -1};
+    glm::vec3 v1 = {+1, -1, -1};
+    glm::vec3 v2 = {-1, +1, -1};
+    glm::vec3 v3 = {+1, +1, -1};
+    glm::vec3 v4 = {-1, -1, +1};
+    glm::vec3 v5 = {+1, -1, +1};
+    glm::vec3 v6 = {-1, +1, +1};
+    glm::vec3 v7 = {+1, +1, +1};
+
+    glm::vec3 pX = {+1, 0, 0};
+    glm::vec3 nX = {-1, 0, 0};
+    glm::vec3 pY = {0, +1, 0};
+    glm::vec3 nY = {0, -1, 0};
+    glm::vec3 pZ = {0, 0, +1};
+    glm::vec3 nZ = {0, 0, -1};
+    //       2           3
+    //       +-----------+
+    //      /|          /|
+    //    /  |        /  |
+    //  6+---+-------+7  |
+    //   |  0+-------+---+1
+    //   |  /        |  /
+    //   |/          |/
+    //  4+-----------+5
 
     std::vector<Vertex> vertices = {
-        {positions[0], normals[4]}, {positions[1], normals[4]},
-        {positions[2], normals[4]},  // Top -Y
-        {positions[0], normals[4]}, {positions[2], normals[4]},
-        {positions[3], normals[4]},  // Top -Y
-        {positions[2], normals[5]}, {positions[6], normals[5]},
-        {positions[7], normals[5]},  // Front -Z
-        {positions[2], normals[5]}, {positions[7], normals[5]},
-        {positions[3], normals[5]},  // Front -Z
-        {positions[3], normals[3]}, {positions[7], normals[3]},
-        {positions[4], normals[3]},  // Left -X
-        {positions[3], normals[3]}, {positions[4], normals[3]},
-        {positions[0], normals[3]},  // Left -X
-        {positions[0], normals[2]}, {positions[4], normals[2]},
-        {positions[5], normals[2]},  // Back +Z
-        {positions[0], normals[2]}, {positions[5], normals[2]},
-        {positions[1], normals[2]},  // Back +Z
-        {positions[1], normals[0]}, {positions[5], normals[0]},
-        {positions[6], normals[0]},  // Right +X
-        {positions[1], normals[0]}, {positions[6], normals[0]},
-        {positions[2], normals[0]},  // Right +X
-        {positions[5], normals[1]}, {positions[4], normals[1]},
-        {positions[7], normals[1]},  // Bottom Y
-        {positions[5], normals[1]}, {positions[7], normals[1]},
-        {positions[6], normals[1]},  // Bottom Y
+        {v0, nZ}, {v2, nZ}, {v1, nZ},  // Back
+        {v3, nZ}, {v1, nZ}, {v2, nZ},  // Back
+        {v4, pZ}, {v5, pZ}, {v6, pZ},  // Front
+        {v7, pZ}, {v6, pZ}, {v5, pZ},  // Front
+        {v6, pY}, {v7, pY}, {v2, pY},  // Top
+        {v3, pY}, {v2, pY}, {v7, pY},  // Top
+        {v0, nY}, {v1, nY}, {v4, nY},  // Bottom
+        {v5, nY}, {v4, nY}, {v1, nY},  // Bottom
+        {v5, pX}, {v1, pX}, {v7, pX},  // Right
+        {v3, pX}, {v7, pX}, {v1, pX},  // Right
+        {v0, nX}, {v4, nX}, {v2, nX},  // Left
+        {v6, nX}, {v2, nX}, {v4, nX},  // Left
     };
 
     std::vector<uint32_t> indices;
