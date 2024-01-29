@@ -20,9 +20,9 @@ public:
           }) {}
 
     void onStart() override {
-        camera = OrbitalCamera{this, width, height};
+        camera = Camera{this, Camera::Type::Orbital, static_cast<float>(width) / height};
 
-        mesh = Mesh{context, vertices, indices, "Triangle"};
+        mesh = Mesh{context, MemoryUsage::Device, vertices, indices, "Triangle"};
 
         bottomAccel = context.createBottomAccel({
             .vertexBuffer = mesh.vertexBuffer,
@@ -111,7 +111,7 @@ public:
     DescriptorSetHandle descSet;
     RayTracingPipelineHandle pipeline;
 
-    OrbitalCamera camera;
+    Camera camera;
     PushConstants pushConstants;
     int testInt = 0;
 };
