@@ -44,6 +44,12 @@ enum class Layer {
     FPSMonitor,
 };
 
+enum class UIStyle {
+    ImGui,
+    Vulkan,
+    Gray,
+};
+
 struct AppCreateInfo {
     // Window
     uint32_t width = 0;
@@ -55,6 +61,8 @@ struct AppCreateInfo {
     // Vulkan
     ArrayProxy<Layer> layers;
     ArrayProxy<Extension> extensions;
+
+    UIStyle style = UIStyle::Vulkan;
 };
 
 class App {
@@ -104,7 +112,7 @@ protected:
                     ArrayProxy<Extension> requiredExtensions,
                     bool vsync);
 
-    void initImGui();
+    void initImGui(UIStyle style);
 
     void createDepthImage();
 

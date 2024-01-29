@@ -16,7 +16,7 @@ App::App(AppCreateInfo createInfo) : width{createInfo.width}, height{createInfo.
 
     initGLFW(createInfo.windowResizable, createInfo.title);
     initVulkan(createInfo.layers, createInfo.extensions, createInfo.vsync);
-    initImGui();
+    initImGui(createInfo.style);
 }
 
 void App::run() {
@@ -280,12 +280,14 @@ void App::initVulkan(ArrayProxy<Layer> requiredLayers,
     createDepthImage();
 }
 
-void setImGuiStyle() {
+void setImGuiStyle(UIStyle style) {
+    if (style == UIStyle::ImGui) {
+        return;
+    }
+
     ImVec4* colors = ImGui::GetStyle().Colors;
 
     // clang-format off
-    ImVec4 base = ImVec4(164.0f / 255.0f, 30.0f / 255.0f, 34.0f / 255.0f, 1.0f); // original vulkan theme
-    ImVec4 baseLight = ImVec4(202.0f / 255.0f, 36.0f / 255.0f, 41.0f / 255.0f, 1.0f);
     ImVec4 white = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
     ImVec4 black = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
     ImVec4 gray80 = ImVec4(0.80f, 0.80f, 0.80f, 1.00f);
@@ -294,6 +296,15 @@ void setImGuiStyle() {
     ImVec4 gray30 = ImVec4(0.30f, 0.30f, 0.30f, 1.00f);
     ImVec4 gray20 = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
     ImVec4 gray10 = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
+    ImVec4 base;
+    ImVec4 baseLight;
+    if(style == UIStyle::Vulkan) {
+        base = ImVec4(164.0f / 255.0f, 30.0f / 255.0f, 34.0f / 255.0f, 1.0f); // original vulkan theme
+        baseLight = ImVec4(202.0f / 255.0f, 36.0f / 255.0f, 41.0f / 255.0f, 1.0f);
+    }else if(style == UIStyle::Gray) {
+        base = gray30;
+        baseLight = gray80;
+    }
 
     colors[ImGuiCol_Text]                  = white;
     colors[ImGuiCol_TextDisabled]          = gray50;
@@ -351,13 +362,13 @@ void setImGuiStyle() {
     // clang-format on
 }
 
-void App::initImGui() {
+void App::initImGui(UIStyle style) {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    setImGuiStyle();
+    setImGuiStyle(style);
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForVulkan(window, true);
