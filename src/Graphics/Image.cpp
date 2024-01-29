@@ -87,13 +87,9 @@ Image::Image(const Context* context,
     samplerInfo.setAddressModeU(vk::SamplerAddressMode::eRepeat);
     samplerInfo.setAddressModeV(vk::SamplerAddressMode::eRepeat);
     samplerInfo.setAddressModeW(vk::SamplerAddressMode::eRepeat);
+    samplerInfo.setCompareEnable(VK_TRUE);
+    samplerInfo.setCompareOp(vk::CompareOp::eLess);
     sampler = context->getDevice().createSampler(samplerInfo);
-
-    // TODO: transition layout
-    // if (layout != vk::ImageLayout::eUndefined) {
-    //    context->oneTimeSubmit(
-    //        [&](CommandBufferHandle commandBuffer) { commandBuffer->transitionLayout(); });
-    //}
 
     if (debugName) {
         context->setDebugName(image, debugName);
