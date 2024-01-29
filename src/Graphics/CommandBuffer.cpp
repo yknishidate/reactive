@@ -86,9 +86,11 @@ void CommandBuffer::beginRendering(ImageHandle colorImage,
     // NOTE: Attachments support only explicit clear commands.
     // Therefore, clearing is not performed within beginRendering.
     vk::RenderingAttachmentInfo colorAttachment;
-    colorAttachment.setImageView(colorImage->getView());
-    colorAttachment.setImageLayout(vk::ImageLayout::eAttachmentOptimal);
-    renderingInfo.setColorAttachments(colorAttachment);
+    if (colorImage) {
+        colorAttachment.setImageView(colorImage->getView());
+        colorAttachment.setImageLayout(vk::ImageLayout::eAttachmentOptimal);
+        renderingInfo.setColorAttachments(colorAttachment);
+    }
 
     // Depth attachment
     vk::RenderingAttachmentInfo depthStencilAttachment;
