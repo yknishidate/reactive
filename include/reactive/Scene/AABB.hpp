@@ -24,6 +24,30 @@ struct AABB {
             isOnOrForwardPlane(camFrustum.leftFace) && isOnOrForwardPlane(camFrustum.rightFace) &&
             isOnOrForwardPlane(camFrustum.topFace) && isOnOrForwardPlane(camFrustum.bottomFace) &&
             isOnOrForwardPlane(camFrustum.nearFace) && isOnOrForwardPlane(camFrustum.farFace));
-    };
+    }
+
+    std::vector<glm::vec3> getCorners() const {
+        std::vector<glm::vec3> corners(8);
+        corners[0] = center + glm::vec3(-extents.x, -extents.y, -extents.z);
+        corners[1] = center + glm::vec3(extents.x, -extents.y, -extents.z);
+        corners[2] = center + glm::vec3(extents.x, extents.y, -extents.z);
+        corners[3] = center + glm::vec3(-extents.x, extents.y, -extents.z);
+        corners[4] = center + glm::vec3(-extents.x, -extents.y, extents.z);
+        corners[5] = center + glm::vec3(extents.x, -extents.y, extents.z);
+        corners[6] = center + glm::vec3(extents.x, extents.y, extents.z);
+        corners[7] = center + glm::vec3(-extents.x, extents.y, extents.z);
+        return corners;
+    }
+
+    static AABB merge(const AABB& a, const AABB& b) {
+        glm::vec3 minA = a.center - a.extents;
+        glm::vec3 maxA = a.center + a.extents;
+        glm::vec3 minB = b.center - b.extents;
+        glm::vec3 maxB = b.center + b.extents;
+
+        glm::vec3 min = glm::min(minA, minB);
+        glm::vec3 max = glm::max(maxA, maxB);
+        return AABB(min, max);
+    }
 };
 }  // namespace rv
