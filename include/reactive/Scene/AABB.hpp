@@ -39,6 +39,22 @@ struct AABB {
         return corners;
     }
 
+    glm::vec3 getFurthestCorner(const glm::vec3& dir) const {
+        std::vector<glm::vec3> corners = getCorners();
+        glm::vec3 furthestCorner = corners[0];
+        float maxDistance = glm::dot(corners[0], dir);
+
+        for (const auto& corner : corners) {
+            float distance = glm::dot(corner, dir);
+            if (distance > maxDistance) {
+                maxDistance = distance;
+                furthestCorner = corner;
+            }
+        }
+
+        return furthestCorner;
+    }
+
     static AABB merge(const AABB& a, const AABB& b) {
         glm::vec3 minA = a.center - a.extents;
         glm::vec3 maxA = a.center + a.extents;
