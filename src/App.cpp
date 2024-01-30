@@ -85,6 +85,8 @@ void App::run() {
     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
+
+    onShutdown();
 }
 
 auto App::getCursorPos() const -> glm::vec2 {

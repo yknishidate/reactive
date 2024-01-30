@@ -73,6 +73,7 @@ public:
     virtual void onStart() {}
     virtual void onUpdate() {}
     virtual void onRender(const CommandBufferHandle& commandBuffer) {}
+    virtual void onShutdown() {}
 
     // Getter
     auto getCurrentColorImage() const -> ImageHandle;
