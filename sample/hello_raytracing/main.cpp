@@ -20,7 +20,7 @@ public:
           }) {}
 
     void onStart() override {
-        camera = Camera{this, Camera::Type::Orbital, static_cast<float>(width) / height};
+        camera = Camera{Camera::Type::Orbital, static_cast<float>(width) / height};
 
         mesh = Mesh{context, MemoryUsage::Device, vertices, indices, "Triangle"};
 
@@ -84,7 +84,15 @@ public:
     }
 
     void onUpdate() override {
-        camera.processInput();
+        static glm::vec2 lastCursorPos{0.0f};
+        glm::vec2 cursorPos = getCursorPos();
+        if (isMouseButtonDown(GLFW_MOUSE_BUTTON_1)) {
+            camera.processDragDelta(cursorPos - lastCursorPos);
+        }
+        lastCursorPos = cursorPos;
+        camera.processMouseScroll(getMouseWheel().y);
+        resetMouseWheel();
+
         pushConstants.invProj = camera.getInvProj();
         pushConstants.invView = camera.getInvView();
     }
