@@ -85,6 +85,7 @@ public:
 
     auto getCursorPos() const -> glm::vec2;
     auto getMouseWheel() const -> glm::vec2;
+    void resetMouseWheel();
 
     virtual void onReset() {}
     virtual void onKey(int key, int scancode, int action, int mods) {}

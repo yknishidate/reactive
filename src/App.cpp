@@ -100,6 +100,10 @@ auto App::getMouseWheel() const -> glm::vec2 {
     return mouseWheel;
 }
 
+void App::resetMouseWheel() {
+    mouseWheel = {0.0f, 0.0f};
+}
+
 auto App::getCurrentColorImage() const -> ImageHandle {
     return std::make_shared<Image>(swapchain->getCurrentImage(), swapchain->getCurrentImageView(),
                                    vk::Extent3D{width, height, 1}, vk::ImageAspectFlagBits::eColor);
