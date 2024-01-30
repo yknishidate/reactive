@@ -5,62 +5,6 @@
 #include <glm/gtx/transform.hpp>
 
 namespace rv {
-auto Camera::processInput() -> bool {
-    if (!app) {
-        return false;
-    }
-    bool updated = false;
-    static glm::vec2 lastCursorPos{0.0f};
-    glm::vec2 cursorPos = app->getCursorPos();
-    glm::vec2 cursorOffset = cursorPos - lastCursorPos;
-    lastCursorPos = cursorPos;
-    if (app->isMouseButtonDown(GLFW_MOUSE_BUTTON_1)) {
-        if (cursorOffset != glm::vec2(0.0)) {
-            updated = true;
-        }
-
-        processDragDelta(cursorOffset);
-    }
-
-    if (type == Type::FirstPerson) {
-        auto& _params = std::get<FirstPersonParams>(params);
-        glm::vec3 front = getFront();
-        glm::vec3 right = glm::normalize(glm::cross(-up, front));
-        if (app->isKeyDown(GLFW_KEY_W)) {
-            _params.position += front * 0.15f * _params.speed;
-            updated = true;
-        }
-        if (app->isKeyDown(GLFW_KEY_S)) {
-            _params.position -= front * 0.15f * _params.speed;
-            updated = true;
-        }
-        if (app->isKeyDown(GLFW_KEY_D)) {
-            _params.position += right * 0.1f * _params.speed;
-            updated = true;
-        }
-        if (app->isKeyDown(GLFW_KEY_A)) {
-            _params.position -= right * 0.1f * _params.speed;
-            updated = true;
-        }
-        if (app->isKeyDown(GLFW_KEY_SPACE)) {
-            _params.position += up * 0.05f * _params.speed;
-            updated = true;
-        }
-        return updated;
-    } else {
-        auto& _params = std::get<OrbitalParams>(params);
-        static float lastWheel = 0.0f;
-        float wheel = app->getMouseWheel().y;
-        float wheelOffset = wheel - lastWheel;
-        lastWheel = wheel;
-        _params.distance = std::max(_params.distance - wheelOffset, 0.001f);
-        if (wheelOffset != 0.0f) {
-            updated = true;
-        }
-        return updated;
-    }
-}
-
 void Camera::processKey(int key) {
     if (type == Type::FirstPerson) {
         auto& _params = std::get<FirstPersonParams>(params);

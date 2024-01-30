@@ -30,8 +30,7 @@ public:
 
     Camera() = default;
 
-    // App is not needed for dockspace
-    Camera(const App* app, Type type, float aspect) : app{app}, type{type}, aspect{aspect} {
+    Camera(Type type, float aspect) : type{type}, aspect{aspect} {
         if (type == Type::FirstPerson) {
             params = FirstPersonParams{};
         } else {
@@ -39,10 +38,6 @@ public:
         }
     }
 
-    // For without dockspace
-    auto processInput() -> bool;
-
-    // For with dockspace
     void processKey(int key);
     void processDragDelta(glm::vec2 dragDelta);
     void processMouseScroll(float scroll);
@@ -69,8 +64,6 @@ public:
     void setTheta(float _theta);
 
 private:
-    const App* app = nullptr;
-
     Type type;
 
     float aspect = 1.0f;
