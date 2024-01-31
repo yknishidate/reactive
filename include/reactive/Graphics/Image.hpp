@@ -32,8 +32,12 @@ public:
           uint32_t mipLevels,
           const char* debugName);
 
-    Image(vk::Image image, vk::ImageView view, vk::Extent3D extent, vk::ImageAspectFlags aspect)
-        : image{image}, view{view}, extent{extent}, aspect{aspect} {}
+    Image(vk::Image image,
+          vk::ImageView view,
+          vk::Extent3D extent,
+          vk::Format format,
+          vk::ImageAspectFlags aspect)
+        : image{image}, view{view}, extent{extent}, format{format}, aspect{aspect} {}
 
     ~Image();
 
@@ -45,6 +49,7 @@ public:
     auto getAspectMask() const -> vk::ImageAspectFlags { return aspect; }
     auto getLayout() const -> vk::ImageLayout { return layout; }
     auto getExtent() const -> vk::Extent3D { return extent; }
+    auto getFormat() const -> vk::Format { return format; }
 
     // Ensure that data is pre-filled
     // ImageLayout is implicitly shifted to ShaderReadOnlyOptimal
@@ -68,8 +73,8 @@ private:
     bool hasOwnership = false;
 
     vk::ImageLayout layout = vk::ImageLayout::eUndefined;
-    vk::Format format = {};
     vk::Extent3D extent;
+    vk::Format format = {};
 
     uint32_t mipLevels = 1;
 
