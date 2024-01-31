@@ -1,119 +1,122 @@
 #include "Graphics/DescriptorSet.hpp"
 
-#include <ranges>
-#include <regex>
+#include <stdexcept>
+#include <vector>
 
-#include "Compiler/Compiler.hpp"
-#include "common.hpp"
+#include "Graphics/Accel.hpp"
+#include "Graphics/Buffer.hpp"
 
 namespace rv {
-WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
-                                       ArrayProxy<vk::DescriptorBufferInfo> infos)
-    : WriteDescriptorSet{binding} {
-    bufferInfos.reserve(infos.size());
-    for (auto& info : infos) {
-        bufferInfos.push_back(info);
-    }
-    write.setBufferInfo(bufferInfos);
-}
-
-WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
-                                       ArrayProxy<vk::DescriptorImageInfo> infos)
-    : WriteDescriptorSet{binding} {
-    imageInfos.reserve(infos.size());
-    for (auto& info : infos) {
-        imageInfos.push_back(info);
-    }
-    write.setImageInfo(imageInfos);
-}
-
-WriteDescriptorSet::WriteDescriptorSet(
-    vk::DescriptorSetLayoutBinding binding,
-    ArrayProxy<vk::WriteDescriptorSetAccelerationStructureKHR> infos)
-    : WriteDescriptorSet(binding) {
-    accelInfos.reserve(infos.size());
-    for (auto& info : infos) {
-        accelInfos.push_back(info);
-    }
-    write.setPNext(accelInfos.data());
-}
-
-WriteDescriptorSet::WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding) {
-    write.setDescriptorType(binding.descriptorType);
-    write.setDescriptorCount(binding.descriptorCount);
-    write.setDstBinding(binding.binding);
-}
 
 DescriptorSet::DescriptorSet(const Context* context, DescriptorSetCreateInfo createInfo)
-    : context{context} {
-    for (auto& shader : createInfo.shaders) {
+    : context(context) {
+    // シェーダーリソースを追加
+    for (const auto& shader : createInfo.shaders) {
         addResources(shader);
     }
-    for (auto& [name, buffer] : createInfo.buffers) {
-        RV_ASSERT(bindingMap.contains(name), "bindingMap does not contain key: {}", name);
-        bindingMap[name].descriptorCount = buffer.size();
 
-        std::vector<vk::DescriptorBufferInfo> infos;
-        for (auto& b : buffer) {
-            infos.push_back(b->getInfo());
-        }
-
-        writes[name] = {bindingMap[name], infos};
+    // 各リソースのディスクリプタ情報を設定
+    for (const auto& [name, buffers] : createInfo.buffers) {
+        set(name, buffers);
     }
-    for (auto& [name, image] : createInfo.images) {
-        RV_ASSERT(bindingMap.contains(name), "bindingMap does not contain key: {}", name);
-        bindingMap[name].descriptorCount = image.size();
-
-        std::vector<vk::DescriptorImageInfo> infos;
-        for (auto& i : image) {
-            infos.push_back(i->getInfo());
-        }
-
-        writes[name] = {bindingMap[name], infos};
+    for (const auto& [name, images] : createInfo.images) {
+        set(name, images);
     }
-    for (auto& [name, accel] : createInfo.accels) {
-        RV_ASSERT(bindingMap.contains(name), "bindingMap does not contain key: {}", name);
-        bindingMap[name].descriptorCount = accel.size();
-
-        std::vector<vk::WriteDescriptorSetAccelerationStructureKHR> infos;
-        for (auto& a : accel) {
-            infos.push_back(a->getInfo());
-        }
-
-        writes[name] = {bindingMap[name], infos};
+    for (const auto& [name, accels] : createInfo.accels) {
+        set(name, accels);
     }
-    allocate();
-    update();
-}
 
-void DescriptorSet::allocate() {
+    // ディスクリプタセットレイアウトを作成
     std::vector<vk::DescriptorSetLayoutBinding> bindings;
-    bindings.reserve(bindingMap.size());
-    for (auto& binding : bindingMap | std::views::values) {
+    for (const auto& [key, binding] : bindingMap) {
         bindings.push_back(binding);
     }
 
-    vk::DescriptorSetLayoutCreateInfo layoutInfo;
-    layoutInfo.setBindings(bindings);
+    vk::DescriptorSetLayoutCreateInfo layoutInfo({}, bindings);
     descSetLayout = context->getDevice().createDescriptorSetLayoutUnique(layoutInfo);
 
-    vk::DescriptorSetAllocateInfo descSetInfo;
-    descSetInfo.setDescriptorPool(context->getDescriptorPool());
-    descSetInfo.setSetLayouts(*descSetLayout);
-    descSet = std::move(context->getDevice().allocateDescriptorSetsUnique(descSetInfo).front());
+    // ディスクリプタセットを確保
+    vk::DescriptorSetAllocateInfo allocInfo(context->getDescriptorPool(), *descSetLayout);
+    descSet = std::move(context->getDevice().allocateDescriptorSetsUnique(allocInfo).front());
+
+    // 更新する
+    update();
 }
 
 void DescriptorSet::update() {
-    std::vector<vk::WriteDescriptorSet> _writes;
-    _writes.reserve(writes.size());
-    for (auto& write : writes | std::views::values) {
-        _writes.push_back(write.get());
-        _writes.back().setDstSet(*descSet);
+    std::vector<vk::WriteDescriptorSet> descriptorWrites;
+
+    for (const auto& [key, binding] : bindingMap) {
+        auto it = descriptorInfos.find(key);
+        if (it == descriptorInfos.end()) {
+            continue;  // このキーに対応するディスクリプタ情報がない場合
+        }
+
+        const auto& infos = it->second;
+        if (std::holds_alternative<std::vector<vk::DescriptorBufferInfo>>(infos)) {
+            const auto& bufferInfos = std::get<std::vector<vk::DescriptorBufferInfo>>(infos);
+            vk::WriteDescriptorSet descriptorWrite;
+            descriptorWrite.setBufferInfo(bufferInfos);
+            descriptorWrite.setDescriptorCount(static_cast<uint32_t>(bufferInfos.size()));
+            descriptorWrite.setDescriptorType(binding.descriptorType);
+            descriptorWrite.setDstBinding(binding.binding);
+            descriptorWrite.setDstSet(*descSet);
+            descriptorWrites.push_back(descriptorWrite);
+        } else if (std::holds_alternative<std::vector<vk::DescriptorImageInfo>>(infos)) {
+            const auto& imageInfos = std::get<std::vector<vk::DescriptorImageInfo>>(infos);
+            vk::WriteDescriptorSet descriptorWrite;
+            descriptorWrite.setImageInfo(imageInfos);
+            descriptorWrite.setDescriptorCount(static_cast<uint32_t>(imageInfos.size()));
+            descriptorWrite.setDescriptorType(binding.descriptorType);
+            descriptorWrite.setDstBinding(binding.binding);
+            descriptorWrite.setDstSet(*descSet);
+            descriptorWrites.push_back(descriptorWrite);
+        } else if (std::holds_alternative<
+                       std::vector<vk::WriteDescriptorSetAccelerationStructureKHR>>(infos)) {
+            const auto& accelInfos =
+                std::get<std::vector<vk::WriteDescriptorSetAccelerationStructureKHR>>(infos);
+            vk::WriteDescriptorSet descriptorWrite;
+            descriptorWrite.setDescriptorCount(static_cast<uint32_t>(accelInfos.size()));
+            descriptorWrite.setDescriptorType(binding.descriptorType);
+            descriptorWrite.setDstBinding(binding.binding);
+            descriptorWrite.setDstSet(*descSet);
+            descriptorWrite.setPNext(&accelInfos);
+            descriptorWrites.push_back(descriptorWrite);
+        }
     }
-    context->getDevice().updateDescriptorSets(_writes, nullptr);
+
+    context->getDevice().updateDescriptorSets(descriptorWrites, nullptr);
+}
+
+void DescriptorSet::set(const std::string& name, ArrayProxy<BufferHandle> buffers) {
+    // バッファのディスクリプタ情報を設定
+    std::vector<vk::DescriptorBufferInfo> bufferInfos;
+    for (const auto& buffer : buffers) {
+        bufferInfos.push_back(buffer->getInfo());
+    }
+    descriptorInfos[name] = bufferInfos;
+}
+
+void DescriptorSet::set(const std::string& name, ArrayProxy<ImageHandle> images) {
+    // イメージのディスクリプタ情報を設定
+    std::vector<vk::DescriptorImageInfo> imageInfos;
+    for (const auto& image : images) {
+        imageInfos.push_back(image->getInfo());
+    }
+    descriptorInfos[name] = imageInfos;
+}
+
+void DescriptorSet::set(const std::string& name, ArrayProxy<TopAccelHandle> accels) {
+    // アクセラレーション構造のディスクリプタ情報を設定
+    std::vector<vk::WriteDescriptorSetAccelerationStructureKHR> accelInfos;
+    for (const auto& accel : accels) {
+        accelInfos.push_back(accel->getInfo());
+    }
+    descriptorInfos[name] = accelInfos;
 }
 
 void DescriptorSet::addResources(ShaderHandle shader) {
+    // シェーダーリソースを解析してディスクリプタ情報を更新
     vk::ShaderStageFlags stage = shader->getStage();
     spirv_cross::CompilerGLSL glsl{shader->getSpvCode()};
     const spirv_cross::ShaderResources& resources = glsl.get_shader_resources();
@@ -133,41 +136,6 @@ void DescriptorSet::addResources(ShaderHandle shader) {
     for (auto& resource : resources.sampled_images) {
         updateBindingMap(resource, glsl, stage, vk::DescriptorType::eCombinedImageSampler);
     }
-}
-
-void DescriptorSet::bind(vk::CommandBuffer commandBuffer,
-                         vk::PipelineBindPoint bindPoint,
-                         vk::PipelineLayout pipelineLayout) {
-    if (!writes.empty()) {
-        commandBuffer.bindDescriptorSets(bindPoint, pipelineLayout, 0, *descSet, nullptr);
-    }
-}
-
-void DescriptorSet::set(const std::string& name, ArrayProxy<BufferHandle> buffers) {
-    RV_ASSERT(bindingMap.contains(name), "bindingMap does not contain key: {}", name);
-    std::vector<vk::DescriptorBufferInfo> infos;
-    for (auto& buffer : buffers) {
-        infos.push_back(buffer->getInfo());
-    }
-    writes[name] = {bindingMap[name], infos};
-}
-
-void DescriptorSet::set(const std::string& name, ArrayProxy<ImageHandle> images) {
-    RV_ASSERT(bindingMap.contains(name), "bindingMap does not contain key: {}", name);
-    std::vector<vk::DescriptorImageInfo> infos;
-    for (auto& image : images) {
-        infos.push_back(image->getInfo());
-    }
-    writes[name] = {bindingMap[name], infos};
-}
-
-void DescriptorSet::set(const std::string& name, ArrayProxy<TopAccelHandle> accels) {
-    RV_ASSERT(bindingMap.contains(name), "bindingMap does not contain key: {}", name);
-    std::vector<vk::WriteDescriptorSetAccelerationStructureKHR> infos;
-    for (auto& accel : accels) {
-        infos.push_back(accel->getInfo());
-    }
-    writes[name] = {bindingMap[name], infos};
 }
 
 void DescriptorSet::updateBindingMap(const spirv_cross::Resource& resource,

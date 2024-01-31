@@ -24,7 +24,8 @@ void CommandBuffer::end() const {
 
 void CommandBuffer::bindDescriptorSet(DescriptorSetHandle descSet, PipelineHandle pipeline) const {
     commandBuffer->bindDescriptorSets(pipeline->getPipelineBindPoint(),
-                                      pipeline->getPipelineLayout(), 0, *descSet->descSet, nullptr);
+                                      pipeline->getPipelineLayout(), 0, descSet->getDescriptorSet(),
+                                      nullptr);
 }
 
 void CommandBuffer::bindPipeline(PipelineHandle pipeline) const {

@@ -2,40 +2,12 @@
 #include <spirv_glsl.hpp>
 #include <unordered_map>
 #include <variant>
-#include "Accel.hpp"
+
 #include "ArrayProxy.hpp"
-#include "Buffer.hpp"
 #include "Image.hpp"
 #include "Shader.hpp"
 
 namespace rv {
-class WriteDescriptorSet {
-public:
-    WriteDescriptorSet() = default;
-
-    // Buffer
-    WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
-                       ArrayProxy<vk::DescriptorBufferInfo> infos);
-
-    // Image
-    WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
-                       ArrayProxy<vk::DescriptorImageInfo> infos);
-
-    // TopAccel
-    WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
-                       ArrayProxy<vk::WriteDescriptorSetAccelerationStructureKHR> infos);
-
-    auto get() const -> vk::WriteDescriptorSet { return write; }
-
-private:
-    WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding);
-
-    vk::WriteDescriptorSet write{};
-    std::vector<vk::DescriptorImageInfo> imageInfos;
-    std::vector<vk::DescriptorBufferInfo> bufferInfos;
-    std::vector<vk::WriteDescriptorSetAccelerationStructureKHR> accelInfos;
-};
-
 struct DescriptorSetCreateInfo {
     ArrayProxy<ShaderHandle> shaders;
     ArrayProxy<std::pair<const char*, ArrayProxy<BufferHandle>>> buffers;
@@ -44,26 +16,20 @@ struct DescriptorSetCreateInfo {
 };
 
 class DescriptorSet {
-    friend class CommandBuffer;
-
 public:
     DescriptorSet(const Context* context, DescriptorSetCreateInfo createInfo);
 
-    void allocate();
     void update();
-    void bind(vk::CommandBuffer commandBuffer,
-              vk::PipelineBindPoint bindPoint,
-              vk::PipelineLayout pipelineLayout);
 
     void set(const std::string& name, ArrayProxy<BufferHandle> buffers);
     void set(const std::string& name, ArrayProxy<ImageHandle> images);
     void set(const std::string& name, ArrayProxy<TopAccelHandle> accels);
 
-    void addResources(ShaderHandle shader);
-
     vk::DescriptorSetLayout getLayout() const { return *descSetLayout; }
+    vk::DescriptorSet getDescriptorSet() const { return *descSet; }
 
 private:
+    void addResources(ShaderHandle shader);
     void updateBindingMap(const spirv_cross::Resource& resource,
                           const spirv_cross::CompilerGLSL& glsl,
                           vk::ShaderStageFlags stage,
@@ -73,6 +39,10 @@ private:
     vk::UniqueDescriptorSet descSet;
     vk::UniqueDescriptorSetLayout descSetLayout;
     std::unordered_map<std::string, vk::DescriptorSetLayoutBinding> bindingMap;
-    std::unordered_map<std::string, WriteDescriptorSet> writes;
+
+    using ResourceInfo = std::variant<std::vector<vk::DescriptorBufferInfo>,
+                                      std::vector<vk::DescriptorImageInfo>,
+                                      std::vector<vk::WriteDescriptorSetAccelerationStructureKHR>>;
+    std::unordered_map<std::string, ResourceInfo> descriptorInfos;
 };
 }  // namespace rv
