@@ -21,7 +21,7 @@ App::App(AppCreateInfo createInfo) : width{createInfo.width}, height{createInfo.
 
 void App::run() {
     onStart();
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(window) && running) {
         glfwPollEvents();
 
         if (width == 0 && height == 0) {

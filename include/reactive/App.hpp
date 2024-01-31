@@ -75,6 +75,8 @@ public:
     virtual void onRender(const CommandBufferHandle& commandBuffer) {}
     virtual void onShutdown() {}
 
+    void terminate() { running = false; }
+
     // Getter
     auto getCurrentColorImage() const -> ImageHandle;
 
@@ -128,5 +130,6 @@ protected:
 
     uint32_t width = 0;
     uint32_t height = 0;
+    bool running = true;
 };
 }  // namespace rv
