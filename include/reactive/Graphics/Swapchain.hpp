@@ -42,6 +42,8 @@ public:
 
     uint32_t getInFlightCount() const { return inflightCount; }
 
+    vk::Format getFormat() const { return format; }
+
 private:
     const Context* context = nullptr;
 
@@ -51,6 +53,7 @@ private:
 
     vk::SurfaceKHR surface;
     vk::PresentModeKHR presentMode;
+    vk::Format format = vk::Format::eB8G8R8A8Unorm;
 
     uint32_t minImageCount = 3;
     uint32_t imageCount = 0;

@@ -22,7 +22,7 @@ void Swapchain::resize(uint32_t width, uint32_t height) {
         vk::SwapchainCreateInfoKHR()
             .setSurface(surface)
             .setMinImageCount(minImageCount)
-            .setImageFormat(vk::Format::eB8G8R8A8Unorm)
+            .setImageFormat(format)
             .setImageColorSpace(vk::ColorSpaceKHR::eSrgbNonlinear)
             .setImageExtent({width, height})
             .setImageArrayLayers(1)

@@ -106,7 +106,8 @@ void App::resetMouseWheel() {
 
 auto App::getCurrentColorImage() const -> ImageHandle {
     return std::make_shared<Image>(swapchain->getCurrentImage(), swapchain->getCurrentImageView(),
-                                   vk::Extent3D{width, height, 1}, vk::ImageAspectFlagBits::eColor);
+                                   vk::Extent3D{width, height, 1}, swapchain->getFormat(),
+                                   vk::ImageAspectFlagBits::eColor);
 }
 
 auto App::getDefaultDepthImage() const -> ImageHandle {
