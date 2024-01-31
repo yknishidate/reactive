@@ -11,10 +11,24 @@ rv::Swapchain::Swapchain(const Context& context,
     resize(width, height);
 }
 
+vk::SurfaceFormatKHR chooseSurfaceFormat(vk::PhysicalDevice physicalDevice,
+                                         vk::SurfaceKHR surface) {
+    auto availableFormats = physicalDevice.getSurfaceFormatsKHR(surface);
+    for (const auto& availableFormat : availableFormats) {
+        if (availableFormat.format == vk::Format::eB8G8R8A8Unorm) {
+            return availableFormat;
+        }
+    }
+    return availableFormats[0];
+}
+
 void Swapchain::resize(uint32_t width, uint32_t height) {
     swapchainImageViews.clear();
     swapchainImages.clear();
     swapchain.reset();
+
+    vk::SurfaceFormatKHR surfaceFormat = chooseSurfaceFormat(context->getPhysicalDevice(), surface);
+    format = surfaceFormat.format;
 
     // Create swapchain
     uint32_t queueFamily = context->getQueueFamily();
@@ -23,7 +37,7 @@ void Swapchain::resize(uint32_t width, uint32_t height) {
             .setSurface(surface)
             .setMinImageCount(minImageCount)
             .setImageFormat(format)
-            .setImageColorSpace(vk::ColorSpaceKHR::eSrgbNonlinear)
+            .setImageColorSpace(surfaceFormat.colorSpace)
             .setImageExtent({width, height})
             .setImageArrayLayers(1)
             .setImageUsage(vk::ImageUsageFlagBits::eColorAttachment |
