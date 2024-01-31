@@ -77,7 +77,6 @@ public:
 
     // Getter
     auto getCurrentColorImage() const -> ImageHandle;
-    auto getDefaultDepthImage() const -> ImageHandle;
 
     // Input
     auto isKeyDown(int key) const -> bool;
@@ -116,8 +115,6 @@ protected:
 
     void initImGui(UIStyle style);
 
-    void createDepthImage();
-
     void listSurfaceFormats();
 
     GLFWwindow* window = nullptr;
@@ -128,8 +125,6 @@ protected:
 
     vk::UniqueSurfaceKHR surface;
     std::unique_ptr<Swapchain> swapchain;
-
-    ImageHandle depthImage;
 
     uint32_t width = 0;
     uint32_t height = 0;

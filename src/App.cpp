@@ -110,10 +110,6 @@ auto App::getCurrentColorImage() const -> ImageHandle {
                                    vk::ImageAspectFlagBits::eColor);
 }
 
-auto App::getDefaultDepthImage() const -> ImageHandle {
-    return depthImage;
-}
-
 auto App::isKeyDown(int key) const -> bool {
     if (key < GLFW_KEY_SPACE || key > GLFW_KEY_LAST) {
         return false;
@@ -283,8 +279,6 @@ void App::initVulkan(ArrayProxy<Layer> requiredLayers,
 
     auto presentMode = vsync ? vk::PresentModeKHR::eFifo : vk::PresentModeKHR::eMailbox;
     swapchain = std::make_unique<Swapchain>(context, *surface, width, height, presentMode);
-
-    createDepthImage();
 }
 
 void setImGuiStyle(UIStyle style) {
@@ -401,20 +395,6 @@ void App::initImGui(UIStyle style) {
     io.Fonts->AddFontFromFileTTF(fontFile.c_str(), 24.0f);
 }
 
-void App::createDepthImage() {
-    depthImage = context.createImage({
-        .usage = ImageUsage::DepthAttachment,
-        .extent = {width, height, 1},
-        .format = vk::Format::eD32Sfloat,
-        .aspect = vk::ImageAspectFlagBits::eDepth,
-        .debugName = "App::depthImage",
-    });
-
-    context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
-        commandBuffer->transitionLayout(depthImage, vk::ImageLayout::eDepthAttachmentOptimal);
-    });
-}
-
 void App::listSurfaceFormats() {
     auto surfaceFormats = context.getPhysicalDevice().getSurfaceFormatsKHR(*surface);
     spdlog::info("Supported formats:");
@@ -442,9 +422,6 @@ void App::onWindowSize() {
     context.getDevice().waitIdle();
 
     swapchain->resize(width, height);
-
-    depthImage.reset();
-    createDepthImage();
 }
 
 // Callbacks
