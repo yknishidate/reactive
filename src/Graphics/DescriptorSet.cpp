@@ -1,5 +1,6 @@
 #include "Graphics/DescriptorSet.hpp"
 
+#include <ranges>
 #include <regex>
 
 #include "Compiler/Compiler.hpp"
@@ -57,7 +58,7 @@ DescriptorSet::DescriptorSet(const Context* context, DescriptorSetCreateInfo cre
             infos.push_back(b->getInfo());
         }
 
-        writes.emplace_back(bindingMap[name], infos);
+        writes[name] = {bindingMap[name], infos};
     }
     for (auto& [name, image] : createInfo.images) {
         RV_ASSERT(bindingMap.contains(name), "bindingMap does not contain key: {}", name);
@@ -68,7 +69,7 @@ DescriptorSet::DescriptorSet(const Context* context, DescriptorSetCreateInfo cre
             infos.push_back(i->getInfo());
         }
 
-        writes.emplace_back(bindingMap[name], infos);
+        writes[name] = {bindingMap[name], infos};
     }
     for (auto& [name, accel] : createInfo.accels) {
         RV_ASSERT(bindingMap.contains(name), "bindingMap does not contain key: {}", name);
@@ -79,7 +80,7 @@ DescriptorSet::DescriptorSet(const Context* context, DescriptorSetCreateInfo cre
             infos.push_back(a->getInfo());
         }
 
-        writes.emplace_back(bindingMap[name], infos);
+        writes[name] = {bindingMap[name], infos};
     }
     allocate();
     update();
@@ -88,7 +89,7 @@ DescriptorSet::DescriptorSet(const Context* context, DescriptorSetCreateInfo cre
 void DescriptorSet::allocate() {
     std::vector<vk::DescriptorSetLayoutBinding> bindings;
     bindings.reserve(bindingMap.size());
-    for (auto& [name, binding] : bindingMap) {
+    for (auto& binding : bindingMap | std::views::values) {
         bindings.push_back(binding);
     }
 
@@ -105,11 +106,9 @@ void DescriptorSet::allocate() {
 void DescriptorSet::update() {
     std::vector<vk::WriteDescriptorSet> _writes;
     _writes.reserve(writes.size());
-    for (auto& write : writes) {
+    for (auto& write : writes | std::views::values) {
         _writes.push_back(write.get());
-    }
-    for (auto& write : _writes) {
-        write.setDstSet(*descSet);
+        _writes.back().setDstSet(*descSet);
     }
     context->getDevice().updateDescriptorSets(_writes, nullptr);
 }
@@ -142,6 +141,33 @@ void DescriptorSet::bind(vk::CommandBuffer commandBuffer,
     if (!writes.empty()) {
         commandBuffer.bindDescriptorSets(bindPoint, pipelineLayout, 0, *descSet, nullptr);
     }
+}
+
+void DescriptorSet::set(const std::string& name, ArrayProxy<BufferHandle> buffers) {
+    RV_ASSERT(bindingMap.contains(name), "bindingMap does not contain key: {}", name);
+    std::vector<vk::DescriptorBufferInfo> infos;
+    for (auto& buffer : buffers) {
+        infos.push_back(buffer->getInfo());
+    }
+    writes[name] = {bindingMap[name], infos};
+}
+
+void DescriptorSet::set(const std::string& name, ArrayProxy<ImageHandle> images) {
+    RV_ASSERT(bindingMap.contains(name), "bindingMap does not contain key: {}", name);
+    std::vector<vk::DescriptorImageInfo> infos;
+    for (auto& image : images) {
+        infos.push_back(image->getInfo());
+    }
+    writes[name] = {bindingMap[name], infos};
+}
+
+void DescriptorSet::set(const std::string& name, ArrayProxy<TopAccelHandle> accels) {
+    RV_ASSERT(bindingMap.contains(name), "bindingMap does not contain key: {}", name);
+    std::vector<vk::WriteDescriptorSetAccelerationStructureKHR> infos;
+    for (auto& accel : accels) {
+        infos.push_back(accel->getInfo());
+    }
+    writes[name] = {bindingMap[name], infos};
 }
 
 void DescriptorSet::updateBindingMap(const spirv_cross::Resource& resource,

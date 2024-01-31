@@ -11,6 +11,8 @@
 namespace rv {
 class WriteDescriptorSet {
 public:
+    WriteDescriptorSet() = default;
+
     // Buffer
     WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
                        ArrayProxy<vk::DescriptorBufferInfo> infos);
@@ -23,9 +25,7 @@ public:
     WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding,
                        ArrayProxy<vk::WriteDescriptorSetAccelerationStructureKHR> infos);
 
-    auto get() const -> vk::WriteDescriptorSet {
-        return write;
-    }
+    auto get() const -> vk::WriteDescriptorSet { return write; }
 
 private:
     WriteDescriptorSet(vk::DescriptorSetLayoutBinding binding);
@@ -55,11 +55,13 @@ public:
               vk::PipelineBindPoint bindPoint,
               vk::PipelineLayout pipelineLayout);
 
+    void set(const std::string& name, ArrayProxy<BufferHandle> buffers);
+    void set(const std::string& name, ArrayProxy<ImageHandle> images);
+    void set(const std::string& name, ArrayProxy<TopAccelHandle> accels);
+
     void addResources(ShaderHandle shader);
 
-    vk::DescriptorSetLayout getLayout() const {
-        return *descSetLayout;
-    }
+    vk::DescriptorSetLayout getLayout() const { return *descSetLayout; }
 
 private:
     void updateBindingMap(const spirv_cross::Resource& resource,
@@ -71,6 +73,6 @@ private:
     vk::UniqueDescriptorSet descSet;
     vk::UniqueDescriptorSetLayout descSetLayout;
     std::unordered_map<std::string, vk::DescriptorSetLayoutBinding> bindingMap;
-    std::vector<WriteDescriptorSet> writes;
+    std::unordered_map<std::string, WriteDescriptorSet> writes;
 };
 }  // namespace rv
