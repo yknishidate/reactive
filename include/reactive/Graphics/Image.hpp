@@ -12,9 +12,9 @@ struct ImageCreateInfo {
 
     vk::Format format;
 
-    // if mipLevels is std::numeric_limits<uint32_t>::max(), then it's set to max level
     vk::ImageAspectFlags aspect = vk::ImageAspectFlagBits::eColor;
 
+    // if mipLevels is std::numeric_limits<uint32_t>::max(), then it's set to max level
     uint32_t mipLevels = 1;
 
     const char* debugName = nullptr;

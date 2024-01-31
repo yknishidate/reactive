@@ -93,6 +93,8 @@ Image::Image(const Context* context,
 
     if (debugName) {
         context->setDebugName(image, debugName);
+        context->setDebugName(view, (std::string(debugName) + "(ImageView)").c_str());
+        context->setDebugName(sampler, (std::string(debugName) + "(Sampler)").c_str());
     }
 }
 
