@@ -1,5 +1,6 @@
 #include "Graphics/DescriptorSet.hpp"
 
+#include <ranges>
 #include <stdexcept>
 #include <vector>
 
@@ -28,8 +29,8 @@ DescriptorSet::DescriptorSet(const Context* context, DescriptorSetCreateInfo cre
 
     // ディスクリプタセットレイアウトを作成
     std::vector<vk::DescriptorSetLayoutBinding> bindings;
-    for (const auto& [key, binding] : bindingMap) {
-        bindings.push_back(binding);
+    for (const auto& descriptor : descriptors | std::views::values) {
+        bindings.push_back(descriptor.binding);
     }
 
     vk::DescriptorSetLayoutCreateInfo layoutInfo({}, bindings);
@@ -46,15 +47,9 @@ DescriptorSet::DescriptorSet(const Context* context, DescriptorSetCreateInfo cre
 void DescriptorSet::update() {
     std::vector<vk::WriteDescriptorSet> descriptorWrites;
 
-    for (const auto& [key, binding] : bindingMap) {
-        auto it = descriptorInfos.find(key);
-        if (it == descriptorInfos.end()) {
-            continue;  // このキーに対応するディスクリプタ情報がない場合
-        }
-
-        const auto& infos = it->second;
-        if (std::holds_alternative<std::vector<vk::DescriptorBufferInfo>>(infos)) {
-            const auto& bufferInfos = std::get<std::vector<vk::DescriptorBufferInfo>>(infos);
+    for (const auto& [binding, infos] : descriptors | std::views::values) {
+        if (std::holds_alternative<BufferInfos>(infos)) {
+            const auto& bufferInfos = std::get<BufferInfos>(infos);
             vk::WriteDescriptorSet descriptorWrite;
             descriptorWrite.setBufferInfo(bufferInfos);
             descriptorWrite.setDescriptorCount(static_cast<uint32_t>(bufferInfos.size()));
@@ -62,8 +57,8 @@ void DescriptorSet::update() {
             descriptorWrite.setDstBinding(binding.binding);
             descriptorWrite.setDstSet(*descSet);
             descriptorWrites.push_back(descriptorWrite);
-        } else if (std::holds_alternative<std::vector<vk::DescriptorImageInfo>>(infos)) {
-            const auto& imageInfos = std::get<std::vector<vk::DescriptorImageInfo>>(infos);
+        } else if (std::holds_alternative<ImageInfos>(infos)) {
+            const auto& imageInfos = std::get<ImageInfos>(infos);
             vk::WriteDescriptorSet descriptorWrite;
             descriptorWrite.setImageInfo(imageInfos);
             descriptorWrite.setDescriptorCount(static_cast<uint32_t>(imageInfos.size()));
@@ -71,10 +66,8 @@ void DescriptorSet::update() {
             descriptorWrite.setDstBinding(binding.binding);
             descriptorWrite.setDstSet(*descSet);
             descriptorWrites.push_back(descriptorWrite);
-        } else if (std::holds_alternative<
-                       std::vector<vk::WriteDescriptorSetAccelerationStructureKHR>>(infos)) {
-            const auto& accelInfos =
-                std::get<std::vector<vk::WriteDescriptorSetAccelerationStructureKHR>>(infos);
+        } else if (std::holds_alternative<AccelInfos>(infos)) {
+            const auto& accelInfos = std::get<AccelInfos>(infos);
             vk::WriteDescriptorSet descriptorWrite;
             descriptorWrite.setDescriptorCount(static_cast<uint32_t>(accelInfos.size()));
             descriptorWrite.setDescriptorType(binding.descriptorType);
@@ -94,25 +87,25 @@ void DescriptorSet::set(const std::string& name, ArrayProxy<BufferHandle> buffer
     for (const auto& buffer : buffers) {
         bufferInfos.push_back(buffer->getInfo());
     }
-    descriptorInfos[name] = bufferInfos;
+    descriptors[name].infos = bufferInfos;
 }
 
 void DescriptorSet::set(const std::string& name, ArrayProxy<ImageHandle> images) {
     // イメージのディスクリプタ情報を設定
-    std::vector<vk::DescriptorImageInfo> imageInfos;
+    ImageInfos imageInfos;
     for (const auto& image : images) {
         imageInfos.push_back(image->getInfo());
     }
-    descriptorInfos[name] = imageInfos;
+    descriptors[name].infos = imageInfos;
 }
 
 void DescriptorSet::set(const std::string& name, ArrayProxy<TopAccelHandle> accels) {
     // アクセラレーション構造のディスクリプタ情報を設定
-    std::vector<vk::WriteDescriptorSetAccelerationStructureKHR> accelInfos;
+    AccelInfos accelInfos;
     for (const auto& accel : accels) {
         accelInfos.push_back(accel->getInfo());
     }
-    descriptorInfos[name] = accelInfos;
+    descriptors[name].infos = accelInfos;
 }
 
 void DescriptorSet::addResources(ShaderHandle shader) {
@@ -142,19 +135,20 @@ void DescriptorSet::updateBindingMap(const spirv_cross::Resource& resource,
                                      const spirv_cross::CompilerGLSL& glsl,
                                      vk::ShaderStageFlags stage,
                                      vk::DescriptorType type) {
-    if (bindingMap.contains(resource.name)) {
-        auto& binding = bindingMap[resource.name];
+    if (descriptors.contains(resource.name)) {
+        auto& binding = descriptors[resource.name].binding;
         if (binding.binding != glsl.get_decoration(resource.id, spv::DecorationBinding)) {
             throw std::runtime_error("binding does not match.");
         }
         binding.stageFlags |= stage;
     } else {
-        bindingMap[resource.name] =
-            vk::DescriptorSetLayoutBinding()
-                .setBinding(glsl.get_decoration(resource.id, spv::DecorationBinding))
-                .setDescriptorType(type)
-                .setDescriptorCount(1)
-                .setStageFlags(stage);
+        descriptors[resource.name] = {
+            .binding = vk::DescriptorSetLayoutBinding()
+                           .setBinding(glsl.get_decoration(resource.id, spv::DecorationBinding))
+                           .setDescriptorType(type)
+                           .setDescriptorCount(1)
+                           .setStageFlags(stage),
+        };
     }
 }
 }  // namespace rv

@@ -38,11 +38,15 @@ private:
     const Context* context;
     vk::UniqueDescriptorSet descSet;
     vk::UniqueDescriptorSetLayout descSetLayout;
-    std::unordered_map<std::string, vk::DescriptorSetLayoutBinding> bindingMap;
 
-    using ResourceInfo = std::variant<std::vector<vk::DescriptorBufferInfo>,
-                                      std::vector<vk::DescriptorImageInfo>,
-                                      std::vector<vk::WriteDescriptorSetAccelerationStructureKHR>>;
-    std::unordered_map<std::string, ResourceInfo> descriptorInfos;
+    using BufferInfos = std::vector<vk::DescriptorBufferInfo>;
+    using ImageInfos = std::vector<vk::DescriptorImageInfo>;
+    using AccelInfos = std::vector<vk::WriteDescriptorSetAccelerationStructureKHR>;
+    struct Descriptor {
+        vk::DescriptorSetLayoutBinding binding;
+        std::variant<BufferInfos, ImageInfos, AccelInfos> infos;
+    };
+
+    std::unordered_map<std::string, Descriptor> descriptors;
 };
 }  // namespace rv
