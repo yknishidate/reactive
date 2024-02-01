@@ -73,7 +73,7 @@ void DescriptorSet::update() {
             descriptorWrite.setDescriptorType(binding.descriptorType);
             descriptorWrite.setDstBinding(binding.binding);
             descriptorWrite.setDstSet(*descSet);
-            descriptorWrite.setPNext(&accelInfos);
+            descriptorWrite.setPNext(accelInfos.data());
             descriptorWrites.push_back(descriptorWrite);
         }
     }
