@@ -5,7 +5,7 @@ using namespace rv;
 std::string vertCode = R"(
 #version 450
 layout(location = 0) out vec4 outColor;
-vec3 positions[] = vec3[](vec3(-1, 1, 0), vec3(0, -1, 0), vec3(1, 1, 0));
+vec3 positions[] = vec3[](vec3(-1, -1, 0), vec3(0, 1, 0), vec3(1, -1, 0));
 vec3 colors[] = vec3[](vec3(0), vec3(1, 0, 0), vec3(0, 1, 0));
 void main() {
     gl_Position = vec4(positions[gl_VertexIndex], 1);
@@ -69,14 +69,12 @@ public:
         }
 
         commandBuffer->clearColorImage(getCurrentColorImage(), {0.0f, 0.0f, 0.5f, 1.0f});
-        commandBuffer->clearDepthStencilImage(getDefaultDepthImage(), 1.0f, 0);
         commandBuffer->setViewport(width, height);
         commandBuffer->setScissor(width, height);
         commandBuffer->bindDescriptorSet(descSet, pipeline);
         commandBuffer->bindPipeline(pipeline);
         commandBuffer->beginTimestamp(gpuTimer);
-        commandBuffer->beginRendering(getCurrentColorImage(), getDefaultDepthImage(), {0, 0},
-                                      {width, height});
+        commandBuffer->beginRendering(getCurrentColorImage(), nullptr, {0, 0}, {width, height});
         commandBuffer->draw(3, 1, 0, 0);
         commandBuffer->endRendering();
         commandBuffer->endTimestamp(gpuTimer);
