@@ -17,6 +17,8 @@ struct ImageCreateInfo {
     // if mipLevels is std::numeric_limits<uint32_t>::max(), then it's set to max level
     uint32_t mipLevels = 1;
 
+    bool isCubemap = false;
+
     const char* debugName = nullptr;
 };
 
@@ -30,6 +32,7 @@ public:
           vk::Format format,
           vk::ImageAspectFlags aspect,
           uint32_t mipLevels,
+          bool isCubemap,
           const char* debugName);
 
     Image(vk::Image image,
@@ -55,12 +58,16 @@ public:
     // ImageLayout is implicitly shifted to ShaderReadOnlyOptimal
     void generateMipmaps();
 
+    // TODO: refactor these
     static auto loadFromFile(const Context& context,
                              const std::string& filepath,
                              uint32_t mipLevels = 1) -> ImageHandle;
 
     // mipmap is not supported
     static auto loadFromFileHDR(const Context& context, const std::string& filepath) -> ImageHandle;
+
+    static auto loadFromKTX(const Context& context, const std::string& filepath, vk::Format format)
+        -> ImageHandle;
 
 private:
     const Context* context = nullptr;

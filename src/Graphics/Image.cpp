@@ -1,4 +1,8 @@
 #include "Graphics/Image.hpp"
+
+#include <ktx.h>
+#include <ktxvulkan.h>
+
 #include "Graphics/Buffer.hpp"
 #include "Graphics/CommandBuffer.hpp"
 #include "common.hpp"
@@ -6,6 +10,55 @@
 namespace {
 uint32_t calculateMipLevels(uint32_t width, uint32_t height) {
     return static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
+}
+
+size_t getFormatSize(vk::Format format) {
+    switch (format) {
+        // 1成分のフォーマット
+        case vk::Format::eR8Unorm:
+        case vk::Format::eR8Snorm:
+        case vk::Format::eR8Uscaled:
+        case vk::Format::eR8Sscaled:
+        case vk::Format::eR8Uint:
+        case vk::Format::eR8Sint:
+        case vk::Format::eR8Srgb:
+            return 1;
+
+        // 2成分のフォーマット
+        case vk::Format::eR8G8Unorm:
+        case vk::Format::eR8G8Snorm:
+        case vk::Format::eR8G8Uscaled:
+        case vk::Format::eR8G8Sscaled:
+        case vk::Format::eR8G8Uint:
+        case vk::Format::eR8G8Sint:
+        case vk::Format::eR8G8Srgb:
+            return 2;
+
+        // 4成分のフォーマット
+        case vk::Format::eR8G8B8A8Unorm:
+        case vk::Format::eR8G8B8A8Snorm:
+        case vk::Format::eR8G8B8A8Uscaled:
+        case vk::Format::eR8G8B8A8Sscaled:
+        case vk::Format::eR8G8B8A8Uint:
+        case vk::Format::eR8G8B8A8Sint:
+        case vk::Format::eR8G8B8A8Srgb:
+        case vk::Format::eB8G8R8A8Unorm:
+        case vk::Format::eB8G8R8A8Srgb:
+            return 4;
+
+        // HDRフォーマット
+        case vk::Format::eR16G16B16A16Sfloat:
+        case vk::Format::eR16G16B16A16Unorm:
+        case vk::Format::eR16G16B16A16Snorm:
+            return 8;
+
+        case vk::Format::eR32G32B32A32Sfloat:
+            return 16;
+
+        // その他のフォーマットについては、必要に応じてケースを追加
+        default:
+            throw std::runtime_error("Unsupported format for size calculation");
+    }
 }
 }  // namespace
 
@@ -16,12 +69,13 @@ Image::Image(const Context* context,
              vk::Format format,
              vk::ImageAspectFlags aspect,
              uint32_t mipLevels,
+             bool isCubemap,
              const char* debugName)
     // NOTE: layout is updated by transitionLayout after this ctor.
     : context{context},
       hasOwnership{true},
-      format{format},
       extent{extent},
+      format{format},
       mipLevels{mipLevels},
       aspect{aspect} {
     vk::ImageType type = extent.depth == 1 ? vk::ImageType::e2D : vk::ImageType::e3D;
@@ -41,6 +95,10 @@ Image::Image(const Context* context,
     imageInfo.setArrayLayers(1);
     imageInfo.setSamples(vk::SampleCountFlagBits::e1);
     imageInfo.setUsage(usage);
+    if (isCubemap) {
+        imageInfo.setArrayLayers(6);
+        imageInfo.setFlags(vk::ImageCreateFlagBits::eCubeCompatible);
+    }
     image = context->getDevice().createImage(imageInfo);
 
     vk::MemoryRequirements requirements = context->getDevice().getImageMemoryRequirements(image);
@@ -59,6 +117,9 @@ Image::Image(const Context* context,
     subresourceRange.setLevelCount(mipLevels);
     subresourceRange.setBaseArrayLayer(0);
     subresourceRange.setLayerCount(1);
+    if (isCubemap) {
+        subresourceRange.setLayerCount(6);
+    }
 
     vk::ImageViewCreateInfo viewInfo;
     viewInfo.setImage(image);
@@ -71,6 +132,9 @@ Image::Image(const Context* context,
     } else {
         assert(false);
     }
+    if (isCubemap) {
+        viewInfo.setViewType(vk::ImageViewType::eCubeArray);
+    }
 
     view = context->getDevice().createImageView(viewInfo);
 
@@ -81,7 +145,7 @@ Image::Image(const Context* context,
     samplerInfo.setMaxLod(0.0f);
     samplerInfo.setMinLod(0.0f);
     if (mipLevels > 1) {
-        samplerInfo.setMinLod(static_cast<float>(mipLevels));
+        samplerInfo.setMaxLod(static_cast<float>(mipLevels));
     }
     samplerInfo.setMipmapMode(vk::SamplerMipmapMode::eLinear);
     samplerInfo.setAddressModeU(vk::SamplerAddressMode::eRepeat);
@@ -184,6 +248,44 @@ ImageHandle Image::loadFromFileHDR(const Context& context, const std::string& fi
     });
 
     stbi_image_free(pixels);
+
+    return image;
+}
+
+auto Image::loadFromKTX(const Context& context, const std::string& filepath, vk::Format format)
+    -> ImageHandle {
+    ktxTexture* ktxTexture;
+
+    KTX_error_code result = ktxTexture_CreateFromNamedFile(
+        filepath.c_str(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &ktxTexture);
+    if (result != KTX_SUCCESS) {
+        throw std::runtime_error("Failed to load image: " + filepath);
+    }
+
+    ImageHandle image = context.createImage({
+        .usage = ImageUsage::Sampled,
+        .extent = {ktxTexture->baseWidth, ktxTexture->baseHeight, ktxTexture->baseDepth},
+        .format = format,
+        .aspect = vk::ImageAspectFlagBits::eColor,
+        .mipLevels = ktxTexture->numLevels,
+        .debugName = filepath.c_str(),
+    });
+
+    // Copy to image
+    BufferHandle stagingBuffer = context.createBuffer({
+        .usage = BufferUsage::Staging,
+        .memory = MemoryUsage::Host,
+        .size = ktxTexture->dataSize,
+    });
+    stagingBuffer->copy(ktxTexture->pData);
+
+    context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
+        commandBuffer->transitionLayout(image, vk::ImageLayout::eTransferDstOptimal);
+        commandBuffer->copyBufferToImage(stagingBuffer, image);
+        commandBuffer->transitionLayout(image, vk::ImageLayout::eShaderReadOnlyOptimal);
+    });
+
+    ktxTexture_Destroy(ktxTexture);
 
     return image;
 }

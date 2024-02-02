@@ -9,6 +9,7 @@ add_library(${PROJECT_NAME} ${sources} ${headers})
 
 target_precompile_headers(${PROJECT_NAME} PUBLIC include/reactive/pch.h)
 
+find_package(Ktx CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
@@ -25,6 +26,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     spdlog::spdlog
     spdlog::spdlog_header_only
     tinyobjloader::tinyobjloader
+    KTX::ktx
 
     optimized ${VULKAN_LIB}/spirv-cross-core.lib
     optimized ${VULKAN_LIB}/spirv-cross-cpp.lib
