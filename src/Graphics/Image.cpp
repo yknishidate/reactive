@@ -11,55 +11,6 @@ namespace {
 uint32_t calculateMipLevels(uint32_t width, uint32_t height) {
     return static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
 }
-
-size_t getFormatSize(vk::Format format) {
-    switch (format) {
-        // 1成分のフォーマット
-        case vk::Format::eR8Unorm:
-        case vk::Format::eR8Snorm:
-        case vk::Format::eR8Uscaled:
-        case vk::Format::eR8Sscaled:
-        case vk::Format::eR8Uint:
-        case vk::Format::eR8Sint:
-        case vk::Format::eR8Srgb:
-            return 1;
-
-        // 2成分のフォーマット
-        case vk::Format::eR8G8Unorm:
-        case vk::Format::eR8G8Snorm:
-        case vk::Format::eR8G8Uscaled:
-        case vk::Format::eR8G8Sscaled:
-        case vk::Format::eR8G8Uint:
-        case vk::Format::eR8G8Sint:
-        case vk::Format::eR8G8Srgb:
-            return 2;
-
-        // 4成分のフォーマット
-        case vk::Format::eR8G8B8A8Unorm:
-        case vk::Format::eR8G8B8A8Snorm:
-        case vk::Format::eR8G8B8A8Uscaled:
-        case vk::Format::eR8G8B8A8Sscaled:
-        case vk::Format::eR8G8B8A8Uint:
-        case vk::Format::eR8G8B8A8Sint:
-        case vk::Format::eR8G8B8A8Srgb:
-        case vk::Format::eB8G8R8A8Unorm:
-        case vk::Format::eB8G8R8A8Srgb:
-            return 4;
-
-        // HDRフォーマット
-        case vk::Format::eR16G16B16A16Sfloat:
-        case vk::Format::eR16G16B16A16Unorm:
-        case vk::Format::eR16G16B16A16Snorm:
-            return 8;
-
-        case vk::Format::eR32G32B32A32Sfloat:
-            return 16;
-
-        // その他のフォーマットについては、必要に応じてケースを追加
-        default:
-            throw std::runtime_error("Unsupported format for size calculation");
-    }
-}
 }  // namespace
 
 namespace rv {
@@ -92,13 +43,13 @@ Image::Image(const Context* context,
     imageInfo.setFormat(format);
     imageInfo.setExtent(extent);
     imageInfo.setMipLevels(mipLevels);
-    imageInfo.setArrayLayers(1);
     imageInfo.setSamples(vk::SampleCountFlagBits::e1);
     imageInfo.setUsage(usage);
     if (isCubemap) {
-        imageInfo.setArrayLayers(6);
+        layerCount = 6;
         imageInfo.setFlags(vk::ImageCreateFlagBits::eCubeCompatible);
     }
+    imageInfo.setArrayLayers(layerCount);
     image = context->getDevice().createImage(imageInfo);
 
     vk::MemoryRequirements requirements = context->getDevice().getImageMemoryRequirements(image);
@@ -133,7 +84,7 @@ Image::Image(const Context* context,
         assert(false);
     }
     if (isCubemap) {
-        viewInfo.setViewType(vk::ImageViewType::eCubeArray);
+        viewInfo.setViewType(vk::ImageViewType::eCube);
     }
 
     view = context->getDevice().createImageView(viewInfo);
@@ -161,6 +112,28 @@ Image::Image(const Context* context,
         context->setDebugName(sampler, (std::string(debugName) + "(Sampler)").c_str());
     }
 }
+
+Image::Image(const Context* _context,
+             vk::Image _image,
+             vk::Format _imageFormat,
+             vk::ImageLayout _imageLayout,
+             vk::DeviceMemory _deviceMemory,
+             uint32_t _width,
+             uint32_t _height,
+             uint32_t _depth,
+             uint32_t _levelCount,
+             uint32_t _layerCount)
+    : context{_context},
+      image{_image},
+      memory{_deviceMemory},
+      hasOwnership{true},
+      layout{_imageLayout},
+      extent{_width, _height, _depth},
+      format{_imageFormat},
+      mipLevels{_levelCount},
+      layerCount{_layerCount},
+      aspect{vk::ImageAspectFlagBits::eColor}  // TODO: fix
+{}
 
 Image::~Image() {
     if (hasOwnership) {
@@ -252,40 +225,40 @@ ImageHandle Image::loadFromFileHDR(const Context& context, const std::string& fi
     return image;
 }
 
-auto Image::loadFromKTX(const Context& context, const std::string& filepath, vk::Format format)
-    -> ImageHandle {
-    ktxTexture* ktxTexture;
+auto Image::loadFromKTX(const Context& context, const std::string& filepath) -> ImageHandle {
+    ktxVulkanDeviceInfo kvdi;
+    ktxTexture* kTexture;
+    ktxVulkanTexture texture;
 
-    KTX_error_code result = ktxTexture_CreateFromNamedFile(
-        filepath.c_str(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &ktxTexture);
-    if (result != KTX_SUCCESS) {
-        throw std::runtime_error("Failed to load image: " + filepath);
+    ktxVulkanDeviceInfo_Construct(&kvdi, context.getPhysicalDevice(), context.getDevice(),
+                                  context.getQueue(), context.getCommandPool(), nullptr);
+
+    KTX_error_code result =
+        ktxTexture_CreateFromNamedFile(filepath.c_str(), KTX_TEXTURE_CREATE_NO_FLAGS, &kTexture);
+    if (KTX_SUCCESS != result) {
+        std::stringstream message;
+
+        message << "Creation of ktxTexture from \"" << filepath
+                << "\" failed: " << ktxErrorString(result);
+        throw std::runtime_error(message.str());
+    }
+    result =
+        ktxTexture_VkUploadEx(kTexture, &kvdi, &texture, VK_IMAGE_TILING_OPTIMAL,
+                              VK_IMAGE_USAGE_SAMPLED_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    if (KTX_SUCCESS != result) {
+        std::stringstream message;
+
+        message << "ktxTexture_VkUpload failed: " << ktxErrorString(result);
+        throw std::runtime_error(message.str());
     }
 
-    ImageHandle image = context.createImage({
-        .usage = ImageUsage::Sampled,
-        .extent = {ktxTexture->baseWidth, ktxTexture->baseHeight, ktxTexture->baseDepth},
-        .format = format,
-        .aspect = vk::ImageAspectFlagBits::eColor,
-        .mipLevels = ktxTexture->numLevels,
-        .debugName = filepath.c_str(),
-    });
+    ImageHandle image = std::make_shared<Image>(
+        &context, texture.image, static_cast<vk::Format>(texture.imageFormat),
+        static_cast<vk::ImageLayout>(texture.imageLayout), texture.deviceMemory, texture.width,
+        texture.height, texture.depth, texture.levelCount, texture.layerCount);
 
-    // Copy to image
-    BufferHandle stagingBuffer = context.createBuffer({
-        .usage = BufferUsage::Staging,
-        .memory = MemoryUsage::Host,
-        .size = ktxTexture->dataSize,
-    });
-    stagingBuffer->copy(ktxTexture->pData);
-
-    context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
-        commandBuffer->transitionLayout(image, vk::ImageLayout::eTransferDstOptimal);
-        commandBuffer->copyBufferToImage(stagingBuffer, image);
-        commandBuffer->transitionLayout(image, vk::ImageLayout::eShaderReadOnlyOptimal);
-    });
-
-    ktxTexture_Destroy(ktxTexture);
+    ktxTexture_Destroy(kTexture);
+    ktxVulkanDeviceInfo_Destruct(&kvdi);
 
     return image;
 }

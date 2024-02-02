@@ -190,6 +190,8 @@ public:
 
     auto getQueueFamily(vk::QueueFlags flag = QueueFlags::General) const -> uint32_t;
 
+    auto getCommandPool(vk::QueueFlags flag = QueueFlags::General) const -> vk::CommandPool;
+
     auto getDescriptorPool() const -> vk::DescriptorPool { return *descriptorPool; }
 
     // Command buffer

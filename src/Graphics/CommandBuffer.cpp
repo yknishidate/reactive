@@ -249,8 +249,8 @@ void CommandBuffer::imageBarrier(ArrayProxy<ImageHandle> images,
         barriers[i].subresourceRange.aspectMask = images[i]->getAspectMask();
         barriers[i].subresourceRange.baseMipLevel = 0;
         barriers[i].subresourceRange.baseArrayLayer = 0;
-        barriers[i].subresourceRange.layerCount = 1;
-        barriers[i].subresourceRange.levelCount = 1;
+        barriers[i].subresourceRange.layerCount = images[i]->getLayerCount();
+        barriers[i].subresourceRange.levelCount = images[i]->getMipLevels();
     }
 
     commandBuffer->pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, nullptr, nullptr,
@@ -279,7 +279,11 @@ void CommandBuffer::transitionLayout(ImageHandle image, vk::ImageLayout newLayou
     barrier.setImage(image->image);
     barrier.setOldLayout(image->layout);
     barrier.setNewLayout(newLayout);
-    barrier.setSubresourceRange({image->aspect, 0, image->mipLevels, 0, 1});
+    barrier.subresourceRange.aspectMask = image->getAspectMask();
+    barrier.subresourceRange.baseMipLevel = 0;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.layerCount = image->getLayerCount();
+    barrier.subresourceRange.levelCount = image->getMipLevels();
 
     switch (image->layout) {
         case vk::ImageLayout::eTransferDstOptimal:
@@ -365,7 +369,14 @@ void CommandBuffer::copyImageToBuffer(ImageHandle srcImage, BufferHandle dstBuff
                                      dstBuffer->getBuffer(), region);
 }
 
-void CommandBuffer::copyBufferToImage(BufferHandle srcBuffer, ImageHandle dstImage) const {
+void CommandBuffer::copyBufferToImage(BufferHandle srcBuffer,
+                                      ImageHandle dstImage,
+                                      ArrayProxy<vk::BufferImageCopy> copyRegions) const {
+    if (!copyRegions.empty()) {
+        commandBuffer->copyBufferToImage(srcBuffer->getBuffer(), dstImage->getImage(),
+                                         dstImage->getLayout(), copyRegions);
+        return;
+    }
     vk::BufferImageCopy region;
     region.setImageExtent(dstImage->getExtent());
     region.setImageSubresource({dstImage->getAspectMask(), 0, 0, 1});

@@ -42,6 +42,17 @@ public:
           vk::ImageAspectFlags aspect)
         : image{image}, view{view}, extent{extent}, format{format}, aspect{aspect} {}
 
+    Image(const Context* _context,
+          vk::Image _image,
+          vk::Format _imageFormat,
+          vk::ImageLayout _imageLayout,
+          vk::DeviceMemory _deviceMemory,
+          uint32_t _width,
+          uint32_t _height,
+          uint32_t _depth,
+          uint32_t _levelCount,
+          uint32_t _layerCount);
+
     ~Image();
 
     auto getImage() const -> vk::Image { return image; }
@@ -53,6 +64,7 @@ public:
     auto getLayout() const -> vk::ImageLayout { return layout; }
     auto getExtent() const -> vk::Extent3D { return extent; }
     auto getFormat() const -> vk::Format { return format; }
+    auto getLayerCount() const -> uint32_t { return layerCount; }
 
     // Ensure that data is pre-filled
     // ImageLayout is implicitly shifted to ShaderReadOnlyOptimal
@@ -66,8 +78,7 @@ public:
     // mipmap is not supported
     static auto loadFromFileHDR(const Context& context, const std::string& filepath) -> ImageHandle;
 
-    static auto loadFromKTX(const Context& context, const std::string& filepath, vk::Format format)
-        -> ImageHandle;
+    static auto loadFromKTX(const Context& context, const std::string& filepath) -> ImageHandle;
 
 private:
     const Context* context = nullptr;
@@ -84,6 +95,7 @@ private:
     vk::Format format = {};
 
     uint32_t mipLevels = 1;
+    uint32_t layerCount = 1;
 
     vk::ImageAspectFlags aspect;
 };

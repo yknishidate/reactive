@@ -151,7 +151,9 @@ public:
 
     void copyBuffer(BufferHandle buffer, const void* data) const;
 
-    void copyBufferToImage(BufferHandle srcBuffer, ImageHandle dstImage) const;
+    void copyBufferToImage(BufferHandle srcBuffer,
+                           ImageHandle dstImage,
+                           ArrayProxy<vk::BufferImageCopy> copyRegions = {}) const;
 
     // accel struct
     void updateTopAccel(TopAccelHandle topAccel) const;

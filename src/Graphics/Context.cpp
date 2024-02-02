@@ -207,6 +207,10 @@ auto Context::getQueueFamily(vk::QueueFlags flag) const -> uint32_t {
     return queueFamilies.at(flag);
 }
 
+auto Context::getCommandPool(vk::QueueFlags flag) const -> vk::CommandPool {
+    return *getThreadQueue(flag).commandPool;
+}
+
 auto Context::allocateCommandBuffer(vk::QueueFlags flag) const -> CommandBufferHandle {
     vk::CommandPool commandPool = *getThreadQueue(flag).commandPool;
     vk::CommandBufferAllocateInfo commandBufferInfo;
