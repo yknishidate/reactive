@@ -129,7 +129,36 @@ Image::Image(const Context* _context,
       mipLevels{_levelCount},
       layerCount{_layerCount},
       aspect{vk::ImageAspectFlagBits::eColor}  // TODO: fix
-{}
+{
+    vk::ImageSubresourceRange subresourceRange;
+    subresourceRange.setAspectMask(aspect);
+    subresourceRange.setBaseMipLevel(0);
+    subresourceRange.setLevelCount(mipLevels);
+    subresourceRange.setBaseArrayLayer(0);
+    subresourceRange.setLayerCount(layerCount);
+
+    vk::ImageViewCreateInfo viewInfo;
+    viewInfo.setImage(image);
+    viewInfo.setFormat(format);
+    viewInfo.setSubresourceRange(subresourceRange);
+    viewInfo.setViewType(viewType);
+    view = context->getDevice().createImageView(viewInfo);
+
+    vk::SamplerCreateInfo samplerInfo;
+    samplerInfo.setMagFilter(vk::Filter::eLinear);
+    samplerInfo.setMinFilter(vk::Filter::eLinear);
+    samplerInfo.setAnisotropyEnable(VK_FALSE);
+    samplerInfo.setMaxLod(0.0f);
+    samplerInfo.setMinLod(0.0f);
+    samplerInfo.setMaxLod(static_cast<float>(mipLevels));
+    samplerInfo.setMipmapMode(vk::SamplerMipmapMode::eLinear);
+    samplerInfo.setAddressModeU(vk::SamplerAddressMode::eRepeat);
+    samplerInfo.setAddressModeV(vk::SamplerAddressMode::eRepeat);
+    samplerInfo.setAddressModeW(vk::SamplerAddressMode::eRepeat);
+    samplerInfo.setCompareEnable(VK_TRUE);
+    samplerInfo.setCompareOp(vk::CompareOp::eLess);
+    sampler = context->getDevice().createSampler(samplerInfo);
+}
 
 Image::~Image() {
     if (hasOwnership) {
