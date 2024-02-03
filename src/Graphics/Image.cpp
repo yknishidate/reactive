@@ -70,15 +70,16 @@ Image::Image(const Context& _context, const ImageCreateInfo& createInfo)
     viewInfo.setFormat(format);
     viewInfo.setSubresourceRange(subresourceRange);
     if (type == vk::ImageType::e2D) {
-        viewInfo.setViewType(vk::ImageViewType::e2D);
+        viewType = vk::ImageViewType::e2D;
     } else if (type == vk::ImageType::e3D) {
-        viewInfo.setViewType(vk::ImageViewType::e3D);
+        viewType = vk::ImageViewType::e3D;
     } else {
         assert(false);
     }
     if (createInfo.isCubemap) {
-        viewInfo.setViewType(vk::ImageViewType::eCube);
+        viewType = vk::ImageViewType::eCube;
     }
+    viewInfo.setViewType(viewType);
 
     view = context->getDevice().createImageView(viewInfo);
 
@@ -111,6 +112,7 @@ Image::Image(const Context* _context,
              vk::Format _imageFormat,
              vk::ImageLayout _imageLayout,
              vk::DeviceMemory _deviceMemory,
+             vk::ImageViewType _viewType,
              uint32_t _width,
              uint32_t _height,
              uint32_t _depth,
@@ -119,6 +121,7 @@ Image::Image(const Context* _context,
     : context{_context},
       image{_image},
       memory{_deviceMemory},
+      viewType{_viewType},
       hasOwnership{true},
       layout{_imageLayout},
       extent{_width, _height, _depth},
@@ -245,10 +248,15 @@ auto Image::loadFromKTX(const Context& context, const std::string& filepath) -> 
         throw std::runtime_error(message.str());
     }
 
-    ImageHandle image = std::make_shared<Image>(
-        &context, texture.image, static_cast<vk::Format>(texture.imageFormat),
-        static_cast<vk::ImageLayout>(texture.imageLayout), texture.deviceMemory, texture.width,
-        texture.height, texture.depth, texture.levelCount, texture.layerCount);
+    ImageHandle image = std::make_shared<Image>(            //
+        &context,                                           //
+        texture.image,                                      //
+        static_cast<vk::Format>(texture.imageFormat),       //
+        static_cast<vk::ImageLayout>(texture.imageLayout),  //
+        texture.deviceMemory,                               //
+        static_cast<vk::ImageViewType>(texture.viewType),   //
+        texture.width, texture.height, texture.depth,       //
+        texture.levelCount, texture.layerCount);
 
     ktxTexture_Destroy(kTexture);
     ktxVulkanDeviceInfo_Destruct(&kvdi);

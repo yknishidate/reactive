@@ -40,6 +40,7 @@ public:
           vk::Format _imageFormat,
           vk::ImageLayout _imageLayout,
           vk::DeviceMemory _deviceMemory,
+          vk::ImageViewType _viewType,
           uint32_t _width,
           uint32_t _height,
           uint32_t _depth,
@@ -58,6 +59,7 @@ public:
     auto getExtent() const -> vk::Extent3D { return extent; }
     auto getFormat() const -> vk::Format { return format; }
     auto getLayerCount() const -> uint32_t { return layerCount; }
+    auto getViewType() const -> vk::ImageViewType { return viewType; }
 
     // Ensure that data is pre-filled
     // ImageLayout is implicitly shifted to ShaderReadOnlyOptimal
@@ -80,6 +82,7 @@ private:
     vk::DeviceMemory memory;
     vk::ImageView view;
     vk::Sampler sampler;
+    vk::ImageViewType viewType;
 
     bool hasOwnership = false;
 
