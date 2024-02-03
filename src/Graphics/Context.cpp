@@ -10,7 +10,6 @@
 #include "Graphics/Pipeline.hpp"
 #include "Graphics/Shader.hpp"
 #include "Timer/GPUTimer.hpp"
-#include "common.hpp"
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
@@ -277,55 +276,57 @@ auto Context::getPhysicalDeviceLimits() const -> vk::PhysicalDeviceLimits {
     return physicalDevice.getProperties().limits;
 }
 
-auto Context::createShader(ShaderCreateInfo createInfo) const -> ShaderHandle {
+auto Context::createShader(const ShaderCreateInfo& createInfo) const -> ShaderHandle {
     return std::make_shared<Shader>(*this, createInfo);
 }
 
-auto Context::createDescriptorSet(DescriptorSetCreateInfo createInfo) const -> DescriptorSetHandle {
+auto Context::createDescriptorSet(const DescriptorSetCreateInfo& createInfo) const
+    -> DescriptorSetHandle {
     return std::make_shared<DescriptorSet>(*this, createInfo);
 }
 
-auto Context::createGraphicsPipeline(GraphicsPipelineCreateInfo createInfo) const
+auto Context::createGraphicsPipeline(const GraphicsPipelineCreateInfo& createInfo) const
     -> GraphicsPipelineHandle {
     return std::make_shared<GraphicsPipeline>(*this, createInfo);
 }
 
-auto Context::createMeshShaderPipeline(MeshShaderPipelineCreateInfo createInfo) const
+auto Context::createMeshShaderPipeline(const MeshShaderPipelineCreateInfo& createInfo) const
     -> MeshShaderPipelineHandle {
     return std::make_shared<MeshShaderPipeline>(*this, createInfo);
 }
 
-auto Context::createComputePipeline(ComputePipelineCreateInfo createInfo) const
+auto Context::createComputePipeline(const ComputePipelineCreateInfo& createInfo) const
     -> ComputePipelineHandle {
     return std::make_shared<ComputePipeline>(*this, createInfo);
 }
 
-auto Context::createRayTracingPipeline(RayTracingPipelineCreateInfo createInfo) const
+auto Context::createRayTracingPipeline(const RayTracingPipelineCreateInfo& createInfo) const
     -> RayTracingPipelineHandle {
     return std::make_shared<RayTracingPipeline>(*this, createInfo);
 }
 
-auto Context::createImage(ImageCreateInfo createInfo) const -> ImageHandle {
+auto Context::createImage(const ImageCreateInfo& createInfo) const -> ImageHandle {
     return std::make_shared<Image>(*this, createInfo);
 }
 
-auto Context::createBuffer(BufferCreateInfo createInfo) const -> BufferHandle {
+auto Context::createBuffer(const BufferCreateInfo& createInfo) const -> BufferHandle {
     return std::make_shared<Buffer>(*this, createInfo);
 }
 
-auto Context::createBottomAccel(BottomAccelCreateInfo createInfo) const -> BottomAccelHandle {
+auto Context::createBottomAccel(const BottomAccelCreateInfo& createInfo) const
+    -> BottomAccelHandle {
     return std::make_shared<BottomAccel>(*this, createInfo);
 }
 
-auto Context::createTopAccel(TopAccelCreateInfo createInfo) const -> TopAccelHandle {
+auto Context::createTopAccel(const TopAccelCreateInfo& createInfo) const -> TopAccelHandle {
     return std::make_shared<TopAccel>(*this, createInfo);
 }
 
-auto Context::createGPUTimer(GPUTimerCreateInfo createInfo) const -> GPUTimerHandle {
+auto Context::createGPUTimer(const GPUTimerCreateInfo& createInfo) const -> GPUTimerHandle {
     return std::make_shared<GPUTimer>(*this, createInfo);
 }
 
-auto Context::createFence(FenceCreateInfo createInfo) const -> FenceHandle {
+auto Context::createFence(const FenceCreateInfo& createInfo) const -> FenceHandle {
     return std::make_shared<Fence>(*this, createInfo);
 }
 

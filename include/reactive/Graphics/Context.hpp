@@ -240,32 +240,34 @@ public:
     }
 
     // Resource
-    auto createShader(ShaderCreateInfo createInfo) const -> ShaderHandle;
+    auto createShader(const ShaderCreateInfo& createInfo) const -> ShaderHandle;
 
-    auto createDescriptorSet(DescriptorSetCreateInfo createInfo) const -> DescriptorSetHandle;
+    auto createDescriptorSet(const DescriptorSetCreateInfo& createInfo) const
+        -> DescriptorSetHandle;
 
-    auto createGraphicsPipeline(GraphicsPipelineCreateInfo createInfo) const
+    auto createGraphicsPipeline(const GraphicsPipelineCreateInfo& createInfo) const
         -> GraphicsPipelineHandle;
 
-    auto createMeshShaderPipeline(MeshShaderPipelineCreateInfo createInfo) const
+    auto createMeshShaderPipeline(const MeshShaderPipelineCreateInfo& createInfo) const
         -> MeshShaderPipelineHandle;
 
-    auto createComputePipeline(ComputePipelineCreateInfo createInfo) const -> ComputePipelineHandle;
+    auto createComputePipeline(const ComputePipelineCreateInfo& createInfo) const
+        -> ComputePipelineHandle;
 
-    auto createRayTracingPipeline(RayTracingPipelineCreateInfo createInfo) const
+    auto createRayTracingPipeline(const RayTracingPipelineCreateInfo& createInfo) const
         -> RayTracingPipelineHandle;
 
-    auto createImage(ImageCreateInfo createInfo) const -> ImageHandle;
+    auto createImage(const ImageCreateInfo& createInfo) const -> ImageHandle;
 
-    auto createBuffer(BufferCreateInfo createInfo) const -> BufferHandle;
+    auto createBuffer(const BufferCreateInfo& createInfo) const -> BufferHandle;
 
-    auto createBottomAccel(BottomAccelCreateInfo createInfo) const -> BottomAccelHandle;
+    auto createBottomAccel(const BottomAccelCreateInfo& createInfo) const -> BottomAccelHandle;
 
-    auto createTopAccel(TopAccelCreateInfo createInfo) const -> TopAccelHandle;
+    auto createTopAccel(const TopAccelCreateInfo& createInfo) const -> TopAccelHandle;
 
-    auto createGPUTimer(GPUTimerCreateInfo createInfo) const -> GPUTimerHandle;
+    auto createGPUTimer(const GPUTimerCreateInfo& createInfo) const -> GPUTimerHandle;
 
-    auto createFence(FenceCreateInfo createInfo) const -> FenceHandle;
+    auto createFence(const FenceCreateInfo& createInfo) const -> FenceHandle;
 
 private:
     static auto VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
