@@ -26,14 +26,7 @@ class Image {
     friend class CommandBuffer;
 
 public:
-    Image(const Context* context,
-          vk::ImageUsageFlags usage,
-          vk::Extent3D extent,
-          vk::Format format,
-          vk::ImageAspectFlags aspect,
-          uint32_t mipLevels,
-          bool isCubemap,
-          const char* debugName);
+    Image(const Context* context, ImageCreateInfo createInfo);
 
     Image(vk::Image image,
           vk::ImageView view,

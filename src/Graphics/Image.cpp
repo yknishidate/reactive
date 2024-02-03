@@ -14,21 +14,14 @@ uint32_t calculateMipLevels(uint32_t width, uint32_t height) {
 }  // namespace
 
 namespace rv {
-Image::Image(const Context* context,
-             vk::ImageUsageFlags usage,
-             vk::Extent3D extent,
-             vk::Format format,
-             vk::ImageAspectFlags aspect,
-             uint32_t mipLevels,
-             bool isCubemap,
-             const char* debugName)
+Image::Image(const Context* context, ImageCreateInfo createInfo)
     // NOTE: layout is updated by transitionLayout after this ctor.
     : context{context},
       hasOwnership{true},
-      extent{extent},
-      format{format},
-      mipLevels{mipLevels},
-      aspect{aspect} {
+      extent{createInfo.extent},
+      format{createInfo.format},
+      mipLevels{createInfo.mipLevels},
+      aspect{createInfo.aspect} {
     vk::ImageType type = extent.depth == 1 ? vk::ImageType::e2D : vk::ImageType::e3D;
 
     // Compute mipmap level
@@ -44,8 +37,8 @@ Image::Image(const Context* context,
     imageInfo.setExtent(extent);
     imageInfo.setMipLevels(mipLevels);
     imageInfo.setSamples(vk::SampleCountFlagBits::e1);
-    imageInfo.setUsage(usage);
-    if (isCubemap) {
+    imageInfo.setUsage(createInfo.usage);
+    if (createInfo.isCubemap) {
         layerCount = 6;
         imageInfo.setFlags(vk::ImageCreateFlagBits::eCubeCompatible);
     }
@@ -68,7 +61,7 @@ Image::Image(const Context* context,
     subresourceRange.setLevelCount(mipLevels);
     subresourceRange.setBaseArrayLayer(0);
     subresourceRange.setLayerCount(1);
-    if (isCubemap) {
+    if (createInfo.isCubemap) {
         subresourceRange.setLayerCount(6);
     }
 
@@ -83,7 +76,7 @@ Image::Image(const Context* context,
     } else {
         assert(false);
     }
-    if (isCubemap) {
+    if (createInfo.isCubemap) {
         viewInfo.setViewType(vk::ImageViewType::eCube);
     }
 
@@ -106,10 +99,10 @@ Image::Image(const Context* context,
     samplerInfo.setCompareOp(vk::CompareOp::eLess);
     sampler = context->getDevice().createSampler(samplerInfo);
 
-    if (debugName) {
-        context->setDebugName(image, debugName);
-        context->setDebugName(view, (std::string(debugName) + "(ImageView)").c_str());
-        context->setDebugName(sampler, (std::string(debugName) + "(Sampler)").c_str());
+    if (createInfo.debugName) {
+        context->setDebugName(image, createInfo.debugName);
+        context->setDebugName(view, (std::string(createInfo.debugName) + "(ImageView)").c_str());
+        context->setDebugName(sampler, (std::string(createInfo.debugName) + "(Sampler)").c_str());
     }
 }
 

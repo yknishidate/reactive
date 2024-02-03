@@ -306,14 +306,11 @@ auto Context::createRayTracingPipeline(RayTracingPipelineCreateInfo createInfo) 
 }
 
 auto Context::createImage(ImageCreateInfo createInfo) const -> ImageHandle {
-    return std::make_shared<Image>(this, createInfo.usage, createInfo.extent, createInfo.format,
-                                   createInfo.aspect, createInfo.mipLevels, createInfo.isCubemap,
-                                   createInfo.debugName);
+    return std::make_shared<Image>(this, createInfo);
 }
 
 auto Context::createBuffer(BufferCreateInfo createInfo) const -> BufferHandle {
-    return std::make_shared<Buffer>(this, createInfo.usage, createInfo.memory, createInfo.size,
-                                    createInfo.debugName);
+    return std::make_shared<Buffer>(this, createInfo);
 }
 
 auto Context::createBottomAccel(BottomAccelCreateInfo createInfo) const -> BottomAccelHandle {

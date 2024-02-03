@@ -4,21 +4,17 @@
 #include "common.hpp"
 
 namespace rv {
-Buffer::Buffer(const Context* context,
-               vk::BufferUsageFlags usage,
-               vk::MemoryPropertyFlags memoryProp,
-               vk::DeviceSize size,
-               std::string debugName)
-    : context{context}, size(size) {
+Buffer::Buffer(const Context* context, BufferCreateInfo createInfo)
+    : context{context}, size{createInfo.size} {
     // Create buffer
     vk::BufferCreateInfo bufferInfo;
     bufferInfo.setSize(size);
-    bufferInfo.setUsage(usage);
+    bufferInfo.setUsage(createInfo.usage);
     buffer = context->getDevice().createBufferUnique(bufferInfo);
 
     // Allocate memory
     vk::MemoryRequirements requirements = context->getDevice().getBufferMemoryRequirements(*buffer);
-    uint32_t memoryTypeIndex = context->findMemoryTypeIndex(requirements, memoryProp);
+    uint32_t memoryTypeIndex = context->findMemoryTypeIndex(requirements, createInfo.memory);
 
     vk::MemoryAllocateFlagsInfo flagsInfo{vk::MemoryAllocateFlagBits::eDeviceAddress};
     vk::MemoryAllocateInfo memoryInfo;
@@ -27,14 +23,14 @@ Buffer::Buffer(const Context* context,
     memoryInfo.setPNext(&flagsInfo);
     memory = context->getDevice().allocateMemoryUnique(memoryInfo);
 
-    isHostVisible = static_cast<bool>(memoryProp & vk::MemoryPropertyFlagBits::eHostVisible);
+    isHostVisible = static_cast<bool>(createInfo.memory & vk::MemoryPropertyFlagBits::eHostVisible);
 
     // Bind memory
     context->getDevice().bindBufferMemory(*buffer, *memory, 0);
 
-    if (!debugName.empty()) {
-        context->setDebugName(*buffer, debugName.c_str());
-        context->setDebugName(*memory, debugName.c_str());
+    if (!createInfo.debugName.empty()) {
+        context->setDebugName(*buffer, createInfo.debugName.c_str());
+        context->setDebugName(*memory, createInfo.debugName.c_str());
     }
 }
 

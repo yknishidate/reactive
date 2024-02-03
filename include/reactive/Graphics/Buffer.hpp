@@ -4,6 +4,7 @@
 namespace rv {
 struct BufferCreateInfo {
     vk::BufferUsageFlags usage;
+
     vk::MemoryPropertyFlags memory;
 
     size_t size = 0;
@@ -15,11 +16,7 @@ class Buffer {
     friend class CommandBuffer;
 
 public:
-    Buffer(const Context* context,
-           vk::BufferUsageFlags usage,
-           vk::MemoryPropertyFlags memoryProp,
-           vk::DeviceSize size,
-           std::string debugName);
+    Buffer(const Context* context, BufferCreateInfo createInfo);
 
     auto getBuffer() const -> vk::Buffer { return *buffer; }
     auto getSize() const -> vk::DeviceSize { return size; }
