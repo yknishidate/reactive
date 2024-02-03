@@ -76,7 +76,7 @@ public:
         return false;
     }
 
-    const T& operator[](uint32_t i) noexcept {
+    const T& operator[](uint32_t i) const noexcept {
         assert(0 <= i && i < m_count);
         return m_ptr[i];
     }
