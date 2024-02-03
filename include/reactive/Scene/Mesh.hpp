@@ -62,7 +62,7 @@ struct PlaneLineMeshCreateInfo {
 class Mesh {
 public:
     Mesh() = default;
-    Mesh(const Context& context,
+    Mesh(const Context& _context,
          vk::MemoryPropertyFlags memoryProps,
          const std::vector<Vertex>& vertices,
          const std::vector<uint32_t>& indices,
@@ -79,7 +79,7 @@ public:
     auto getIndicesCount() const -> uint32_t { return static_cast<uint32_t>(indices.size()); }
     auto getTriangleCount() const -> uint32_t { return static_cast<uint32_t>(indices.size() / 3); }
 
-    const Context* context;
+    const Context* context = nullptr;
 
     std::string name;
 

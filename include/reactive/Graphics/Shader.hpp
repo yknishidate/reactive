@@ -9,7 +9,7 @@ struct ShaderCreateInfo {
 
 class Shader {
 public:
-    Shader(const Context* context, ShaderCreateInfo createInfo);
+    Shader(const Context& context, const ShaderCreateInfo& createInfo);
 
     auto getSpvCode() const { return spvCode; }
     auto getModule() const { return *shaderModule; }

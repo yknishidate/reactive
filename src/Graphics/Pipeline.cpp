@@ -1,18 +1,18 @@
 #include "Graphics/Pipeline.hpp"
 
-#include <spdlog/spdlog.h>
 #include <regex>
 
 #include "Compiler/Compiler.hpp"
 #include "Graphics/ArrayProxy.hpp"
+#include "Graphics/Buffer.hpp"
 #include "Graphics/CommandBuffer.hpp"
-#include "Graphics/Image.hpp"
 #include "Scene/Mesh.hpp"
 #include "Scene/Object.hpp"
 
 namespace rv {
-GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreateInfo createInfo)
-    : Pipeline{context} {
+GraphicsPipeline::GraphicsPipeline(const Context& _context,
+                                   const GraphicsPipelineCreateInfo& createInfo)
+    : Pipeline{_context} {
     shaderStageFlags = vk::ShaderStageFlagBits::eAllGraphics;
     bindPoint = vk::PipelineBindPoint::eGraphics;
     pushSize = createInfo.pushSize;
@@ -163,9 +163,9 @@ GraphicsPipeline::GraphicsPipeline(const Context* context, GraphicsPipelineCreat
     pipeline = std::move(result.value);
 }
 
-MeshShaderPipeline::MeshShaderPipeline(const Context* context,
-                                       MeshShaderPipelineCreateInfo createInfo)
-    : Pipeline{context} {
+MeshShaderPipeline::MeshShaderPipeline(const Context& _context,
+                                       const MeshShaderPipelineCreateInfo& createInfo)
+    : Pipeline{_context} {
     shaderStageFlags = vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT |
                        vk::ShaderStageFlagBits::eFragment;
     bindPoint = vk::PipelineBindPoint::eGraphics;
@@ -303,8 +303,9 @@ MeshShaderPipeline::MeshShaderPipeline(const Context* context,
     pipeline = std::move(result.value);
 }
 
-ComputePipeline::ComputePipeline(const Context* context, ComputePipelineCreateInfo createInfo)
-    : Pipeline{context} {
+ComputePipeline::ComputePipeline(const Context& _context,
+                                 const ComputePipelineCreateInfo& createInfo)
+    : Pipeline{_context} {
     shaderStageFlags = vk::ShaderStageFlagBits::eCompute;
     bindPoint = vk::PipelineBindPoint::eCompute;
     pushSize = createInfo.pushSize;
@@ -336,9 +337,9 @@ ComputePipeline::ComputePipeline(const Context* context, ComputePipelineCreateIn
     pipeline = std::move(res.value.front());
 }
 
-RayTracingPipeline::RayTracingPipeline(const Context* context,
-                                       RayTracingPipelineCreateInfo createInfo)
-    : Pipeline{context} {
+RayTracingPipeline::RayTracingPipeline(const Context& _context,
+                                       const RayTracingPipelineCreateInfo& createInfo)
+    : Pipeline{_context} {
     shaderStageFlags =
         vk::ShaderStageFlagBits::eRaygenKHR | vk::ShaderStageFlagBits::eMissKHR |
         vk::ShaderStageFlagBits::eClosestHitKHR | vk::ShaderStageFlagBits::eAnyHitKHR |

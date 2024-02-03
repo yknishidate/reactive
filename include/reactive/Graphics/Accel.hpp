@@ -55,7 +55,7 @@ class BottomAccel {
     friend class CommandBuffer;
 
 public:
-    BottomAccel(const Context* context, BottomAccelCreateInfo createInfo);
+    BottomAccel(const Context& _context, const BottomAccelCreateInfo& createInfo);
 
     auto getBufferAddress() const -> uint64_t { return buffer->getAddress(); }
 
@@ -78,7 +78,7 @@ class TopAccel {
     friend class CommandBuffer;
 
 public:
-    TopAccel(const Context* context, TopAccelCreateInfo createInfo);
+    TopAccel(const Context& _context, const TopAccelCreateInfo& createInfo);
 
     auto getAccel() const -> vk::AccelerationStructureKHR { return *accel; }
 

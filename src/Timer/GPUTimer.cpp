@@ -1,7 +1,8 @@
 #include "Timer/GPUTimer.hpp"
 
 namespace rv {
-GPUTimer::GPUTimer(const Context* context, GPUTimerCreateInfo createInfo) : context{context} {
+GPUTimer::GPUTimer(const Context& _context, const GPUTimerCreateInfo& createInfo)
+    : context{&_context} {
     vk::QueryPoolCreateInfo queryPoolInfo;
     queryPoolInfo.setQueryType(vk::QueryType::eTimestamp);
     queryPoolInfo.setQueryCount(2);

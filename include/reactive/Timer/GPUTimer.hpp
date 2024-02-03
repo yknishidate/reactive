@@ -9,13 +9,13 @@ class GPUTimer {
 
 public:
     GPUTimer() = default;
-    GPUTimer(const Context* context, GPUTimerCreateInfo createInfo);
+    GPUTimer(const Context& _context, const GPUTimerCreateInfo& createInfo);
 
     auto elapsedInNano() -> float;
     auto elapsedInMilli() -> float;
 
 private:
-    const Context* context;
+    const Context* context = nullptr;
 
     float timestampPeriod;
 

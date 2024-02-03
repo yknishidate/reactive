@@ -19,14 +19,14 @@ struct ImageCreateInfo {
 
     bool isCubemap = false;
 
-    const char* debugName = nullptr;
+    std::string debugName{};
 };
 
 class Image {
     friend class CommandBuffer;
 
 public:
-    Image(const Context* context, ImageCreateInfo createInfo);
+    Image(const Context& _context, const ImageCreateInfo& createInfo);
 
     Image(vk::Image image,
           vk::ImageView view,

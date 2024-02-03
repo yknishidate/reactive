@@ -9,7 +9,7 @@ struct FenceCreateInfo {
 
 class Fence {
 public:
-    Fence(const Context* context, FenceCreateInfo createInfo);
+    Fence(const Context& _context, const FenceCreateInfo& createInfo);
 
     auto getFence() const -> vk::Fence { return *fence; }
 

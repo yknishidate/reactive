@@ -23,11 +23,11 @@ class CommandBuffer {
 public:
     CommandBuffer() = default;
 
-    CommandBuffer(const Context* context,
+    CommandBuffer(const Context& _context,
                   vk::CommandBuffer commandBuffer,
                   vk::CommandPool commandPool,
                   vk::QueueFlags queueFlags)
-        : context{context},
+        : context{&_context},
           commandBuffer{commandBuffer, {context->getDevice(), commandPool}},
           queueFlags{queueFlags} {}
 

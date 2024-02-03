@@ -219,7 +219,7 @@ auto Context::allocateCommandBuffer(vk::QueueFlags flag) const -> CommandBufferH
     commandBufferInfo.setCommandBufferCount(1);
 
     vk::CommandBuffer commandBuffer = device->allocateCommandBuffers(commandBufferInfo).front();
-    return std::make_shared<CommandBuffer>(this, commandBuffer, commandPool, flag);
+    return std::make_shared<CommandBuffer>(*this, commandBuffer, commandPool, flag);
 }
 
 void Context::submit(CommandBufferHandle commandBuffer,
@@ -278,55 +278,55 @@ auto Context::getPhysicalDeviceLimits() const -> vk::PhysicalDeviceLimits {
 }
 
 auto Context::createShader(ShaderCreateInfo createInfo) const -> ShaderHandle {
-    return std::make_shared<Shader>(this, createInfo);
+    return std::make_shared<Shader>(*this, createInfo);
 }
 
 auto Context::createDescriptorSet(DescriptorSetCreateInfo createInfo) const -> DescriptorSetHandle {
-    return std::make_shared<DescriptorSet>(this, createInfo);
+    return std::make_shared<DescriptorSet>(*this, createInfo);
 }
 
 auto Context::createGraphicsPipeline(GraphicsPipelineCreateInfo createInfo) const
     -> GraphicsPipelineHandle {
-    return std::make_shared<GraphicsPipeline>(this, createInfo);
+    return std::make_shared<GraphicsPipeline>(*this, createInfo);
 }
 
 auto Context::createMeshShaderPipeline(MeshShaderPipelineCreateInfo createInfo) const
     -> MeshShaderPipelineHandle {
-    return std::make_shared<MeshShaderPipeline>(this, createInfo);
+    return std::make_shared<MeshShaderPipeline>(*this, createInfo);
 }
 
 auto Context::createComputePipeline(ComputePipelineCreateInfo createInfo) const
     -> ComputePipelineHandle {
-    return std::make_shared<ComputePipeline>(this, createInfo);
+    return std::make_shared<ComputePipeline>(*this, createInfo);
 }
 
 auto Context::createRayTracingPipeline(RayTracingPipelineCreateInfo createInfo) const
     -> RayTracingPipelineHandle {
-    return std::make_shared<RayTracingPipeline>(this, createInfo);
+    return std::make_shared<RayTracingPipeline>(*this, createInfo);
 }
 
 auto Context::createImage(ImageCreateInfo createInfo) const -> ImageHandle {
-    return std::make_shared<Image>(this, createInfo);
+    return std::make_shared<Image>(*this, createInfo);
 }
 
 auto Context::createBuffer(BufferCreateInfo createInfo) const -> BufferHandle {
-    return std::make_shared<Buffer>(this, createInfo);
+    return std::make_shared<Buffer>(*this, createInfo);
 }
 
 auto Context::createBottomAccel(BottomAccelCreateInfo createInfo) const -> BottomAccelHandle {
-    return std::make_shared<BottomAccel>(this, createInfo);
+    return std::make_shared<BottomAccel>(*this, createInfo);
 }
 
 auto Context::createTopAccel(TopAccelCreateInfo createInfo) const -> TopAccelHandle {
-    return std::make_shared<TopAccel>(this, createInfo);
+    return std::make_shared<TopAccel>(*this, createInfo);
 }
 
 auto Context::createGPUTimer(GPUTimerCreateInfo createInfo) const -> GPUTimerHandle {
-    return std::make_shared<GPUTimer>(this, createInfo);
+    return std::make_shared<GPUTimer>(*this, createInfo);
 }
 
 auto Context::createFence(FenceCreateInfo createInfo) const -> FenceHandle {
-    return std::make_shared<Fence>(this, createInfo);
+    return std::make_shared<Fence>(*this, createInfo);
 }
 
 void Context::checkDeviceExtensionSupport(

@@ -4,8 +4,8 @@
 #include "common.hpp"
 
 namespace rv {
-BottomAccel::BottomAccel(const Context* context, BottomAccelCreateInfo createInfo)
-    : context{context},
+BottomAccel::BottomAccel(const Context& _context, const BottomAccelCreateInfo& createInfo)
+    : context{&_context},
       geometryFlags{createInfo.geometryFlags},
       buildFlags{createInfo.buildFlags},
       buildType{createInfo.buildType} {
@@ -52,8 +52,8 @@ BottomAccel::BottomAccel(const Context* context, BottomAccelCreateInfo createInf
     });
 }
 
-TopAccel::TopAccel(const Context* context, TopAccelCreateInfo createInfo)
-    : context{context},
+TopAccel::TopAccel(const Context& _context, const TopAccelCreateInfo& createInfo)
+    : context{&_context},
       geometryFlags{createInfo.geometryFlags},
       buildFlags{createInfo.buildFlags},
       buildType{createInfo.buildType} {

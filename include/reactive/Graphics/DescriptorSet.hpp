@@ -17,7 +17,7 @@ struct DescriptorSetCreateInfo {
 
 class DescriptorSet {
 public:
-    DescriptorSet(const Context* context, DescriptorSetCreateInfo createInfo);
+    DescriptorSet(const Context& _context, const DescriptorSetCreateInfo& createInfo);
 
     void update();
 

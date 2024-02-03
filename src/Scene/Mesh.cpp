@@ -11,20 +11,20 @@ auto Vertex::getAttributeDescriptions() -> std::vector<VertexAttributeDescriptio
     };
 }
 
-Mesh::Mesh(const Context& context,
+Mesh::Mesh(const Context& _context,
            vk::MemoryPropertyFlags memoryProps,
            const std::vector<Vertex>& vertices,
            const std::vector<uint32_t>& indices,
            const std::string& name)
-    : context{&context}, vertices{vertices}, indices{indices}, name{name} {
-    vertexBuffer = context.createBuffer({
+    : context{&_context}, vertices{vertices}, indices{indices}, name{name} {
+    vertexBuffer = context->createBuffer({
         .usage = BufferUsage::Vertex,
         .memory = memoryProps,
         .size = sizeof(Vertex) * vertices.size(),
         .debugName = name + "::vertexBuffer",
     });
 
-    indexBuffer = context.createBuffer({
+    indexBuffer = context->createBuffer({
         .usage = BufferUsage::Index,
         .memory = memoryProps,
         .size = sizeof(uint32_t) * indices.size(),
@@ -35,7 +35,7 @@ Mesh::Mesh(const Context& context,
         vertexBuffer->copy(vertices.data());
         indexBuffer->copy(indices.data());
     } else {
-        context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
+        context->oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
             commandBuffer->copyBuffer(vertexBuffer, vertices.data());
             commandBuffer->copyBuffer(indexBuffer, indices.data());
         });

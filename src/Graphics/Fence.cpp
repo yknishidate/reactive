@@ -3,7 +3,7 @@
 #include "Graphics/Context.hpp"
 
 namespace rv {
-Fence::Fence(const Context* context, FenceCreateInfo createInfo) : context{context} {
+Fence::Fence(const Context& _context, const FenceCreateInfo& createInfo) : context{&_context} {
     vk::FenceCreateInfo fenceInfo;
     if (createInfo.signaled) {
         fenceInfo.setFlags(vk::FenceCreateFlagBits::eSignaled);

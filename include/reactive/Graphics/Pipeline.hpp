@@ -2,7 +2,6 @@
 #include <variant>
 #include <vulkan/vulkan.hpp>
 #include "ArrayProxy.hpp"
-#include "Buffer.hpp"
 #include "DescriptorSet.hpp"
 #include "Scene/Mesh.hpp"
 
@@ -95,7 +94,7 @@ struct RayTracingPipelineCreateInfo {
 
 class Pipeline {
 public:
-    Pipeline(const Context* context) : context{context} {}
+    Pipeline(const Context& _context) : context{&_context} {}
 
     auto getPipelineBindPoint() const -> vk::PipelineBindPoint { return bindPoint; }
     auto getPipelineLayout() const -> vk::PipelineLayout { return *pipelineLayout; }
@@ -103,7 +102,7 @@ public:
 protected:
     friend class CommandBuffer;
 
-    const Context* context;
+    const Context* context = nullptr;
     vk::UniquePipelineLayout pipelineLayout;
     vk::UniquePipeline pipeline;
     vk::ShaderStageFlags shaderStageFlags;
@@ -113,23 +112,23 @@ protected:
 
 class GraphicsPipeline : public Pipeline {
 public:
-    GraphicsPipeline(const Context* context, GraphicsPipelineCreateInfo createInfo);
+    GraphicsPipeline(const Context& _context, const GraphicsPipelineCreateInfo& createInfo);
 };
 
 class MeshShaderPipeline : public Pipeline {
 public:
-    MeshShaderPipeline(const Context* context, MeshShaderPipelineCreateInfo createInfo);
+    MeshShaderPipeline(const Context& _context, const MeshShaderPipelineCreateInfo& createInfo);
 };
 
 class ComputePipeline : public Pipeline {
 public:
-    ComputePipeline(const Context* context, ComputePipelineCreateInfo createInfo);
+    ComputePipeline(const Context& _context, const ComputePipelineCreateInfo& createInfo);
 };
 
 class RayTracingPipeline : public Pipeline {
 public:
     RayTracingPipeline() = default;
-    RayTracingPipeline(const Context* context, RayTracingPipelineCreateInfo createInfo);
+    RayTracingPipeline(const Context& _context, const RayTracingPipelineCreateInfo& createInfo);
 
 private:
     friend class CommandBuffer;

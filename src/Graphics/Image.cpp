@@ -14,9 +14,9 @@ uint32_t calculateMipLevels(uint32_t width, uint32_t height) {
 }  // namespace
 
 namespace rv {
-Image::Image(const Context* context, ImageCreateInfo createInfo)
+Image::Image(const Context& _context, const ImageCreateInfo& createInfo)
     // NOTE: layout is updated by transitionLayout after this ctor.
-    : context{context},
+    : context{&_context},
       hasOwnership{true},
       extent{createInfo.extent},
       format{createInfo.format},
@@ -99,10 +99,10 @@ Image::Image(const Context* context, ImageCreateInfo createInfo)
     samplerInfo.setCompareOp(vk::CompareOp::eLess);
     sampler = context->getDevice().createSampler(samplerInfo);
 
-    if (createInfo.debugName) {
-        context->setDebugName(image, createInfo.debugName);
-        context->setDebugName(view, (std::string(createInfo.debugName) + "(ImageView)").c_str());
-        context->setDebugName(sampler, (std::string(createInfo.debugName) + "(Sampler)").c_str());
+    if (!createInfo.debugName.empty()) {
+        context->setDebugName(image, createInfo.debugName.c_str());
+        context->setDebugName(view, createInfo.debugName.c_str());
+        context->setDebugName(sampler, createInfo.debugName.c_str());
     }
 }
 

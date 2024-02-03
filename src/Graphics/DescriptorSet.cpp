@@ -9,8 +9,8 @@
 
 namespace rv {
 
-DescriptorSet::DescriptorSet(const Context* context, DescriptorSetCreateInfo createInfo)
-    : context(context) {
+DescriptorSet::DescriptorSet(const Context& _context, const DescriptorSetCreateInfo& createInfo)
+    : context{&_context} {
     // シェーダーリソースを追加
     for (const auto& shader : createInfo.shaders) {
         addResources(shader);

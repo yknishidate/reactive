@@ -4,8 +4,8 @@
 #include "common.hpp"
 
 namespace rv {
-Buffer::Buffer(const Context* context, BufferCreateInfo createInfo)
-    : context{context}, size{createInfo.size} {
+Buffer::Buffer(const Context& _context, const BufferCreateInfo& createInfo)
+    : context{&_context}, size{createInfo.size} {
     // Create buffer
     vk::BufferCreateInfo bufferInfo;
     bufferInfo.setSize(size);

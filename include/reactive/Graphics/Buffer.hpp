@@ -16,7 +16,7 @@ class Buffer {
     friend class CommandBuffer;
 
 public:
-    Buffer(const Context* context, BufferCreateInfo createInfo);
+    Buffer(const Context& context, const BufferCreateInfo& createInfo);
 
     auto getBuffer() const -> vk::Buffer { return *buffer; }
     auto getSize() const -> vk::DeviceSize { return size; }
