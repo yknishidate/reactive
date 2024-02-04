@@ -483,11 +483,13 @@ void CommandBuffer::buildBottomAccel(BottomAccelHandle bottomAccel) const {
 void CommandBuffer::beginTimestamp(GPUTimerHandle gpuTimer) const {
     commandBuffer->resetQueryPool(*gpuTimer->queryPool, 0, 2);
     commandBuffer->writeTimestamp(vk::PipelineStageFlagBits::eTopOfPipe, *gpuTimer->queryPool, 0);
+    gpuTimer->start();
 }
 
 void CommandBuffer::endTimestamp(GPUTimerHandle gpuTimer) const {
     commandBuffer->writeTimestamp(vk::PipelineStageFlagBits::eBottomOfPipe, *gpuTimer->queryPool,
                                   1);
+    gpuTimer->stop();
 }
 
 void CommandBuffer::setLineWidth(float lineWidth) const {

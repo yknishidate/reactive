@@ -8,17 +8,24 @@ GPUTimer::GPUTimer(const Context& _context, const GPUTimerCreateInfo& createInfo
     queryPoolInfo.setQueryCount(2);
     queryPool = context->getDevice().createQueryPoolUnique(queryPoolInfo);
     timestampPeriod = context->getPhysicalDevice().getProperties().limits.timestampPeriod;
+    state = State::Ready;
 }
 
 auto GPUTimer::elapsedInNano() -> float {
+    if (state != State::Stopped) {
+        return 0.0f;
+    }
     timestamps.fill(0);
-    vk::resultCheck(context->getDevice().getQueryPoolResults(
-                        *queryPool, 0, 2,
-                        timestamps.size() * sizeof(uint64_t),  // dataSize
-                        timestamps.data(),                     // pData
-                        sizeof(uint64_t),                      // stride
-                        vk::QueryResultFlagBits::e64 | vk::QueryResultFlagBits::eWait),
-                    "Failed to get query pool results");
+    if (context->getDevice().getQueryPoolResults(
+            *queryPool, 0, 2,
+            timestamps.size() * sizeof(uint64_t),  // dataSize
+            timestamps.data(),                     // pData
+            sizeof(uint64_t),                      // stride
+            vk::QueryResultFlagBits::e64 | vk::QueryResultFlagBits::eWait) !=
+        vk::Result::eSuccess) {
+        throw std::runtime_error("Failed to get query pool results");
+    }
+    state = State::Ready;
     return timestampPeriod * static_cast<float>(timestamps[1] - timestamps[0]);
 }
 
