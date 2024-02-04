@@ -33,7 +33,12 @@ public:
           vk::Extent3D extent,
           vk::Format format,
           vk::ImageAspectFlags aspect)
-        : image{image}, view{view}, extent{extent}, format{format}, aspect{aspect} {}
+        : image{image},
+          view{view},
+          viewType{vk::ImageViewType::e2D},
+          extent{extent},
+          format{format},
+          aspect{aspect} {}
 
     Image(const Context* _context,
           vk::Image _image,
