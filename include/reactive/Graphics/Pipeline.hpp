@@ -23,8 +23,8 @@ struct GraphicsPipelineCreateInfo {
     ArrayProxy<VertexAttributeDescription> vertexAttributes = {};
 
     // Viewport
-    ArrayProxy<vk::Format> colorFormats = {vk::Format::eB8G8R8A8Unorm};
-    vk::Format depthFormat = vk::Format::eD32Sfloat;  // TODO: change to undefined
+    ArrayProxy<vk::Format> colorFormats;
+    vk::Format depthFormat;
 
     // Vertex input
     vk::PrimitiveTopology topology = vk::PrimitiveTopology::eTriangleList;
@@ -53,6 +53,10 @@ struct MeshShaderPipelineCreateInfo {
     ShaderHandle meshShader;
     ShaderHandle fragmentShader;
 
+    // Viewport
+    ArrayProxy<vk::Format> colorFormats;
+    vk::Format depthFormat;
+    
     // Raster
     std::variant<vk::PolygonMode, std::string> polygonMode = vk::PolygonMode::eFill;
     std::variant<vk::CullModeFlags, std::string> cullMode = vk::CullModeFlagBits::eNone;

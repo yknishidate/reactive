@@ -278,11 +278,9 @@ MeshShaderPipeline::MeshShaderPipeline(const Context& _context,
     depthStencil.setDepthBoundsTestEnable(VK_FALSE);
     depthStencil.setStencilTestEnable(VK_FALSE);
 
-    vk::Format colorFormat = vk::Format::eB8G8R8A8Unorm;
-    vk::Format depthFormat = vk::Format::eD32Sfloat;
     vk::PipelineRenderingCreateInfo renderingInfo;
-    renderingInfo.setColorAttachmentFormats(colorFormat);
-    renderingInfo.setDepthAttachmentFormat(depthFormat);
+    renderingInfo.setColorAttachmentFormats(createInfo.colorFormats);
+    renderingInfo.setDepthAttachmentFormat(createInfo.depthFormat);
 
     vk::GraphicsPipelineCreateInfo pipelineInfo;
     pipelineInfo.setStages(shaderStages);

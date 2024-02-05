@@ -56,7 +56,7 @@ void Swapchain::resize(uint32_t width, uint32_t height) {
             vk::ImageViewCreateInfo()
                 .setImage(image)
                 .setViewType(vk::ImageViewType::e2D)
-                .setFormat(vk::Format::eB8G8R8A8Unorm)
+                .setFormat(format)
                 .setComponents({vk::ComponentSwizzle::eR, vk::ComponentSwizzle::eG,
                                 vk::ComponentSwizzle::eB, vk::ComponentSwizzle::eA})
                 .setSubresourceRange({vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1})));
