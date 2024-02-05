@@ -170,14 +170,15 @@ Image::~Image() {
 }
 
 ImageHandle Image::loadFromFile(const Context& context,
-                                const std::string& filepath,
+                                const std::filesystem::path& filepath,
                                 uint32_t mipLevels) {
+    std::string filepathStr = filepath.string();
     int width;
     int height;
     int comp = 4;
-    unsigned char* pixels = stbi_load(filepath.c_str(), &width, &height, nullptr, comp);
+    unsigned char* pixels = stbi_load(filepathStr.c_str(), &width, &height, nullptr, comp);
     if (!pixels) {
-        throw std::runtime_error("Failed to load image: " + filepath);
+        throw std::runtime_error("Failed to load image: " + filepathStr);
     }
 
     ImageHandle image = context.createImage({
@@ -185,7 +186,7 @@ ImageHandle Image::loadFromFile(const Context& context,
         .extent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1},
         .format = vk::Format::eR8G8B8A8Unorm,
         .mipLevels = mipLevels,
-        .debugName = filepath.c_str(),
+        .debugName = filepathStr,
     });
 
     // Copy to image
@@ -216,13 +217,14 @@ ImageHandle Image::loadFromFile(const Context& context,
     return image;
 }
 
-ImageHandle Image::loadFromFileHDR(const Context& context, const std::string& filepath) {
+ImageHandle Image::loadFromFileHDR(const Context& context, const std::filesystem::path& filepath) {
+    std::string filepathStr = filepath.string();
     int width;
     int height;
     int comp = 4;
-    float* pixels = stbi_loadf(filepath.c_str(), &width, &height, nullptr, comp);
+    float* pixels = stbi_loadf(filepathStr.c_str(), &width, &height, nullptr, comp);
     if (!pixels) {
-        throw std::runtime_error("Failed to load image: " + filepath);
+        throw std::runtime_error("Failed to load image: " + filepathStr);
     }
 
     ImageHandle image = context.createImage({
@@ -250,7 +252,9 @@ ImageHandle Image::loadFromFileHDR(const Context& context, const std::string& fi
     return image;
 }
 
-auto Image::loadFromKTX(const Context& context, const std::string& filepath) -> ImageHandle {
+auto Image::loadFromKTX(const Context& context, const std::filesystem::path& filepath)
+    -> ImageHandle {
+    std::string filepathStr = filepath.string();
     ktxVulkanDeviceInfo kvdi;
     ktxTexture* kTexture;
     ktxVulkanTexture texture;
@@ -259,12 +263,12 @@ auto Image::loadFromKTX(const Context& context, const std::string& filepath) -> 
                                   context.getQueue(), context.getCommandPool(), nullptr);
 
     KTX_error_code result =
-        ktxTexture_CreateFromNamedFile(filepath.c_str(), KTX_TEXTURE_CREATE_NO_FLAGS, &kTexture);
+        ktxTexture_CreateFromNamedFile(filepathStr.c_str(), KTX_TEXTURE_CREATE_NO_FLAGS, &kTexture);
     if (KTX_SUCCESS != result) {
         std::stringstream message;
-
-        message << "Creation of ktxTexture from \"" << filepath
-                << "\" failed: " << ktxErrorString(result);
+        message << "Creation of ktxTexture from "  //
+                << filepathStr << " failed: "      //
+                << ktxErrorString(result);
         throw std::runtime_error(message.str());
     }
     result =

@@ -72,13 +72,15 @@ public:
 
     // TODO: refactor these
     static auto loadFromFile(const Context& context,
-                             const std::string& filepath,
+                             const std::filesystem::path& filepath,
                              uint32_t mipLevels = 1) -> ImageHandle;
 
     // mipmap is not supported
-    static auto loadFromFileHDR(const Context& context, const std::string& filepath) -> ImageHandle;
+    static auto loadFromFileHDR(const Context& context, const std::filesystem::path& filepath)
+        -> ImageHandle;
 
-    static auto loadFromKTX(const Context& context, const std::string& filepath) -> ImageHandle;
+    static auto loadFromKTX(const Context& context, const std::filesystem::path& filepath)
+        -> ImageHandle;
 
 private:
     const Context* context = nullptr;
