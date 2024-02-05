@@ -10,9 +10,9 @@
 namespace rv {
 struct DescriptorSetCreateInfo {
     ArrayProxy<ShaderHandle> shaders;
-    ArrayProxy<std::pair<const char*, ArrayProxy<BufferHandle>>> buffers;
-    ArrayProxy<std::pair<const char*, ArrayProxy<ImageHandle>>> images;
-    ArrayProxy<std::pair<const char*, ArrayProxy<TopAccelHandle>>> accels;
+    ArrayProxy<std::pair<const char*, std::variant<ArrayProxy<BufferHandle>, uint32_t>>> buffers;
+    ArrayProxy<std::pair<const char*, std::variant<ArrayProxy<ImageHandle>, uint32_t>>> images;
+    ArrayProxy<std::pair<const char*, std::variant<ArrayProxy<TopAccelHandle>, uint32_t>>> accels;
 };
 
 class DescriptorSet {

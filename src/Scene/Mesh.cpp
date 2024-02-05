@@ -13,10 +13,13 @@ auto Vertex::getAttributeDescriptions() -> std::vector<VertexAttributeDescriptio
 
 Mesh::Mesh(const Context& _context,
            vk::MemoryPropertyFlags memoryProps,
-           const std::vector<Vertex>& vertices,
-           const std::vector<uint32_t>& indices,
-           const std::string& name)
-    : context{&_context}, vertices{vertices}, indices{indices}, name{name} {
+           std::vector<Vertex> _vertices,
+           std::vector<uint32_t> _indices,
+           std::string _name)
+    : context{&_context},
+      name{std::move(_name)},
+      vertices{std::move(_vertices)},
+      indices{std::move(_indices)} {
     vertexBuffer = context->createBuffer({
         .usage = BufferUsage::Vertex,
         .memory = memoryProps,

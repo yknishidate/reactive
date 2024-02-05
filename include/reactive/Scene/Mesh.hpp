@@ -64,9 +64,9 @@ public:
     Mesh() = default;
     Mesh(const Context& _context,
          vk::MemoryPropertyFlags memoryProps,
-         const std::vector<Vertex>& vertices,
-         const std::vector<uint32_t>& indices,
-         const std::string& name);
+         std::vector<Vertex> _vertices,
+         std::vector<uint32_t> _indices,
+         std::string _name);
     static auto createSphereMesh(const Context& context, SphereMeshCreateInfo createInfo) -> Mesh;
     static auto createPlaneMesh(const Context& context, PlaneMeshCreateInfo createInfo) -> Mesh;
     static auto createCubeMesh(const Context& context, CubeMeshCreateInfo createInfo) -> Mesh;

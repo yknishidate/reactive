@@ -18,13 +18,25 @@ DescriptorSet::DescriptorSet(const Context& _context, const DescriptorSetCreateI
 
     // 各リソースのディスクリプタ情報を設定
     for (const auto& [name, buffers] : createInfo.buffers) {
-        set(name, buffers);
+        if (std::holds_alternative<uint32_t>(buffers)) {
+            descriptors[name].binding.setDescriptorCount(std::get<uint32_t>(buffers));
+        } else {
+            set(name, std::get<ArrayProxy<BufferHandle>>(buffers));
+        }
     }
     for (const auto& [name, images] : createInfo.images) {
-        set(name, images);
+        if (std::holds_alternative<uint32_t>(images)) {
+            descriptors[name].binding.setDescriptorCount(std::get<uint32_t>(images));
+        } else {
+            set(name, std::get<ArrayProxy<ImageHandle>>(images));
+        }
     }
     for (const auto& [name, accels] : createInfo.accels) {
-        set(name, accels);
+        if (std::holds_alternative<uint32_t>(accels)) {
+            descriptors[name].binding.setDescriptorCount(std::get<uint32_t>(accels));
+        } else {
+            set(name, std::get<ArrayProxy<TopAccelHandle>>(accels));
+        }
     }
 
     // ディスクリプタセットレイアウトを作成
@@ -39,9 +51,6 @@ DescriptorSet::DescriptorSet(const Context& _context, const DescriptorSetCreateI
     // ディスクリプタセットを確保
     vk::DescriptorSetAllocateInfo allocInfo(context->getDescriptorPool(), *descSetLayout);
     descSet = std::move(context->getDevice().allocateDescriptorSetsUnique(allocInfo).front());
-
-    // 更新する
-    update();
 }
 
 void DescriptorSet::update() {
@@ -142,6 +151,7 @@ void DescriptorSet::updateBindingMap(const spirv_cross::Resource& resource,
         }
         binding.stageFlags |= stage;
     } else {
+        // FIX: ここのカウントが1だと後から増やせない
         descriptors[resource.name] = {
             .binding = vk::DescriptorSetLayoutBinding()
                            .setBinding(glsl.get_decoration(resource.id, spv::DecorationBinding))
