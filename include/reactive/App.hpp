@@ -87,6 +87,7 @@ public:
     auto getCursorPos() const -> glm::vec2;
     auto getMouseWheel() const -> glm::vec2;
     void resetMouseWheel();
+    void setWindowSize(uint32_t _width, uint32_t _height);
 
     virtual void onReset() {}
     virtual void onKey(int key, int scancode, int action, int mods) {}
@@ -131,5 +132,9 @@ protected:
     uint32_t width = 0;
     uint32_t height = 0;
     bool running = true;
+
+    bool pendingResize = false;
+    uint32_t newWidth = 0;
+    uint32_t newHeight = 0;
 };
 }  // namespace rv

@@ -23,6 +23,12 @@ void App::run() {
     onStart();
     while (!glfwWindowShouldClose(window) && running) {
         glfwPollEvents();
+        if (pendingResize) {
+            glfwSetWindowSize(window, static_cast<int>(newWidth), static_cast<int>(newHeight));
+            width = newWidth;
+            height = newHeight;
+            pendingResize = false;
+        }
 
         if (width == 0 && height == 0) {
             continue;
@@ -102,6 +108,13 @@ auto App::getMouseWheel() const -> glm::vec2 {
 
 void App::resetMouseWheel() {
     mouseWheel = {0.0f, 0.0f};
+}
+
+void App::setWindowSize(uint32_t _width, uint32_t _height) {
+    // glfwSetWindowSize(window, _width, _height);
+    pendingResize = true;
+    newWidth = _width;
+    newHeight = _height;
 }
 
 auto App::getCurrentColorImage() const -> ImageHandle {
