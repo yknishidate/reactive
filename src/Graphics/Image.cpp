@@ -21,7 +21,7 @@ Image::Image(const Context& _context, const ImageCreateInfo& createInfo)
       extent{createInfo.extent},
       format{createInfo.format},
       mipLevels{createInfo.mipLevels},
-      aspect{createInfo.aspect} {
+      debugName{createInfo.debugName} {
     vk::ImageType type = extent.depth == 1 ? vk::ImageType::e2D : vk::ImageType::e3D;
 
     // Compute mipmap level
@@ -38,16 +38,13 @@ Image::Image(const Context& _context, const ImageCreateInfo& createInfo)
     imageInfo.setMipLevels(mipLevels);
     imageInfo.setSamples(vk::SampleCountFlagBits::e1);
     imageInfo.setUsage(createInfo.usage);
-    if (createInfo.isCubemap) {
-        layerCount = 6;
-        imageInfo.setFlags(vk::ImageCreateFlagBits::eCubeCompatible);
-    }
     imageInfo.setArrayLayers(layerCount);
     image = context->getDevice().createImage(imageInfo);
 
     vk::MemoryRequirements requirements = context->getDevice().getImageMemoryRequirements(image);
-    uint32_t memoryTypeIndex =
-        context->findMemoryTypeIndex(requirements, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    uint32_t memoryTypeIndex = context->findMemoryTypeIndex(  //
+        requirements, vk::MemoryPropertyFlagBits::eDeviceLocal);
+
     vk::MemoryAllocateInfo memoryInfo;
     memoryInfo.setAllocationSize(requirements.size);
     memoryInfo.setMemoryTypeIndex(memoryTypeIndex);
@@ -55,58 +52,13 @@ Image::Image(const Context& _context, const ImageCreateInfo& createInfo)
 
     context->getDevice().bindImageMemory(image, memory, 0);
 
-    vk::ImageSubresourceRange subresourceRange;
-    subresourceRange.setAspectMask(aspect);
-    subresourceRange.setBaseMipLevel(0);
-    subresourceRange.setLevelCount(mipLevels);
-    subresourceRange.setBaseArrayLayer(0);
-    subresourceRange.setLayerCount(1);
-    if (createInfo.isCubemap) {
-        subresourceRange.setLayerCount(6);
-    }
-
-    vk::ImageViewCreateInfo viewInfo;
-    viewInfo.setImage(image);
-    viewInfo.setFormat(format);
-    viewInfo.setSubresourceRange(subresourceRange);
-    if (type == vk::ImageType::e2D) {
-        viewType = vk::ImageViewType::e2D;
-    } else if (type == vk::ImageType::e3D) {
-        viewType = vk::ImageViewType::e3D;
-    } else {
-        assert(false);
-    }
-    if (createInfo.isCubemap) {
-        viewType = vk::ImageViewType::eCube;
-    }
-    viewInfo.setViewType(viewType);
-
-    view = context->getDevice().createImageView(viewInfo);
-
-    vk::SamplerCreateInfo samplerInfo;
-    samplerInfo.setMagFilter(vk::Filter::eLinear);
-    samplerInfo.setMinFilter(vk::Filter::eLinear);
-    samplerInfo.setAnisotropyEnable(VK_FALSE);
-    samplerInfo.setMaxLod(0.0f);
-    samplerInfo.setMinLod(0.0f);
-    if (mipLevels > 1) {
-        samplerInfo.setMaxLod(static_cast<float>(mipLevels));
-    }
-    samplerInfo.setMipmapMode(vk::SamplerMipmapMode::eLinear);
-    samplerInfo.setAddressModeU(vk::SamplerAddressMode::eRepeat);
-    samplerInfo.setAddressModeV(vk::SamplerAddressMode::eRepeat);
-    samplerInfo.setAddressModeW(vk::SamplerAddressMode::eRepeat);
-    samplerInfo.setCompareEnable(VK_TRUE);
-    samplerInfo.setCompareOp(vk::CompareOp::eLess);
-    sampler = context->getDevice().createSampler(samplerInfo);
-
-    if (!createInfo.debugName.empty()) {
+    if (!debugName.empty()) {
         context->setDebugName(image, createInfo.debugName.c_str());
-        context->setDebugName(view, createInfo.debugName.c_str());
-        context->setDebugName(sampler, createInfo.debugName.c_str());
     }
 }
 
+// KTX から読み取った情報をもとに作成する
+// ImageView と Sampler の作成はアプリ側
 Image::Image(const Context* _context,
              vk::Image _image,
              vk::Format _imageFormat,
@@ -127,43 +79,16 @@ Image::Image(const Context* _context,
       extent{_width, _height, _depth},
       format{_imageFormat},
       mipLevels{_levelCount},
-      layerCount{_layerCount},
-      aspect{vk::ImageAspectFlagBits::eColor}  // TODO: fix
-{
-    vk::ImageSubresourceRange subresourceRange;
-    subresourceRange.setAspectMask(aspect);
-    subresourceRange.setBaseMipLevel(0);
-    subresourceRange.setLevelCount(mipLevels);
-    subresourceRange.setBaseArrayLayer(0);
-    subresourceRange.setLayerCount(layerCount);
-
-    vk::ImageViewCreateInfo viewInfo;
-    viewInfo.setImage(image);
-    viewInfo.setFormat(format);
-    viewInfo.setSubresourceRange(subresourceRange);
-    viewInfo.setViewType(viewType);
-    view = context->getDevice().createImageView(viewInfo);
-
-    vk::SamplerCreateInfo samplerInfo;
-    samplerInfo.setMagFilter(vk::Filter::eLinear);
-    samplerInfo.setMinFilter(vk::Filter::eLinear);
-    samplerInfo.setAnisotropyEnable(VK_FALSE);
-    samplerInfo.setMaxLod(0.0f);
-    samplerInfo.setMinLod(0.0f);
-    samplerInfo.setMaxLod(static_cast<float>(mipLevels));
-    samplerInfo.setMipmapMode(vk::SamplerMipmapMode::eLinear);
-    samplerInfo.setAddressModeU(vk::SamplerAddressMode::eRepeat);
-    samplerInfo.setAddressModeV(vk::SamplerAddressMode::eRepeat);
-    samplerInfo.setAddressModeW(vk::SamplerAddressMode::eRepeat);
-    samplerInfo.setCompareEnable(VK_TRUE);
-    samplerInfo.setCompareOp(vk::CompareOp::eLess);
-    sampler = context->getDevice().createSampler(samplerInfo);
-}
+      layerCount{_layerCount} {}
 
 Image::~Image() {
     if (hasOwnership) {
-        context->getDevice().destroySampler(sampler);
-        context->getDevice().destroyImageView(view);
+        if (sampler) {
+            context->getDevice().destroySampler(sampler);
+        }
+        if (view) {
+            context->getDevice().destroyImageView(view);
+        }
         context->getDevice().freeMemory(memory);
         context->getDevice().destroyImage(image);
     }
@@ -171,7 +96,9 @@ Image::~Image() {
 
 ImageHandle Image::loadFromFile(const Context& context,
                                 const std::filesystem::path& filepath,
-                                uint32_t mipLevels) {
+                                uint32_t mipLevels,
+                                vk::Filter filter,
+                                vk::SamplerAddressMode addressMode) {
     std::string filepathStr = filepath.string();
     int width;
     int height;
@@ -188,6 +115,8 @@ ImageHandle Image::loadFromFile(const Context& context,
         .mipLevels = mipLevels,
         .debugName = filepathStr,
     });
+    image->createImageView();
+    image->createSampler(filter, addressMode);
 
     // Copy to image
     BufferHandle stagingBuffer = context.createBuffer({
@@ -232,6 +161,8 @@ ImageHandle Image::loadFromFileHDR(const Context& context, const std::filesystem
         .extent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1},
         .format = vk::Format::eR32G32B32A32Sfloat,
     });
+    image->createImageView();
+    image->createSampler();
 
     // Copy to image
     BufferHandle stagingBuffer = context.createBuffer({
@@ -290,6 +221,8 @@ auto Image::loadFromKTX(const Context& context, const std::filesystem::path& fil
         static_cast<vk::ImageViewType>(texture.viewType),   //
         texture.width, texture.height, texture.depth,       //
         texture.levelCount, texture.layerCount);
+    image->createImageView(static_cast<vk::ImageViewType>(texture.viewType));
+    image->createSampler();
 
     ktxTexture_Destroy(kTexture);
     ktxVulkanDeviceInfo_Destruct(&kvdi);

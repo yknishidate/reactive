@@ -5,6 +5,10 @@
 namespace rv {
 class Buffer;
 
+// NOTE:
+// Cubemap はファイルから読み込むものと想定して
+// アプリ側で作成するのは 2D or 3D のみとする
+// mipLevels: UINT32_MAX の場合は画像解像度から最大ミップレベルを自動計算する
 struct ImageCreateInfo {
     vk::ImageUsageFlags usage;
 
@@ -12,12 +16,7 @@ struct ImageCreateInfo {
 
     vk::Format format;
 
-    vk::ImageAspectFlags aspect = vk::ImageAspectFlagBits::eColor;
-
-    // if mipLevels is std::numeric_limits<uint32_t>::max(), then it's set to max level
     uint32_t mipLevels = 1;
-
-    bool isCubemap = false;
 
     std::string debugName{};
 };
@@ -54,6 +53,48 @@ public:
 
     ~Image();
 
+    void createImageView(vk::ImageViewType _viewType = vk::ImageViewType::e2D,
+                         vk::ImageAspectFlags _aspect = vk::ImageAspectFlagBits::eColor) {
+        viewType = _viewType;
+        aspect = _aspect;
+
+        vk::ImageSubresourceRange subresourceRange;
+        subresourceRange.setAspectMask(aspect);
+        subresourceRange.setBaseMipLevel(0);
+        subresourceRange.setLevelCount(mipLevels);
+        subresourceRange.setBaseArrayLayer(0);
+        subresourceRange.setLayerCount(layerCount);
+
+        vk::ImageViewCreateInfo viewInfo;
+        viewInfo.setImage(image);
+        viewInfo.setFormat(format);
+        viewInfo.setViewType(viewType);
+        viewInfo.setSubresourceRange(subresourceRange);
+
+        view = context->getDevice().createImageView(viewInfo);
+    }
+
+    void createSampler(vk::Filter _filter = vk::Filter::eLinear,
+                       vk::SamplerAddressMode _addressMode = vk::SamplerAddressMode::eRepeat,
+                       vk::SamplerMipmapMode _mipmapMode = vk::SamplerMipmapMode::eLinear) {
+        vk::SamplerCreateInfo samplerInfo;
+        samplerInfo.setMagFilter(_filter);
+        samplerInfo.setMinFilter(_filter);
+        samplerInfo.setAnisotropyEnable(VK_FALSE);  // TODO: true
+        samplerInfo.setMaxLod(0.0f);
+        samplerInfo.setMinLod(0.0f);
+        if (mipLevels > 1) {
+            samplerInfo.setMaxLod(static_cast<float>(mipLevels));
+        }
+        samplerInfo.setMipmapMode(_mipmapMode);
+        samplerInfo.setAddressModeU(_addressMode);
+        samplerInfo.setAddressModeV(_addressMode);
+        samplerInfo.setAddressModeW(_addressMode);
+        samplerInfo.setCompareEnable(VK_TRUE);
+        samplerInfo.setCompareOp(vk::CompareOp::eLess);
+        sampler = context->getDevice().createSampler(samplerInfo);
+    }
+
     auto getImage() const -> vk::Image { return image; }
     auto getView() const -> vk::ImageView { return view; }
     auto getSampler() const -> vk::Sampler { return sampler; }
@@ -73,7 +114,10 @@ public:
     // TODO: refactor these
     static auto loadFromFile(const Context& context,
                              const std::filesystem::path& filepath,
-                             uint32_t mipLevels = 1) -> ImageHandle;
+                             uint32_t mipLevels = 1,
+                             vk::Filter _filter = vk::Filter::eLinear,
+                             vk::SamplerAddressMode _addressMode = vk::SamplerAddressMode::eRepeat)
+        -> ImageHandle;
 
     // mipmap is not supported
     static auto loadFromFileHDR(const Context& context, const std::filesystem::path& filepath)
@@ -84,6 +128,7 @@ public:
 
 private:
     const Context* context = nullptr;
+    std::string debugName;
 
     vk::Image image;
     vk::DeviceMemory memory;
