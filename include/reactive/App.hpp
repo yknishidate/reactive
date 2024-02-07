@@ -84,9 +84,10 @@ public:
     auto isKeyDown(int key) const -> bool;
     auto isMouseButtonDown(int button) const -> bool;
 
+    void processMouseInput();
     auto getCursorPos() const -> glm::vec2;
-    auto getMouseWheel() const -> glm::vec2;
-    void resetMouseWheel();
+    auto getMouseDrag() const -> glm::vec2;
+    auto getMouseScroll() const -> float;
     void setWindowSize(uint32_t _width, uint32_t _height);
 
     virtual void onReset() {}
@@ -121,14 +122,18 @@ protected:
     void listSurfaceFormats();
 
     GLFWwindow* window = nullptr;
+    glm::vec2 lastCursorPos{0.0f};
+    glm::vec2 mouseDrag = {0.0f, 0.0f};
 
-    glm::vec2 mouseWheel{0.0};
+    // GLFW では マウススクロールの絶対値を取得する方法はなく
+    // コールバックでオフセットを取得するしかない
+    // 1 フレームごとのスクロール量を取るために蓄積する
+    float mouseScrollAccum = 0.0f;
+    float mouseScroll = 0.0f;
 
     Context context;
-
     vk::UniqueSurfaceKHR surface;
     std::unique_ptr<Swapchain> swapchain;
-
     uint32_t width = 0;
     uint32_t height = 0;
     bool running = true;

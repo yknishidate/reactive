@@ -23,6 +23,7 @@ void App::run() {
     onStart();
     while (!glfwWindowShouldClose(window) && running) {
         glfwPollEvents();
+        processMouseInput();
         if (pendingResize) {
             glfwSetWindowSize(window, static_cast<int>(newWidth), static_cast<int>(newHeight));
             width = newWidth;
@@ -102,16 +103,25 @@ auto App::getCursorPos() const -> glm::vec2 {
     return {xPos, yPos};
 }
 
-auto App::getMouseWheel() const -> glm::vec2 {
-    return mouseWheel;
+auto App::getMouseDrag() const -> glm::vec2 {
+    return mouseDrag;
 }
 
-void App::resetMouseWheel() {
-    mouseWheel = {0.0f, 0.0f};
+void App::processMouseInput() {
+    glm::vec2 cursorPos = getCursorPos();
+    if (isMouseButtonDown(GLFW_MOUSE_BUTTON_LEFT)) {
+        mouseDrag = cursorPos - lastCursorPos;
+    }
+    lastCursorPos = cursorPos;
+    mouseScroll = mouseScrollAccum;
+    mouseScrollAccum = 0.0f;
+}
+
+auto App::getMouseScroll() const -> float {
+    return mouseScroll;
 }
 
 void App::setWindowSize(uint32_t _width, uint32_t _height) {
-    // glfwSetWindowSize(window, _width, _height);
     pendingResize = true;
     newWidth = _width;
     newHeight = _height;
@@ -473,8 +483,7 @@ void App::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
     ImGuiIO& io = ImGui::GetIO();
     if (!io.WantCaptureMouse) {
         App* app = static_cast<App*>(glfwGetWindowUserPointer(window));
-        app->mouseWheel.x += static_cast<float>(xoffset);
-        app->mouseWheel.y += static_cast<float>(yoffset);
+        app->mouseScrollAccum += static_cast<float>(yoffset);
         app->onScroll(static_cast<float>(xoffset), static_cast<float>(yoffset));
     }
 }
