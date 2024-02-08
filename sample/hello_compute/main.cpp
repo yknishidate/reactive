@@ -24,6 +24,7 @@ public:
             .extent = {width, height, 1},
             .format = vk::Format::eB8G8R8A8Unorm,
         });
+        image->createImageView();
 
         buffer = context.createBuffer({
             .usage = BufferUsage::Uniform,
@@ -47,6 +48,7 @@ public:
             .buffers = {{"MandelbrotParams", buffer}},
             .images = {{"outputImage", image}},
         });
+        descSet->update();
 
         pipeline = context.createComputePipeline({
             .computeShader = compShader,
@@ -60,13 +62,9 @@ public:
     }
 
     void onCursorPos(float xpos, float ypos) override {
-        static glm::vec2 lastCursorPos{0.0f};
-        glm::vec2 cursorPos = {xpos, ypos};
-        glm::vec2 cursorOffset = cursorPos - lastCursorPos;
-        lastCursorPos = cursorPos;
         if (isMouseButtonDown(GLFW_MOUSE_BUTTON_1)) {
-            spdlog::info("cursor: {}", glm::to_string(cursorOffset));
-            translate += -cursorOffset / static_cast<float>(height) / scale;
+            spdlog::info("cursor: {}", glm::to_string(getMouseDrag()));
+            translate += -getMouseDrag() / static_cast<float>(height) / scale;
         }
     }
 

@@ -44,6 +44,7 @@ public:
             .extent = {width, height, 1},
             .format = vk::Format::eB8G8R8A8Unorm,
         });
+        image->createImageView();
 
         context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
             commandBuffer->buildTopAccel(topAccel);
@@ -71,6 +72,7 @@ public:
             .images = {{"outputImage", image}},
             .accels = {{"topLevelAS", topAccel}},
         });
+        descSet->update();
 
         pipeline = context.createRayTracingPipeline({
             .rgenGroup = RaygenGroup{.raygenShader = shaders[0]},
@@ -84,14 +86,10 @@ public:
     }
 
     void onUpdate() override {
-        static glm::vec2 lastCursorPos{0.0f};
-        glm::vec2 cursorPos = getCursorPos();
         if (isMouseButtonDown(GLFW_MOUSE_BUTTON_1)) {
-            camera.processDragDelta(cursorPos - lastCursorPos);
+            camera.processDragDelta(getMouseDrag());
         }
-        lastCursorPos = cursorPos;
-        camera.processMouseScroll(getMouseWheel().y);
-        resetMouseWheel();
+        camera.processMouseScroll(getMouseScroll());
 
         pushConstants.invProj = camera.getInvProj();
         pushConstants.invView = camera.getInvView();
