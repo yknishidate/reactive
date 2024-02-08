@@ -56,6 +56,12 @@ struct AABB {
     }
 
     static AABB merge(const AABB& a, const AABB& b) {
+        if (a.center == glm::vec3{0.0f, 0.0f, 0.0f} && a.extents == glm::vec3{0.0f, 0.0f, 0.0f}) {
+            return b;
+        }
+        if (b.center == glm::vec3{0.0f, 0.0f, 0.0f} && b.extents == glm::vec3{0.0f, 0.0f, 0.0f}) {
+            return a;
+        }
         glm::vec3 minA = a.center - a.extents;
         glm::vec3 maxA = a.center + a.extents;
         glm::vec3 minB = b.center - b.extents;
@@ -63,7 +69,7 @@ struct AABB {
 
         glm::vec3 min = glm::min(minA, minB);
         glm::vec3 max = glm::max(maxA, maxB);
-        return AABB(min, max);
+        return {min, max};
     }
 };
 }  // namespace rv
