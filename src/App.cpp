@@ -115,9 +115,13 @@ void App::processMouseInput() {
     glm::vec2 cursorPos = getCursorPos();
     if (isMouseButtonDown(GLFW_MOUSE_BUTTON_LEFT)) {
         mouseDragLeft = cursorPos - lastCursorPos;
+    } else {
+        mouseDragLeft = glm::vec2{0.0f, 0.0f};
     }
     if (isMouseButtonDown(GLFW_MOUSE_BUTTON_RIGHT)) {
         mouseDragRight = cursorPos - lastCursorPos;
+    } else {
+        mouseDragRight = glm::vec2{0.0f, 0.0f};
     }
     lastCursorPos = cursorPos;
     mouseScroll = mouseScrollAccum;
