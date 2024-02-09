@@ -153,18 +153,6 @@ void CommandBuffer::drawIndexed(uint32_t indexCount,
     commandBuffer->drawIndexed(indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 }
 
-void CommandBuffer::drawIndexed(BufferHandle vertexBuffer,
-                                BufferHandle indexBuffer,
-                                uint32_t indexCount,
-                                uint32_t firstIndex,
-                                uint32_t instanceCount,
-                                uint32_t firstInstance) const {
-    vk::DeviceSize offsets{0};
-    commandBuffer->bindVertexBuffers(0, vertexBuffer->getBuffer(), offsets);
-    commandBuffer->bindIndexBuffer(indexBuffer->getBuffer(), 0, vk::IndexType::eUint32);
-    commandBuffer->drawIndexed(indexCount, instanceCount, firstIndex, 0, firstInstance);
-}
-
 void CommandBuffer::drawMeshTasks(uint32_t groupCountX,
                                   uint32_t groupCountY,
                                   uint32_t groupCountZ) const {
