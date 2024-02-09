@@ -114,6 +114,12 @@ auto Camera::getRight() const -> glm::vec3 {
     return glm::normalize(glm::cross(-getUp(), getFront()));
 }
 
+void Camera::setTarget(glm::vec3 _target) {
+    assert(type == Type::Orbital);
+    auto& _params = std::get<OrbitalParams>(params);
+    _params.target = _target;
+}
+
 void Camera::setDistance(float _distance) {
     assert(type == Type::Orbital);
     auto& _params = std::get<OrbitalParams>(params);
