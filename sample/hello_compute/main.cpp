@@ -63,8 +63,8 @@ public:
 
     void onCursorPos(float xpos, float ypos) override {
         if (isMouseButtonDown(GLFW_MOUSE_BUTTON_1)) {
-            spdlog::info("cursor: {}", glm::to_string(getMouseDrag()));
-            translate += -getMouseDrag() / static_cast<float>(height) / scale;
+            spdlog::info("cursor: {}", glm::to_string(getMouseDragLeft()));
+            translate += -getMouseDragLeft() / static_cast<float>(height) / scale;
         }
     }
 

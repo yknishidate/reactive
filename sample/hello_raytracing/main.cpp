@@ -86,9 +86,7 @@ public:
     }
 
     void onUpdate() override {
-        if (isMouseButtonDown(GLFW_MOUSE_BUTTON_1)) {
-            camera.processDragDelta(getMouseDrag());
-        }
+        camera.processMouseDragLeft(getMouseDragLeft());
         camera.processMouseScroll(getMouseScroll());
 
         pushConstants.invProj = camera.getInvProj();
