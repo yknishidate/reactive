@@ -25,12 +25,10 @@ void Camera::processKey(int key) {
         if (key == GLFW_KEY_SPACE) {
             _params.position += up * 0.05f * _params.speed;
         }
-    } else {
-        // pass
     }
 }
 
-void Camera::processDragDelta(glm::vec2 dragDelta) {
+void Camera::processMouseDragLeft(glm::vec2 dragDelta) {
     if (type == Type::FirstPerson) {
         auto& _params = std::get<FirstPersonParams>(params);
         _params.yaw = _params.yaw - dragDelta.x * 0.1f;
@@ -39,6 +37,16 @@ void Camera::processDragDelta(glm::vec2 dragDelta) {
         auto& _params = std::get<OrbitalParams>(params);
         _params.phi = glm::mod(_params.phi - dragDelta.x * 0.5f, 360.0f);
         _params.theta = std::min(std::max(_params.theta + dragDelta.y * 0.5f, -89.9f), 89.9f);
+    }
+}
+
+void Camera::processMouseDragRight(glm::vec2 dragDelta) {
+    if (type == Type::FirstPerson) {
+        auto& _params = std::get<FirstPersonParams>(params);
+        _params.position += up * dragDelta.y * 0.01f;
+    } else {
+        auto& _params = std::get<OrbitalParams>(params);
+        _params.target += up * dragDelta.y * 0.01f;
     }
 }
 
@@ -81,7 +89,7 @@ auto Camera::getPosition() const -> glm::vec3 {
         auto& _params = std::get<OrbitalParams>(params);
         glm::mat4 rotX = glm::rotate(glm::radians(_params.theta), glm::vec3(1, 0, 0));
         glm::mat4 rotY = glm::rotate(glm::radians(_params.phi), glm::vec3(0, 1, 0));
-        return rotY * rotX * glm::vec4{0, 0, _params.distance, 1};
+        return _params.target + glm::vec3{rotY * rotX * glm::vec4{0, 0, _params.distance, 1}};
     }
 }
 

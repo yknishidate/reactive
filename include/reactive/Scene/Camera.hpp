@@ -40,7 +40,8 @@ public:
     }
 
     void processKey(int key);
-    void processDragDelta(glm::vec2 dragDelta);
+    void processMouseDragLeft(glm::vec2 dragDelta);
+    void processMouseDragRight(glm::vec2 dragDelta);
     void processMouseScroll(float scroll);
 
     auto getView() const -> glm::mat4;

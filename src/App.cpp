@@ -103,14 +103,21 @@ auto App::getCursorPos() const -> glm::vec2 {
     return {xPos, yPos};
 }
 
-auto App::getMouseDrag() const -> glm::vec2 {
-    return mouseDrag;
+auto App::getMouseDragLeft() const -> glm::vec2 {
+    return mouseDragLeft;
+}
+
+auto App::getMouseDragRight() const -> glm::vec2 {
+    return mouseDragRight;
 }
 
 void App::processMouseInput() {
     glm::vec2 cursorPos = getCursorPos();
     if (isMouseButtonDown(GLFW_MOUSE_BUTTON_LEFT)) {
-        mouseDrag = cursorPos - lastCursorPos;
+        mouseDragLeft = cursorPos - lastCursorPos;
+    }
+    if (isMouseButtonDown(GLFW_MOUSE_BUTTON_RIGHT)) {
+        mouseDragRight = cursorPos - lastCursorPos;
     }
     lastCursorPos = cursorPos;
     mouseScroll = mouseScrollAccum;

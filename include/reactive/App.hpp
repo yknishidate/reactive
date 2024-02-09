@@ -86,7 +86,8 @@ public:
 
     void processMouseInput();
     auto getCursorPos() const -> glm::vec2;
-    auto getMouseDrag() const -> glm::vec2;
+    auto getMouseDragLeft() const -> glm::vec2;
+    auto getMouseDragRight() const -> glm::vec2;
     auto getMouseScroll() const -> float;
     void setWindowSize(uint32_t _width, uint32_t _height);
 
@@ -123,7 +124,8 @@ protected:
 
     GLFWwindow* window = nullptr;
     glm::vec2 lastCursorPos{0.0f};
-    glm::vec2 mouseDrag = {0.0f, 0.0f};
+    glm::vec2 mouseDragLeft = {0.0f, 0.0f};
+    glm::vec2 mouseDragRight = {0.0f, 0.0f};
 
     // GLFW では マウススクロールの絶対値を取得する方法はなく
     // コールバックでオフセットを取得するしかない
