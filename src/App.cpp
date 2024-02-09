@@ -35,12 +35,12 @@ void App::run() {
             continue;
         }
 
-        onUpdate();
-
         // Start ImGui
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+
+        onUpdate();
 
         swapchain->waitNextFrame();
 
