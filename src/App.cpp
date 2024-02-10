@@ -21,6 +21,8 @@ App::App(AppCreateInfo createInfo) : width{createInfo.width}, height{createInfo.
 
 void App::run() {
     onStart();
+    CPUTimer timer;
+
     while (!glfwWindowShouldClose(window) && running) {
         glfwPollEvents();
         processMouseInput();
@@ -40,7 +42,9 @@ void App::run() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        onUpdate();
+        float dt = timer.elapsedInMilli();
+        onUpdate(dt);
+        timer.restart();
 
         swapchain->waitNextFrame();
 

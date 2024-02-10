@@ -14,6 +14,7 @@
 #include "Scene/Loader.hpp"
 #include "Scene/Mesh.hpp"
 #include "Scene/Object.hpp"
+#include "Timer/CPUTimer.hpp"
 
 namespace rv {
 struct StructureChain {
@@ -71,7 +72,7 @@ public:
 
     virtual void run();
     virtual void onStart() {}
-    virtual void onUpdate() {}
+    virtual void onUpdate(float dt) {}
     virtual void onRender(const CommandBufferHandle& commandBuffer) {}
     virtual void onShutdown() {}
 
