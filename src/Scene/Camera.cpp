@@ -102,7 +102,7 @@ auto Camera::getFront() const -> glm::vec3 {
         return glm::normalize(glm::vec3{rotation * glm::vec4{0, 0, -1, 1}});
     } else {
         auto& _params = std::get<OrbitalParams>(params);
-        return glm::normalize(getPosition() - _params.target);
+        return glm::normalize(_params.target - getPosition());
     }
 }
 
