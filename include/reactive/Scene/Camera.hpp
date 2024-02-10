@@ -11,8 +11,8 @@ class App;
 class Camera {
 public:
     enum class Type {
-        FirstPerson,
         Orbital,
+        FirstPerson,
     };
 
     struct FirstPersonParams {
@@ -54,6 +54,7 @@ public:
     auto getUp() const -> glm::vec3;
     auto getRight() const -> glm::vec3;
 
+    auto getType() const -> Type { return type; }
     auto getNear() const -> float { return zNear; }
     auto getFar() const -> float { return zFar; }
     auto getAspect() const -> float { return aspect; }
@@ -66,8 +67,8 @@ public:
     void setPhi(float _phi);
     void setTheta(float _theta);
 
-private:
-    Type type;
+protected:
+    Type type = Type::Orbital;
 
     float aspect = 1.0f;
     float zNear = 0.01f;
@@ -75,6 +76,6 @@ private:
     float fovY = glm::radians(45.0f);
     glm::vec3 up = {0.0f, 1.0f, 0.0f};
 
-    std::variant<FirstPersonParams, OrbitalParams> params;
+    std::variant<FirstPersonParams, OrbitalParams> params = OrbitalParams{};
 };
 }  // namespace rv

@@ -19,6 +19,8 @@ struct Plane {
 };
 
 struct Frustum {
+    Frustum() = default;
+
     Frustum(const Camera& camera);
 
     Plane topFace;
