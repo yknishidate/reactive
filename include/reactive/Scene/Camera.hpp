@@ -60,6 +60,7 @@ public:
     auto getAspect() const -> float { return aspect; }
     auto getFovY() const -> float { return fovY; }
 
+    void setType(Type _type);
     void setAspect(float _aspect) { aspect = _aspect; }
     void setFovY(float _fovY) { fovY = _fovY; }
     void setTarget(glm::vec3 _target);
