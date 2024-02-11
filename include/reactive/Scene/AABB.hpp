@@ -9,14 +9,15 @@ struct AABB {
           extents{max.x - center.x, max.y - center.y, max.z - center.z} {}
 
     glm::vec3 center{0.f, 0.f, 0.f};
-    glm::vec3 extents{0.f, 0.f, 0.f};
+    glm::vec3 extents{0.f, 0.f, 0.f};  // 辺の長さの半分
 
     bool isOnOrForwardPlane(const Plane& plane) const {
         // Compute the projection interval radius of b onto L(t) = b.c + t * p.n
         const float r = extents.x * std::abs(plane.normal.x) +
-                        extents.y * std::abs(plane.normal.y) + extents.z * std::abs(plane.normal.z);
+                        extents.y * std::abs(plane.normal.y) +  //
+                        extents.z * std::abs(plane.normal.z);
 
-        return -r <= plane.getSignedDistanceToPlane(center);
+        return -r <= plane.getSignedDistance(center);
     }
 
     bool isOnFrustum(const Frustum& camFrustum) const {

@@ -7,7 +7,7 @@ struct Plane {
     Plane(const glm::vec3& p1, const glm::vec3& norm)
         : normal{glm::normalize(norm)}, distance{glm::dot(normal, p1)} {}
 
-    float getSignedDistanceToPlane(const glm::vec3& point) const {
+    float getSignedDistance(const glm::vec3& point) const {
         return glm::dot(normal, point) - distance;
     }
 
@@ -44,9 +44,9 @@ inline Frustum::Frustum(const Camera& camera) {
 
     nearFace = {position + camera.getNear() * front, front};
     farFace = {position + frontMultFar, -front};
-    rightFace = {position, glm::cross(frontMultFar - right * halfHSide, up)};
-    leftFace = {position, glm::cross(up, frontMultFar + right * halfHSide)};
-    topFace = {position, glm::cross(right, frontMultFar - up * halfVSide)};
-    bottomFace = {position, glm::cross(frontMultFar + up * halfVSide, right)};
+    rightFace = {position, glm::cross(up, frontMultFar + right * halfHSide)};
+    leftFace = {position, glm::cross(frontMultFar - right * halfHSide, up)};
+    bottomFace = {position, glm::cross(right, frontMultFar - up * halfVSide)};
+    topFace = {position, glm::cross(frontMultFar + up * halfVSide, right)};
 }
 }  // namespace rv
