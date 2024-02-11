@@ -9,7 +9,7 @@ void Camera::processKey(int key) {
     if (type == Type::FirstPerson) {
         auto& _params = std::get<FirstPersonParams>(params);
         glm::vec3 front = getFront();
-        glm::vec3 right = glm::normalize(glm::cross(-up, front));
+        glm::vec3 right = getRight();
         if (key == GLFW_KEY_W) {
             _params.position += front * 0.15f * _params.speed;
         }
@@ -99,8 +99,10 @@ auto Camera::getFront() const -> glm::vec3 {
         glm::mat4 rotation{1.0};
         rotation *= glm::rotate(glm::radians(_params.yaw), glm::vec3{0, 1, 0});
         rotation *= glm::rotate(glm::radians(_params.pitch), glm::vec3{1, 0, 0});
+        // カメラ座標では奥が前
         return glm::normalize(glm::vec3{rotation * glm::vec4{0, 0, -1, 1}});
     } else {
+        // カメラ座標では奥が前
         auto& _params = std::get<OrbitalParams>(params);
         return glm::normalize(_params.target - getPosition());
     }
@@ -111,7 +113,7 @@ auto Camera::getUp() const -> glm::vec3 {
 }
 
 auto Camera::getRight() const -> glm::vec3 {
-    return glm::normalize(glm::cross(-getUp(), getFront()));
+    return glm::normalize(glm::cross(getFront(), up));
 }
 
 void Camera::setType(Type _type) {
