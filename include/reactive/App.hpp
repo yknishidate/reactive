@@ -91,6 +91,8 @@ public:
     auto getMouseDragRight() const -> glm::vec2;
     auto getMouseScroll() const -> float;
     void setWindowSize(uint32_t _width, uint32_t _height);
+    auto getWindowWidth() const { return width; }
+    auto getWindowHeight() const { return height; }
 
     virtual void onReset() {}
     virtual void onKey(int key, int scancode, int action, int mods) {}
