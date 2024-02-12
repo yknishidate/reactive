@@ -5,16 +5,19 @@
 #include <stb_image.h>
 #include <stb_image_write.h>
 
+#include "Window.hpp"
+
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
 
 namespace rv {
 
-App::App(AppCreateInfo createInfo) : width{createInfo.width}, height{createInfo.height} {
+App::App(const AppCreateInfo& createInfo) {
     spdlog::set_pattern("[%^%l%$] %v");
 
-    initGLFW(createInfo.windowResizable, createInfo.title);
+    Window::init(createInfo.width, createInfo.height, createInfo.title, createInfo.windowResizable);
+    Window::setAppPointer(this);
     initVulkan(createInfo.layers, createInfo.extensions, createInfo.vsync);
     initImGui(createInfo.style);
 }
@@ -23,17 +26,10 @@ void App::run() {
     onStart();
     CPUTimer timer;
 
-    while (!glfwWindowShouldClose(window) && running) {
-        glfwPollEvents();
-        processMouseInput();
-        if (pendingResize) {
-            glfwSetWindowSize(window, static_cast<int>(newWidth), static_cast<int>(newHeight));
-            width = newWidth;
-            height = newHeight;
-            pendingResize = false;
-        }
+    while (!Window::shouldClose() && running) {
+        Window::pollEvents();
 
-        if (width == 0 && height == 0) {
+        if (Window::getWidth() == 0 && Window::getHeight() == 0) {
             continue;
         }
 
@@ -60,7 +56,8 @@ void App::run() {
         // Draw GUI
         {
             // Begin render pass
-            commandBuffer->beginRendering(getCurrentColorImage(), {}, {0, 0}, {width, height});
+            commandBuffer->beginRendering(getCurrentColorImage(), {}, {0, 0},
+                                          {Window::getWidth(), Window::getHeight()});
 
             // Render
             // TODO: create ImGui wrapper
@@ -88,9 +85,7 @@ void App::run() {
     }
     context.getDevice().waitIdle();
 
-    // Shutdown GLFW
-    glfwDestroyWindow(window);
-    glfwTerminate();
+    Window::shutdown();
 
     // Shutdown ImGui
     ImGui_ImplVulkan_Shutdown();
@@ -100,97 +95,10 @@ void App::run() {
     onShutdown();
 }
 
-auto App::getCursorPos() const -> glm::vec2 {
-    double xPos{};
-    double yPos{};
-    glfwGetCursorPos(window, &xPos, &yPos);
-    return {xPos, yPos};
-}
-
-auto App::getMouseDragLeft() const -> glm::vec2 {
-    return mouseDragLeft;
-}
-
-auto App::getMouseDragRight() const -> glm::vec2 {
-    return mouseDragRight;
-}
-
-void App::processMouseInput() {
-    glm::vec2 cursorPos = getCursorPos();
-    if (isMouseButtonDown(GLFW_MOUSE_BUTTON_LEFT)) {
-        mouseDragLeft = cursorPos - lastCursorPos;
-    } else {
-        mouseDragLeft = glm::vec2{0.0f, 0.0f};
-    }
-    if (isMouseButtonDown(GLFW_MOUSE_BUTTON_RIGHT)) {
-        mouseDragRight = cursorPos - lastCursorPos;
-    } else {
-        mouseDragRight = glm::vec2{0.0f, 0.0f};
-    }
-    lastCursorPos = cursorPos;
-    mouseScroll = mouseScrollAccum;
-    mouseScrollAccum = 0.0f;
-}
-
-auto App::getMouseScroll() const -> float {
-    return mouseScroll;
-}
-
-void App::setWindowSize(uint32_t _width, uint32_t _height) {
-    pendingResize = true;
-    newWidth = _width;
-    newHeight = _height;
-}
-
 auto App::getCurrentColorImage() const -> ImageHandle {
     return std::make_shared<Image>(swapchain->getCurrentImage(), swapchain->getCurrentImageView(),
-                                   vk::Extent3D{width, height, 1}, swapchain->getFormat(),
-                                   vk::ImageAspectFlagBits::eColor);
-}
-
-auto App::isKeyDown(int key) const -> bool {
-    if (key < GLFW_KEY_SPACE || key > GLFW_KEY_LAST) {
-        return false;
-    }
-    return glfwGetKey(window, key) == GLFW_PRESS;
-}
-
-auto App::isMouseButtonDown(int button) const -> bool {
-    ImGuiIO& io = ImGui::GetIO();
-    if (button < GLFW_MOUSE_BUTTON_1 || button > GLFW_MOUSE_BUTTON_LAST || io.WantCaptureMouse) {
-        return false;
-    }
-    return glfwGetMouseButton(window, button) == GLFW_PRESS;
-}
-
-void App::initGLFW(bool resizable, const char* title) {
-    // Init GLFW
-    glfwInit();
-    glfwWindowHint(GLFW_RESIZABLE, resizable);
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-
-    // Create window
-    window = glfwCreateWindow(width, height, title, nullptr, nullptr);
-
-    // Set window icon
-    GLFWimage icon;
-    std::string iconPath = ASSET_DIR + "Vulkan.png";
-    icon.pixels = stbi_load(iconPath.c_str(), &icon.width, &icon.height, nullptr, 4);
-    if (icon.pixels != nullptr) {
-        glfwSetWindowIcon(window, 1, &icon);
-    }
-    stbi_image_free(icon.pixels);
-
-    // Setup input callbacks
-    glfwSetWindowUserPointer(window, this);
-    glfwSetKeyCallback(window, keyCallback);
-    glfwSetCharModsCallback(window, charModsCallback);
-    glfwSetMouseButtonCallback(window, mouseButtonCallback);
-    glfwSetCursorPosCallback(window, cursorPosCallback);
-    glfwSetCursorEnterCallback(window, cursorEnterCallback);
-    glfwSetScrollCallback(window, scrollCallback);
-    glfwSetDropCallback(window, dropCallback);
-    glfwSetWindowSizeCallback(window, windowSizeCallback);
+                                   vk::Extent3D{Window::getWidth(), Window::getHeight(), 1},
+                                   swapchain->getFormat(), vk::ImageAspectFlagBits::eColor);
 }
 
 void App::initVulkan(ArrayProxy<Layer> requiredLayers,
@@ -198,9 +106,7 @@ void App::initVulkan(ArrayProxy<Layer> requiredLayers,
                      bool vsync) {
     bool enableValidation = requiredLayers.contains(Layer::Validation);
 
-    uint32_t glfwExtensionCount = 0;
-    const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-    std::vector instanceExtensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+    std::vector instanceExtensions = Window::getRequiredInstanceExtensions();
     if (enableValidation) {
         instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
@@ -216,11 +122,7 @@ void App::initVulkan(ArrayProxy<Layer> requiredLayers,
     context.initInstance(enableValidation, layers, instanceExtensions, VK_API_VERSION_1_3);
 
     // Create surface
-    VkSurfaceKHR _surface;
-    if (glfwCreateWindowSurface(context.getInstance(), window, nullptr, &_surface) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create window surface!");
-    }
-    surface = vk::UniqueSurfaceKHR{_surface, {context.getInstance()}};
+    surface = Window::createSurface(context.getInstance());
 
     context.initPhysicalDevice(*surface);
 
@@ -316,7 +218,8 @@ void App::initVulkan(ArrayProxy<Layer> requiredLayers,
                        requiredExtensions.contains(Extension::RayTracing));
 
     auto presentMode = vsync ? vk::PresentModeKHR::eFifo : vk::PresentModeKHR::eMailbox;
-    swapchain = std::make_unique<Swapchain>(context, *surface, width, height, presentMode);
+    swapchain = std::make_unique<Swapchain>(context, *surface, Window::getWidth(),
+                                            Window::getHeight(), presentMode);
 }
 
 void setImGuiStyle(UIStyle style) {
@@ -410,7 +313,7 @@ void App::initImGui(UIStyle style) {
     setImGuiStyle(style);
 
     // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForVulkan(window, true);
+    ImGui_ImplGlfw_InitForVulkan(Window::getWindow(), true);
     ImGui_ImplVulkan_InitInfo initInfo{};
     initInfo.Instance = context.getInstance();
     initInfo.PhysicalDevice = context.getPhysicalDevice();
@@ -449,67 +352,13 @@ void App::onWindowSize() {
     // but a validation error occurs if the Vulkan function is not called.
     vk::PhysicalDevice physicalDevice = context.getPhysicalDevice();
     vk::SurfaceCapabilitiesKHR capabilities = physicalDevice.getSurfaceCapabilitiesKHR(*surface);
-    width = capabilities.currentExtent.width;
-    height = capabilities.currentExtent.height;
-
+    uint32_t width = capabilities.currentExtent.width;
+    uint32_t height = capabilities.currentExtent.height;
     spdlog::debug("Window resized: {} {}", width, height);
-
     if (width == 0 || height == 0) {
         return;
     }
     context.getDevice().waitIdle();
-
     swapchain->resize(width, height);
-}
-
-// Callbacks
-void App::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    ImGuiIO& io = ImGui::GetIO();
-    if (!io.WantCaptureKeyboard) {
-        App* app = static_cast<App*>(glfwGetWindowUserPointer(window));
-        app->onKey(key, scancode, action, mods);
-    }
-}
-
-void App::charModsCallback(GLFWwindow* window, unsigned int codepoint, int mods) {
-    App* app = static_cast<App*>(glfwGetWindowUserPointer(window));
-    app->onCharMods(codepoint, mods);
-}
-
-void App::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
-    ImGuiIO& io = ImGui::GetIO();
-    if (!io.WantCaptureMouse) {
-        App* app = static_cast<App*>(glfwGetWindowUserPointer(window));
-        app->onMouseButton(button, action, mods);
-    }
-}
-
-void App::cursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
-    App* app = static_cast<App*>(glfwGetWindowUserPointer(window));
-    app->onCursorPos(static_cast<float>(xpos), static_cast<float>(ypos));
-}
-
-void App::cursorEnterCallback(GLFWwindow* window, int entered) {
-    App* app = static_cast<App*>(glfwGetWindowUserPointer(window));
-    app->onCursorEnter(entered);
-}
-
-void App::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
-    ImGuiIO& io = ImGui::GetIO();
-    if (!io.WantCaptureMouse) {
-        App* app = static_cast<App*>(glfwGetWindowUserPointer(window));
-        app->mouseScrollAccum += static_cast<float>(yoffset);
-        app->onScroll(static_cast<float>(xoffset), static_cast<float>(yoffset));
-    }
-}
-
-void App::dropCallback(GLFWwindow* window, int count, const char** paths) {
-    App* app = static_cast<App*>(glfwGetWindowUserPointer(window));
-    app->onDrop(count, paths);
-}
-
-void App::windowSizeCallback(GLFWwindow* window, int width, int height) {
-    App* app = static_cast<App*>(glfwGetWindowUserPointer(window));
-    app->onWindowSize();
 }
 }  // namespace rv
