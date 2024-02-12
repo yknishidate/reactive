@@ -73,9 +73,8 @@ protected:
 
     float aspect = 1.0f;
     float zNear = 0.01f;
-    float zFar = 10000.0f;
+    float zFar = 1000.0f;
     float fovY = glm::radians(45.0f);
-    glm::vec3 up = {0.0f, 1.0f, 0.0f};
 
     std::variant<FirstPersonParams, OrbitalParams> params = OrbitalParams{};
 };

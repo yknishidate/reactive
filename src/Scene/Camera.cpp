@@ -23,7 +23,7 @@ void Camera::processKey(int key) {
             _params.position -= right * 0.1f * _params.speed;
         }
         if (key == GLFW_KEY_SPACE) {
-            _params.position += up * 0.05f * _params.speed;
+            _params.position += glm::vec3{0, 1, 0} * 0.05f * _params.speed;
         }
     }
 }
@@ -43,10 +43,10 @@ void Camera::processMouseDragLeft(glm::vec2 dragDelta) {
 void Camera::processMouseDragRight(glm::vec2 dragDelta) {
     if (type == Type::FirstPerson) {
         auto& _params = std::get<FirstPersonParams>(params);
-        _params.position += up * dragDelta.y * 0.01f;
+        _params.position += glm::vec3{0, 1, 0} * dragDelta.y * 0.01f;
     } else {
         auto& _params = std::get<OrbitalParams>(params);
-        _params.target += up * dragDelta.y * 0.01f;
+        _params.target += glm::vec3{0, 1, 0} * dragDelta.y * 0.01f;
     }
 }
 
@@ -62,10 +62,10 @@ void Camera::processMouseScroll(float scroll) {
 auto Camera::getView() const -> glm::mat4 {
     if (type == Type::FirstPerson) {
         auto& _params = std::get<FirstPersonParams>(params);
-        return glm::lookAt(_params.position, _params.position + getFront(), up);
+        return glm::lookAt(_params.position, _params.position + getFront(), glm::vec3{0, 1, 0});
     } else {
         auto& _params = std::get<OrbitalParams>(params);
-        return glm::lookAt(getPosition(), _params.target, up);
+        return glm::lookAt(getPosition(), _params.target, glm::vec3{0, 1, 0});
     }
 }
 
@@ -109,11 +109,11 @@ auto Camera::getFront() const -> glm::vec3 {
 }
 
 auto Camera::getUp() const -> glm::vec3 {
-    return up;
+    return glm::normalize(glm::cross(getRight(), getFront()));
 }
 
 auto Camera::getRight() const -> glm::vec3 {
-    return glm::normalize(glm::cross(getFront(), up));
+    return glm::normalize(glm::cross(getFront(), glm::vec3{0, 1, 0}));
 }
 
 void Camera::setType(Type _type) {
