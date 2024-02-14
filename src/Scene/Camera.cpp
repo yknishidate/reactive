@@ -1,28 +1,29 @@
 #include "Scene/Camera.hpp"
 #include "App.hpp"
+#include "Window.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
 namespace rv {
-void Camera::processKey(int key) {
+void Camera::processKey() {
     if (type == Type::FirstPerson) {
         auto& _params = std::get<FirstPersonParams>(params);
         glm::vec3 front = getFront();
         glm::vec3 right = getRight();
-        if (key == GLFW_KEY_W) {
+        if (Window::isKeyDown(GLFW_KEY_W)) {
             _params.position += front * 0.15f * _params.speed;
         }
-        if (key == GLFW_KEY_S) {
+        if (Window::isKeyDown(GLFW_KEY_S)) {
             _params.position -= front * 0.15f * _params.speed;
         }
-        if (key == GLFW_KEY_D) {
+        if (Window::isKeyDown(GLFW_KEY_D)) {
             _params.position += right * 0.1f * _params.speed;
         }
-        if (key == GLFW_KEY_A) {
+        if (Window::isKeyDown(GLFW_KEY_A)) {
             _params.position -= right * 0.1f * _params.speed;
         }
-        if (key == GLFW_KEY_SPACE) {
+        if (Window::isKeyDown(GLFW_KEY_SPACE)) {
             _params.position += glm::vec3{0, 1, 0} * 0.05f * _params.speed;
         }
     }

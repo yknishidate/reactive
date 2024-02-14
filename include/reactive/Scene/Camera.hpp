@@ -39,7 +39,11 @@ public:
         }
     }
 
-    void processKey(int key);
+    // キー入力は関数内で rv::Window から直接取得する
+    void processKey();
+
+    // マウス入力は rv::Window 以外で計測される場合もあるため
+    // 外部から引数で受け取る
     void processMouseDragLeft(glm::vec2 dragDelta);
     void processMouseDragRight(glm::vec2 dragDelta);
     void processMouseScroll(float scroll);
