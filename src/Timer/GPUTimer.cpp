@@ -26,6 +26,8 @@ auto GPUTimer::elapsedInNano() -> float {
         throw std::runtime_error("Failed to get query pool results");
     }
     state = State::Ready;
+
+    // FIXME: たまに片方に 0 が入っていることがある。同期などの問題が起きているかも。
     return timestampPeriod * static_cast<float>(timestamps[1] - timestamps[0]);
 }
 

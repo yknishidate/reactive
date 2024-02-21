@@ -109,7 +109,7 @@ public:
 
     // Ensure that data is pre-filled
     // ImageLayout is implicitly shifted to ShaderReadOnlyOptimal
-    void generateMipmaps();
+    void generateMipmaps(const CommandBuffer& commandBuffer);
 
     // TODO: refactor these
     static auto loadFromFile(const Context& context,

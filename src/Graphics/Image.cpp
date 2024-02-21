@@ -17,11 +17,11 @@ namespace rv {
 Image::Image(const Context& _context, const ImageCreateInfo& createInfo)
     // NOTE: layout is updated by transitionLayout after this ctor.
     : context{&_context},
+      debugName{createInfo.debugName},
       hasOwnership{true},
       extent{createInfo.extent},
       format{createInfo.format},
-      mipLevels{createInfo.mipLevels},
-      debugName{createInfo.debugName} {
+      mipLevels{createInfo.mipLevels} {
     vk::ImageType type = extent.depth == 1 ? vk::ImageType::e2D : vk::ImageType::e3D;
 
     // Compute mipmap level
@@ -130,16 +130,16 @@ ImageHandle Image::loadFromFile(const Context& context,
         commandBuffer->transitionLayout(image, vk::ImageLayout::eTransferDstOptimal);
         commandBuffer->copyBufferToImage(stagingBuffer, image);
 
+        // TODO: refactor
         vk::ImageLayout newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
         if (mipLevels > 1) {
             newLayout = vk::ImageLayout::eTransferSrcOptimal;
         }
         commandBuffer->transitionLayout(image, newLayout);
+        if (mipLevels > 1) {
+            image->generateMipmaps(*commandBuffer);
+        }
     });
-
-    if (mipLevels > 1) {
-        image->generateMipmaps();
-    }
 
     stbi_image_free(pixels);
 
@@ -230,16 +230,26 @@ auto Image::loadFromKTX(const Context& context, const std::filesystem::path& fil
     return image;
 }
 
-void Image::generateMipmaps() {
+void Image::generateMipmaps(const CommandBuffer& commandBuffer) {
     RV_ASSERT(mipLevels > 1, "mipLevels is not set greater than 1 when the image is created.");
+
+    commandBuffer.beginDebugLabel("GenerateMipmap");
+    vk::ImageLayout oldLayout = layout;
+    vk::ImageLayout newLayout = layout;
 
     // Check if image format supports linear blitting
     vk::Filter filter = vk::Filter::eLinear;
     vk::FormatProperties formatProperties =
         context->getPhysicalDevice().getFormatProperties(format);
-    if (!(formatProperties.optimalTilingFeatures &
-          vk::FormatFeatureFlagBits::eSampledImageFilterLinear)) {
-        spdlog::warn("This format does not support linear blitting: {}", vk::to_string(format));
+
+    bool isLinearFilteringSupported =
+        static_cast<bool>(formatProperties.optimalTilingFeatures &
+                          vk::FormatFeatureFlagBits::eSampledImageFilterLinear);
+    bool isFormatDepthStencil =
+        format == vk::Format::eD16Unorm || format == vk::Format::eD16UnormS8Uint ||
+        format == vk::Format::eD24UnormS8Uint || format == vk::Format::eD32Sfloat ||
+        format == vk::Format::eD32SfloatS8Uint;
+    if (isFormatDepthStencil || !isLinearFilteringSupported) {
         filter = vk::Filter::eNearest;
     }
     if (!(formatProperties.optimalTilingFeatures & vk::FormatFeatureFlagBits::eBlitSrc)) {
@@ -251,70 +261,90 @@ void Image::generateMipmaps() {
 
     // TODO: support 3D
     // TODO: move to command buffer
-    context->oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
-        vk::ImageMemoryBarrier barrier{};
-        barrier.image = image;
-        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-        barrier.subresourceRange.baseArrayLayer = 0;
-        barrier.subresourceRange.layerCount = 1;
-        barrier.subresourceRange.levelCount = 1;
+    vk::ImageMemoryBarrier barrier{};
+    barrier.image = image;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.subresourceRange.aspectMask = aspect;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.layerCount = 1;
+    barrier.subresourceRange.levelCount = 1;
 
-        int32_t mipWidth = extent.width;
-        int32_t mipHeight = extent.height;
+    int32_t mipWidth = extent.width;
+    int32_t mipHeight = extent.height;
 
-        for (uint32_t i = 1; i < mipLevels; i++) {
+    for (uint32_t i = 1; i < mipLevels; i++) {
+        // Src (i - 1)
+        {
+            // TODO: access maskをしっかり設定する
+            // NOTE: level = 0 についてはまだ遷移していないので old = 既存のレイアウトとする
             barrier.subresourceRange.baseMipLevel = i - 1;
-            barrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
+            barrier.oldLayout = i == 1 ? oldLayout : vk::ImageLayout::eTransferDstOptimal;
             barrier.newLayout = vk::ImageLayout::eTransferSrcOptimal;
-            barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+            barrier.srcAccessMask = {};
             barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
-
-            commandBuffer->imageBarrier(barrier, vk::PipelineStageFlagBits::eTransfer,
-                                        vk::PipelineStageFlagBits::eTransfer);
-
-            vk::ImageBlit blit{};
-            blit.srcOffsets[0] = vk::Offset3D{0, 0, 0};
-            blit.srcOffsets[1] = vk::Offset3D{mipWidth, mipHeight, 1};
-            blit.srcSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
-            blit.srcSubresource.mipLevel = i - 1;
-            blit.srcSubresource.baseArrayLayer = 0;
-            blit.srcSubresource.layerCount = 1;
-            blit.dstOffsets[0] = vk::Offset3D{0, 0, 0};
-            blit.dstOffsets[1] =
-                vk::Offset3D{mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, 1};
-            blit.dstSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
-            blit.dstSubresource.mipLevel = i;
-            blit.dstSubresource.baseArrayLayer = 0;
-            blit.dstSubresource.layerCount = 1;
-
-            commandBuffer->commandBuffer->blitImage(image, vk::ImageLayout::eTransferSrcOptimal,
-                                                    image, vk::ImageLayout::eTransferDstOptimal,
-                                                    blit, filter);
-
-            barrier.oldLayout = vk::ImageLayout::eTransferSrcOptimal;
-            barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-            barrier.srcAccessMask = vk::AccessFlagBits::eTransferRead;
-            barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
-
-            commandBuffer->imageBarrier(barrier, vk::PipelineStageFlagBits::eTransfer,
-                                        vk::PipelineStageFlagBits::eFragmentShader);
-
-            if (mipWidth > 1)
-                mipWidth /= 2;
-            if (mipHeight > 1)
-                mipHeight /= 2;
+            commandBuffer.imageBarrier(barrier, vk::PipelineStageFlagBits::eTransfer,
+                                       vk::PipelineStageFlagBits::eTransfer);
+        }
+        // Dst (i)
+        {
+            // NOTE: Dst はこれから書きこまれるので old = undef でよい
+            // ただし省略すると古い情報が残るので上書きすること
+            barrier.subresourceRange.baseMipLevel = i;
+            barrier.oldLayout = vk::ImageLayout::eUndefined;
+            barrier.newLayout = vk::ImageLayout::eTransferDstOptimal;
+            barrier.srcAccessMask = {};
+            barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
+            commandBuffer.imageBarrier(barrier, vk::PipelineStageFlagBits::eTransfer,
+                                       vk::PipelineStageFlagBits::eTransfer);
         }
 
-        barrier.subresourceRange.baseMipLevel = mipLevels - 1;
-        barrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
-        barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-        barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
-        barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+        vk::ImageBlit blit{};
+        blit.srcOffsets[0] = vk::Offset3D{0, 0, 0};
+        blit.srcOffsets[1] = vk::Offset3D{mipWidth, mipHeight, 1};
+        blit.srcSubresource.aspectMask = aspect;
+        blit.srcSubresource.mipLevel = i - 1;
+        blit.srcSubresource.baseArrayLayer = 0;
+        blit.srcSubresource.layerCount = 1;
+        blit.dstOffsets[0] = vk::Offset3D{0, 0, 0};
+        blit.dstOffsets[1] = vk::Offset3D{mipWidth > 1 ? mipWidth / 2 : 1,  //
+                                          mipHeight > 1 ? mipHeight / 2 : 1, 1};
+        blit.dstSubresource.aspectMask = aspect;
+        blit.dstSubresource.mipLevel = i;
+        blit.dstSubresource.baseArrayLayer = 0;
+        blit.dstSubresource.layerCount = 1;
 
-        commandBuffer->imageBarrier(barrier, vk::PipelineStageFlagBits::eTransfer,
-                                    vk::PipelineStageFlagBits::eAllCommands);
-    });
+        commandBuffer.commandBuffer->blitImage(image, vk::ImageLayout::eTransferSrcOptimal, image,
+                                               vk::ImageLayout::eTransferDstOptimal, blit, filter);
+
+        if (mipWidth > 1)
+            mipWidth /= 2;
+        if (mipHeight > 1)
+            mipHeight /= 2;
+    }
+
+    // レベル[0, 1, 2, ..., N-1, N] のうち、[0, N-1]までをまとめて遷移
+    barrier.subresourceRange.baseMipLevel = 0;
+    barrier.subresourceRange.levelCount = mipLevels - 1;
+    barrier.oldLayout = vk::ImageLayout::eTransferSrcOptimal;
+    barrier.newLayout = newLayout;
+    barrier.srcAccessMask = vk::AccessFlagBits::eTransferRead;
+    barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+    commandBuffer.imageBarrier(barrier, vk::PipelineStageFlagBits::eTransfer,
+                               vk::PipelineStageFlagBits::eAllCommands);
+
+    // レベルNを遷移
+    barrier.subresourceRange.baseMipLevel = mipLevels - 1;
+    barrier.subresourceRange.levelCount = 1;
+    barrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
+    barrier.newLayout = newLayout;
+    barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+    barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+    commandBuffer.imageBarrier(barrier, vk::PipelineStageFlagBits::eTransfer,
+                               vk::PipelineStageFlagBits::eAllCommands);
+
+    commandBuffer.endDebugLabel();
+
+    layout = newLayout;
 }
 }  // namespace rv

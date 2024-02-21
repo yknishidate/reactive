@@ -261,6 +261,7 @@ void CommandBuffer::transitionLayout(ImageHandle image, vk::ImageLayout newLayou
     vk::PipelineStageFlags srcStageMask = vk::PipelineStageFlagBits::eAllCommands;
     vk::PipelineStageFlags dstStageMask = vk::PipelineStageFlagBits::eAllCommands;
 
+    // NOTE: oldLayoutをUndefinedとすると画像の内容は破棄される可能性がある
     vk::ImageMemoryBarrier barrier{};
     barrier.setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
     barrier.setSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
