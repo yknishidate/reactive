@@ -11,6 +11,9 @@ struct AABB {
     glm::vec3 center{0.f, 0.f, 0.f};
     glm::vec3 extents{0.f, 0.f, 0.f};  // 辺の長さの半分
 
+    glm::vec3 getMin() const { return center - extents; }
+    glm::vec3 getMax() const { return center + extents; }
+
     bool isOnOrForwardPlane(const Plane& plane) const {
         // Compute the projection interval radius of b onto L(t) = b.c + t * p.n
         const float r = extents.x * std::abs(plane.normal.x) +
