@@ -83,12 +83,22 @@ static constexpr vk::BufferUsageFlags Staging =
     vk::BufferUsageFlagBits::eTransferSrc |
     vk::BufferUsageFlagBits::eTransferDst;
 static constexpr vk::BufferUsageFlags Vertex =
-    vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
     vk::BufferUsageFlagBits::eStorageBuffer |
     vk::BufferUsageFlagBits::eShaderDeviceAddress |
     vk::BufferUsageFlagBits::eVertexBuffer |
     vk::BufferUsageFlagBits::eTransferDst;
 static constexpr vk::BufferUsageFlags Index =
+    vk::BufferUsageFlagBits::eStorageBuffer |
+    vk::BufferUsageFlagBits::eShaderDeviceAddress |
+    vk::BufferUsageFlagBits::eIndexBuffer |
+    vk::BufferUsageFlagBits::eTransferDst;
+static constexpr vk::BufferUsageFlags AccelVertex =
+    vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
+    vk::BufferUsageFlagBits::eStorageBuffer |
+    vk::BufferUsageFlagBits::eShaderDeviceAddress |
+    vk::BufferUsageFlagBits::eVertexBuffer |
+    vk::BufferUsageFlagBits::eTransferDst;
+static constexpr vk::BufferUsageFlags AccelIndex =
     vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
     vk::BufferUsageFlagBits::eStorageBuffer |
     vk::BufferUsageFlagBits::eShaderDeviceAddress |
