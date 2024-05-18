@@ -83,13 +83,11 @@ static constexpr vk::BufferUsageFlags Staging =
     vk::BufferUsageFlagBits::eTransferSrc |
     vk::BufferUsageFlagBits::eTransferDst;
 static constexpr vk::BufferUsageFlags Vertex =
-    vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
     vk::BufferUsageFlagBits::eStorageBuffer |
     vk::BufferUsageFlagBits::eShaderDeviceAddress |
     vk::BufferUsageFlagBits::eVertexBuffer |
     vk::BufferUsageFlagBits::eTransferDst;
 static constexpr vk::BufferUsageFlags Index =
-    vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
     vk::BufferUsageFlagBits::eStorageBuffer |
     vk::BufferUsageFlagBits::eShaderDeviceAddress |
     vk::BufferUsageFlagBits::eIndexBuffer |
