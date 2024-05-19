@@ -56,6 +56,7 @@ void App::run() {
         // Draw GUI
         {
             // Begin render pass
+            commandBuffer->beginDebugLabel("ImGui");
             commandBuffer->beginRendering(getCurrentColorImage(), {}, {0, 0},
                                           {Window::getWidth(), Window::getHeight()});
 
@@ -67,6 +68,7 @@ void App::run() {
 
             // End render pass
             commandBuffer->endRendering();
+            commandBuffer->endDebugLabel();
         }
 
         commandBuffer->transitionLayout(getCurrentColorImage(), vk::ImageLayout::ePresentSrcKHR);
