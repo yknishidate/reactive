@@ -315,6 +315,10 @@ void App::initImGui(UIStyle style) {
     setImGuiStyle(style);
 
     // Setup Platform/Renderer backends
+    vk::Format colorFormat = vk::Format::eB8G8R8A8Unorm;
+    vk::PipelineRenderingCreateInfo renderingCreateInfo;
+    renderingCreateInfo.setColorAttachmentFormats(colorFormat);
+
     ImGui_ImplGlfw_InitForVulkan(Window::getWindow(), true);
     ImGui_ImplVulkan_InitInfo initInfo{};
     initInfo.Instance = context.getInstance();
@@ -330,8 +334,8 @@ void App::initImGui(UIStyle style) {
     initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
     initInfo.Allocator = nullptr;
     initInfo.UseDynamicRendering = true;
-    initInfo.ColorAttachmentFormat = VK_FORMAT_B8G8R8A8_UNORM;
-    ImGui_ImplVulkan_Init(&initInfo, {});
+    initInfo.PipelineRenderingCreateInfo = renderingCreateInfo;
+    ImGui_ImplVulkan_Init(&initInfo);
 
     // Setup font
     std::string fontFile = ASSET_DIR + "Roboto-Medium.ttf";
