@@ -56,8 +56,6 @@ void Context::initInstance(bool enableValidation,
 }
 
 void Context::initPhysicalDevice(vk::SurfaceKHR surface) {
-    spdlog::info("Context::initPhysicalDevice");
-
     // Select discrete gpu
     for (auto gpu : instance->enumeratePhysicalDevices()) {
         if (gpu.getProperties().deviceType == vk::PhysicalDeviceType::eDiscreteGpu) {

@@ -20,9 +20,10 @@ public:
           }) {}
 
     void onStart() override {
-        camera = Camera{Camera::Type::Orbital, static_cast<float>(width) / height};
+        camera = Camera{Camera::Type::Orbital,
+                        static_cast<float>(Window::getWidth()) / Window::getHeight()};
 
-        mesh = Mesh{context, MemoryUsage::Device, vertices, indices, "Triangle"};
+        mesh = Mesh{context, MemoryUsage::Device, vertices, indices, true, "Triangle"};
 
         bottomAccel = context.createBottomAccel({
             .vertexBuffer = mesh.vertexBuffer,
@@ -41,7 +42,7 @@ public:
 
         image = context.createImage({
             .usage = ImageUsage::Storage,
-            .extent = {width, height, 1},
+            .extent = {Window::getWidth(), Window::getHeight(), 1},
             .format = vk::Format::eB8G8R8A8Unorm,
         });
         image->createImageView();
@@ -85,9 +86,9 @@ public:
         });
     }
 
-    void onUpdate() override {
-        camera.processMouseDragLeft(getMouseDragLeft());
-        camera.processMouseScroll(getMouseScroll());
+    void onUpdate(float dt) override {
+        camera.processMouseDragLeft(Window::getMouseDragLeft());
+        camera.processMouseScroll(Window::getMouseScroll());
 
         pushConstants.invProj = camera.getInvProj();
         pushConstants.invView = camera.getInvView();
@@ -99,7 +100,7 @@ public:
         commandBuffer->bindDescriptorSet(descSet, pipeline);
         commandBuffer->bindPipeline(pipeline);
         commandBuffer->pushConstants(pipeline, &pushConstants);
-        commandBuffer->traceRays(pipeline, width, height, 1);
+        commandBuffer->traceRays(pipeline, Window::getWidth(), Window::getHeight(), 1);
         commandBuffer->copyImage(image, getCurrentColorImage(), vk::ImageLayout::eGeneral,
                                  vk::ImageLayout::ePresentSrcKHR);
     }

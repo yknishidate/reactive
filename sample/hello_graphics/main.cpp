@@ -69,12 +69,13 @@ public:
         }
 
         commandBuffer->clearColorImage(getCurrentColorImage(), {0.0f, 0.0f, 0.5f, 1.0f});
-        commandBuffer->setViewport(width, height);
-        commandBuffer->setScissor(width, height);
+        commandBuffer->setViewport(Window::getWidth(), Window::getHeight());
+        commandBuffer->setScissor(Window::getWidth(), Window::getHeight());
         commandBuffer->bindDescriptorSet(descSet, pipeline);
         commandBuffer->bindPipeline(pipeline);
         commandBuffer->beginTimestamp(gpuTimer);
-        commandBuffer->beginRendering(getCurrentColorImage(), nullptr, {0, 0}, {width, height});
+        commandBuffer->beginRendering(getCurrentColorImage(), nullptr, {0, 0},
+                                      {Window::getWidth(), Window::getHeight()});
         commandBuffer->draw(3, 1, 0, 0);
         commandBuffer->endRendering();
         commandBuffer->endTimestamp(gpuTimer);
