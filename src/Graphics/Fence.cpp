@@ -12,8 +12,9 @@ Fence::Fence(const Context& _context, const FenceCreateInfo& createInfo) : conte
 }
 
 void Fence::wait() const {
-    vk::resultCheck(context->getDevice().waitForFences(*fence, VK_TRUE, UINT64_MAX),
-                    "Failed to wait for fence");
+    if (context->getDevice().waitForFences(*fence, VK_TRUE, UINT64_MAX) != vk::Result::eSuccess) {
+        throw std::runtime_error("Failed to wait for fence");
+    }
 }
 
 void Fence::reset() const {
