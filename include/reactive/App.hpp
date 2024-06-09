@@ -68,6 +68,7 @@ struct AppCreateInfo {
 class App {
 public:
     App(const AppCreateInfo& createInfo);
+    virtual ~App() {}
 
     virtual void run();
     virtual void onStart() {}

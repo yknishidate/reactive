@@ -86,11 +86,12 @@ public:
     void onRender(const CommandBufferHandle& commandBuffer) override {
         ImGui::SliderInt("Test slider", &testInt, 0, 100);
         commandBuffer->clearColorImage(getCurrentColorImage(), {0.0f, 0.0f, 0.5f, 1.0f});
-        commandBuffer->setViewport(width, height);
-        commandBuffer->setScissor(width, height);
+        commandBuffer->setViewport(Window::getWidth(), Window::getHeight());
+        commandBuffer->setScissor(Window::getWidth(), Window::getHeight());
         commandBuffer->bindDescriptorSet(descSet, pipeline);
         commandBuffer->bindPipeline(pipeline);
-        commandBuffer->beginRendering(getCurrentColorImage(), nullptr, {0, 0}, {width, height});
+        commandBuffer->beginRendering(getCurrentColorImage(), nullptr, {0, 0},
+                                      {Window::getWidth(), Window::getHeight()});
         commandBuffer->drawMeshTasks(1, 1, 1);
         commandBuffer->endRendering();
     }

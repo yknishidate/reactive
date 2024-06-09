@@ -27,20 +27,12 @@ Personal Vulkan wrapper using
 
 - Vulkan SDK
 - CMake
-- vcpkg
 
 ## Run cmake
 
 ```sh
-# Make sure VCPKG_ROOT is set
-
-# Windows
-cmake . -B build -D CMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake
-# or
-setup_build.bat
-
-# Linux
-cmake . -B build -D CMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake
+# For Windows
+cmake . --preset vs
 ```
 
 ## Usage (in your project)
@@ -117,5 +109,5 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
 ```sh
 # change to your vcpkg path
-cmake . -B build -D CMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake
+cmake . -B build -D CMAKE_TOOLCHAIN_FILE=.\reactive\vcpkg\scripts\buildsystems\vcpkg.cmake
 ```

@@ -21,7 +21,7 @@ public:
     void onStart() override {
         image = context.createImage({
             .usage = ImageUsage::Storage,
-            .extent = {width, height, 1},
+            .extent = {Window::getWidth(), Window::getHeight(), 1},
             .format = vk::Format::eB8G8R8A8Unorm,
         });
         image->createImageView();
@@ -62,14 +62,15 @@ public:
     }
 
     void onCursorPos(float xpos, float ypos) override {
-        if (isMouseButtonDown(GLFW_MOUSE_BUTTON_1)) {
-            spdlog::info("cursor: {}", glm::to_string(getMouseDragLeft()));
-            translate += -getMouseDragLeft() / static_cast<float>(height) / scale;
+        if (Window::isMouseButtonDown(GLFW_MOUSE_BUTTON_1)) {
+            spdlog::info("cursor: {}", glm::to_string(Window::getMouseDragLeft()));
+            translate +=
+                -Window::getMouseDragLeft() / static_cast<float>(Window::getHeight()) / scale;
         }
     }
 
     void onRender(const CommandBufferHandle& commandBuffer) override {
-        float aspect = width / static_cast<float>(height);
+        float aspect = Window::getWidth() / static_cast<float>(Window::getHeight());
         params.lowerLeft = glm::vec2(-1 * aspect, -1) / scale + translate;
         params.upperRight = glm::vec2(1 * aspect, 1) / scale + translate;
         params.maxIterations = static_cast<int>(scale * 10);
@@ -77,7 +78,7 @@ public:
         commandBuffer->copyBuffer(buffer, &params);
         commandBuffer->bindDescriptorSet(descSet, pipeline);
         commandBuffer->bindPipeline(pipeline);
-        commandBuffer->dispatch(width, height, 1);
+        commandBuffer->dispatch(Window::getWidth(), Window::getHeight(), 1);
         commandBuffer->copyImage(image, getCurrentColorImage(), vk::ImageLayout::eGeneral,
                                  vk::ImageLayout::ePresentSrcKHR);
     }
