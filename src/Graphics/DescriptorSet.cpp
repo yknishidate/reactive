@@ -96,6 +96,7 @@ void DescriptorSet::set(const std::string& name, ArrayProxy<BufferHandle> buffer
     for (const auto& buffer : buffers) {
         bufferInfos.push_back(buffer->getInfo());
     }
+    descriptors[name].binding.descriptorCount = buffers.size();
     descriptors[name].infos = bufferInfos;
 }
 
@@ -105,6 +106,7 @@ void DescriptorSet::set(const std::string& name, ArrayProxy<ImageHandle> images)
     for (const auto& image : images) {
         imageInfos.push_back(image->getInfo());
     }
+    descriptors[name].binding.descriptorCount = images.size();
     descriptors[name].infos = imageInfos;
 }
 
@@ -114,6 +116,7 @@ void DescriptorSet::set(const std::string& name, ArrayProxy<TopAccelHandle> acce
     for (const auto& accel : accels) {
         accelInfos.push_back(accel->getInfo());
     }
+    descriptors[name].binding.descriptorCount = accels.size();
     descriptors[name].infos = accelInfos;
 }
 
