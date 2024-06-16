@@ -150,4 +150,22 @@ void Camera::setTheta(float _theta) {
     auto& _params = std::get<OrbitalParams>(params);
     _params.theta = _theta;
 }
+
+void Camera::setPosition(glm::vec3 _position) {
+    assert(type == Type::FirstPerson);
+    auto& _params = std::get<FirstPersonParams>(params);
+    _params.position = _position;
+}
+
+void Camera::setPitch(float _pitch) {
+    assert(type == Type::FirstPerson);
+    auto& _params = std::get<FirstPersonParams>(params);
+    _params.pitch = _pitch;
+}
+
+void Camera::setYaw(float _yaw) {
+    assert(type == Type::FirstPerson);
+    auto& _params = std::get<FirstPersonParams>(params);
+    _params.yaw = _yaw;
+}
 }  // namespace rv

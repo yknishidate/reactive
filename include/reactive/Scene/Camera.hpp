@@ -71,6 +71,9 @@ public:
     void setDistance(float _distance);
     void setPhi(float _phi);
     void setTheta(float _theta);
+    void setPosition(glm::vec3 _position);
+    void setPitch(float _pitch);
+    void setYaw(float _yaw);
 
 protected:
     Type type = Type::Orbital;
