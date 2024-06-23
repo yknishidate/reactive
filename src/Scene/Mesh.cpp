@@ -12,30 +12,55 @@ auto Vertex::getAttributeDescriptions() -> std::vector<VertexAttributeDescriptio
 }
 
 Mesh::Mesh(const Context& _context,
+           MeshUsage usage,
            vk::MemoryPropertyFlags memoryProps,
            std::vector<Vertex> _vertices,
            std::vector<uint32_t> _indices,
-           bool useForAccelStruct,
            std::string _name)
     : context{&_context},
       name{std::move(_name)},
       vertices{std::move(_vertices)},
       indices{std::move(_indices)} {
+    vk::BufferUsageFlags vertexUsage{};
+    vk::BufferUsageFlags indexUsage{};
+    if (usage == MeshUsage::Graphics) {
+        vertexUsage = vk::BufferUsageFlagBits::eStorageBuffer |
+                      vk::BufferUsageFlagBits::eShaderDeviceAddress |
+                      vk::BufferUsageFlagBits::eVertexBuffer |
+                      vk::BufferUsageFlagBits::eTransferDst;
+        indexUsage = vk::BufferUsageFlagBits::eStorageBuffer |
+                     vk::BufferUsageFlagBits::eShaderDeviceAddress |
+                     vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst;
+    } else if (usage == MeshUsage::RayTracing) {
+        vertexUsage = vk::BufferUsageFlagBits::eStorageBuffer |
+                      vk::BufferUsageFlagBits::eShaderDeviceAddress |
+                      vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
+                      vk::BufferUsageFlagBits::eTransferDst;
+        indexUsage = vk::BufferUsageFlagBits::eStorageBuffer |
+                     vk::BufferUsageFlagBits::eShaderDeviceAddress |
+                     vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
+                     vk::BufferUsageFlagBits::eTransferDst;
+    } else if (usage == MeshUsage::Hybrid) {
+        vertexUsage = vk::BufferUsageFlagBits::eStorageBuffer |
+                      vk::BufferUsageFlagBits::eShaderDeviceAddress |
+                      vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
+                      vk::BufferUsageFlagBits::eVertexBuffer |
+                      vk::BufferUsageFlagBits::eTransferDst;
+        indexUsage = vk::BufferUsageFlagBits::eStorageBuffer |
+                     vk::BufferUsageFlagBits::eShaderDeviceAddress |
+                     vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
+                     vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst;
+    }
+
     vertexBuffer = context->createBuffer({
-        .usage = useForAccelStruct
-                     ? BufferUsage::Vertex |
-                           vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR
-                     : BufferUsage::Vertex,
+        .usage = vertexUsage,
         .memory = memoryProps,
         .size = sizeof(Vertex) * vertices.size(),
         .debugName = name + "::vertexBuffer",
     });
 
     indexBuffer = context->createBuffer({
-        .usage = useForAccelStruct
-                     ? BufferUsage::Index |
-                           vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR
-                     : BufferUsage::Index,
+        .usage = indexUsage,
         .memory = memoryProps,
         .size = sizeof(uint32_t) * indices.size(),
         .debugName = name + "::indexBuffer",
@@ -113,8 +138,7 @@ auto Mesh::createSphereMesh(const Context& context, SphereMeshCreateInfo createI
         }
     }
 
-    return {context, MemoryUsage::Device,          vertices,
-            indices, createInfo.useForAccelStruct, createInfo.name};
+    return {context, createInfo.usage, MemoryUsage::Device, vertices, indices, createInfo.name};
 }
 
 auto Mesh::createPlaneMesh(const Context& context, PlaneMeshCreateInfo createInfo) -> Mesh {
@@ -155,8 +179,7 @@ auto Mesh::createPlaneMesh(const Context& context, PlaneMeshCreateInfo createInf
         }
     }
 
-    return {context, MemoryUsage::Device,          vertices,
-            indices, createInfo.useForAccelStruct, createInfo.name};
+    return {context, createInfo.usage, MemoryUsage::Device, vertices, indices, createInfo.name};
 }
 
 auto Mesh::createPlaneLineMesh(const Context& context, PlaneLineMeshCreateInfo createInfo) -> Mesh {
@@ -202,7 +225,7 @@ auto Mesh::createPlaneLineMesh(const Context& context, PlaneLineMeshCreateInfo c
     for (uint32_t i = 0; i < indicesCount; i++) {
         indices.push_back(i);
     }
-    return {context, MemoryUsage::Device, vertices, indices, false, createInfo.name};
+    return {context, createInfo.usage, MemoryUsage::Device, vertices, indices, createInfo.name};
 }
 
 auto Mesh::createCubeMesh(const Context& context, CubeMeshCreateInfo createInfo) -> Mesh {
@@ -251,8 +274,7 @@ auto Mesh::createCubeMesh(const Context& context, CubeMeshCreateInfo createInfo)
     for (int i = 0; i < vertices.size(); i++) {
         indices.push_back(i);
     }
-    return {context, MemoryUsage::Device,          vertices,
-            indices, createInfo.useForAccelStruct, createInfo.name};
+    return {context, createInfo.usage, MemoryUsage::Device, vertices, indices, createInfo.name};
 }
 
 auto Mesh::createCubeLineMesh(const Context& context, CubeLineMeshCreateInfo createInfo) -> Mesh {
@@ -263,6 +285,6 @@ auto Mesh::createCubeLineMesh(const Context& context, CubeLineMeshCreateInfo cre
     };
     std::vector<uint32_t> indices = {0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6,
                                      6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7};
-    return {context, MemoryUsage::Device, vertices, indices, false, createInfo.name};
+    return {context, createInfo.usage, MemoryUsage::Device, vertices, indices, createInfo.name};
 }
 }  // namespace rv

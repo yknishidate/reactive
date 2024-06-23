@@ -23,7 +23,8 @@ public:
         camera = Camera{Camera::Type::Orbital,
                         static_cast<float>(Window::getWidth()) / Window::getHeight()};
 
-        mesh = Mesh{context, MemoryUsage::Device, vertices, indices, true, "Triangle"};
+        mesh = Mesh{context,   MeshUsage::RayTracing, MemoryUsage::Device, vertices, indices,
+                    "Triangle"};
 
         bottomAccel = context.createBottomAccel({
             .vertexBuffer = mesh.vertexBuffer,

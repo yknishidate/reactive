@@ -28,20 +28,27 @@ struct Vertex {
     static auto getAttributeDescriptions() -> std::vector<VertexAttributeDescription>;
 };
 
+enum class MeshUsage {
+    Graphics,
+    RayTracing,
+    Hybrid,
+};
+
 struct SphereMeshCreateInfo {
     int numSlices = 32;
     int numStacks = 32;
     float radius = 1.0;
-    bool useForAccelStruct = false;
+    MeshUsage usage = MeshUsage::Graphics;
     std::string name = "Sphere";
 };
 
 struct CubeMeshCreateInfo {
-    bool useForAccelStruct = false;
+    MeshUsage usage = MeshUsage::Graphics;
     std::string name = "Cube";
 };
 
 struct CubeLineMeshCreateInfo {
+    MeshUsage usage = MeshUsage::Graphics;
     std::string name = "CubeLine";
 };
 
@@ -50,7 +57,7 @@ struct PlaneMeshCreateInfo {
     float height = 1;
     uint32_t widthSegments = 1;
     uint32_t heightSegments = 1;
-    bool useForAccelStruct = false;
+    MeshUsage usage = MeshUsage::Graphics;
     std::string name = "Plane";
 };
 
@@ -59,6 +66,7 @@ struct PlaneLineMeshCreateInfo {
     float height = 1;
     uint32_t widthSegments = 1;
     uint32_t heightSegments = 1;
+    MeshUsage usage = MeshUsage::Graphics;
     std::string name = "PlaneLine";
 };
 
@@ -66,10 +74,10 @@ class Mesh {
 public:
     Mesh() = default;
     Mesh(const Context& _context,
+         MeshUsage usage,
          vk::MemoryPropertyFlags memoryProps,
          std::vector<Vertex> _vertices,
          std::vector<uint32_t> _indices,
-         bool useForAccelStruct,
          std::string _name);
     static auto createSphereMesh(const Context& context, SphereMeshCreateInfo createInfo) -> Mesh;
     static auto createPlaneMesh(const Context& context, PlaneMeshCreateInfo createInfo) -> Mesh;
