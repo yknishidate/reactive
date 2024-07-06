@@ -15,6 +15,7 @@ find_package(imgui CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(tinyobjloader CONFIG REQUIRED)
+find_package(Boost REQUIRED COMPONENTS hana)
 
 set(VULKAN_LIB $ENV{VULKAN_SDK}/Lib)
 set(VULKAN_INCLUDE $ENV{VULKAN_SDK}/Include)
@@ -27,6 +28,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     spdlog::spdlog_header_only
     tinyobjloader::tinyobjloader
     KTX::ktx
+    Boost::hana
 
     optimized ${VULKAN_LIB}/spirv-cross-core.lib
     optimized ${VULKAN_LIB}/spirv-cross-cpp.lib

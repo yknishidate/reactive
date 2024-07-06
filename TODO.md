@@ -3,9 +3,20 @@
 - [ ] Mesh構築時のASフラグの渡し方を再考する
 - [ ] shared_ptrを使う必要があるのか検討する
   - メンバ変数に持たせて後から初期化できること
-  - initializer_listをそのまま構築できること
+  - copyableであること
+    - initializer_listをそのまま構築できること: `.shaders = {s1, s2, s3}`
+    - std::vectorをそのまま渡せること: `.shaders = shaders`
+  - shared_ptr以外であれば、copyableな参照と実体を別管理する必要がある
 - [ ] shader関連ライブラリ抜きのVulkanSDKに対応する（vcpkg経由に変更）
 - [ ] debugCallBackにユーザー側からブレークポイント張れるようにする
 - [ ] GitHub Actionsでビルド以外にテストを実行
 - [ ] 暗黙メンバ関数を明示的にする
 - [ ] camera.processMouseDragLeft()などはInputと切り離した命名にする
+- [ ] assertライブラリを導入する
+- [ ] glTFを自前で読み込む
+- [ ] Loaderを消すか使うかする
+- [ ] Objectを消す
+- [ ] 命名規則を変更する
+- [ ] Imageのコンストラクタを減らす
+- [ ] rv::impl::空間を作る
+- [ ] vcpkgをひとつに
