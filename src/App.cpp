@@ -19,7 +19,7 @@ App::App(const AppCreateInfo& createInfo) {
     Window::init(createInfo.width, createInfo.height, createInfo.title, createInfo.windowResizable);
     Window::setAppPointer(this);
     initVulkan(createInfo.layers, createInfo.extensions, createInfo.vsync);
-    initImGui(createInfo.style);
+    initImGui(createInfo.style, createInfo.imguiIniFile);
 }
 
 void App::run() {
@@ -306,12 +306,15 @@ void setImGuiStyle(UIStyle style) {
     // clang-format on
 }
 
-void App::initImGui(UIStyle style) {
+void App::initImGui(UIStyle style, const char* imguiIniFile) {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    if (imguiIniFile) {
+        io.IniFilename = imguiIniFile;
+    }
     setImGuiStyle(style);
 
     // Setup Platform/Renderer backends

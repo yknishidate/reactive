@@ -62,7 +62,9 @@ struct AppCreateInfo {
     ArrayProxy<Layer> layers;
     ArrayProxy<Extension> extensions;
 
+    // UI
     UIStyle style = UIStyle::Vulkan;
+    const char* imguiIniFile = nullptr;
 };
 
 class App {
@@ -97,7 +99,7 @@ protected:
                     ArrayProxy<Extension> requiredExtensions,
                     bool vsync);
 
-    void initImGui(UIStyle style);
+    void initImGui(UIStyle style, const char* imguiIniFile);
 
     void listSurfaceFormats();
 
