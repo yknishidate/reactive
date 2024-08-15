@@ -8,7 +8,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
 
-#include "Graphics/Buffer.hpp"
+#include "reactive/Graphics/Buffer.hpp"
 
 namespace rv {
 struct VertexAttributeDescription {

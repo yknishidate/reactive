@@ -3,7 +3,7 @@
 #include <vulkan/vulkan.hpp>
 #include "ArrayProxy.hpp"
 #include "DescriptorSet.hpp"
-#include "Scene/Mesh.hpp"
+#include "reactive/Scene/Mesh.hpp"
 
 namespace rv {
 class Image;

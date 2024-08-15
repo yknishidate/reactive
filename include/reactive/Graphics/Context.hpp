@@ -2,6 +2,7 @@
 #define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 
 #include <cstddef>
+#include <map>
 #include <regex>
 #include <type_traits>
 #include <vector>

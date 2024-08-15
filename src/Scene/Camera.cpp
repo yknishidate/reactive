@@ -1,6 +1,6 @@
-#include "Scene/Camera.hpp"
-#include "App.hpp"
-#include "Window.hpp"
+#include "reactive/Scene/Camera.hpp"
+#include "reactive/App.hpp"
+#include "reactive/Window.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
