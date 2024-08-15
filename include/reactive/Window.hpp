@@ -35,6 +35,7 @@ public:
     static auto getWidth() { return width; }
     static auto getHeight() { return height; }
     static auto getWindow() { return window; }
+    static auto getAspect() { return width / static_cast<float>(height); }
 
 protected:
     static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);

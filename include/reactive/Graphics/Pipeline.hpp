@@ -40,10 +40,9 @@ struct GraphicsPipelineCreateInfo {
 };
 
 struct ComputePipelineCreateInfo {
-    ShaderHandle computeShader;
-
     vk::DescriptorSetLayout descSetLayout = {};
     uint32_t pushSize = 0;
+    ShaderHandle computeShader;
 };
 
 struct MeshShaderPipelineCreateInfo {
@@ -56,7 +55,7 @@ struct MeshShaderPipelineCreateInfo {
     // Viewport
     ArrayProxy<vk::Format> colorFormats;
     vk::Format depthFormat;
-    
+
     // Raster
     std::variant<vk::PolygonMode, std::string> polygonMode = vk::PolygonMode::eFill;
     std::variant<vk::CullModeFlags, std::string> cullMode = vk::CullModeFlagBits::eNone;

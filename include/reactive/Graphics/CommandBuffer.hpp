@@ -36,7 +36,7 @@ public:
     void begin(vk::CommandBufferUsageFlags flags = {}) const;
     void end() const;
 
-    void bindDescriptorSet(DescriptorSetHandle descSet, PipelineHandle pipeline) const;
+    void bindDescriptorSet(PipelineHandle pipeline, DescriptorSetHandle descSet) const;
     void bindPipeline(PipelineHandle pipeline) const;
     void pushConstants(PipelineHandle pipeline, const void* pushData) const;
 

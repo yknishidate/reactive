@@ -69,17 +69,26 @@ public:
     void setFovY(float _fovY) { fovY = _fovY; }
     void setTarget(glm::vec3 _target);
     void setDistance(float _distance);
-    void setPhi(float _phi);
-    void setTheta(float _theta);
     void setPosition(glm::vec3 _position);
+
+    // phi (degrees)
+    void setPhi(float _phi);
+
+    // theta (degrees)
+    void setTheta(float _theta);
+
+    // FIXME: coord is strange
+    // pitch (degrees)
     void setPitch(float _pitch);
+
+    // yaw (degrees)
     void setYaw(float _yaw);
 
 protected:
     Type type = Type::Orbital;
 
     float aspect = 1.0f;
-    float zNear = 0.01f;
+    float zNear = 0.1f;
     float zFar = 1000.0f;
     float fovY = glm::radians(45.0f);
 
