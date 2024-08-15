@@ -33,11 +33,11 @@ void Camera::processMouseDragLeft(glm::vec2 dragDelta) {
     if (type == Type::FirstPerson) {
         auto& _params = std::get<FirstPersonParams>(params);
         _params.yaw = _params.yaw - dragDelta.x * 0.1f;
-        _params.pitch = _params.pitch - dragDelta.y * 0.1f;
+        _params.pitch = _params.pitch + dragDelta.y * 0.1f;
     } else {
         auto& _params = std::get<OrbitalParams>(params);
         _params.phi = glm::mod(_params.phi - dragDelta.x * 0.5f, 360.0f);
-        _params.theta = std::min(std::max(_params.theta - dragDelta.y * 0.5f, -89.9f), 89.9f);
+        _params.theta = std::min(std::max(_params.theta + dragDelta.y * 0.5f, -89.9f), 89.9f);
     }
 }
 
