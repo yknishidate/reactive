@@ -53,10 +53,10 @@ struct CubeLineMeshCreateInfo {
 };
 
 struct PlaneMeshCreateInfo {
-    float width = 1;
-    float height = 1;
-    uint32_t widthSegments = 1;
-    uint32_t heightSegments = 1;
+    float width = 1.0f;
+    float height = 1.0f;
+    uint32_t widthSegments = 1u;
+    uint32_t heightSegments = 1u;
     MeshUsage usage = MeshUsage::Graphics;
     std::string name = "Plane";
 };
