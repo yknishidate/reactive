@@ -51,8 +51,8 @@ public:
         descSet->update();
 
         pipeline = context.createComputePipeline({
-            .computeShader = compShader,
             .descSetLayout = descSet->getLayout(),
+            .computeShader = compShader,
         });
     }
 
@@ -76,7 +76,7 @@ public:
         params.maxIterations = static_cast<int>(scale * 10);
 
         commandBuffer->copyBuffer(buffer, &params);
-        commandBuffer->bindDescriptorSet(descSet, pipeline);
+        commandBuffer->bindDescriptorSet(pipeline, descSet);
         commandBuffer->bindPipeline(pipeline);
         commandBuffer->dispatch(Window::getWidth(), Window::getHeight(), 1);
         commandBuffer->copyImage(image, getCurrentColorImage(), vk::ImageLayout::eGeneral,

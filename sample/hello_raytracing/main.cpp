@@ -98,7 +98,7 @@ public:
     void onRender(const CommandBufferHandle& commandBuffer) override {
         ImGui::SliderInt("Test slider", &testInt, 0, 100);
 
-        commandBuffer->bindDescriptorSet(descSet, pipeline);
+        commandBuffer->bindDescriptorSet(pipeline, descSet);
         commandBuffer->bindPipeline(pipeline);
         commandBuffer->pushConstants(pipeline, &pushConstants);
         commandBuffer->traceRays(pipeline, Window::getWidth(), Window::getHeight(), 1);

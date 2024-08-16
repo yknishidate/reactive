@@ -71,7 +71,7 @@ public:
         commandBuffer->clearColorImage(getCurrentColorImage(), {0.0f, 0.0f, 0.5f, 1.0f});
         commandBuffer->setViewport(Window::getWidth(), Window::getHeight());
         commandBuffer->setScissor(Window::getWidth(), Window::getHeight());
-        commandBuffer->bindDescriptorSet(descSet, pipeline);
+        commandBuffer->bindDescriptorSet(pipeline, descSet);
         commandBuffer->bindPipeline(pipeline);
         commandBuffer->beginTimestamp(gpuTimer);
         commandBuffer->beginRendering(getCurrentColorImage(), nullptr, {0, 0},
