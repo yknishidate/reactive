@@ -61,7 +61,7 @@ TopAccel::TopAccel(const Context& _context, const TopAccelCreateInfo& createInfo
     for (auto& instance : createInfo.accelInstances) {
         vk::AccelerationStructureInstanceKHR inst;
         inst.setTransform(toVkMatrix(instance.transform));
-        inst.setInstanceCustomIndex(0);
+        inst.setInstanceCustomIndex(instance.customIndex);
         inst.setMask(0xFF);
         inst.setInstanceShaderBindingTableRecordOffset(instance.sbtOffset);
         inst.setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);
@@ -120,7 +120,7 @@ void TopAccel::updateInstances(ArrayProxy<AccelInstance> accelInstances) const {
     for (auto& instance : accelInstances) {
         vk::AccelerationStructureInstanceKHR inst;
         inst.setTransform(toVkMatrix(instance.transform));
-        inst.setInstanceCustomIndex(0);
+        inst.setInstanceCustomIndex(instance.customIndex);
         inst.setMask(0xFF);
         inst.setInstanceShaderBindingTableRecordOffset(instance.sbtOffset);
         inst.setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);

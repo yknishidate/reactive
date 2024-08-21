@@ -27,6 +27,8 @@ struct AccelInstance {
     glm::mat4 transform = glm::mat4{1.0};
 
     uint32_t sbtOffset = 0;
+
+    uint32_t customIndex = 0;
 };
 
 inline vk::TransformMatrixKHR toVkMatrix(const glm::mat4& matrix) {
