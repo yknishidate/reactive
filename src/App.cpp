@@ -171,6 +171,8 @@ void App::initVulkan(ArrayProxy<Layer> requiredLayers,
 
     vk::PhysicalDeviceBufferDeviceAddressFeatures bufferDeviceAddressFeatures{true};
 
+    vk::PhysicalDeviceScalarBlockLayoutFeatures scalarBlockLayoutFeatures{true};
+
     vk::PhysicalDeviceSynchronization2Features synchronization2Features{true};
 
     vk::PhysicalDeviceDynamicRenderingFeatures dynamicRenderingFeatures{true};
@@ -182,6 +184,7 @@ void App::initVulkan(ArrayProxy<Layer> requiredLayers,
     featuresChain.add(storage8BitFeatures);
     featuresChain.add(shaderFloat16Int8Features);
     featuresChain.add(bufferDeviceAddressFeatures);
+    featuresChain.add(scalarBlockLayoutFeatures);
     featuresChain.add(synchronization2Features);
     featuresChain.add(dynamicRenderingFeatures);
     featuresChain.add(hostQueryResetFeatures);
