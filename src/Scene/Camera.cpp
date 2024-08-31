@@ -31,13 +31,11 @@ void Camera::processKey() {
 
 void Camera::processMouseDragLeft(glm::vec2 dragDelta) {
     if (type == Type::FirstPerson) {
-        auto& _params = std::get<FirstPersonParams>(params);
-        _params.yaw = _params.yaw - dragDelta.x * 0.1f;
-        _params.pitch = _params.pitch + dragDelta.y * 0.1f;
+        eulerRotation.x = eulerRotation.x - dragDelta.y * 0.001f;
+        eulerRotation.y = eulerRotation.y - dragDelta.x * 0.001f;
     } else {
-        auto& _params = std::get<OrbitalParams>(params);
-        _params.phi = glm::mod(_params.phi - dragDelta.x * 0.5f, 360.0f);
-        _params.theta = std::min(std::max(_params.theta + dragDelta.y * 0.5f, -89.9f), 89.9f);
+        eulerRotation.x = eulerRotation.x - dragDelta.y * 0.002f;
+        eulerRotation.y = eulerRotation.y - dragDelta.x * 0.002f;
     }
 }
 
@@ -88,18 +86,17 @@ auto Camera::getPosition() const -> glm::vec3 {
         return _params.position;
     } else {
         auto& _params = std::get<OrbitalParams>(params);
-        glm::mat4 rotX = glm::rotate(glm::radians(_params.theta), glm::vec3(1, 0, 0));
-        glm::mat4 rotY = glm::rotate(glm::radians(_params.phi), glm::vec3(0, 1, 0));
+        glm::mat4 rotX = glm::rotate(eulerRotation.x, glm::vec3(1, 0, 0));
+        glm::mat4 rotY = glm::rotate(eulerRotation.y, glm::vec3(0, 1, 0));
         return _params.target + glm::vec3{rotY * rotX * glm::vec4{0, 0, _params.distance, 1}};
     }
 }
 
 auto Camera::getFront() const -> glm::vec3 {
     if (type == Type::FirstPerson) {
-        auto& _params = std::get<FirstPersonParams>(params);
         glm::mat4 rotation{1.0};
-        rotation *= glm::rotate(glm::radians(_params.yaw), glm::vec3{0, 1, 0});
-        rotation *= glm::rotate(glm::radians(_params.pitch), glm::vec3{1, 0, 0});
+        rotation *= glm::rotate(eulerRotation.y, glm::vec3{0, 1, 0});
+        rotation *= glm::rotate(eulerRotation.x, glm::vec3{1, 0, 0});
         // カメラ座標では奥が前
         return glm::normalize(glm::vec3{rotation * glm::vec4{0, 0, -1, 1}});
     } else {
@@ -139,33 +136,9 @@ void Camera::setDistance(float _distance) {
     _params.distance = _distance;
 }
 
-void Camera::setPhi(float _phi) {
-    assert(type == Type::Orbital);
-    auto& _params = std::get<OrbitalParams>(params);
-    _params.phi = _phi;
-}
-
-void Camera::setTheta(float _theta) {
-    assert(type == Type::Orbital);
-    auto& _params = std::get<OrbitalParams>(params);
-    _params.theta = _theta;
-}
-
 void Camera::setPosition(glm::vec3 _position) {
     assert(type == Type::FirstPerson);
     auto& _params = std::get<FirstPersonParams>(params);
     _params.position = _position;
-}
-
-void Camera::setPitch(float _pitch) {
-    assert(type == Type::FirstPerson);
-    auto& _params = std::get<FirstPersonParams>(params);
-    _params.pitch = _pitch;
-}
-
-void Camera::setYaw(float _yaw) {
-    assert(type == Type::FirstPerson);
-    auto& _params = std::get<FirstPersonParams>(params);
-    _params.yaw = _yaw;
 }
 }  // namespace rv

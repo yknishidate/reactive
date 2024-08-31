@@ -18,15 +18,11 @@ public:
     struct FirstPersonParams {
         glm::vec3 position = {0.0f, 0.0f, 5.0f};
         float speed = 1.0f;
-        float yaw = 0.0f;
-        float pitch = 0.0f;
     };
 
     struct OrbitalParams {
         glm::vec3 target = {0.0f, 0.0f, 0.0f};
         float distance = 5.0f;
-        float phi = 0;
-        float theta = 0;
     };
 
     Camera() = default;
@@ -63,6 +59,7 @@ public:
     auto getFar() const -> float { return zFar; }
     auto getAspect() const -> float { return aspect; }
     auto getFovY() const -> float { return fovY; }
+    auto getEulerRotation() const -> glm::vec3 { return eulerRotation; }
 
     void setType(Type _type);
     void setAspect(float _aspect) { aspect = _aspect; }
@@ -70,22 +67,29 @@ public:
     void setTarget(glm::vec3 _target);
     void setDistance(float _distance);
     void setPosition(glm::vec3 _position);
+    void setEulerRotation(glm::vec3 rotation) { eulerRotation = rotation; }
 
-    // phi (degrees)
-    void setPhi(float _phi);
+    std::optional<FirstPersonParams> getFirstPersonParams() const {
+        if (type == Type::FirstPerson) {
+            return std::get<FirstPersonParams>(params);
+        } else {
+            return std::nullopt;
+        }
+    }
 
-    // theta (degrees)
-    void setTheta(float _theta);
-
-    // FIXME: coord is strange
-    // pitch (degrees)
-    void setPitch(float _pitch);
-
-    // yaw (degrees)
-    void setYaw(float _yaw);
+    std::optional<OrbitalParams> getOrbitalParams() const {
+        if (type == Type::Orbital) {
+            return std::get<OrbitalParams>(params);
+        } else {
+            return std::nullopt;
+        }
+    }
 
 protected:
     Type type = Type::Orbital;
+
+    // radians
+    glm::vec3 eulerRotation = {0.0f, 0.0f, 0.0f};
 
     float aspect = 1.0f;
     float zNear = 0.1f;
