@@ -69,7 +69,7 @@ auto Camera::getView() const -> glm::mat4 {
 }
 
 auto Camera::getProj() const -> glm::mat4 {
-    return glm::perspective(fovY, aspect, zNear, zFar);
+    return glm::perspective(fovY, aspect, zNear * scale, zFar * scale);
 }
 
 auto Camera::getInvView() const -> glm::mat4 {
@@ -83,12 +83,14 @@ auto Camera::getInvProj() const -> glm::mat4 {
 auto Camera::getPosition() const -> glm::vec3 {
     if (type == Type::FirstPerson) {
         auto& _params = std::get<FirstPersonParams>(params);
-        return _params.position;
+        return _params.position * scale;
     } else {
         auto& _params = std::get<OrbitalParams>(params);
         glm::mat4 rotX = glm::rotate(eulerRotation.x, glm::vec3(1, 0, 0));
         glm::mat4 rotY = glm::rotate(eulerRotation.y, glm::vec3(0, 1, 0));
-        return _params.target + glm::vec3{rotY * rotX * glm::vec4{0, 0, _params.distance, 1}};
+        glm::vec3 position =
+            _params.target + glm::vec3{rotY * rotX * glm::vec4{0, 0, _params.distance, 1}};
+        return position * scale;
     }
 }
 

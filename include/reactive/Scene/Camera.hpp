@@ -85,6 +85,8 @@ public:
         }
     }
 
+    void setScale(float _scale) { scale = _scale; }
+
 protected:
     Type type = Type::Orbital;
 
@@ -95,6 +97,7 @@ protected:
     float zNear = 0.1f;
     float zFar = 1000.0f;
     float fovY = glm::radians(45.0f);
+    float scale = 1.0f;
 
     std::variant<FirstPersonParams, OrbitalParams> params = OrbitalParams{};
 };
