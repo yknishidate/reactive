@@ -5,6 +5,16 @@
 namespace rv {
 class Buffer;
 
+struct ImageViewCreateInfo {
+    vk::ImageAspectFlags aspect = vk::ImageAspectFlagBits::eColor;
+};
+
+struct SamplerCreateInfo {
+    vk::Filter filter = vk::Filter::eLinear;
+    vk::SamplerAddressMode addressMode = vk::SamplerAddressMode::eRepeat;
+    vk::SamplerMipmapMode mipmapMode = vk::SamplerMipmapMode::eLinear;
+};
+
 // NOTE:
 // Cubemap はファイルから読み込むものと想定して
 // アプリ側で作成するのは 2D or 3D のみとする
@@ -14,10 +24,17 @@ struct ImageCreateInfo {
 
     vk::Extent3D extent = {1, 1, 1};
 
+    vk::ImageType imageType = vk::ImageType::e2D;
+
     vk::Format format;
 
     uint32_t mipLevels = 1;
 
+    std::optional<ImageViewCreateInfo> viewInfo;
+
+    std::optional<SamplerCreateInfo> samplerInfo;
+
+    // Debug
     std::string debugName{};
 };
 
@@ -53,48 +70,6 @@ public:
 
     ~Image();
 
-    void createImageView(vk::ImageViewType _viewType = vk::ImageViewType::e2D,
-                         vk::ImageAspectFlags _aspect = vk::ImageAspectFlagBits::eColor) {
-        viewType = _viewType;
-        aspect = _aspect;
-
-        vk::ImageSubresourceRange subresourceRange;
-        subresourceRange.setAspectMask(aspect);
-        subresourceRange.setBaseMipLevel(0);
-        subresourceRange.setLevelCount(mipLevels);
-        subresourceRange.setBaseArrayLayer(0);
-        subresourceRange.setLayerCount(layerCount);
-
-        vk::ImageViewCreateInfo viewInfo;
-        viewInfo.setImage(image);
-        viewInfo.setFormat(format);
-        viewInfo.setViewType(viewType);
-        viewInfo.setSubresourceRange(subresourceRange);
-
-        view = context->getDevice().createImageView(viewInfo);
-    }
-
-    void createSampler(vk::Filter _filter = vk::Filter::eLinear,
-                       vk::SamplerAddressMode _addressMode = vk::SamplerAddressMode::eRepeat,
-                       vk::SamplerMipmapMode _mipmapMode = vk::SamplerMipmapMode::eLinear) {
-        vk::SamplerCreateInfo samplerInfo;
-        samplerInfo.setMagFilter(_filter);
-        samplerInfo.setMinFilter(_filter);
-        samplerInfo.setAnisotropyEnable(VK_FALSE);  // TODO: true
-        samplerInfo.setMaxLod(0.0f);
-        samplerInfo.setMinLod(0.0f);
-        if (mipLevels > 1) {
-            samplerInfo.setMaxLod(static_cast<float>(mipLevels));
-        }
-        samplerInfo.setMipmapMode(_mipmapMode);
-        samplerInfo.setAddressModeU(_addressMode);
-        samplerInfo.setAddressModeV(_addressMode);
-        samplerInfo.setAddressModeW(_addressMode);
-        samplerInfo.setCompareEnable(VK_TRUE);
-        samplerInfo.setCompareOp(vk::CompareOp::eLess);
-        sampler = context->getDevice().createSampler(samplerInfo);
-    }
-
     auto getImage() const -> vk::Image { return image; }
     auto getView() const -> vk::ImageView { return view; }
     auto getSampler() const -> vk::Sampler { return sampler; }
@@ -127,6 +102,47 @@ public:
         -> ImageHandle;
 
 private:
+    void createImageView(vk::ImageViewType _viewType, vk::ImageAspectFlags _aspect) {
+        viewType = _viewType;
+        aspect = _aspect;
+
+        vk::ImageSubresourceRange subresourceRange;
+        subresourceRange.setAspectMask(aspect);
+        subresourceRange.setBaseMipLevel(0);
+        subresourceRange.setLevelCount(mipLevels);
+        subresourceRange.setBaseArrayLayer(0);
+        subresourceRange.setLayerCount(layerCount);
+
+        vk::ImageViewCreateInfo viewInfo;
+        viewInfo.setImage(image);
+        viewInfo.setFormat(format);
+        viewInfo.setViewType(viewType);
+        viewInfo.setSubresourceRange(subresourceRange);
+
+        view = context->getDevice().createImageView(viewInfo);
+    }
+
+    void createSampler(vk::Filter _filter,
+                       vk::SamplerAddressMode _addressMode,
+                       vk::SamplerMipmapMode _mipmapMode) {
+        vk::SamplerCreateInfo samplerInfo;
+        samplerInfo.setMagFilter(_filter);
+        samplerInfo.setMinFilter(_filter);
+        samplerInfo.setAnisotropyEnable(VK_FALSE);  // TODO: true
+        samplerInfo.setMaxLod(0.0f);
+        samplerInfo.setMinLod(0.0f);
+        if (mipLevels > 1) {
+            samplerInfo.setMaxLod(static_cast<float>(mipLevels));
+        }
+        samplerInfo.setMipmapMode(_mipmapMode);
+        samplerInfo.setAddressModeU(_addressMode);
+        samplerInfo.setAddressModeV(_addressMode);
+        samplerInfo.setAddressModeW(_addressMode);
+        samplerInfo.setCompareEnable(VK_TRUE);
+        samplerInfo.setCompareOp(vk::CompareOp::eLess);
+        sampler = context->getDevice().createSampler(samplerInfo);
+    }
+
     const Context* context = nullptr;
     std::string debugName;
 

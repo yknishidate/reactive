@@ -22,8 +22,6 @@ Image::Image(const Context& _context, const ImageCreateInfo& createInfo)
       extent{createInfo.extent},
       format{createInfo.format},
       mipLevels{createInfo.mipLevels} {
-    vk::ImageType type = extent.depth == 1 ? vk::ImageType::e2D : vk::ImageType::e3D;
-
     // Compute mipmap level
     if (mipLevels == std::numeric_limits<uint32_t>::max()) {
         mipLevels = calculateMipLevels(extent.width, extent.height);
@@ -32,7 +30,7 @@ Image::Image(const Context& _context, const ImageCreateInfo& createInfo)
     // NOTE: initialLayout must be Undefined or PreInitialized
     // NOTE: queueFamily is ignored if sharingMode is not concurrent
     vk::ImageCreateInfo imageInfo;
-    imageInfo.setImageType(type);
+    imageInfo.setImageType(createInfo.imageType);
     imageInfo.setFormat(format);
     imageInfo.setExtent(extent);
     imageInfo.setMipLevels(mipLevels);
@@ -52,6 +50,37 @@ Image::Image(const Context& _context, const ImageCreateInfo& createInfo)
 
     context->getDevice().bindImageMemory(image, memory, 0);
 
+    // Image view
+    if (createInfo.viewInfo.has_value()) {
+        switch (createInfo.imageType) {
+            case vk::ImageType::e1D: {
+                viewType = vk::ImageViewType::e1D;
+                break;
+            }
+            case vk::ImageType::e2D: {
+                viewType = vk::ImageViewType::e2D;
+                break;
+            }
+            case vk::ImageType::e3D: {
+                viewType = vk::ImageViewType::e3D;
+                break;
+            }
+            default: {
+                viewType = {};
+                break;
+            }
+        }
+        createImageView(viewType, createInfo.viewInfo.value().aspect);
+    }
+
+    // Sampler
+    if (createInfo.samplerInfo.has_value()) {
+        createSampler(createInfo.samplerInfo.value().filter,
+                      createInfo.samplerInfo.value().addressMode,
+                      createInfo.samplerInfo.value().mipmapMode);
+    }
+
+    // Debug
     if (!debugName.empty()) {
         context->setDebugName(image, createInfo.debugName.c_str());
     }
@@ -113,10 +142,14 @@ ImageHandle Image::loadFromFile(const Context& context,
         .extent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1},
         .format = vk::Format::eR8G8B8A8Unorm,
         .mipLevels = mipLevels,
+        .viewInfo = ImageViewCreateInfo{},
+        .samplerInfo =
+            SamplerCreateInfo{
+                .filter = filter,
+                .addressMode = addressMode,
+            },
         .debugName = filepathStr,
     });
-    image->createImageView();
-    image->createSampler(filter, addressMode);
 
     // Copy to image
     BufferHandle stagingBuffer = context.createBuffer({
@@ -160,9 +193,9 @@ ImageHandle Image::loadFromFileHDR(const Context& context, const std::filesystem
         .usage = ImageUsage::Sampled,
         .extent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1},
         .format = vk::Format::eR32G32B32A32Sfloat,
+        .viewInfo = ImageViewCreateInfo{},
+        .samplerInfo = SamplerCreateInfo{},
     });
-    image->createImageView();
-    image->createSampler();
 
     // Copy to image
     BufferHandle stagingBuffer = context.createBuffer({
@@ -221,8 +254,10 @@ auto Image::loadFromKTX(const Context& context, const std::filesystem::path& fil
         static_cast<vk::ImageViewType>(texture.viewType),   //
         texture.width, texture.height, texture.depth,       //
         texture.levelCount, texture.layerCount);
-    image->createImageView(static_cast<vk::ImageViewType>(texture.viewType));
-    image->createSampler();
+    image->createImageView(static_cast<vk::ImageViewType>(texture.viewType),
+                           vk::ImageAspectFlagBits::eColor);
+    image->createSampler(vk::Filter::eLinear, vk::SamplerAddressMode::eRepeat,
+                         vk::SamplerMipmapMode ::eNearest);
 
     ktxTexture_Destroy(kTexture);
     ktxVulkanDeviceInfo_Destruct(&kvdi);
