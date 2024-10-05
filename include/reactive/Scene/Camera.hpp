@@ -17,7 +17,6 @@ public:
 
     struct FirstPersonParams {
         glm::vec3 position = {0.0f, 0.0f, 5.0f};
-        float speed = 1.0f;
     };
 
     struct OrbitalParams {
@@ -85,6 +84,8 @@ public:
         }
     }
 
+    void setDollySpeed(float speed) { dollySpeed = speed; }
+
 protected:
     Type type = Type::Orbital;
 
@@ -95,6 +96,8 @@ protected:
     float zNear = 0.1f;
     float zFar = 1000.0f;
     float fovY = glm::radians(45.0f);
+
+    float dollySpeed = 1.0f;
 
     std::variant<FirstPersonParams, OrbitalParams> params = OrbitalParams{};
 };

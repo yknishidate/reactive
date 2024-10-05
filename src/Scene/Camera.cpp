@@ -12,19 +12,19 @@ void Camera::processKey() {
         glm::vec3 front = getFront();
         glm::vec3 right = getRight();
         if (Window::isKeyDown(GLFW_KEY_W)) {
-            _params.position += front * 0.15f * _params.speed;
+            _params.position += front * 0.15f;
         }
         if (Window::isKeyDown(GLFW_KEY_S)) {
-            _params.position -= front * 0.15f * _params.speed;
+            _params.position -= front * 0.15f;
         }
         if (Window::isKeyDown(GLFW_KEY_D)) {
-            _params.position += right * 0.1f * _params.speed;
+            _params.position += right * 0.1f;
         }
         if (Window::isKeyDown(GLFW_KEY_A)) {
-            _params.position -= right * 0.1f * _params.speed;
+            _params.position -= right * 0.1f;
         }
         if (Window::isKeyDown(GLFW_KEY_SPACE)) {
-            _params.position += glm::vec3{0, 1, 0} * 0.05f * _params.speed;
+            _params.position += glm::vec3{0, 1, 0} * 0.05f;
         }
     }
 }
@@ -54,7 +54,7 @@ void Camera::processMouseScroll(float scroll) {
         // pass
     } else {
         auto& _params = std::get<OrbitalParams>(params);
-        _params.distance = std::max(_params.distance - scroll, 0.001f);
+        _params.distance = std::max(_params.distance - scroll * dollySpeed, 0.001f);
     }
 }
 
