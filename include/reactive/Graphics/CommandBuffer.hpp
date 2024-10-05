@@ -152,6 +152,8 @@ public:
     // accel struct
     void updateTopAccel(TopAccelHandle topAccel) const;
 
+    void updateBottomAccel(BottomAccelHandle bottomAccel) const;
+
     void buildTopAccel(TopAccelHandle topAccel) const;
 
     void buildBottomAccel(BottomAccelHandle bottomAccel) const;

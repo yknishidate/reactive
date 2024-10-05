@@ -420,6 +420,38 @@ void CommandBuffer::updateTopAccel(TopAccelHandle topAccel) const {
     commandBuffer->buildAccelerationStructuresKHR(buildGeometryInfo, &buildRangeInfo);
 }
 
+void CommandBuffer::updateBottomAccel(BottomAccelHandle bottomAccel) const {
+    vk::AccelerationStructureGeometryDataKHR geometryData;
+    geometryData.setTriangles(bottomAccel->trianglesData);
+
+    vk::AccelerationStructureGeometryKHR geometry;
+    geometry.setGeometryType(vk::GeometryTypeKHR::eTriangles);
+    geometry.setGeometry({geometryData});
+    geometry.setFlags(bottomAccel->geometryFlags);
+
+    vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
+    buildGeometryInfo.setType(vk::AccelerationStructureTypeKHR::eBottomLevel);
+    buildGeometryInfo.setFlags(bottomAccel->buildFlags);
+    buildGeometryInfo.setGeometries(geometry);
+    buildGeometryInfo.setScratchData(bottomAccel->scratchBuffer->getAddress());
+
+    if (bottomAccel->shouldRebuild()) {
+        buildGeometryInfo.setMode(vk::BuildAccelerationStructureModeKHR::eBuild);
+        buildGeometryInfo.setDstAccelerationStructure(*bottomAccel->accel);
+    } else {
+        buildGeometryInfo.setMode(vk::BuildAccelerationStructureModeKHR::eUpdate);
+        buildGeometryInfo.setSrcAccelerationStructure(*bottomAccel->accel);
+        buildGeometryInfo.setDstAccelerationStructure(*bottomAccel->accel);
+    }
+
+    vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo{};
+    buildRangeInfo.setPrimitiveCount(bottomAccel->primitiveCount);
+    buildRangeInfo.setPrimitiveOffset(0);
+    buildRangeInfo.setFirstVertex(0);
+    buildRangeInfo.setTransformOffset(0);
+    commandBuffer->buildAccelerationStructuresKHR(buildGeometryInfo, &buildRangeInfo);
+}
+
 void CommandBuffer::buildTopAccel(TopAccelHandle topAccel) const {
     vk::AccelerationStructureGeometryKHR geometry;
     geometry.setGeometryType(vk::GeometryTypeKHR::eInstances);

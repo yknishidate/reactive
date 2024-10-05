@@ -1,4 +1,4 @@
-#include "reactive/Graphics/Accel.hpp"
+﻿#include "reactive/Graphics/Accel.hpp"
 
 #include "reactive/Graphics/CommandBuffer.hpp"
 #include "reactive/common.hpp"
@@ -12,7 +12,7 @@ BottomAccel::BottomAccel(const Context& _context, const BottomAccelCreateInfo& c
     trianglesData.setVertexFormat(vk::Format::eR32G32B32Sfloat);
     trianglesData.setVertexData(createInfo.vertexBuffer->getAddress());
     trianglesData.setVertexStride(createInfo.vertexStride);
-    trianglesData.setMaxVertex(createInfo.vertexCount);
+    trianglesData.setMaxVertex(createInfo.maxVertexCount);
     trianglesData.setIndexType(vk::IndexTypeValue<uint32_t>::value);
     trianglesData.setIndexData(createInfo.indexBuffer->getAddress());
 
@@ -30,8 +30,9 @@ BottomAccel::BottomAccel(const Context& _context, const BottomAccelCreateInfo& c
     buildGeometryInfo.setGeometries(geometry);
 
     primitiveCount = createInfo.triangleCount;
+    maxPrimitiveCount = createInfo.maxTriangleCount;
     auto buildSizesInfo = context->getDevice().getAccelerationStructureBuildSizesKHR(
-        buildType, buildGeometryInfo, primitiveCount);
+        buildType, buildGeometryInfo, maxPrimitiveCount);
 
     buffer = context->createBuffer({
         .usage = BufferUsage::AccelStorage,
@@ -110,6 +111,17 @@ TopAccel::TopAccel(const Context& _context, const TopAccelCreateInfo& createInfo
         .memory = MemoryUsage::Device,
         .size = buildSizesInfo.buildScratchSize,
     });
+}
+
+void BottomAccel::update(const BufferHandle& vertexBuffer,
+                         const BufferHandle& indexBuffer,
+                         uint32_t triangleCount) {
+    assert(triangleCount <= maxPrimitiveCount);
+
+    trianglesData.setVertexData(vertexBuffer->getAddress());
+    trianglesData.setIndexData(indexBuffer->getAddress());
+    lastPrimitiveCount = primitiveCount;
+    primitiveCount = triangleCount;
 }
 
 void TopAccel::updateInstances(ArrayProxy<AccelInstance> accelInstances) const {

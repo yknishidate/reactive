@@ -9,13 +9,15 @@ struct BottomAccelCreateInfo {
     BufferHandle indexBuffer;
 
     uint32_t vertexStride;
-    uint32_t vertexCount;
+    uint32_t maxVertexCount;
+    uint32_t maxTriangleCount;
     uint32_t triangleCount;
 
     vk::GeometryFlagsKHR geometryFlags = vk::GeometryFlagBitsKHR::eOpaque;
 
     vk::BuildAccelerationStructureFlagsKHR buildFlags =
-        vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace;
+        vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace |
+        vk::BuildAccelerationStructureFlagBitsKHR::eAllowUpdate;
 
     vk::AccelerationStructureBuildTypeKHR buildType =
         vk::AccelerationStructureBuildTypeKHR::eDevice;
@@ -61,6 +63,12 @@ public:
 
     auto getBufferAddress() const -> uint64_t { return buffer->getAddress(); }
 
+    void update(const BufferHandle& vertexBuffer,
+                const BufferHandle& indexBuffer,
+                uint32_t triangleCount);
+
+    bool shouldRebuild() { return lastPrimitiveCount != primitiveCount; }
+
 private:
     const Context* context;
 
@@ -69,11 +77,14 @@ private:
     BufferHandle buffer;
     BufferHandle scratchBuffer;
 
-    uint32_t primitiveCount;
     vk::AccelerationStructureGeometryTrianglesDataKHR trianglesData;
     vk::GeometryFlagsKHR geometryFlags;
     vk::BuildAccelerationStructureFlagsKHR buildFlags;
     vk::AccelerationStructureBuildTypeKHR buildType;
+
+    uint32_t maxPrimitiveCount;
+    uint32_t lastPrimitiveCount;
+    uint32_t primitiveCount;
 };
 
 class TopAccel {
