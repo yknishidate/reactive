@@ -23,8 +23,8 @@ public:
             .usage = ImageUsage::Storage,
             .extent = {Window::getWidth(), Window::getHeight(), 1},
             .format = vk::Format::eB8G8R8A8Unorm,
+            .viewInfo = rv::ImageViewCreateInfo{},
         });
-        image->createImageView();
 
         buffer = context.createBuffer({
             .usage = BufferUsage::Uniform,

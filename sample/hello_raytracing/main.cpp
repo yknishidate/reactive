@@ -30,8 +30,10 @@ public:
             .vertexBuffer = mesh.vertexBuffer,
             .indexBuffer = mesh.indexBuffer,
             .vertexStride = sizeof(Vertex),
-            .vertexCount = mesh.getVertexCount(),
+            .maxVertexCount = mesh.getVertexCount(),
+            .maxTriangleCount = mesh.getTriangleCount(),
             .triangleCount = mesh.getTriangleCount(),
+            .debugName = "bottomAccel",
         });
         context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
             commandBuffer->buildBottomAccel(bottomAccel);
@@ -39,14 +41,15 @@ public:
 
         topAccel = context.createTopAccel({
             .accelInstances = {{bottomAccel}},
+            .debugName = "topAccel",
         });
 
         image = context.createImage({
             .usage = ImageUsage::Storage,
             .extent = {Window::getWidth(), Window::getHeight(), 1},
             .format = vk::Format::eB8G8R8A8Unorm,
+            .viewInfo = rv::ImageViewCreateInfo{},
         });
-        image->createImageView();
 
         context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
             commandBuffer->buildTopAccel(topAccel);
