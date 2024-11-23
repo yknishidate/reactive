@@ -1,5 +1,5 @@
 #include "reactive/Compiler/Compiler.hpp"
-#include <GlslangToSpv.h>
+#include <glslang/SPIRV/GlslangToSpv.h>
 #include <glslang/Public/ShaderLang.h>
 #include <filesystem>
 #include <fstream>
