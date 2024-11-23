@@ -45,6 +45,9 @@ BottomAccel::BottomAccel(const Context& _context, const BottomAccelCreateInfo& c
             .setBuffer(buffer->getBuffer())
             .setSize(buildSizesInfo.accelerationStructureSize)
             .setType(vk::AccelerationStructureTypeKHR::eBottomLevel));
+    if (!createInfo.debugName.empty()) {
+        context->setDebugName(accel.get(), createInfo.debugName.c_str());
+    }
 
     scratchBuffer = context->createBuffer({
         .usage = BufferUsage::Scratch,
@@ -105,6 +108,9 @@ TopAccel::TopAccel(const Context& _context, const TopAccelCreateInfo& createInfo
             .setBuffer(buffer->getBuffer())
             .setSize(buildSizesInfo.accelerationStructureSize)
             .setType(vk::AccelerationStructureTypeKHR::eTopLevel));
+    if (!createInfo.debugName.empty()) {
+        context->setDebugName(accel.get(), createInfo.debugName.c_str());
+    }
 
     scratchBuffer = context->createBuffer({
         .usage = BufferUsage::Scratch,

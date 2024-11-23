@@ -21,6 +21,8 @@ struct BottomAccelCreateInfo {
 
     vk::AccelerationStructureBuildTypeKHR buildType =
         vk::AccelerationStructureBuildTypeKHR::eDevice;
+
+    std::string debugName;
 };
 
 struct AccelInstance {
@@ -53,6 +55,8 @@ struct TopAccelCreateInfo {
 
     vk::AccelerationStructureBuildTypeKHR buildType =
         vk::AccelerationStructureBuildTypeKHR::eDevice;
+
+    std::string debugName;
 };
 
 class BottomAccel {
