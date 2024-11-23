@@ -5,13 +5,9 @@
 
 namespace rv {
 struct BottomAccelCreateInfo {
-    BufferHandle vertexBuffer;
-    BufferHandle indexBuffer;
-
     uint32_t vertexStride;
     uint32_t maxVertexCount;
     uint32_t maxTriangleCount;
-    uint32_t triangleCount;
 
     vk::GeometryFlagsKHR geometryFlags = vk::GeometryFlagBitsKHR::eOpaque;
 
@@ -67,12 +63,6 @@ public:
 
     auto getBufferAddress() const -> uint64_t { return buffer->getAddress(); }
 
-    void update(const BufferHandle& vertexBuffer,
-                const BufferHandle& indexBuffer,
-                uint32_t triangleCount);
-
-    bool shouldRebuild() { return lastPrimitiveCount != primitiveCount; }
-
 private:
     const Context* context;
 
@@ -87,8 +77,6 @@ private:
     vk::AccelerationStructureBuildTypeKHR buildType;
 
     uint32_t maxPrimitiveCount;
-    uint32_t lastPrimitiveCount;
-    uint32_t primitiveCount;
 };
 
 class TopAccel {

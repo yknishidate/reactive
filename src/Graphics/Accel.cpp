@@ -10,11 +10,9 @@ BottomAccel::BottomAccel(const Context& _context, const BottomAccelCreateInfo& c
       buildFlags{createInfo.buildFlags},
       buildType{createInfo.buildType} {
     trianglesData.setVertexFormat(vk::Format::eR32G32B32Sfloat);
-    trianglesData.setVertexData(createInfo.vertexBuffer->getAddress());
     trianglesData.setVertexStride(createInfo.vertexStride);
     trianglesData.setMaxVertex(createInfo.maxVertexCount);
     trianglesData.setIndexType(vk::IndexTypeValue<uint32_t>::value);
-    trianglesData.setIndexData(createInfo.indexBuffer->getAddress());
 
     vk::AccelerationStructureGeometryDataKHR geometryData;
     geometryData.setTriangles(trianglesData);
@@ -29,7 +27,6 @@ BottomAccel::BottomAccel(const Context& _context, const BottomAccelCreateInfo& c
     buildGeometryInfo.setFlags(buildFlags);
     buildGeometryInfo.setGeometries(geometry);
 
-    primitiveCount = createInfo.triangleCount;
     maxPrimitiveCount = createInfo.maxTriangleCount;
     auto buildSizesInfo = context->getDevice().getAccelerationStructureBuildSizesKHR(
         buildType, buildGeometryInfo, maxPrimitiveCount);
@@ -117,17 +114,6 @@ TopAccel::TopAccel(const Context& _context, const TopAccelCreateInfo& createInfo
         .memory = MemoryUsage::Device,
         .size = buildSizesInfo.buildScratchSize,
     });
-}
-
-void BottomAccel::update(const BufferHandle& vertexBuffer,
-                         const BufferHandle& indexBuffer,
-                         uint32_t triangleCount) {
-    assert(triangleCount <= maxPrimitiveCount);
-
-    trianglesData.setVertexData(vertexBuffer->getAddress());
-    trianglesData.setIndexData(indexBuffer->getAddress());
-    lastPrimitiveCount = primitiveCount;
-    primitiveCount = triangleCount;
 }
 
 void TopAccel::updateInstances(ArrayProxy<AccelInstance> accelInstances) const {

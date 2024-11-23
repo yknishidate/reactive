@@ -152,11 +152,17 @@ public:
     // accel struct
     void updateTopAccel(TopAccelHandle topAccel) const;
 
-    void updateBottomAccel(BottomAccelHandle bottomAccel) const;
+    void updateBottomAccel(BottomAccelHandle bottomAccel,
+                           const BufferHandle& vertexBuffer, const BufferHandle& indexBuffer, 
+                           uint32_t vertexCount, uint32_t triangleCount) const;
 
     void buildTopAccel(TopAccelHandle topAccel) const;
 
-    void buildBottomAccel(BottomAccelHandle bottomAccel) const;
+    void buildBottomAccel(BottomAccelHandle bottomAccel,
+                          const BufferHandle& vertexBuffer,
+                          const BufferHandle& indexBuffer,
+                          uint32_t vertexCount,
+                          uint32_t triangleCount) const;
 
     // timestamp
     void beginTimestamp(GPUTimerHandle gpuTimer) const;

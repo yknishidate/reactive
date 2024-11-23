@@ -23,20 +23,18 @@ public:
         camera = Camera{Camera::Type::Orbital,
                         static_cast<float>(Window::getWidth()) / Window::getHeight()};
 
-        mesh = Mesh{context,   MeshUsage::RayTracing, MemoryUsage::Device, vertices, indices,
-                    "Triangle"};
+        mesh = Mesh{context, MeshUsage::RayTracing,
+                    MemoryUsage::Device, vertices, indices, "Triangle"};
 
         bottomAccel = context.createBottomAccel({
-            .vertexBuffer = mesh.vertexBuffer,
-            .indexBuffer = mesh.indexBuffer,
             .vertexStride = sizeof(Vertex),
             .maxVertexCount = mesh.getVertexCount(),
             .maxTriangleCount = mesh.getTriangleCount(),
-            .triangleCount = mesh.getTriangleCount(),
             .debugName = "bottomAccel",
         });
         context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
-            commandBuffer->buildBottomAccel(bottomAccel);
+            commandBuffer->buildBottomAccel(bottomAccel, mesh.vertexBuffer, mesh.indexBuffer,
+                                            mesh.getVertexCount(), mesh.getTriangleCount());
         });
 
         topAccel = context.createTopAccel({
