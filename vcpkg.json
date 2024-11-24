@@ -15,11 +15,6 @@
     {
       "name": "ktx",
       "features": ["vulkan"]
-    },
-    "glslang",
-    "spirv-cross",
-    "spirv-tools",
-    "spirv-headers",
-    "spirv-reflect"
+    }
   ]
 }

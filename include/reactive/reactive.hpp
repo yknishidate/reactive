@@ -15,3 +15,4 @@
 #include "Timer/CPUTimer.hpp"
 #include "Timer/GPUTimer.hpp"
 #include "Window.hpp"
+#include "common.hpp"
