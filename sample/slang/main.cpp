@@ -1,40 +1,6 @@
 #include <reactive/reactive.hpp>
-#include <slang/slang.h>
-#include <slang/slang-com-ptr.h>
 
 using namespace rv;
-using Slang::ComPtr;
-
-
-inline void diagnoseIfNeeded(slang::IBlob* diagnosticsBlob) {
-    if (diagnosticsBlob != nullptr) {
-        spdlog::error((const char*)diagnosticsBlob->getBufferPointer());
-    }
-}
-
-#define ASSERT_ON_SLANG_FAIL(x)               \
-    {                                         \
-        SlangResult _res = (x);               \
-        RV_ASSERT(SLANG_SUCCEEDED(_res), ""); \
-    }
-
-std::string vertCode = R"(
-#version 450
-layout(location = 0) out vec4 outColor;
-vec3 positions[] = vec3[](vec3(-1, -1, 0), vec3(0, 1, 0), vec3(1, -1, 0));
-vec3 colors[] = vec3[](vec3(0), vec3(1, 0, 0), vec3(0, 1, 0));
-void main() {
-    gl_Position = vec4(positions[gl_VertexIndex], 1);
-    outColor = vec4(colors[gl_VertexIndex], 1);
-})";
-
-std::string fragCode = R"(
-#version 450
-layout(location = 0) in vec4 inColor;
-layout(location = 0) out vec4 outColor;
-void main() {
-    outColor = inColor;
-})";
 
 class HelloApp : public App {
 public:
@@ -49,92 +15,20 @@ public:
 
     void onStart() override {
 
-        // First we need to create slang global session with work with the Slang API.
-        Slang::ComPtr<slang::IGlobalSession> slangGlobalSession;
-        ASSERT_ON_SLANG_FAIL(slang::createGlobalSession(slangGlobalSession.writeRef()));
+        SlangCompiler compiler;
 
-        // Next we create a compilation session to generate SPIRV code from Slang source.
-        slang::SessionDesc sessionDesc = {};
-        slang::TargetDesc targetDesc = {};
-        targetDesc.format = SLANG_SPIRV;
-        targetDesc.profile = slangGlobalSession->findProfile("spirv_1_5");
-        targetDesc.flags = 0;
+        auto codes = compiler.CompileShaders(SHADER_DIR + "shaders.slang", "vertexMain", "fragmentMain");
 
-        sessionDesc.targets = &targetDesc;
-        sessionDesc.targetCount = 1;
-
-        std::vector<slang::CompilerOptionEntry> options;
-        options.push_back({slang::CompilerOptionName::EmitSpirvDirectly,
-                            {slang::CompilerOptionValueKind::Int, 1, 0, nullptr, nullptr}});
-        sessionDesc.compilerOptionEntries = options.data();
-        sessionDesc.compilerOptionEntryCount = (uint32_t)options.size();
-
-        Slang::ComPtr<slang::ISession> session;
-        ASSERT_ON_SLANG_FAIL(slangGlobalSession->createSession(sessionDesc, session.writeRef()));
-
-        Slang::ComPtr<slang::IBlob> diagnosticBlob;
-        slang::IModule* slangModule = nullptr;
-        {
-            auto path = SHADER_DIR + "shaders.slang";
-            slangModule = session->loadModule(path.c_str(), diagnosticBlob.writeRef());
-            diagnoseIfNeeded(diagnosticBlob);
-            if (!slangModule) {
-                return;
-            }
-        }
-
-        ComPtr<slang::IEntryPoint> vertexEntryPoint;
-        ASSERT_ON_SLANG_FAIL(slangModule->findEntryPointByName("vertexMain", vertexEntryPoint.writeRef()));
-
-        ComPtr<slang::IEntryPoint> fragmentEntryPoint;
-        ASSERT_ON_SLANG_FAIL(slangModule->findEntryPointByName("fragmentMain", fragmentEntryPoint.writeRef()));
-
-            
-        std::vector<slang::IComponentType*> componentTypes;
-        componentTypes.push_back(slangModule);
-
-        int entryPointCount = 0;
-        [[maybe_unused]] int vertexEntryPointIndex = entryPointCount++;
-        componentTypes.push_back(vertexEntryPoint);
-
-        [[maybe_unused]] int fragmentEntryPointIndex = entryPointCount++;
-        componentTypes.push_back(fragmentEntryPoint);
-
-        ComPtr<slang::IComponentType> linkedProgram;
-        SlangResult result = session->createCompositeComponentType(
-            componentTypes.data(), componentTypes.size(), linkedProgram.writeRef(),
-            diagnosticBlob.writeRef());
-            diagnoseIfNeeded(diagnosticBlob);
-        ASSERT_ON_SLANG_FAIL(result);
-
-        ComPtr<slang::IBlob> vertexSpirvCode;
-        ComPtr<slang::IBlob> fragmentSpirvCode;
-        {
-            result = linkedProgram->getEntryPointCode(
-                vertexEntryPointIndex, 0, vertexSpirvCode.writeRef(), diagnosticBlob.writeRef());
-            diagnoseIfNeeded(diagnosticBlob);
-            ASSERT_ON_SLANG_FAIL(result);
-
-            result = linkedProgram->getEntryPointCode(
-                fragmentEntryPointIndex, 0, fragmentSpirvCode.writeRef(), diagnosticBlob.writeRef());
-            diagnoseIfNeeded(diagnosticBlob);
-            ASSERT_ON_SLANG_FAIL(result);
-
-            // if (isTestMode()) {
-            //     printEntrypointHashes(1, 1, composedProgram);
-            // }
-        }
-        
         std::vector<ShaderHandle> shaders(2);
         shaders[0] = context.createShader({
-            .pCode = vertexSpirvCode->getBufferPointer(),
-            .codeSize = vertexSpirvCode->getBufferSize(),
+            .pCode = codes[0]->getBufferPointer(),
+            .codeSize = codes[0]->getBufferSize(),
             .stage = vk::ShaderStageFlagBits::eVertex,
         });
 
         shaders[1] = context.createShader({
-            .pCode = fragmentSpirvCode->getBufferPointer(),
-            .codeSize = fragmentSpirvCode->getBufferSize(),
+            .pCode = codes[1]->getBufferPointer(),
+            .codeSize = codes[1]->getBufferSize(),
             .stage = vk::ShaderStageFlagBits::eFragment,
         });
 
