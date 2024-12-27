@@ -3,9 +3,22 @@ cmake_minimum_required(VERSION 3.19)
 project(reactive LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 
+file(TO_CMAKE_PATH $ENV{VULKAN_SDK} VULKAN_SDK)
+set(VULKAN_LIB ${VULKAN_SDK}/Lib)
+set(VULKAN_INCLUDE ${VULKAN_SDK}/Include)
+set(VULKAN_SOURCE ${VULKAN_SDK}/Source)
+
 file(GLOB_RECURSE sources src/*.cpp)
 file(GLOB_RECURSE headers include/reactive/*.hpp)
-add_library(${PROJECT_NAME} ${sources} ${headers})
+file(GLOB_RECURSE vulkan_sources ${VULKAN_SOURCE}/*)
+add_library(${PROJECT_NAME}
+    ${sources} ${headers}
+    ${vulkan_sources}
+)
+
+set_source_files_properties(
+    ${vulkan_sources} PROPERTIES LANGUAGE CXX
+)
 
 target_precompile_headers(${PROJECT_NAME} PUBLIC include/reactive/pch.h)
 
@@ -15,9 +28,6 @@ find_package(imgui CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(tinyobjloader CONFIG REQUIRED)
-
-set(VULKAN_LIB $ENV{VULKAN_SDK}/Lib)
-set(VULKAN_INCLUDE $ENV{VULKAN_SDK}/Include)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC 
     glfw
@@ -31,6 +41,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     optimized ${VULKAN_LIB}/spirv-cross-core.lib
     optimized ${VULKAN_LIB}/spirv-cross-cpp.lib
     optimized ${VULKAN_LIB}/spirv-cross-glsl.lib
+    optimized ${VULKAN_LIB}/spirv-cross-reflect.lib
 
     optimized ${VULKAN_LIB}/OSDependent.lib
     optimized ${VULKAN_LIB}/SPIRV-Tools.lib
@@ -48,6 +59,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     debug ${VULKAN_LIB}/spirv-cross-cored.lib
     debug ${VULKAN_LIB}/spirv-cross-cppd.lib
     debug ${VULKAN_LIB}/spirv-cross-glsld.lib
+    debug ${VULKAN_LIB}/spirv-cross-reflectd.lib
     
     debug ${VULKAN_LIB}/OSDependentd.lib
     debug ${VULKAN_LIB}/SPIRV-Toolsd.lib
@@ -65,6 +77,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${VULKAN_INCLUDE}/
+    ${VULKAN_SOURCE}/
+    ${VULKAN_SOURCE}/SPIRV-Reflect/include
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE

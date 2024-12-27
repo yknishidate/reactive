@@ -1,5 +1,5 @@
 #pragma once
-#include <spirv_cross/spirv_glsl.hpp>
+#include <SPIRV-Reflect/spirv_reflect.h>
 #include <unordered_map>
 #include <variant>
 
@@ -30,10 +30,7 @@ public:
 
 private:
     void addResources(ShaderHandle shader);
-    void updateBindingMap(const spirv_cross::Resource& resource,
-                          const spirv_cross::CompilerGLSL& glsl,
-                          vk::ShaderStageFlags stage,
-                          vk::DescriptorType type);
+    void updateBindingMap(const SpvReflectDescriptorBinding* binding, vk::ShaderStageFlags stage);
 
     const Context* context;
     vk::UniqueDescriptorSet descSet;

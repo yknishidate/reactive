@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <vector>
 
+#include "reactive/common.hpp"
 #include "reactive/Graphics/Accel.hpp"
 #include "reactive/Graphics/Buffer.hpp"
 
@@ -19,6 +20,7 @@ DescriptorSet::DescriptorSet(const Context& _context, const DescriptorSetCreateI
     // 各リソースのディスクリプタ情報を設定
     for (const auto& [name, buffers] : createInfo.buffers) {
         if (std::holds_alternative<uint32_t>(buffers)) {
+            RV_ASSERT(descriptors.contains(name), "Unknown buffer name. Resource name must match the name on the shader.");
             descriptors[name].binding.setDescriptorCount(std::get<uint32_t>(buffers));
         } else {
             set(name, std::get<ArrayProxy<BufferHandle>>(buffers));
@@ -26,6 +28,8 @@ DescriptorSet::DescriptorSet(const Context& _context, const DescriptorSetCreateI
     }
     for (const auto& [name, images] : createInfo.images) {
         if (std::holds_alternative<uint32_t>(images)) {
+            RV_ASSERT(descriptors.contains(name),
+                      "Unknown image name. Resource name must match the name on the shader.");
             descriptors[name].binding.setDescriptorCount(std::get<uint32_t>(images));
         } else {
             set(name, std::get<ArrayProxy<ImageHandle>>(images));
@@ -33,6 +37,8 @@ DescriptorSet::DescriptorSet(const Context& _context, const DescriptorSetCreateI
     }
     for (const auto& [name, accels] : createInfo.accels) {
         if (std::holds_alternative<uint32_t>(accels)) {
+            RV_ASSERT(descriptors.contains(name),
+                      "Unknown accel name. Resource name must match the name on the shader.");
             descriptors[name].binding.setDescriptorCount(std::get<uint32_t>(accels));
         } else {
             set(name, std::get<ArrayProxy<TopAccelHandle>>(accels));
@@ -123,43 +129,52 @@ void DescriptorSet::set(const std::string& name, ArrayProxy<TopAccelHandle> acce
 void DescriptorSet::addResources(ShaderHandle shader) {
     // シェーダーリソースを解析してディスクリプタ情報を更新
     vk::ShaderStageFlags stage = shader->getStage();
-    spirv_cross::CompilerGLSL glsl{shader->getSpvCode()};
-    const spirv_cross::ShaderResources& resources = glsl.get_shader_resources();
+    SpvReflectShaderModule module;
+    SpvReflectResult result = spvReflectCreateShaderModule(shader->getSpvCodeSize(), shader->getSpvCodePtr(), &module);
+    if (result != SPV_REFLECT_RESULT_SUCCESS) {
+        throw std::runtime_error("Failed to create SPIRV-Reflect shader module.");
+    }
 
-    for (auto& resource : resources.uniform_buffers) {
-        updateBindingMap(resource, glsl, stage, vk::DescriptorType::eUniformBuffer);
+    uint32_t count = 0;
+    result = spvReflectEnumerateDescriptorBindings(&module, &count, nullptr);
+    if (result != SPV_REFLECT_RESULT_SUCCESS) {
+        spvReflectDestroyShaderModule(&module);
+        throw std::runtime_error("Failed to enumerate descriptor bindings.");
     }
-    for (auto& resource : resources.acceleration_structures) {
-        updateBindingMap(resource, glsl, stage, vk::DescriptorType::eAccelerationStructureKHR);
+
+    std::vector<SpvReflectDescriptorBinding*> bindings(count);
+    result = spvReflectEnumerateDescriptorBindings(&module, &count, bindings.data());
+    if (result != SPV_REFLECT_RESULT_SUCCESS) {
+        spvReflectDestroyShaderModule(&module);
+        throw std::runtime_error("Failed to enumerate descriptor bindings.");
     }
-    for (auto& resource : resources.storage_buffers) {
-        updateBindingMap(resource, glsl, stage, vk::DescriptorType::eStorageBuffer);
+
+    for (const auto* binding : bindings) {
+        updateBindingMap(binding, stage);
     }
-    for (auto& resource : resources.storage_images) {
-        updateBindingMap(resource, glsl, stage, vk::DescriptorType::eStorageImage);
-    }
-    for (auto& resource : resources.sampled_images) {
-        updateBindingMap(resource, glsl, stage, vk::DescriptorType::eCombinedImageSampler);
-    }
+
+    spvReflectDestroyShaderModule(&module);
 }
 
-void DescriptorSet::updateBindingMap(const spirv_cross::Resource& resource,
-                                     const spirv_cross::CompilerGLSL& glsl,
-                                     vk::ShaderStageFlags stage,
-                                     vk::DescriptorType type) {
-    if (descriptors.contains(resource.name)) {
-        auto& binding = descriptors[resource.name].binding;
-        if (binding.binding != glsl.get_decoration(resource.id, spv::DecorationBinding)) {
+void DescriptorSet::updateBindingMap(const SpvReflectDescriptorBinding* binding, vk::ShaderStageFlags stage) {
+    // nameまたはtype_nameを取得する
+    std::string name = binding->name;
+    if (name.empty()) {
+        name = binding->block.type_description->type_name;
+    }
+
+    if (descriptors.contains(name)) {
+        auto& desc_binding = descriptors[name].binding;
+        if (desc_binding.binding != binding->binding) {
             throw std::runtime_error("binding does not match.");
         }
-        binding.stageFlags |= stage;
+        desc_binding.stageFlags |= stage;
     } else {
-        // FIX: ここのカウントが1だと後から増やせない
-        descriptors[resource.name] = {
+        descriptors[name] = {
             .binding = vk::DescriptorSetLayoutBinding()
-                           .setBinding(glsl.get_decoration(resource.id, spv::DecorationBinding))
-                           .setDescriptorType(type)
-                           .setDescriptorCount(1)
+                           .setBinding(binding->binding)
+                           .setDescriptorType(static_cast<vk::DescriptorType>(binding->descriptor_type))
+                           .setDescriptorCount(binding->count)
                            .setStageFlags(stage),
         };
     }

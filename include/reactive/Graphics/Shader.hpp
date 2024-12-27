@@ -3,7 +3,8 @@
 
 namespace rv {
 struct ShaderCreateInfo {
-    const std::vector<uint32_t>& code;
+    const void* pCode;
+    const size_t codeSize;
     vk::ShaderStageFlagBits stage;
 };
 
@@ -11,14 +12,16 @@ class Shader {
 public:
     Shader(const Context& context, const ShaderCreateInfo& createInfo);
 
-    auto getSpvCode() const { return spvCode; }
+    auto getSpvCodePtr() const { return pCode; }
+    auto getSpvCodeSize() const { return codeSize; }
     auto getModule() const { return *shaderModule; }
     auto getStage() const { return stage; }
 
 private:
     vk::UniqueShaderModule shaderModule;
     vk::UniqueShaderEXT shader;
-    std::vector<uint32_t> spvCode;
+    const void* pCode;
+    const size_t codeSize;
     vk::ShaderStageFlagBits stage;
 };
 }  // namespace rv

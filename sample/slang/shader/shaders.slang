@@ -11,12 +11,10 @@ struct VertexStageInput
     uint index : SV_VertexID;
 };
 
-// Vertex  Shader
-
 struct VertexStageOutput
 {
     float3 color;
-    float4          sv_position     : SV_Position;
+    float4 sv_position : SV_Position;
 };
 
 [shader("vertex")]
@@ -32,8 +30,6 @@ VertexStageOutput vertexMain(VertexStageInput input)
 
     return output;
 }
-
-// Fragment Shader
 
 [shader("fragment")]
 float4 fragmentMain(float3 color) : SV_Target

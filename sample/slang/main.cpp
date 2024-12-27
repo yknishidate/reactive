@@ -42,7 +42,7 @@ public:
         : App({
               .width = 1280,
               .height = 720,
-              .title = "HelloGraphics",
+              .title = "HelloSlang",
               .vsync = false,
               .layers = {Layer::Validation, Layer::FPSMonitor},
           }) {}
@@ -124,16 +124,17 @@ public:
             //     printEntrypointHashes(1, 1, composedProgram);
             // }
         }
-
         
         std::vector<ShaderHandle> shaders(2);
         shaders[0] = context.createShader({
-            .code = static_cast<const uint32_t*>(vertexSpirvCode->getBufferPointer()),
+            .pCode = vertexSpirvCode->getBufferPointer(),
+            .codeSize = vertexSpirvCode->getBufferSize(),
             .stage = vk::ShaderStageFlagBits::eVertex,
         });
 
         shaders[1] = context.createShader({
-            .code = Compiler::compileToSPV(fragCode, vk::ShaderStageFlagBits::eFragment),
+            .pCode = fragmentSpirvCode->getBufferPointer(),
+            .codeSize = fragmentSpirvCode->getBufferSize(),
             .stage = vk::ShaderStageFlagBits::eFragment,
         });
 
