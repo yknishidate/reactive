@@ -51,10 +51,8 @@ void readBinary(const std::filesystem::path& filepath, std::vector<T>& vec) {
 class SlangCompiler
 {
 public:
-
     SlangCompiler()
     {
-        // First we need to create slang global session with work with the Slang API.
         ASSERT_ON_SLANG_FAIL(slang::createGlobalSession(slangGlobalSession.writeRef()));
     }
 
@@ -68,19 +66,22 @@ public:
         slang::SessionDesc sessionDesc = {};
         slang::TargetDesc targetDesc = {};
         targetDesc.format = SLANG_SPIRV;
-        targetDesc.profile = slangGlobalSession->findProfile("spirv_1_6");
+        targetDesc.profile = slangGlobalSession->findProfile("spirv_1_5");
         targetDesc.flags = 0;
 
         sessionDesc.targets = &targetDesc;
         sessionDesc.targetCount = 1;
 
+        SlangCapabilityID spvImageQueryId = slangGlobalSession->findCapability("spvImageQuery");
+        SlangCapabilityID spvSparseResidencyId = slangGlobalSession->findCapability("spvSparseResidency");
+
         std::vector<slang::CompilerOptionEntry> options;
         options.push_back({slang::CompilerOptionName::EmitSpirvDirectly,
                           {slang::CompilerOptionValueKind::Int, 1, 0, nullptr, nullptr}});
-        //options.push_back({slang::CompilerOptionName::Capability,
-        //                  {slang::CompilerOptionValueKind::String, 0, 0, "spvImageQuery", nullptr}});
-        //options.push_back({slang::CompilerOptionName::Capability,
-        //                  {slang::CompilerOptionValueKind::String, 0, 0, "spvSparseResidency", nullptr}});
+        options.push_back({slang::CompilerOptionName::Capability,
+                           {slang::CompilerOptionValueKind::String, spvImageQueryId, 0, nullptr, nullptr}});
+        options.push_back({slang::CompilerOptionName::Capability,
+                           {slang::CompilerOptionValueKind::String, spvSparseResidencyId, 0, nullptr, nullptr}});
 
         sessionDesc.compilerOptionEntries = options.data();
         sessionDesc.compilerOptionEntryCount = (uint32_t)options.size();
@@ -158,90 +159,6 @@ public:
             ASSERT_ON_SLANG_FAIL(result);
         }
 
-        return codes;
-    }
-
-
-    std::vector<ComPtr<slang::IBlob>> CompileShaders(const std::filesystem::path& shaderPath,
-                 const std::string& vertexEntryPointName,
-                 const std::string& fragmentEntryPointName)
-    {
-        assert(slangGlobalSession);
-
-        // Next we create a compilation session to generate SPIRV code from Slang source.
-        slang::SessionDesc sessionDesc = {};
-        slang::TargetDesc targetDesc = {};
-        targetDesc.format = SLANG_SPIRV;
-        targetDesc.profile = slangGlobalSession->findProfile("spirv_1_5");
-        targetDesc.flags = 0;
-
-        sessionDesc.targets = &targetDesc;
-        sessionDesc.targetCount = 1;
-
-        std::vector<slang::CompilerOptionEntry> options;
-        options.push_back({slang::CompilerOptionName::EmitSpirvDirectly,
-                           {slang::CompilerOptionValueKind::Int, 1, 0, nullptr, nullptr}});
-        sessionDesc.compilerOptionEntries = options.data();
-        sessionDesc.compilerOptionEntryCount = (uint32_t)options.size();
-
-        Slang::ComPtr<slang::ISession> session;
-        ASSERT_ON_SLANG_FAIL(slangGlobalSession->createSession(sessionDesc, session.writeRef()));
-
-        Slang::ComPtr<slang::IBlob> diagnosticBlob;
-        slang::IModule* slangModule = nullptr;
-        {
-            slangModule =
-                session->loadModule(shaderPath.string().c_str(), diagnosticBlob.writeRef());
-            diagnoseIfNeeded(diagnosticBlob);
-            if (!slangModule) {
-                return {};
-            }
-        }
-
-        ComPtr<slang::IEntryPoint> vertexEntryPoint;
-        ASSERT_ON_SLANG_FAIL(slangModule->findEntryPointByName(vertexEntryPointName.c_str(),
-                                                               vertexEntryPoint.writeRef()));
-
-        ComPtr<slang::IEntryPoint> fragmentEntryPoint;
-        ASSERT_ON_SLANG_FAIL(slangModule->findEntryPointByName(fragmentEntryPointName.c_str(),
-                                                               fragmentEntryPoint.writeRef()));
-
-        std::vector<slang::IComponentType*> componentTypes;
-        componentTypes.push_back(slangModule);
-
-        int entryPointCount = 0;
-        [[maybe_unused]] int vertexEntryPointIndex = entryPointCount++;
-        componentTypes.push_back(vertexEntryPoint);
-
-        [[maybe_unused]] int fragmentEntryPointIndex = entryPointCount++;
-        componentTypes.push_back(fragmentEntryPoint);
-
-        ComPtr<slang::IComponentType> linkedProgram;
-        SlangResult result = session->createCompositeComponentType(
-            componentTypes.data(), componentTypes.size(), linkedProgram.writeRef(),
-            diagnosticBlob.writeRef());
-        diagnoseIfNeeded(diagnosticBlob);
-        ASSERT_ON_SLANG_FAIL(result);
-
-        std::vector<ComPtr<slang::IBlob>> codes(2);
-         //vertexSpirvCode;
-        //ComPtr<slang::IBlob> fragmentSpirvCode;
-        {
-            result = linkedProgram->getEntryPointCode(vertexEntryPointIndex, 0, codes[0].writeRef(),
-                                                      diagnosticBlob.writeRef());
-            diagnoseIfNeeded(diagnosticBlob);
-            ASSERT_ON_SLANG_FAIL(result);
-
-            result = linkedProgram->getEntryPointCode(
-                fragmentEntryPointIndex, 0, codes[1].writeRef(),
-                                                      diagnosticBlob.writeRef());
-            diagnoseIfNeeded(diagnosticBlob);
-            ASSERT_ON_SLANG_FAIL(result);
-
-            // if (isTestMode()) {
-            //     printEntrypointHashes(1, 1, composedProgram);
-            // }
-        }
         return codes;
     }
 

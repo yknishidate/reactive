@@ -15,8 +15,7 @@ public:
 
     void onStart() override {
         SlangCompiler compiler;
-        auto codes =
-            compiler.CompileShaders(SHADER_DIR + "shaders.slang", "vertexMain", "fragmentMain");
+        auto codes = compiler.CompileShaders(SHADER_DIR + "shaders.slang", {"vertexMain", "fragmentMain"});
 
         std::vector<ShaderHandle> shaders(2);
         shaders[0] = context.createShader({
