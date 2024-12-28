@@ -38,14 +38,18 @@ public:
             commandBuffer->transitionLayout(image, vk::ImageLayout::eGeneral);
         });
 
+        SlangCompiler compiler;
+        auto codes = compiler.CompileShaders(SHADER_DIR + "shaders.slang", {"computeMain"});
+
         ShaderHandle compShader = context.createShader({
-            .code = Compiler::compileToSPV(SHADER_DIR + "hello_compute.comp"),
+            .pCode = codes[0]->getBufferPointer(),
+            .codeSize = codes[0]->getBufferSize(),
             .stage = vk::ShaderStageFlagBits::eCompute,
         });
 
         descSet = context.createDescriptorSet({
             .shaders = compShader,
-            .buffers = {{"MandelbrotParams", buffer}},
+            .buffers = {{"mandelbrotParams", buffer}},
             .images = {{"outputImage", image}},
         });
         descSet->update();

@@ -2,24 +2,6 @@
 
 using namespace rv;
 
-std::string vertCode = R"(
-#version 450
-layout(location = 0) out vec4 outColor;
-vec3 positions[] = vec3[](vec3(-1, -1, 0), vec3(0, 1, 0), vec3(1, -1, 0));
-vec3 colors[] = vec3[](vec3(0), vec3(1, 0, 0), vec3(0, 1, 0));
-void main() {
-    gl_Position = vec4(positions[gl_VertexIndex], 1);
-    outColor = vec4(colors[gl_VertexIndex], 1);
-})";
-
-std::string fragCode = R"(
-#version 450
-layout(location = 0) in vec4 inColor;
-layout(location = 0) out vec4 outColor;
-void main() {
-    outColor = inColor;
-})";
-
 class HelloApp : public App {
 public:
     HelloApp()
@@ -32,14 +14,20 @@ public:
           }) {}
 
     void onStart() override {
+        SlangCompiler compiler;
+        auto codes =
+            compiler.CompileShaders(SHADER_DIR + "shaders.slang", "vertexMain", "fragmentMain");
+
         std::vector<ShaderHandle> shaders(2);
         shaders[0] = context.createShader({
-            .code = Compiler::compileToSPV(vertCode, vk::ShaderStageFlagBits::eVertex),
+            .pCode = codes[0]->getBufferPointer(),
+            .codeSize = codes[0]->getBufferSize(),
             .stage = vk::ShaderStageFlagBits::eVertex,
         });
 
         shaders[1] = context.createShader({
-            .code = Compiler::compileToSPV(fragCode, vk::ShaderStageFlagBits::eFragment),
+            .pCode = codes[1]->getBufferPointer(),
+            .codeSize = codes[1]->getBufferSize(),
             .stage = vk::ShaderStageFlagBits::eFragment,
         });
 

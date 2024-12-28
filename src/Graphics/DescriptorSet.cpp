@@ -157,12 +157,7 @@ void DescriptorSet::addResources(ShaderHandle shader) {
 }
 
 void DescriptorSet::updateBindingMap(const SpvReflectDescriptorBinding* binding, vk::ShaderStageFlags stage) {
-    // nameまたはtype_nameを取得する
-    std::string name = binding->name;
-    if (name.empty()) {
-        name = binding->block.type_description->type_name;
-    }
-
+    const std::string& name = binding->name;
     if (descriptors.contains(name)) {
         auto& desc_binding = descriptors[name].binding;
         if (desc_binding.binding != binding->binding) {
