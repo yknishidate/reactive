@@ -54,26 +54,34 @@ public:
             commandBuffer->transitionLayout(image, vk::ImageLayout::eGeneral);
         });
 
+        
+        SlangCompiler compiler;
+        auto codes = compiler.CompileShaders(SHADER_DIR + "shaders.slang",
+                                             {"rayGenMain", "missMain", "closestHitMain"});
+
         std::vector<ShaderHandle> shaders(3);
         shaders[0] = context.createShader({
-            .code = Compiler::compileToSPV(SHADER_DIR + "hello_raytracing.rgen"),
+            .pCode = codes[0]->getBufferPointer(),
+            .codeSize = codes[0]->getBufferSize(),
             .stage = vk::ShaderStageFlagBits::eRaygenKHR,
         });
 
         shaders[1] = context.createShader({
-            .code = Compiler::compileToSPV(SHADER_DIR + "hello_raytracing.rmiss"),
+            .pCode = codes[1]->getBufferPointer(),
+            .codeSize = codes[1]->getBufferSize(),
             .stage = vk::ShaderStageFlagBits::eMissKHR,
         });
 
         shaders[2] = context.createShader({
-            .code = Compiler::compileToSPV(SHADER_DIR + "hello_raytracing.rchit"),
+            .pCode = codes[2]->getBufferPointer(),
+            .codeSize = codes[2]->getBufferSize(),
             .stage = vk::ShaderStageFlagBits::eClosestHitKHR,
         });
 
         descSet = context.createDescriptorSet({
             .shaders = shaders,
-            .images = {{"outputImage", image}},
-            .accels = {{"topLevelAS", topAccel}},
+            .images = {{"gOutputImage", image}},
+            .accels = {{"gTopLevelAS", topAccel}},
         });
         descSet->update();
 

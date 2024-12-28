@@ -19,26 +19,24 @@ DescriptorSet::DescriptorSet(const Context& _context, const DescriptorSetCreateI
 
     // 各リソースのディスクリプタ情報を設定
     for (const auto& [name, buffers] : createInfo.buffers) {
+        RV_ASSERT(descriptors.contains(name), "Unknown buffer name. Resource name must match the name on the shader.");
         if (std::holds_alternative<uint32_t>(buffers)) {
-            RV_ASSERT(descriptors.contains(name), "Unknown buffer name. Resource name must match the name on the shader.");
             descriptors[name].binding.setDescriptorCount(std::get<uint32_t>(buffers));
         } else {
             set(name, std::get<ArrayProxy<BufferHandle>>(buffers));
         }
     }
     for (const auto& [name, images] : createInfo.images) {
+        RV_ASSERT(descriptors.contains(name), "Unknown image name. Resource name must match the name on the shader.");
         if (std::holds_alternative<uint32_t>(images)) {
-            RV_ASSERT(descriptors.contains(name),
-                      "Unknown image name. Resource name must match the name on the shader.");
             descriptors[name].binding.setDescriptorCount(std::get<uint32_t>(images));
         } else {
             set(name, std::get<ArrayProxy<ImageHandle>>(images));
         }
     }
     for (const auto& [name, accels] : createInfo.accels) {
+        RV_ASSERT(descriptors.contains(name), "Unknown accel name. Resource name must match the name on the shader.");
         if (std::holds_alternative<uint32_t>(accels)) {
-            RV_ASSERT(descriptors.contains(name),
-                      "Unknown accel name. Resource name must match the name on the shader.");
             descriptors[name].binding.setDescriptorCount(std::get<uint32_t>(accels));
         } else {
             set(name, std::get<ArrayProxy<TopAccelHandle>>(accels));
