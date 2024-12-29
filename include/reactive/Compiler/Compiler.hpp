@@ -6,21 +6,7 @@
 #include <slang/slang.h>
 #include <slang/slang-com-ptr.h>
 
-using Slang::ComPtr;
-
-#define ASSERT_ON_SLANG_FAIL(x)               \
-    {                                         \
-        SlangResult _res = (x);               \
-        assert(SLANG_SUCCEEDED(_res)); \
-    }
-
 namespace rv {
-
-inline void diagnoseIfNeeded(slang::IBlob* diagnosticsBlob) {
-    if (diagnosticsBlob != nullptr) {
-        spdlog::error((const char*)diagnosticsBlob->getBufferPointer());
-    }
-}
 
 namespace File {
 auto readFile(const std::filesystem::path& path) -> std::string;
@@ -51,147 +37,14 @@ void readBinary(const std::filesystem::path& filepath, std::vector<T>& vec) {
 class SlangCompiler
 {
 public:
-    SlangCompiler()
-    {
-        ASSERT_ON_SLANG_FAIL(slang::createGlobalSession(slangGlobalSession.writeRef()));
-    }
+    SlangCompiler();
 
-    std::vector<ComPtr<slang::IBlob>> CompileShaders(
+    std::vector<Slang::ComPtr<slang::IBlob>> CompileShaders(
         const std::filesystem::path& shaderPath,
-        const std::vector<std::string>& entryPointNames) {
-        assert(slangGlobalSession);
-
-        // 1. Slangセッションの準備
-        // ----------------------------------------------------
-        slang::SessionDesc sessionDesc = {};
-        slang::TargetDesc targetDesc = {};
-        targetDesc.format = SLANG_SPIRV;
-        targetDesc.profile = slangGlobalSession->findProfile("spirv_1_5");
-        targetDesc.flags = 0;
-
-        sessionDesc.targets = &targetDesc;
-        sessionDesc.targetCount = 1;
-
-        SlangCapabilityID spvImageQueryId = slangGlobalSession->findCapability("spvImageQuery");
-        SlangCapabilityID spvSparseResidencyId = slangGlobalSession->findCapability("spvSparseResidency");
-
-        std::vector<slang::CompilerOptionEntry> options;
-        options.push_back({slang::CompilerOptionName::EmitSpirvDirectly,
-                          {slang::CompilerOptionValueKind::Int, 1, 0, nullptr, nullptr}});
-        options.push_back({slang::CompilerOptionName::Capability,
-                           {slang::CompilerOptionValueKind::String, spvImageQueryId, 0, nullptr, nullptr}});
-        options.push_back({slang::CompilerOptionName::Capability,
-                           {slang::CompilerOptionValueKind::String, spvSparseResidencyId, 0, nullptr, nullptr}});
-
-        sessionDesc.compilerOptionEntries = options.data();
-        sessionDesc.compilerOptionEntryCount = (uint32_t)options.size();
-
-        Slang::ComPtr<slang::ISession> session;
-        ASSERT_ON_SLANG_FAIL(slangGlobalSession->createSession(sessionDesc, session.writeRef()));
-
-        // 2. モジュールをロード (Slangソースをコンパイル)
-        // ----------------------------------------------------
-        Slang::ComPtr<slang::IBlob> diagnosticBlob;
-        slang::IModule* slangModule = nullptr;
-        {
-            slangModule =
-                session->loadModule(shaderPath.string().c_str(), diagnosticBlob.writeRef());
-            diagnoseIfNeeded(diagnosticBlob);
-            if (!slangModule) {
-                // 失敗した場合は空の結果を返して終了
-                return {};
-            }
-        }
-
-        // 3. 各エントリーポイントを取り出す
-        // ----------------------------------------------------
-        //    - まず module (IComponentType) としてのslangModuleを追加
-        //    - 各 entryPointName から IEntryPoint を見つけて追加
-        std::vector<slang::IComponentType*> componentTypes;
-        componentTypes.reserve(entryPointNames.size() + 1);
-
-        // 最初にモジュール本体を入れる
-        componentTypes.push_back(slangModule);
-
-        // 後で "getEntryPointCode()" するときにインデックスが必要になるので記録
-        std::vector<int> entryPointIndices;
-        entryPointIndices.reserve(entryPointNames.size());
-
-        int currentIndex = 0;  // モジュール以外のエントリーポイントの個数
-
-        for (const auto& name : entryPointNames) {
-            ComPtr<slang::IEntryPoint> entryPoint;
-            SlangResult res =
-                slangModule->findEntryPointByName(name.c_str(), entryPoint.writeRef());
-            diagnoseIfNeeded(diagnosticBlob);
-            ASSERT_ON_SLANG_FAIL(res);
-
-            // コンポーネントとして追加
-            componentTypes.push_back(entryPoint);
-
-            // モジュールの次からエントリーポイントになるので
-            // 例えば最初のentryPointはインデックス0, 次は1, ... となる
-            entryPointIndices.push_back(currentIndex++);
-        }
-
-        // 4. まとめてコンポジットを作る (リンクする)
-        // ----------------------------------------------------
-        Slang::ComPtr<slang::IComponentType> linkedProgram;
-        {
-            SlangResult result = session->createCompositeComponentType(
-                componentTypes.data(), componentTypes.size(), linkedProgram.writeRef(),
-                diagnosticBlob.writeRef());
-            diagnoseIfNeeded(diagnosticBlob);
-            ASSERT_ON_SLANG_FAIL(result);
-        }
-
-        // 5. 各エントリーポイントのコードを取得
-        // ----------------------------------------------------
-        //    - entryPointIndices と同じ順番で出力用のバイナリを取り出す
-        std::vector<ComPtr<slang::IBlob>> codes(entryPointNames.size());
-
-        for (size_t i = 0; i < entryPointNames.size(); i++) {
-            // 注意: "entryPointIndices[i]" は先ほど保存したインデックス
-            // モジュール自体が最初(インデックス-1相当)なので、エントリーポイントは0から連番
-            SlangResult result = linkedProgram->getEntryPointCode(
-                entryPointIndices[i], 0, codes[i].writeRef(), diagnosticBlob.writeRef());
-            diagnoseIfNeeded(diagnosticBlob);
-            ASSERT_ON_SLANG_FAIL(result);
-        }
-
-        return codes;
-    }
+        const std::vector<std::string>& entryPointNames);
 
 private:
     Slang::ComPtr<slang::IGlobalSession> slangGlobalSession;
 };
 
-namespace Compiler {
-auto getLastWriteTimeWithIncludeFiles(const std::filesystem::path& filepath)
-    -> std::filesystem::file_time_type;
-
-auto shouldRecompile(const std::filesystem::path& glslFilepath,
-                     const std::filesystem::path& spvFilepath) -> bool;
-
-auto compileOrReadShader(const std::filesystem::path& glslFilepath,
-                         const std::filesystem::path& spvFilepath) -> std::vector<uint32_t>;
-
-auto getShaderStage(const std::string& filepath) -> vk::ShaderStageFlagBits;
-
-using Define = std::pair<std::string, std::string>;
-
-void addDefines(std::string& glslCode, const std::vector<Define>& defines);
-
-// This supports include directive
-auto compileToSPV(const std::filesystem::path& filepath, const std::vector<Define>& defines = {})
-    -> std::vector<uint32_t>;
-
-// This doesn't support include directive
-// This is for hardcoded shader in C++
-auto compileToSPV(const std::string& glslCode,
-                  vk::ShaderStageFlagBits shaderStage,
-                  const std::vector<Define>& defines = {}) -> std::vector<uint32_t>;
-
-auto getAllIncludedFiles(const std::string& code) -> std::vector<std::string>;
-}  // namespace Compiler
 }  // namespace rv
