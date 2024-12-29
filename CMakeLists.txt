@@ -62,34 +62,12 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     optimized ${VULKAN_LIB}/spirv-cross-glsl.lib
     optimized ${VULKAN_LIB}/spirv-cross-reflect.lib
 
-    optimized ${VULKAN_LIB}/OSDependent.lib
-    optimized ${VULKAN_LIB}/SPIRV-Tools.lib
-    optimized ${VULKAN_LIB}/SPIRV-Tools-opt.lib
-
-    optimized ${VULKAN_LIB}/glslang-default-resource-limits.lib
-    optimized ${VULKAN_LIB}/glslang.lib
-    optimized ${VULKAN_LIB}/GenericCodeGen.lib
-    optimized ${VULKAN_LIB}/MachineIndependent.lib
-    optimized ${VULKAN_LIB}/SPVRemapper.lib
-    optimized ${VULKAN_LIB}/SPIRV.lib
-
     optimized ${VULKAN_LIB}/slang.lib
     
     debug ${VULKAN_LIB}/spirv-cross-cored.lib
     debug ${VULKAN_LIB}/spirv-cross-cppd.lib
     debug ${VULKAN_LIB}/spirv-cross-glsld.lib
     debug ${VULKAN_LIB}/spirv-cross-reflectd.lib
-    
-    debug ${VULKAN_LIB}/OSDependentd.lib
-    debug ${VULKAN_LIB}/SPIRV-Toolsd.lib
-    debug ${VULKAN_LIB}/SPIRV-Tools-optd.lib
-
-    debug ${VULKAN_LIB}/glslang-default-resource-limitsd.lib
-    debug ${VULKAN_LIB}/glslangd.lib
-    debug ${VULKAN_LIB}/GenericCodeGend.lib
-    debug ${VULKAN_LIB}/MachineIndependentd.lib
-    debug ${VULKAN_LIB}/SPVRemapperd.lib
-    debug ${VULKAN_LIB}/SPIRVd.lib
 
     debug ${VULKAN_LIB}/slangd.lib
 )

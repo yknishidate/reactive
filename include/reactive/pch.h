@@ -21,6 +21,4 @@
 
 #include <GLFW/glfw3.h>
 
-#include <spirv_cross/spirv_glsl.hpp>
-
 #include "math.hpp"

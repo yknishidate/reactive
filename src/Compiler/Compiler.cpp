@@ -1,6 +1,4 @@
 ﻿#include "reactive/Compiler/Compiler.hpp"
-#include <glslang/SPIRV/GlslangToSpv.h>
-#include <glslang/Public/ShaderLang.h>
 #include <filesystem>
 #include <fstream>
 
@@ -34,6 +32,8 @@ SlangCompiler::SlangCompiler() {
 std::vector<Slang::ComPtr<slang::IBlob>> SlangCompiler::CompileShaders(const std::filesystem::path& shaderPath,
                                                                        const std::vector<std::string>& entryPointNames) {
     assert(slangGlobalSession);
+
+    spdlog::info("Compiling: {}", shaderPath.string());
 
     // 1. Slangセッションの準備
     // ----------------------------------------------------
@@ -134,6 +134,7 @@ std::vector<Slang::ComPtr<slang::IBlob>> SlangCompiler::CompileShaders(const std
         ASSERT_ON_SLANG_FAIL(result);
     }
 
+    spdlog::info("  Done!");
     return codes;
 }
 
