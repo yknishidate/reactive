@@ -39,7 +39,7 @@ public:
         });
 
         SlangCompiler compiler;
-        auto codes = compiler.CompileShaders(SHADER_DIR + "shaders.slang", {"computeMain"});
+        auto codes = compiler.CompileShaders(SHADER_PATH, {"computeMain"});
 
         ShaderHandle compShader = context.createShader({
             .pCode = codes[0]->getBufferPointer(),

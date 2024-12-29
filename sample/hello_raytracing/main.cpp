@@ -54,9 +54,8 @@ public:
             commandBuffer->transitionLayout(image, vk::ImageLayout::eGeneral);
         });
 
-        
         SlangCompiler compiler;
-        auto codes = compiler.CompileShaders(SHADER_DIR + "shaders.slang",
+        auto codes = compiler.CompileShaders(SHADER_PATH,
                                              {"rayGenMain", "missMain", "closestHitMain"});
 
         std::vector<ShaderHandle> shaders(3);
