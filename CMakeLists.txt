@@ -57,17 +57,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     tinyobjloader::tinyobjloader
     KTX::ktx
 
-    optimized ${VULKAN_LIB}/spirv-cross-core.lib
-    optimized ${VULKAN_LIB}/spirv-cross-cpp.lib
-    optimized ${VULKAN_LIB}/spirv-cross-glsl.lib
-    optimized ${VULKAN_LIB}/spirv-cross-reflect.lib
-
     optimized ${VULKAN_LIB}/slang.lib
-    
-    debug ${VULKAN_LIB}/spirv-cross-cored.lib
-    debug ${VULKAN_LIB}/spirv-cross-cppd.lib
-    debug ${VULKAN_LIB}/spirv-cross-glsld.lib
-    debug ${VULKAN_LIB}/spirv-cross-reflectd.lib
 
     debug ${VULKAN_LIB}/slangd.lib
 )
