@@ -1,7 +1,7 @@
 #pragma once
-#include <glm/glm.hpp>
 #include "ArrayProxy.hpp"
 #include "Buffer.hpp"
+#include "../math.hpp"
 
 namespace rv {
 struct BottomAccelCreateInfo {

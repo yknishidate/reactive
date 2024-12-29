@@ -2,13 +2,8 @@
 
 #include <vector>
 
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_SWIZZLE
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/glm.hpp>
-#include <glm/gtx/hash.hpp>
-
-#include "reactive/Graphics/Buffer.hpp"
+#include "../Graphics/Buffer.hpp"
+#include "../math.hpp"
 
 namespace rv {
 struct VertexAttributeDescription {

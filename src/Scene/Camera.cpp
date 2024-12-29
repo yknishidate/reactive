@@ -2,9 +2,6 @@
 #include "reactive/App.hpp"
 #include "reactive/Window.hpp"
 
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/transform.hpp>
-
 namespace rv {
 void Camera::processKey() {
     if (type == Type::FirstPerson) {
@@ -34,7 +31,7 @@ void Camera::processMouseDragLeft(glm::vec2 dragDelta) {
         eulerRotation.x = eulerRotation.x - dragDelta.y * 0.001f;
         eulerRotation.y = eulerRotation.y - dragDelta.x * 0.001f;
     } else {
-        eulerRotation.x = eulerRotation.x - dragDelta.y * 0.002f;
+        eulerRotation.x = eulerRotation.x + dragDelta.y * 0.002f;
         eulerRotation.y = eulerRotation.y - dragDelta.x * 0.002f;
     }
 }

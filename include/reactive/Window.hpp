@@ -2,9 +2,8 @@
 
 #include <GLFW/glfw3.h>
 
-#include <glm/glm.hpp>
-
 #include "App.hpp"
+#include "math.hpp"
 
 namespace rv {
 class Window {
