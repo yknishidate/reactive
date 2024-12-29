@@ -89,12 +89,6 @@ std::vector<Slang::ComPtr<slang::IBlob>> SlangCompiler::CompileShaders(const std
     // 最初にモジュール本体を入れる
     componentTypes.push_back(slangModule);
 
-    // 後で "getEntryPointCode()" するときにインデックスが必要になるので記録
-    std::vector<int> entryPointIndices;
-    entryPointIndices.reserve(entryPointNames.size());
-
-    int currentIndex = 0;  // モジュール以外のエントリーポイントの個数
-
     for (const auto& name : entryPointNames) {
         Slang::ComPtr<slang::IEntryPoint> entryPoint;
         SlangResult res = slangModule->findEntryPointByName(name.c_str(), entryPoint.writeRef());
@@ -103,10 +97,6 @@ std::vector<Slang::ComPtr<slang::IBlob>> SlangCompiler::CompileShaders(const std
 
         // コンポーネントとして追加
         componentTypes.push_back(entryPoint);
-
-        // モジュールの次からエントリーポイントになるので
-        // 例えば最初のentryPointはインデックス0, 次は1, ... となる
-        entryPointIndices.push_back(currentIndex++);
     }
 
     // 4. まとめてコンポジットを作る (リンクする)
@@ -126,10 +116,9 @@ std::vector<Slang::ComPtr<slang::IBlob>> SlangCompiler::CompileShaders(const std
     std::vector<Slang::ComPtr<slang::IBlob>> codes(entryPointNames.size());
 
     for (size_t i = 0; i < entryPointNames.size(); i++) {
-        // 注意: "entryPointIndices[i]" は先ほど保存したインデックス
-        // モジュール自体が最初(インデックス-1相当)なので、エントリーポイントは0から連番
-        SlangResult result = linkedProgram->getEntryPointCode(
-            entryPointIndices[i], 0, codes[i].writeRef(), diagnosticBlob.writeRef());
+        // インデックスは "モジュール以降のエントリーポイント" の順序
+        SlangResult result = linkedProgram->getEntryPointCode(i, 0, codes[i].writeRef(),
+                                                              diagnosticBlob.writeRef());
         diagnoseIfNeeded(diagnosticBlob);
         ASSERT_ON_SLANG_FAIL(result);
     }
