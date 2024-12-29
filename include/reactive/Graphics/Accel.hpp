@@ -59,51 +59,51 @@ class BottomAccel {
     friend class CommandBuffer;
 
 public:
-    BottomAccel(const Context& _context, const BottomAccelCreateInfo& createInfo);
+    BottomAccel(const Context& context, const BottomAccelCreateInfo& createInfo);
 
-    auto getBufferAddress() const -> uint64_t { return buffer->getAddress(); }
+    auto getBufferAddress() const -> uint64_t { return m_buffer->getAddress(); }
 
 private:
-    const Context* context;
+    const Context* m_context;
 
-    vk::UniqueAccelerationStructureKHR accel;
+    vk::UniqueAccelerationStructureKHR m_accel;
 
-    BufferHandle buffer;
-    BufferHandle scratchBuffer;
+    BufferHandle m_buffer;
+    BufferHandle m_scratchBuffer;
 
-    vk::AccelerationStructureGeometryTrianglesDataKHR trianglesData;
-    vk::GeometryFlagsKHR geometryFlags;
-    vk::BuildAccelerationStructureFlagsKHR buildFlags;
-    vk::AccelerationStructureBuildTypeKHR buildType;
+    vk::AccelerationStructureGeometryTrianglesDataKHR m_trianglesData;
+    vk::GeometryFlagsKHR m_geometryFlags;
+    vk::BuildAccelerationStructureFlagsKHR m_buildFlags;
+    vk::AccelerationStructureBuildTypeKHR m_buildType;
 
-    uint32_t maxPrimitiveCount;
+    uint32_t m_maxPrimitiveCount;
 };
 
 class TopAccel {
     friend class CommandBuffer;
 
 public:
-    TopAccel(const Context& _context, const TopAccelCreateInfo& createInfo);
+    TopAccel(const Context& context, const TopAccelCreateInfo& createInfo);
 
-    auto getAccel() const -> vk::AccelerationStructureKHR { return *accel; }
+    auto getAccel() const -> vk::AccelerationStructureKHR { return *m_accel; }
 
-    auto getInfo() const -> vk::WriteDescriptorSetAccelerationStructureKHR { return {*accel}; }
+    auto getInfo() const -> vk::WriteDescriptorSetAccelerationStructureKHR { return {*m_accel}; }
 
     void updateInstances(ArrayProxy<AccelInstance> accelInstances) const;
 
 private:
-    const Context* context;
+    const Context* m_context;
 
-    vk::UniqueAccelerationStructureKHR accel;
+    vk::UniqueAccelerationStructureKHR m_accel;
 
-    BufferHandle buffer;
-    BufferHandle instanceBuffer;
-    BufferHandle scratchBuffer;
+    BufferHandle m_buffer;
+    BufferHandle m_instanceBuffer;
+    BufferHandle m_scratchBuffer;
 
-    uint32_t primitiveCount;
-    vk::AccelerationStructureGeometryInstancesDataKHR instancesData;
-    vk::GeometryFlagsKHR geometryFlags;
-    vk::BuildAccelerationStructureFlagsKHR buildFlags;
-    vk::AccelerationStructureBuildTypeKHR buildType;
+    uint32_t m_primitiveCount;
+    vk::AccelerationStructureGeometryInstancesDataKHR m_instancesData;
+    vk::GeometryFlagsKHR m_geometryFlags;
+    vk::BuildAccelerationStructureFlagsKHR m_buildFlags;
+    vk::AccelerationStructureBuildTypeKHR m_buildType;
 };
 }  // namespace rv

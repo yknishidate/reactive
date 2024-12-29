@@ -14,63 +14,63 @@ uint32_t calculateMipLevels(uint32_t width, uint32_t height) {
 }  // namespace
 
 namespace rv {
-Image::Image(const Context& _context, const ImageCreateInfo& createInfo)
+Image::Image(const Context& context, const ImageCreateInfo& createInfo)
     // NOTE: layout is updated by transitionLayout after this ctor.
-    : context{&_context},
-      debugName{createInfo.debugName},
-      hasOwnership{true},
-      extent{createInfo.extent},
-      format{createInfo.format},
-      mipLevels{createInfo.mipLevels} {
+    : m_context{&context},
+      m_debugName{createInfo.debugName},
+      m_hasOwnership{true},
+      m_extent{createInfo.extent},
+      m_format{createInfo.format},
+      m_mipLevels{createInfo.mipLevels} {
     // Compute mipmap level
-    if (mipLevels == std::numeric_limits<uint32_t>::max()) {
-        mipLevels = calculateMipLevels(extent.width, extent.height);
+    if (m_mipLevels == std::numeric_limits<uint32_t>::max()) {
+        m_mipLevels = calculateMipLevels(m_extent.width, m_extent.height);
     }
 
     // NOTE: initialLayout must be Undefined or PreInitialized
     // NOTE: queueFamily is ignored if sharingMode is not concurrent
     vk::ImageCreateInfo imageInfo;
     imageInfo.setImageType(createInfo.imageType);
-    imageInfo.setFormat(format);
-    imageInfo.setExtent(extent);
-    imageInfo.setMipLevels(mipLevels);
+    imageInfo.setFormat(m_format);
+    imageInfo.setExtent(m_extent);
+    imageInfo.setMipLevels(m_mipLevels);
     imageInfo.setSamples(vk::SampleCountFlagBits::e1);
     imageInfo.setUsage(createInfo.usage);
-    imageInfo.setArrayLayers(layerCount);
-    image = context->getDevice().createImage(imageInfo);
+    imageInfo.setArrayLayers(m_layerCount);
+    m_image = m_context->getDevice().createImage(imageInfo);
 
-    vk::MemoryRequirements requirements = context->getDevice().getImageMemoryRequirements(image);
-    uint32_t memoryTypeIndex = context->findMemoryTypeIndex(  //
+    vk::MemoryRequirements requirements = m_context->getDevice().getImageMemoryRequirements(m_image);
+    uint32_t memoryTypeIndex = m_context->findMemoryTypeIndex(  //
         requirements, vk::MemoryPropertyFlagBits::eDeviceLocal);
 
     vk::MemoryAllocateInfo memoryInfo;
     memoryInfo.setAllocationSize(requirements.size);
     memoryInfo.setMemoryTypeIndex(memoryTypeIndex);
-    memory = context->getDevice().allocateMemory(memoryInfo);
+    m_memory = m_context->getDevice().allocateMemory(memoryInfo);
 
-    context->getDevice().bindImageMemory(image, memory, 0);
+    m_context->getDevice().bindImageMemory(m_image, m_memory, 0);
 
     // Image view
     if (createInfo.viewInfo.has_value()) {
         switch (createInfo.imageType) {
             case vk::ImageType::e1D: {
-                viewType = vk::ImageViewType::e1D;
+                m_viewType = vk::ImageViewType::e1D;
                 break;
             }
             case vk::ImageType::e2D: {
-                viewType = vk::ImageViewType::e2D;
+                m_viewType = vk::ImageViewType::e2D;
                 break;
             }
             case vk::ImageType::e3D: {
-                viewType = vk::ImageViewType::e3D;
+                m_viewType = vk::ImageViewType::e3D;
                 break;
             }
             default: {
-                viewType = {};
+                m_viewType = {};
                 break;
             }
         }
-        createImageView(viewType, createInfo.viewInfo.value().aspect);
+        createImageView(m_viewType, createInfo.viewInfo.value().aspect);
     }
 
     // Sampler
@@ -81,45 +81,45 @@ Image::Image(const Context& _context, const ImageCreateInfo& createInfo)
     }
 
     // Debug
-    if (!debugName.empty()) {
-        context->setDebugName(image, createInfo.debugName.c_str());
+    if (!m_debugName.empty()) {
+        m_context->setDebugName(m_image, createInfo.debugName.c_str());
     }
 }
 
 // KTX から読み取った情報をもとに作成する
 // ImageView と Sampler の作成はアプリ側
-Image::Image(const Context* _context,
-             vk::Image _image,
-             vk::Format _imageFormat,
-             vk::ImageLayout _imageLayout,
-             vk::DeviceMemory _deviceMemory,
-             vk::ImageViewType _viewType,
-             uint32_t _width,
-             uint32_t _height,
-             uint32_t _depth,
-             uint32_t _levelCount,
-             uint32_t _layerCount)
-    : context{_context},
-      image{_image},
-      memory{_deviceMemory},
-      viewType{_viewType},
-      hasOwnership{true},
-      layout{_imageLayout},
-      extent{_width, _height, _depth},
-      format{_imageFormat},
-      mipLevels{_levelCount},
-      layerCount{_layerCount} {}
+Image::Image(const Context* context,
+             vk::Image image,
+             vk::Format imageFormat,
+             vk::ImageLayout imageLayout,
+             vk::DeviceMemory deviceMemory,
+             vk::ImageViewType viewType,
+             uint32_t width,
+             uint32_t height,
+             uint32_t depth,
+             uint32_t levelCount,
+             uint32_t layerCount)
+    : m_context{context},
+      m_image{image},
+      m_memory{deviceMemory},
+      m_viewType{viewType},
+      m_hasOwnership{true},
+      m_layout{imageLayout},
+      m_extent{width, height, depth},
+      m_format{imageFormat},
+      m_mipLevels{levelCount},
+      m_layerCount{layerCount} {}
 
 Image::~Image() {
-    if (hasOwnership) {
-        if (sampler) {
-            context->getDevice().destroySampler(sampler);
+    if (m_hasOwnership) {
+        if (m_sampler) {
+            m_context->getDevice().destroySampler(m_sampler);
         }
-        if (view) {
-            context->getDevice().destroyImageView(view);
+        if (m_view) {
+            m_context->getDevice().destroyImageView(m_view);
         }
-        context->getDevice().freeMemory(memory);
-        context->getDevice().destroyImage(image);
+        m_context->getDevice().freeMemory(m_memory);
+        m_context->getDevice().destroyImage(m_image);
     }
 }
 
@@ -134,7 +134,7 @@ ImageHandle Image::loadFromFile(const Context& context,
     int comp = 4;
     unsigned char* pixels = stbi_load(filepathStr.c_str(), &width, &height, nullptr, comp);
     if (!pixels) {
-        throw std::runtime_error("Failed to load image: " + filepathStr);
+        throw std::runtime_error("Failed to load m_image: " + filepathStr);
     }
 
     ImageHandle image = context.createImage({
@@ -186,7 +186,7 @@ ImageHandle Image::loadFromFileHDR(const Context& context, const std::filesystem
     int comp = 4;
     float* pixels = stbi_loadf(filepathStr.c_str(), &width, &height, nullptr, comp);
     if (!pixels) {
-        throw std::runtime_error("Failed to load image: " + filepathStr);
+        throw std::runtime_error("Failed to load m_image: " + filepathStr);
     }
 
     ImageHandle image = context.createImage({
@@ -266,49 +266,49 @@ auto Image::loadFromKTX(const Context& context, const std::filesystem::path& fil
 }
 
 void Image::generateMipmaps(const CommandBuffer& commandBuffer) {
-    RV_ASSERT(mipLevels > 1, "mipLevels is not set greater than 1 when the image is created.");
+    RV_ASSERT(m_mipLevels > 1, "m_mipLevels is not set greater than 1 when the m_image is created.");
 
     commandBuffer.beginDebugLabel("GenerateMipmap");
-    vk::ImageLayout oldLayout = layout;
-    vk::ImageLayout newLayout = layout;
+    vk::ImageLayout oldLayout = m_layout;
+    vk::ImageLayout newLayout = m_layout;
 
     // Check if image format supports linear blitting
     vk::Filter filter = vk::Filter::eLinear;
     vk::FormatProperties formatProperties =
-        context->getPhysicalDevice().getFormatProperties(format);
+        m_context->getPhysicalDevice().getFormatProperties(m_format);
 
     bool isLinearFilteringSupported =
         static_cast<bool>(formatProperties.optimalTilingFeatures &
                           vk::FormatFeatureFlagBits::eSampledImageFilterLinear);
     bool isFormatDepthStencil =
-        format == vk::Format::eD16Unorm || format == vk::Format::eD16UnormS8Uint ||
-        format == vk::Format::eD24UnormS8Uint || format == vk::Format::eD32Sfloat ||
-        format == vk::Format::eD32SfloatS8Uint;
+        m_format == vk::Format::eD16Unorm || m_format == vk::Format::eD16UnormS8Uint ||
+        m_format == vk::Format::eD24UnormS8Uint || m_format == vk::Format::eD32Sfloat ||
+        m_format == vk::Format::eD32SfloatS8Uint;
     if (isFormatDepthStencil || !isLinearFilteringSupported) {
         filter = vk::Filter::eNearest;
     }
     if (!(formatProperties.optimalTilingFeatures & vk::FormatFeatureFlagBits::eBlitSrc)) {
-        RV_ASSERT(false, "This format does not suppoprt blitting: {}", vk::to_string(format));
+        RV_ASSERT(false, "This m_format does not suppoprt blitting: {}", vk::to_string(m_format));
     }
     if (!(formatProperties.optimalTilingFeatures & vk::FormatFeatureFlagBits::eBlitDst)) {
-        RV_ASSERT(false, "This format does not suppoprt blitting: {}", vk::to_string(format));
+        RV_ASSERT(false, "This m_format does not suppoprt blitting: {}", vk::to_string(m_format));
     }
 
     // TODO: support 3D
     // TODO: move to command buffer
     vk::ImageMemoryBarrier barrier{};
-    barrier.image = image;
+    barrier.image = m_image;
     barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.subresourceRange.aspectMask = aspect;
+    barrier.subresourceRange.aspectMask = m_aspect;
     barrier.subresourceRange.baseArrayLayer = 0;
     barrier.subresourceRange.layerCount = 1;
     barrier.subresourceRange.levelCount = 1;
 
-    int32_t mipWidth = extent.width;
-    int32_t mipHeight = extent.height;
+    int32_t mipWidth = m_extent.width;
+    int32_t mipHeight = m_extent.height;
 
-    for (uint32_t i = 1; i < mipLevels; i++) {
+    for (uint32_t i = 1; i < m_mipLevels; i++) {
         // Src (i - 1)
         {
             // TODO: access maskをしっかり設定する
@@ -337,19 +337,19 @@ void Image::generateMipmaps(const CommandBuffer& commandBuffer) {
         vk::ImageBlit blit{};
         blit.srcOffsets[0] = vk::Offset3D{0, 0, 0};
         blit.srcOffsets[1] = vk::Offset3D{mipWidth, mipHeight, 1};
-        blit.srcSubresource.aspectMask = aspect;
+        blit.srcSubresource.aspectMask = m_aspect;
         blit.srcSubresource.mipLevel = i - 1;
         blit.srcSubresource.baseArrayLayer = 0;
         blit.srcSubresource.layerCount = 1;
         blit.dstOffsets[0] = vk::Offset3D{0, 0, 0};
         blit.dstOffsets[1] = vk::Offset3D{mipWidth > 1 ? mipWidth / 2 : 1,  //
                                           mipHeight > 1 ? mipHeight / 2 : 1, 1};
-        blit.dstSubresource.aspectMask = aspect;
+        blit.dstSubresource.aspectMask = m_aspect;
         blit.dstSubresource.mipLevel = i;
         blit.dstSubresource.baseArrayLayer = 0;
         blit.dstSubresource.layerCount = 1;
 
-        commandBuffer.commandBuffer->blitImage(image, vk::ImageLayout::eTransferSrcOptimal, image,
+        commandBuffer.m_commandBuffer->blitImage(m_image, vk::ImageLayout::eTransferSrcOptimal, m_image,
                                                vk::ImageLayout::eTransferDstOptimal, blit, filter);
 
         if (mipWidth > 1)
@@ -360,7 +360,7 @@ void Image::generateMipmaps(const CommandBuffer& commandBuffer) {
 
     // レベル[0, 1, 2, ..., N-1, N] のうち、[0, N-1]までをまとめて遷移
     barrier.subresourceRange.baseMipLevel = 0;
-    barrier.subresourceRange.levelCount = mipLevels - 1;
+    barrier.subresourceRange.levelCount = m_mipLevels - 1;
     barrier.oldLayout = vk::ImageLayout::eTransferSrcOptimal;
     barrier.newLayout = newLayout;
     barrier.srcAccessMask = vk::AccessFlagBits::eTransferRead;
@@ -369,7 +369,7 @@ void Image::generateMipmaps(const CommandBuffer& commandBuffer) {
                                vk::PipelineStageFlagBits::eAllCommands);
 
     // レベルNを遷移
-    barrier.subresourceRange.baseMipLevel = mipLevels - 1;
+    barrier.subresourceRange.baseMipLevel = m_mipLevels - 1;
     barrier.subresourceRange.levelCount = 1;
     barrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
     barrier.newLayout = newLayout;
@@ -380,6 +380,6 @@ void Image::generateMipmaps(const CommandBuffer& commandBuffer) {
 
     commandBuffer.endDebugLabel();
 
-    layout = newLayout;
+    m_layout = newLayout;
 }
 }  // namespace rv

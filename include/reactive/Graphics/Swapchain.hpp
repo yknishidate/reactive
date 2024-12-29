@@ -16,55 +16,55 @@ public:
 
     void presentImage();
 
-    uint32_t getCurrentInFlightIndex() const { return inflightIndex; }
+    uint32_t getCurrentInFlightIndex() const { return m_inflightIndex; }
 
     rv::CommandBufferHandle getCurrentCommandBuffer() const {
-        return commandBuffers[inflightIndex];
+        return m_commandBuffers[m_inflightIndex];
     }
 
-    vk::Image getCurrentImage() const { return swapchainImages[imageIndex]; }
+    vk::Image getCurrentImage() const { return m_swapchainImages[m_imageIndex]; }
 
-    vk::ImageView getCurrentImageView() const { return *swapchainImageViews[imageIndex]; }
+    vk::ImageView getCurrentImageView() const { return *m_swapchainImageViews[m_imageIndex]; }
 
     vk::Semaphore getCurrentImageAcquiredSemaphore() const {
-        return *imageAcquiredSemaphores[inflightIndex];
+        return *m_imageAcquiredSemaphores[m_inflightIndex];
     }
 
     vk::Semaphore getCurrentRenderCompleteSemaphore() const {
-        return *renderCompleteSemaphores[inflightIndex];
+        return *m_renderCompleteSemaphores[m_inflightIndex];
     }
 
-    FenceHandle getCurrentFence() const { return fences[inflightIndex]; }
+    FenceHandle getCurrentFence() const { return m_fences[m_inflightIndex]; }
 
-    uint32_t getMinImageCount() const { return minImageCount; }
+    uint32_t getMinImageCount() const { return m_minImageCount; }
 
-    uint32_t getImageCount() const { return imageCount; }
+    uint32_t getImageCount() const { return m_imageCount; }
 
-    uint32_t getInFlightCount() const { return inflightCount; }
+    uint32_t getInFlightCount() const { return m_inflightCount; }
 
-    vk::Format getFormat() const { return format; }
+    vk::Format getFormat() const { return m_format; }
 
 private:
-    const Context* context = nullptr;
+    const Context* m_context = nullptr;
 
-    vk::UniqueSwapchainKHR swapchain;
-    std::vector<vk::Image> swapchainImages;
-    std::vector<vk::UniqueImageView> swapchainImageViews;
+    vk::UniqueSwapchainKHR m_swapchain;
+    std::vector<vk::Image> m_swapchainImages;
+    std::vector<vk::UniqueImageView> m_swapchainImageViews;
 
-    vk::SurfaceKHR surface;
-    vk::PresentModeKHR presentMode;
-    vk::Format format = vk::Format::eB8G8R8A8Unorm;
+    vk::SurfaceKHR m_surface;
+    vk::PresentModeKHR m_presentMode;
+    vk::Format m_format = vk::Format::eB8G8R8A8Unorm;
 
-    uint32_t minImageCount = 3;
-    uint32_t imageCount = 0;
-    uint32_t imageIndex = 0;
+    uint32_t m_minImageCount = 3;
+    uint32_t m_imageCount = 0;
+    uint32_t m_imageIndex = 0;
 
-    uint32_t inflightCount = 3;
-    uint32_t inflightIndex = 0;
+    uint32_t m_inflightCount = 3;
+    uint32_t m_inflightIndex = 0;
 
-    std::vector<vk::UniqueSemaphore> imageAcquiredSemaphores;
-    std::vector<vk::UniqueSemaphore> renderCompleteSemaphores;
-    std::vector<CommandBufferHandle> commandBuffers{};
-    std::vector<FenceHandle> fences{};
+    std::vector<vk::UniqueSemaphore> m_imageAcquiredSemaphores;
+    std::vector<vk::UniqueSemaphore> m_renderCompleteSemaphores;
+    std::vector<CommandBufferHandle> m_commandBuffers{};
+    std::vector<FenceHandle> m_fences{};
 };
 }  // namespace rv

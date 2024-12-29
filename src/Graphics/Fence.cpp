@@ -3,25 +3,25 @@
 #include "reactive/Graphics/Context.hpp"
 
 namespace rv {
-Fence::Fence(const Context& _context, const FenceCreateInfo& createInfo) : context{&_context} {
+Fence::Fence(const Context& context, const FenceCreateInfo& createInfo) : m_context{&context} {
     vk::FenceCreateInfo fenceInfo;
     if (createInfo.signaled) {
         fenceInfo.setFlags(vk::FenceCreateFlagBits::eSignaled);
     }
-    fence = context->getDevice().createFenceUnique(fenceInfo);
+    m_fence = m_context->getDevice().createFenceUnique(fenceInfo);
 }
 
 void Fence::wait() const {
-    if (context->getDevice().waitForFences(*fence, VK_TRUE, UINT64_MAX) != vk::Result::eSuccess) {
-        throw std::runtime_error("Failed to wait for fence");
+    if (m_context->getDevice().waitForFences(*m_fence, VK_TRUE, UINT64_MAX) != vk::Result::eSuccess) {
+        throw std::runtime_error("Failed to wait for m_fence");
     }
 }
 
 void Fence::reset() const {
-    context->getDevice().resetFences(*fence);
+    m_context->getDevice().resetFences(*m_fence);
 }
 
 auto Fence::finished() const -> bool {
-    return context->getDevice().getFenceStatus(*fence) == vk::Result::eSuccess;
+    return m_context->getDevice().getFenceStatus(*m_fence) == vk::Result::eSuccess;
 }
 }  // namespace rv

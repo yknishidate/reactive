@@ -10,24 +10,24 @@
 #include "reactive/Scene/Object.hpp"
 
 namespace rv {
-GraphicsPipeline::GraphicsPipeline(const Context& _context,
+GraphicsPipeline::GraphicsPipeline(const Context& context,
                                    const GraphicsPipelineCreateInfo& createInfo)
-    : Pipeline{_context} {
-    shaderStageFlags = vk::ShaderStageFlagBits::eAllGraphics;
-    bindPoint = vk::PipelineBindPoint::eGraphics;
-    pushSize = createInfo.pushSize;
+    : Pipeline{context} {
+    m_shaderStageFlags = vk::ShaderStageFlagBits::eAllGraphics;
+    m_bindPoint = vk::PipelineBindPoint::eGraphics;
+    m_pushSize = createInfo.pushSize;
 
     vk::PushConstantRange pushRange;
     pushRange.setOffset(0);
     pushRange.setSize(createInfo.pushSize);
-    pushRange.setStageFlags(shaderStageFlags);
+    pushRange.setStageFlags(m_shaderStageFlags);
 
     vk::PipelineLayoutCreateInfo layoutInfo;
     layoutInfo.setSetLayouts(createInfo.descSetLayout);
-    if (pushSize) {
+    if (m_pushSize) {
         layoutInfo.setPushConstantRanges(pushRange);
     }
-    pipelineLayout = context->getDevice().createPipelineLayoutUnique(layoutInfo);
+    m_pipelineLayout = m_context->getDevice().createPipelineLayoutUnique(layoutInfo);
 
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages(2);
     shaderStages[0].setModule(createInfo.vertexShader->getModule());
@@ -122,7 +122,7 @@ GraphicsPipeline::GraphicsPipeline(const Context& _context,
     pipelineInfo.setPMultisampleState(&multisampling);
     pipelineInfo.setPDepthStencilState(&depthStencil);
     pipelineInfo.setPColorBlendState(&colorBlending);
-    pipelineInfo.setLayout(*pipelineLayout);
+    pipelineInfo.setLayout(*m_pipelineLayout);
     pipelineInfo.setSubpass(0);
     pipelineInfo.setPNext(&renderingInfo);
 
@@ -156,32 +156,32 @@ GraphicsPipeline::GraphicsPipeline(const Context& _context,
     pipelineInfo.setPVertexInputState(&vertexInputInfo);
     pipelineInfo.setPDynamicState(&dynamicStateInfo);
 
-    auto result = context->getDevice().createGraphicsPipelineUnique({}, pipelineInfo);
+    auto result = m_context->getDevice().createGraphicsPipelineUnique({}, pipelineInfo);
     if (result.result != vk::Result::eSuccess) {
-        throw std::runtime_error("failed to create a pipeline!");
+        throw std::runtime_error("failed to create a m_pipeline!");
     }
-    pipeline = std::move(result.value);
+    m_pipeline = std::move(result.value);
 }
 
-MeshShaderPipeline::MeshShaderPipeline(const Context& _context,
+MeshShaderPipeline::MeshShaderPipeline(const Context& context,
                                        const MeshShaderPipelineCreateInfo& createInfo)
-    : Pipeline{_context} {
-    shaderStageFlags = vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT |
+    : Pipeline{context} {
+    m_shaderStageFlags = vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT |
                        vk::ShaderStageFlagBits::eFragment;
-    bindPoint = vk::PipelineBindPoint::eGraphics;
-    pushSize = createInfo.pushSize;
+    m_bindPoint = vk::PipelineBindPoint::eGraphics;
+    m_pushSize = createInfo.pushSize;
 
     vk::PushConstantRange pushRange;
     pushRange.setOffset(0);
     pushRange.setSize(createInfo.pushSize);
-    pushRange.setStageFlags(shaderStageFlags);
+    pushRange.setStageFlags(m_shaderStageFlags);
 
     vk::PipelineLayoutCreateInfo layoutInfo;
     layoutInfo.setSetLayouts(createInfo.descSetLayout);
-    if (pushSize) {
+    if (m_pushSize) {
         layoutInfo.setPushConstantRanges(pushRange);
     }
-    pipelineLayout = context->getDevice().createPipelineLayoutUnique(layoutInfo);
+    m_pipelineLayout = m_context->getDevice().createPipelineLayoutUnique(layoutInfo);
 
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
     if (createInfo.taskShader && createInfo.taskShader->getModule()) {
@@ -289,36 +289,36 @@ MeshShaderPipeline::MeshShaderPipeline(const Context& _context,
     pipelineInfo.setPMultisampleState(&multisampling);
     pipelineInfo.setPDepthStencilState(&depthStencil);
     pipelineInfo.setPColorBlendState(&colorBlending);
-    pipelineInfo.setLayout(*pipelineLayout);
+    pipelineInfo.setLayout(*m_pipelineLayout);
     pipelineInfo.setSubpass(0);
     pipelineInfo.setPDynamicState(&dynamicStateInfo);
     pipelineInfo.setPNext(&renderingInfo);
 
-    auto result = context->getDevice().createGraphicsPipelineUnique({}, pipelineInfo);
+    auto result = m_context->getDevice().createGraphicsPipelineUnique({}, pipelineInfo);
     if (result.result != vk::Result::eSuccess) {
-        throw std::runtime_error("failed to create a pipeline!");
+        throw std::runtime_error("failed to create a m_pipeline!");
     }
-    pipeline = std::move(result.value);
+    m_pipeline = std::move(result.value);
 }
 
-ComputePipeline::ComputePipeline(const Context& _context,
+ComputePipeline::ComputePipeline(const Context& context,
                                  const ComputePipelineCreateInfo& createInfo)
-    : Pipeline{_context} {
-    shaderStageFlags = vk::ShaderStageFlagBits::eCompute;
-    bindPoint = vk::PipelineBindPoint::eCompute;
-    pushSize = createInfo.pushSize;
+    : Pipeline{context} {
+    m_shaderStageFlags = vk::ShaderStageFlagBits::eCompute;
+    m_bindPoint = vk::PipelineBindPoint::eCompute;
+    m_pushSize = createInfo.pushSize;
 
     vk::PushConstantRange pushRange;
     pushRange.setOffset(0);
-    pushRange.setSize(pushSize);
-    pushRange.setStageFlags(shaderStageFlags);
+    pushRange.setSize(m_pushSize);
+    pushRange.setStageFlags(m_shaderStageFlags);
 
     vk::PipelineLayoutCreateInfo layoutInfo;
     layoutInfo.setSetLayouts(createInfo.descSetLayout);
-    if (pushSize) {
+    if (m_pushSize) {
         layoutInfo.setPushConstantRanges(pushRange);
     }
-    pipelineLayout = context->getDevice().createPipelineLayoutUnique(layoutInfo);
+    m_pipelineLayout = m_context->getDevice().createPipelineLayoutUnique(layoutInfo);
 
     vk::PipelineShaderStageCreateInfo stage;
     stage.setStage(createInfo.computeShader->getStage());
@@ -327,44 +327,44 @@ ComputePipeline::ComputePipeline(const Context& _context,
 
     vk::ComputePipelineCreateInfo pipelineInfo;
     pipelineInfo.setStage(stage);
-    pipelineInfo.setLayout(*pipelineLayout);
-    auto res = context->getDevice().createComputePipelinesUnique({}, pipelineInfo);
+    pipelineInfo.setLayout(*m_pipelineLayout);
+    auto res = m_context->getDevice().createComputePipelinesUnique({}, pipelineInfo);
     if (res.result != vk::Result::eSuccess) {
-        throw std::runtime_error("failed to create a pipeline.");
+        throw std::runtime_error("failed to create a m_pipeline.");
     }
-    pipeline = std::move(res.value.front());
+    m_pipeline = std::move(res.value.front());
 }
 
-RayTracingPipeline::RayTracingPipeline(const Context& _context,
+RayTracingPipeline::RayTracingPipeline(const Context& context,
                                        const RayTracingPipelineCreateInfo& createInfo)
-    : Pipeline{_context} {
-    shaderStageFlags =
+    : Pipeline{context} {
+    m_shaderStageFlags =
         vk::ShaderStageFlagBits::eRaygenKHR | vk::ShaderStageFlagBits::eMissKHR |
         vk::ShaderStageFlagBits::eClosestHitKHR | vk::ShaderStageFlagBits::eAnyHitKHR |
         vk::ShaderStageFlagBits::eIntersectionKHR | vk::ShaderStageFlagBits::eCallableKHR;
-    bindPoint = vk::PipelineBindPoint::eRayTracingKHR;
-    pushSize = createInfo.pushSize;
+    m_bindPoint = vk::PipelineBindPoint::eRayTracingKHR;
+    m_pushSize = createInfo.pushSize;
 
     // Raygen
     {
-        uint32_t rgenIndex = static_cast<uint32_t>(shaderModules.size());
-        rgenCount = 1;
-        shaderModules.push_back(createInfo.rgenGroup.raygenShader->getModule());
-        shaderStages.push_back(
-            {{}, vk::ShaderStageFlagBits::eRaygenKHR, shaderModules.back(), "main"});
-        shaderGroups.push_back({vk::RayTracingShaderGroupTypeKHR::eGeneral, rgenIndex,
+        uint32_t rgenIndex = static_cast<uint32_t>(m_shaderModules.size());
+        m_rgenCount = 1;
+        m_shaderModules.push_back(createInfo.rgenGroup.raygenShader->getModule());
+        m_shaderStages.push_back(
+            {{}, vk::ShaderStageFlagBits::eRaygenKHR, m_shaderModules.back(), "main"});
+        m_shaderGroups.push_back({vk::RayTracingShaderGroupTypeKHR::eGeneral, rgenIndex,
                                 VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR});
     }
 
     // Miss
     for (auto& group : createInfo.missGroups) {
         auto& shader = group.missShader;
-        uint32_t missIndex = static_cast<uint32_t>(shaderModules.size());
-        missCount += 1;
-        shaderModules.push_back(shader->getModule());
-        shaderStages.push_back(
-            {{}, vk::ShaderStageFlagBits::eMissKHR, shaderModules.back(), "main"});
-        shaderGroups.push_back({vk::RayTracingShaderGroupTypeKHR::eGeneral, missIndex,
+        uint32_t missIndex = static_cast<uint32_t>(m_shaderModules.size());
+        m_missCount += 1;
+        m_shaderModules.push_back(shader->getModule());
+        m_shaderStages.push_back(
+            {{}, vk::ShaderStageFlagBits::eMissKHR, m_shaderModules.back(), "main"});
+        m_shaderGroups.push_back({vk::RayTracingShaderGroupTypeKHR::eGeneral, missIndex,
                                 VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR});
     }
 
@@ -376,46 +376,46 @@ RayTracingPipeline::RayTracingPipeline(const Context& _context,
         uint32_t chitIndex = VK_SHADER_UNUSED_KHR;
         uint32_t ahitIndex = VK_SHADER_UNUSED_KHR;
         if (chitShader) {
-            chitIndex = static_cast<uint32_t>(shaderModules.size());
-            hitCount += 1;
-            shaderModules.push_back(chitShader->getModule());
-            shaderStages.push_back(
-                {{}, vk::ShaderStageFlagBits::eClosestHitKHR, shaderModules.back(), "main"});
+            chitIndex = static_cast<uint32_t>(m_shaderModules.size());
+            m_hitCount += 1;
+            m_shaderModules.push_back(chitShader->getModule());
+            m_shaderStages.push_back(
+                {{}, vk::ShaderStageFlagBits::eClosestHitKHR, m_shaderModules.back(), "main"});
         }
         if (ahitShader) {
-            ahitIndex = static_cast<uint32_t>(shaderModules.size());
-            hitCount += 1;
-            shaderModules.push_back(ahitShader->getModule());
-            shaderStages.push_back(
-                {{}, vk::ShaderStageFlagBits::eAnyHitKHR, shaderModules.back(), "main"});
+            ahitIndex = static_cast<uint32_t>(m_shaderModules.size());
+            m_hitCount += 1;
+            m_shaderModules.push_back(ahitShader->getModule());
+            m_shaderStages.push_back(
+                {{}, vk::ShaderStageFlagBits::eAnyHitKHR, m_shaderModules.back(), "main"});
         }
-        shaderGroups.push_back({vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup,
+        m_shaderGroups.push_back({vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup,
                                 VK_SHADER_UNUSED_KHR, chitIndex, ahitIndex, VK_SHADER_UNUSED_KHR});
     }
 
     vk::PushConstantRange pushRange;
     pushRange.setOffset(0);
-    pushRange.setSize(pushSize);
-    pushRange.setStageFlags(shaderStageFlags);
+    pushRange.setSize(m_pushSize);
+    pushRange.setStageFlags(m_shaderStageFlags);
 
     vk::PipelineLayoutCreateInfo layoutInfo;
     layoutInfo.setSetLayouts(createInfo.descSetLayout);
-    if (pushSize) {
+    if (m_pushSize) {
         layoutInfo.setPushConstantRanges(pushRange);
     }
-    pipelineLayout = context->getDevice().createPipelineLayoutUnique(layoutInfo);
+    m_pipelineLayout = m_context->getDevice().createPipelineLayoutUnique(layoutInfo);
 
     vk::RayTracingPipelineCreateInfoKHR pipelineInfo;
-    pipelineInfo.setStages(shaderStages);
-    pipelineInfo.setGroups(shaderGroups);
+    pipelineInfo.setStages(m_shaderStages);
+    pipelineInfo.setGroups(m_shaderGroups);
     pipelineInfo.setMaxPipelineRayRecursionDepth(createInfo.maxRayRecursionDepth);
-    pipelineInfo.setLayout(*pipelineLayout);
+    pipelineInfo.setLayout(*m_pipelineLayout);
     auto res =
-        context->getDevice().createRayTracingPipelineKHRUnique(nullptr, nullptr, pipelineInfo);
+        m_context->getDevice().createRayTracingPipelineKHRUnique(nullptr, nullptr, pipelineInfo);
     if (res.result != vk::Result::eSuccess) {
-        throw std::runtime_error("failed to create a pipeline.");
+        throw std::runtime_error("failed to create a m_pipeline.");
     }
-    pipeline = std::move(res.value);
+    m_pipeline = std::move(res.value);
 
     createSBT();
 }
@@ -423,7 +423,7 @@ RayTracingPipeline::RayTracingPipeline(const Context& _context,
 void RayTracingPipeline::createSBT() {
     // Get Ray Tracing Properties
     auto rtProperties =
-        context->getPhysicalDeviceProperties2<vk::PhysicalDeviceRayTracingPipelinePropertiesKHR>();
+        m_context->getPhysicalDeviceProperties2<vk::PhysicalDeviceRayTracingPipelinePropertiesKHR>();
 
     auto alignUp = [&](uint32_t size, uint32_t alignment) -> uint32_t {
         return (size + alignment - 1) & ~(alignment - 1);
@@ -435,36 +435,36 @@ void RayTracingPipeline::createSBT() {
     uint32_t baseAlignment = rtProperties.shaderGroupBaseAlignment;
     uint32_t handleSizeAligned = alignUp(handleSize, handleAlignment);
 
-    raygenRegion.setStride(alignUp(handleSizeAligned, baseAlignment));
-    raygenRegion.setSize(raygenRegion.stride);
+    m_raygenRegion.setStride(alignUp(handleSizeAligned, baseAlignment));
+    m_raygenRegion.setSize(m_raygenRegion.stride);
 
-    missRegion.setStride(handleSizeAligned);
-    missRegion.setSize(alignUp(missCount * handleSizeAligned, baseAlignment));
+    m_missRegion.setStride(handleSizeAligned);
+    m_missRegion.setSize(alignUp(m_missCount * handleSizeAligned, baseAlignment));
 
-    hitRegion.setStride(handleSizeAligned);
-    hitRegion.setSize(alignUp(hitCount * handleSizeAligned, baseAlignment));
+    m_hitRegion.setStride(handleSizeAligned);
+    m_hitRegion.setSize(alignUp(m_hitCount * handleSizeAligned, baseAlignment));
 
     // Create shader binding table
-    vk::DeviceSize sbtSize = raygenRegion.size + missRegion.size + hitRegion.size;
-    sbtBuffer = context->createBuffer({
+    vk::DeviceSize sbtSize = m_raygenRegion.size + m_missRegion.size + m_hitRegion.size;
+    m_sbtBuffer = m_context->createBuffer({
         .usage = BufferUsage::ShaderBindingTable,
         .memory = MemoryUsage::Host,
         .size = sbtSize,
     });
 
     // Get shader group handles
-    uint32_t handleCount = rgenCount + missCount + hitCount;
+    uint32_t handleCount = m_rgenCount + m_missCount + m_hitCount;
     uint32_t handleStorageSize = handleCount * handleSize;
     std::vector<uint8_t> handleStorage(handleStorageSize);
-    auto result = context->getDevice().getRayTracingShaderGroupHandlesKHR(
-        *pipeline, 0, handleCount, handleStorageSize, handleStorage.data());
+    auto result = m_context->getDevice().getRayTracingShaderGroupHandlesKHR(
+        *m_pipeline, 0, handleCount, handleStorageSize, handleStorage.data());
     if (result != vk::Result::eSuccess) {
-        std::cerr << "Failed to get ray tracing shader group handles.\n";
+        std::cerr << "Failed to get ray tracing m_shader group handles.\n";
         std::abort();
     }
 
     // Copy handles
-    uint8_t* sbtHead = static_cast<uint8_t*>(sbtBuffer->map());
+    uint8_t* sbtHead = static_cast<uint8_t*>(m_sbtBuffer->map());
     uint8_t* dstPtr = sbtHead;
     auto copyHandle = [&](uint32_t index) {
         std::memcpy(dstPtr, handleStorage.data() + handleSize * index, handleSize);
@@ -475,21 +475,21 @@ void RayTracingPipeline::createSBT() {
     copyHandle(handleIndex++);
 
     // Miss
-    dstPtr = sbtHead + raygenRegion.size;
-    for (uint32_t c = 0; c < missCount; c++) {
+    dstPtr = sbtHead + m_raygenRegion.size;
+    for (uint32_t c = 0; c < m_missCount; c++) {
         copyHandle(handleIndex++);
-        dstPtr += missRegion.stride;
+        dstPtr += m_missRegion.stride;
     }
 
     // Hit
-    dstPtr = sbtHead + raygenRegion.size + missRegion.size;
-    for (uint32_t c = 0; c < hitCount; c++) {
+    dstPtr = sbtHead + m_raygenRegion.size + m_missRegion.size;
+    for (uint32_t c = 0; c < m_hitCount; c++) {
         copyHandle(handleIndex++);
-        dstPtr += hitRegion.stride;
+        dstPtr += m_hitRegion.stride;
     }
 
-    raygenRegion.setDeviceAddress(sbtBuffer->getAddress());
-    missRegion.setDeviceAddress(sbtBuffer->getAddress() + raygenRegion.size);
-    hitRegion.setDeviceAddress(sbtBuffer->getAddress() + raygenRegion.size + missRegion.size);
+    m_raygenRegion.setDeviceAddress(m_sbtBuffer->getAddress());
+    m_missRegion.setDeviceAddress(m_sbtBuffer->getAddress() + m_raygenRegion.size);
+    m_hitRegion.setDeviceAddress(m_sbtBuffer->getAddress() + m_raygenRegion.size + m_missRegion.size);
 }
 }  // namespace rv

@@ -1,34 +1,34 @@
 #include "reactive/Timer/GPUTimer.hpp"
 
 namespace rv {
-GPUTimer::GPUTimer(const Context& _context, const GPUTimerCreateInfo& createInfo)
-    : context{&_context} {
+GPUTimer::GPUTimer(const Context& context, const GPUTimerCreateInfo& createInfo)
+    : m_context{&context} {
     vk::QueryPoolCreateInfo queryPoolInfo;
     queryPoolInfo.setQueryType(vk::QueryType::eTimestamp);
     queryPoolInfo.setQueryCount(2);
-    queryPool = context->getDevice().createQueryPoolUnique(queryPoolInfo);
-    timestampPeriod = context->getPhysicalDevice().getProperties().limits.timestampPeriod;
-    state = State::Ready;
+    m_queryPool = m_context->getDevice().createQueryPoolUnique(queryPoolInfo);
+    m_timestampPeriod = m_context->getPhysicalDevice().getProperties().limits.timestampPeriod;
+    m_state = State::Ready;
 }
 
 auto GPUTimer::elapsedInNano() -> float {
-    if (state != State::Stopped) {
+    if (m_state != State::Stopped) {
         return 0.0f;
     }
-    timestamps.fill(0);
-    if (context->getDevice().getQueryPoolResults(
-            *queryPool, 0, 2,
-            timestamps.size() * sizeof(uint64_t),  // dataSize
-            timestamps.data(),                     // pData
+    m_timestamps.fill(0);
+    if (m_context->getDevice().getQueryPoolResults(
+            *m_queryPool, 0, 2,
+            m_timestamps.size() * sizeof(uint64_t),  // dataSize
+            m_timestamps.data(),                     // pData
             sizeof(uint64_t),                      // stride
             vk::QueryResultFlagBits::e64 | vk::QueryResultFlagBits::eWait) !=
         vk::Result::eSuccess) {
         throw std::runtime_error("Failed to get query pool results");
     }
-    state = State::Ready;
+    m_state = State::Ready;
 
     // FIXME: たまに片方に 0 が入っていることがある。同期などの問題が起きているかも。
-    return timestampPeriod * static_cast<float>(timestamps[1] - timestamps[0]);
+    return m_timestampPeriod * static_cast<float>(m_timestamps[1] - m_timestamps[0]);
 }
 
 auto GPUTimer::elapsedInMilli() -> float {

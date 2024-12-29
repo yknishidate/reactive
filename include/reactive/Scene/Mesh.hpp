@@ -68,12 +68,13 @@ struct PlaneLineMeshCreateInfo {
 class Mesh {
 public:
     Mesh() = default;
-    Mesh(const Context& _context,
+    Mesh(const Context& context,
          MeshUsage usage,
          vk::MemoryPropertyFlags memoryProps,
-         std::vector<Vertex> _vertices,
-         std::vector<uint32_t> _indices,
-         std::string _name);
+         std::vector<Vertex> vertices,
+         std::vector<uint32_t> indices,
+         std::string name);
+
     static auto createSphereMesh(const Context& context, SphereMeshCreateInfo createInfo) -> Mesh;
     static auto createPlaneMesh(const Context& context, PlaneMeshCreateInfo createInfo) -> Mesh;
     static auto createCubeMesh(const Context& context, CubeMeshCreateInfo createInfo) -> Mesh;
@@ -82,19 +83,22 @@ public:
     static auto createCubeLineMesh(const Context& context, CubeLineMeshCreateInfo createInfo)
         -> Mesh;
 
-    auto getVertexCount() const -> uint32_t { return static_cast<uint32_t>(vertices.size()); }
-    auto getIndicesCount() const -> uint32_t { return static_cast<uint32_t>(indices.size()); }
-    auto getTriangleCount() const -> uint32_t { return static_cast<uint32_t>(indices.size() / 3); }
+    auto getVertexBuffer() const -> const BufferHandle& { return m_vertexBuffer; }
+    auto getIndexBuffer() const -> const BufferHandle& { return m_indexBuffer; }
+    auto getVertexCount() const -> uint32_t { return static_cast<uint32_t>(m_vertices.size()); }
+    auto getIndicesCount() const -> uint32_t { return static_cast<uint32_t>(m_indices.size()); }
+    auto getTriangleCount() const -> uint32_t { return static_cast<uint32_t>(m_indices.size() / 3); }
 
-    const Context* context = nullptr;
+private:
+    const Context* m_context = nullptr;
 
-    std::string name;
+    std::string m_name;
 
-    BufferHandle vertexBuffer;
-    BufferHandle indexBuffer;
+    BufferHandle m_vertexBuffer;
+    BufferHandle m_indexBuffer;
 
-    std::vector<Vertex> vertices;
-    std::vector<uint32_t> indices;
+    std::vector<Vertex> m_vertices;
+    std::vector<uint32_t> m_indices;
 };
 }  // namespace rv
 

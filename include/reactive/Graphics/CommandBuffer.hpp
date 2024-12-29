@@ -23,13 +23,13 @@ class CommandBuffer {
 public:
     CommandBuffer() = default;
 
-    CommandBuffer(const Context& _context,
+    CommandBuffer(const Context& context,
                   vk::CommandBuffer commandBuffer,
                   vk::CommandPool commandPool,
                   vk::QueueFlags queueFlags)
-        : context{&_context},
-          commandBuffer{commandBuffer, {context->getDevice(), commandPool}},
-          queueFlags{queueFlags} {}
+        : m_context{&context},
+          m_commandBuffer{commandBuffer, {m_context->getDevice(), commandPool}},
+          m_queueFlags{queueFlags} {}
 
     auto getQueueFlags() const -> vk::QueueFlags;
 
@@ -180,8 +180,8 @@ public:
     void beginDebugLabel(const char* labelName) const;
     void endDebugLabel() const;
 
-    const Context* context = nullptr;
-    vk::UniqueCommandBuffer commandBuffer;
-    vk::QueueFlags queueFlags;
+    const Context* m_context = nullptr;
+    vk::UniqueCommandBuffer m_commandBuffer;
+    vk::QueueFlags m_queueFlags;
 };
 }  // namespace rv

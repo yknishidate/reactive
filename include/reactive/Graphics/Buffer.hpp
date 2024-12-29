@@ -16,11 +16,11 @@ class Buffer {
     friend class CommandBuffer;
 
 public:
-    Buffer(const Context& _context, const BufferCreateInfo& createInfo);
+    Buffer(const Context& context, const BufferCreateInfo& createInfo);
 
-    auto getBuffer() const -> vk::Buffer { return *buffer; }
-    auto getSize() const -> vk::DeviceSize { return size; }
-    auto getInfo() const -> vk::DescriptorBufferInfo { return {*buffer, 0, size}; }
+    auto getBuffer() const -> vk::Buffer { return *m_buffer; }
+    auto getSize() const -> vk::DeviceSize { return m_size; }
+    auto getInfo() const -> vk::DescriptorBufferInfo { return {*m_buffer, 0, m_size}; }
     auto getAddress() const -> vk::DeviceAddress;
 
     auto map() -> void*;
@@ -30,17 +30,17 @@ public:
     void prepareStagingBuffer();
 
 private:
-    const Context* context = nullptr;
+    const Context* m_context = nullptr;
 
-    vk::UniqueBuffer buffer;
-    vk::UniqueDeviceMemory memory;
-    vk::DeviceSize size = 0u;
+    vk::UniqueBuffer m_buffer;
+    vk::UniqueDeviceMemory m_memory;
+    vk::DeviceSize m_size = 0u;
 
     // For host buffer
-    void* mapped = nullptr;
-    bool isHostVisible;
+    void* m_mapped = nullptr;
+    bool m_isHostVisible;
 
     // For device buffer
-    BufferHandle stagingBuffer;
+    BufferHandle m_stagingBuffer;
 };
 }  // namespace rv

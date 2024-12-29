@@ -26,7 +26,7 @@ void App::run() {
     onStart();
     CPUTimer timer;
 
-    while (!Window::shouldClose() && running) {
+    while (!Window::shouldClose() && m_running) {
         Window::pollEvents();
 
         if (Window::getWidth() == 0 && Window::getHeight() == 0) {
@@ -42,12 +42,12 @@ void App::run() {
         onUpdate(dt);
         timer.restart();
 
-        swapchain->waitNextFrame();
+        m_swapchain->waitNextFrame();
 
         // Begin command buffer
         // NOTE: Since the command pool is created with the Reset flag,
         //       the command buffer is implicitly reset at begin.
-        auto commandBuffer = swapchain->getCurrentCommandBuffer();
+        auto commandBuffer = m_swapchain->getCurrentCommandBuffer();
         commandBuffer->begin();
 
         // Render
@@ -64,7 +64,7 @@ void App::run() {
             // TODO: create ImGui wrapper
             ImGui::Render();
             ImDrawData* drawData = ImGui::GetDrawData();
-            ImGui_ImplVulkan_RenderDrawData(drawData, *commandBuffer->commandBuffer);
+            ImGui_ImplVulkan_RenderDrawData(drawData, *commandBuffer->m_commandBuffer);
 
             // End render pass
             commandBuffer->endRendering();
@@ -78,14 +78,14 @@ void App::run() {
 
         // Submit
         vk::PipelineStageFlags waitStage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-        context.submit(commandBuffer, waitStage, swapchain->getCurrentImageAcquiredSemaphore(),
-                       swapchain->getCurrentRenderCompleteSemaphore(),
-                       swapchain->getCurrentFence());
+        m_context.submit(commandBuffer, waitStage, m_swapchain->getCurrentImageAcquiredSemaphore(),
+                       m_swapchain->getCurrentRenderCompleteSemaphore(),
+                       m_swapchain->getCurrentFence());
 
         // Present image
-        swapchain->presentImage();
+        m_swapchain->presentImage();
     }
-    context.getDevice().waitIdle();
+    m_context.getDevice().waitIdle();
 
     Window::shutdown();
 
@@ -98,9 +98,9 @@ void App::run() {
 }
 
 auto App::getCurrentColorImage() const -> ImageHandle {
-    return std::make_shared<Image>(swapchain->getCurrentImage(), swapchain->getCurrentImageView(),
+    return std::make_shared<Image>(m_swapchain->getCurrentImage(), m_swapchain->getCurrentImageView(),
                                    vk::Extent3D{Window::getWidth(), Window::getHeight(), 1},
-                                   swapchain->getFormat(), vk::ImageAspectFlagBits::eColor);
+                                   m_swapchain->getFormat(), vk::ImageAspectFlagBits::eColor);
 }
 
 void App::initVulkan(ArrayProxy<Layer> requiredLayers,
@@ -121,12 +121,12 @@ void App::initVulkan(ArrayProxy<Layer> requiredLayers,
     }
 
     // NOTE: Assuming Vulkan 1.3
-    context.initInstance(enableValidation, layers, instanceExtensions, VK_API_VERSION_1_3);
+    m_context.initInstance(enableValidation, layers, instanceExtensions, VK_API_VERSION_1_3);
 
     // Create surface
-    surface = Window::createSurface(context.getInstance());
+    m_surface = Window::createSurface(m_context.getInstance());
 
-    context.initPhysicalDevice(*surface);
+    m_context.initPhysicalDevice(*m_surface);
 
     // Create device
     std::vector deviceExtensions{
@@ -219,11 +219,11 @@ void App::initVulkan(ArrayProxy<Layer> requiredLayers,
         featuresChain.add(extendedDynamicState3Features);
     }
 
-    context.initDevice(deviceExtensions, deviceFeatures, featuresChain.pFirst,
+    m_context.initDevice(deviceExtensions, deviceFeatures, featuresChain.pFirst,
                        requiredExtensions.contains(Extension::RayTracing));
 
     auto presentMode = vsync ? vk::PresentModeKHR::eFifo : vk::PresentModeKHR::eMailbox;
-    swapchain = std::make_unique<Swapchain>(context, *surface, Window::getWidth(),
+    m_swapchain = std::make_unique<Swapchain>(m_context, *m_surface, Window::getWidth(),
                                             Window::getHeight(), presentMode);
 }
 
@@ -327,16 +327,16 @@ void App::initImGui(UIStyle style, const char* imguiIniFile) {
 
     ImGui_ImplGlfw_InitForVulkan(Window::getWindow(), true);
     ImGui_ImplVulkan_InitInfo initInfo{};
-    initInfo.Instance = context.getInstance();
-    initInfo.PhysicalDevice = context.getPhysicalDevice();
-    initInfo.Device = context.getDevice();
-    initInfo.QueueFamily = context.getQueueFamily();
-    initInfo.Queue = context.getQueue();
+    initInfo.Instance = m_context.getInstance();
+    initInfo.PhysicalDevice = m_context.getPhysicalDevice();
+    initInfo.Device = m_context.getDevice();
+    initInfo.QueueFamily = m_context.getQueueFamily();
+    initInfo.Queue = m_context.getQueue();
     initInfo.PipelineCache = nullptr;
-    initInfo.DescriptorPool = context.getDescriptorPool();
+    initInfo.DescriptorPool = m_context.getDescriptorPool();
     initInfo.Subpass = 0;
-    initInfo.MinImageCount = swapchain->getMinImageCount();
-    initInfo.ImageCount = swapchain->getImageCount();
+    initInfo.MinImageCount = m_swapchain->getMinImageCount();
+    initInfo.ImageCount = m_swapchain->getImageCount();
     initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
     initInfo.Allocator = nullptr;
     initInfo.UseDynamicRendering = true;
@@ -349,7 +349,7 @@ void App::initImGui(UIStyle style, const char* imguiIniFile) {
 }
 
 void App::listSurfaceFormats() {
-    auto surfaceFormats = context.getPhysicalDevice().getSurfaceFormatsKHR(*surface);
+    auto surfaceFormats = m_context.getPhysicalDevice().getSurfaceFormatsKHR(*m_surface);
     spdlog::info("Supported formats:");
     for (const auto& surfaceFormat : surfaceFormats) {
         spdlog::info("  Format: {}", vk::to_string(surfaceFormat.format));
@@ -362,15 +362,15 @@ void App::onWindowSize() {
     // The value obtained from GLFW and the value obtained by
     // getSurfaceCapabilitiesKHR() should be the same,
     // but a validation error occurs if the Vulkan function is not called.
-    vk::PhysicalDevice physicalDevice = context.getPhysicalDevice();
-    vk::SurfaceCapabilitiesKHR capabilities = physicalDevice.getSurfaceCapabilitiesKHR(*surface);
+    vk::PhysicalDevice physicalDevice = m_context.getPhysicalDevice();
+    vk::SurfaceCapabilitiesKHR capabilities = physicalDevice.getSurfaceCapabilitiesKHR(*m_surface);
     uint32_t width = capabilities.currentExtent.width;
     uint32_t height = capabilities.currentExtent.height;
     spdlog::debug("Window resized: {} {}", width, height);
     if (width == 0 || height == 0) {
         return;
     }
-    context.getDevice().waitIdle();
-    swapchain->resize(width, height);
+    m_context.getDevice().waitIdle();
+    m_swapchain->resize(width, height);
 }
 }  // namespace rv

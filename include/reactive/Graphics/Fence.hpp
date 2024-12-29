@@ -9,17 +9,17 @@ struct FenceCreateInfo {
 
 class Fence {
 public:
-    Fence(const Context& _context, const FenceCreateInfo& createInfo);
+    Fence(const Context& context, const FenceCreateInfo& createInfo);
 
-    auto getFence() const -> vk::Fence { return *fence; }
+    auto getFence() const -> vk::Fence { return *m_fence; }
 
     void wait() const;
     void reset() const;
     auto finished() const -> bool;
 
 private:
-    const Context* context = nullptr;
+    const Context* m_context = nullptr;
 
-    vk::UniqueFence fence;
+    vk::UniqueFence m_fence;
 };
 }  // namespace rv

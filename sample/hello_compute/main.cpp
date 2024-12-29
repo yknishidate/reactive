@@ -19,81 +19,81 @@ public:
           }) {}
 
     void onStart() override {
-        image = context.createImage({
+        m_image = m_context.createImage({
             .usage = ImageUsage::Storage,
             .extent = {Window::getWidth(), Window::getHeight(), 1},
             .format = vk::Format::eB8G8R8A8Unorm,
             .viewInfo = rv::ImageViewCreateInfo{},
         });
 
-        buffer = context.createBuffer({
+        m_buffer = m_context.createBuffer({
             .usage = BufferUsage::Uniform,
             .memory = MemoryUsage::Device,
             .size = sizeof(MandelbrotParams),
-            .debugName = "buffer",
+            .debugName = "m_buffer",
         });
 
-        context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
-            commandBuffer->copyBuffer(buffer, &params);
-            commandBuffer->transitionLayout(image, vk::ImageLayout::eGeneral);
+        m_context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
+            commandBuffer->copyBuffer(m_buffer, &m_params);
+            commandBuffer->transitionLayout(m_image, vk::ImageLayout::eGeneral);
         });
 
         SlangCompiler compiler;
-        auto codes = compiler.CompileShaders(SHADER_PATH, {"computeMain"});
+        auto codes = compiler.compileShaders(SHADER_PATH, {"computeMain"});
 
-        ShaderHandle compShader = context.createShader({
+        ShaderHandle compShader = m_context.createShader({
             .pCode = codes[0]->getBufferPointer(),
             .codeSize = codes[0]->getBufferSize(),
             .stage = vk::ShaderStageFlagBits::eCompute,
         });
 
-        descSet = context.createDescriptorSet({
+        m_descSet = m_context.createDescriptorSet({
             .shaders = compShader,
-            .buffers = {{"mandelbrotParams", buffer}},
-            .images = {{"outputImage", image}},
+            .buffers = {{"mandelbrotParams", m_buffer}},
+            .images = {{"outputImage", m_image}},
         });
-        descSet->update();
+        m_descSet->update();
 
-        pipeline = context.createComputePipeline({
-            .descSetLayout = descSet->getLayout(),
+        m_pipeline = m_context.createComputePipeline({
+            .descSetLayout = m_descSet->getLayout(),
             .computeShader = compShader,
         });
     }
 
     void onScroll(float xoffset, float yoffset) override {
         spdlog::info("scroll: {}", yoffset);
-        scale *= 1.0f + yoffset * 0.1f;
+        m_scale *= 1.0f + yoffset * 0.1f;
     }
 
     void onCursorPos(float xpos, float ypos) override {
         if (Window::isMouseButtonDown(GLFW_MOUSE_BUTTON_1)) {
             spdlog::info("cursor: {}", glm::to_string(Window::getMouseDragLeft()));
-            translate +=
-                -Window::getMouseDragLeft() / static_cast<float>(Window::getHeight()) / scale;
+            m_translate +=
+                -Window::getMouseDragLeft() / static_cast<float>(Window::getHeight()) / m_scale;
         }
     }
 
     void onRender(const CommandBufferHandle& commandBuffer) override {
         float aspect = Window::getWidth() / static_cast<float>(Window::getHeight());
-        params.lowerLeft = glm::vec2(-1 * aspect, -1) / scale + translate;
-        params.upperRight = glm::vec2(1 * aspect, 1) / scale + translate;
-        params.maxIterations = static_cast<int>(scale * 10);
+        m_params.lowerLeft = glm::vec2(-1 * aspect, -1) / m_scale + m_translate;
+        m_params.upperRight = glm::vec2(1 * aspect, 1) / m_scale + m_translate;
+        m_params.maxIterations = static_cast<int>(m_scale * 10);
 
-        commandBuffer->copyBuffer(buffer, &params);
-        commandBuffer->bindDescriptorSet(pipeline, descSet);
-        commandBuffer->bindPipeline(pipeline);
+        commandBuffer->copyBuffer(m_buffer, &m_params);
+        commandBuffer->bindDescriptorSet(m_pipeline, m_descSet);
+        commandBuffer->bindPipeline(m_pipeline);
         commandBuffer->dispatch(Window::getWidth(), Window::getHeight(), 1);
-        commandBuffer->copyImage(image, getCurrentColorImage(), vk::ImageLayout::eGeneral,
+        commandBuffer->copyImage(m_image, getCurrentColorImage(), vk::ImageLayout::eGeneral,
                                  vk::ImageLayout::ePresentSrcKHR);
     }
 
-    float scale = 1.0f;
-    glm::vec2 translate = {0.0f, 0.0f};
-    MandelbrotParams params;
-    ImageHandle image;
-    BufferHandle buffer;
-    DescriptorSetHandle descSet;
-    ComputePipelineHandle pipeline;
+    float m_scale = 1.0f;
+    glm::vec2 m_translate = {0.0f, 0.0f};
+    MandelbrotParams m_params;
+    ImageHandle m_image;
+    BufferHandle m_buffer;
+    DescriptorSetHandle m_descSet;
+    ComputePipelineHandle m_pipeline;
 };
 
 int main() {

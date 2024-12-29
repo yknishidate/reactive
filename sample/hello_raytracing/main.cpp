@@ -20,114 +20,115 @@ public:
           }) {}
 
     void onStart() override {
-        camera = Camera{Camera::Type::Orbital,
+        m_camera = Camera{Camera::Type::Orbital,
                         static_cast<float>(Window::getWidth()) / Window::getHeight()};
 
-        mesh = Mesh{context, MeshUsage::RayTracing,
-                    MemoryUsage::Device, vertices, indices, "Triangle"};
+        m_mesh = Mesh{m_context, MeshUsage::RayTracing,
+                    MemoryUsage::Device, m_vertices, m_indices, "Triangle"};
 
-        bottomAccel = context.createBottomAccel({
+        m_bottomAccel = m_context.createBottomAccel({
             .vertexStride = sizeof(Vertex),
-            .maxVertexCount = mesh.getVertexCount(),
-            .maxTriangleCount = mesh.getTriangleCount(),
-            .debugName = "bottomAccel",
+            .maxVertexCount = m_mesh.getVertexCount(),
+            .maxTriangleCount = m_mesh.getTriangleCount(),
+            .debugName = "m_bottomAccel",
         });
-        context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
-            commandBuffer->buildBottomAccel(bottomAccel, mesh.vertexBuffer, mesh.indexBuffer,
-                                            mesh.getVertexCount(), mesh.getTriangleCount());
-        });
-
-        topAccel = context.createTopAccel({
-            .accelInstances = {{bottomAccel}},
-            .debugName = "topAccel",
+        m_context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
+            commandBuffer->buildBottomAccel(m_bottomAccel,
+                                            m_mesh.getVertexBuffer(), m_mesh.getIndexBuffer(),
+                                            m_mesh.getVertexCount(), m_mesh.getTriangleCount());
         });
 
-        image = context.createImage({
+        m_topAccel = m_context.createTopAccel({
+            .accelInstances = {{m_bottomAccel}},
+            .debugName = "m_topAccel",
+        });
+
+        m_image = m_context.createImage({
             .usage = ImageUsage::Storage,
             .extent = {Window::getWidth(), Window::getHeight(), 1},
             .format = vk::Format::eB8G8R8A8Unorm,
             .viewInfo = rv::ImageViewCreateInfo{},
         });
 
-        context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
-            commandBuffer->buildTopAccel(topAccel);
-            commandBuffer->transitionLayout(image, vk::ImageLayout::eGeneral);
+        m_context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
+            commandBuffer->buildTopAccel(m_topAccel);
+            commandBuffer->transitionLayout(m_image, vk::ImageLayout::eGeneral);
         });
 
         SlangCompiler compiler;
-        auto codes = compiler.CompileShaders(SHADER_PATH,
+        auto codes = compiler.compileShaders(SHADER_PATH,
                                              {"rayGenMain", "missMain", "closestHitMain"});
 
         std::vector<ShaderHandle> shaders(3);
-        shaders[0] = context.createShader({
+        shaders[0] = m_context.createShader({
             .pCode = codes[0]->getBufferPointer(),
             .codeSize = codes[0]->getBufferSize(),
             .stage = vk::ShaderStageFlagBits::eRaygenKHR,
         });
 
-        shaders[1] = context.createShader({
+        shaders[1] = m_context.createShader({
             .pCode = codes[1]->getBufferPointer(),
             .codeSize = codes[1]->getBufferSize(),
             .stage = vk::ShaderStageFlagBits::eMissKHR,
         });
 
-        shaders[2] = context.createShader({
+        shaders[2] = m_context.createShader({
             .pCode = codes[2]->getBufferPointer(),
             .codeSize = codes[2]->getBufferSize(),
             .stage = vk::ShaderStageFlagBits::eClosestHitKHR,
         });
 
-        descSet = context.createDescriptorSet({
+        m_descSet = m_context.createDescriptorSet({
             .shaders = shaders,
-            .images = {{"gOutputImage", image}},
-            .accels = {{"gTopLevelAS", topAccel}},
+            .images = {{"gOutputImage", m_image}},
+            .accels = {{"gTopLevelAS", m_topAccel}},
         });
-        descSet->update();
+        m_descSet->update();
 
-        pipeline = context.createRayTracingPipeline({
+        m_pipeline = m_context.createRayTracingPipeline({
             .rgenGroup = RaygenGroup{.raygenShader = shaders[0]},
             .missGroups = {MissGroup{.missShader = shaders[1]}},
             .hitGroups = {HitGroup{.chitShader = shaders[2]}},
             .callableGroups = {},
-            .descSetLayout = descSet->getLayout(),
+            .descSetLayout = m_descSet->getLayout(),
             .pushSize = sizeof(PushConstants),
             .maxRayRecursionDepth = 4,
         });
     }
 
     void onUpdate(float dt) override {
-        camera.processMouseDragLeft(Window::getMouseDragLeft());
-        camera.processMouseScroll(Window::getMouseScroll());
+        m_camera.processMouseDragLeft(Window::getMouseDragLeft());
+        m_camera.processMouseScroll(Window::getMouseScroll());
 
-        pushConstants.invProj = camera.getInvProj();
-        pushConstants.invView = camera.getInvView();
+        m_pushConstants.invProj = m_camera.getInvProj();
+        m_pushConstants.invView = m_camera.getInvView();
     }
 
     void onRender(const CommandBufferHandle& commandBuffer) override {
-        ImGui::SliderInt("Test slider", &testInt, 0, 100);
+        ImGui::SliderInt("Test slider", &m_testInt, 0, 100);
 
-        commandBuffer->bindDescriptorSet(pipeline, descSet);
-        commandBuffer->bindPipeline(pipeline);
-        commandBuffer->pushConstants(pipeline, &pushConstants);
-        commandBuffer->traceRays(pipeline, Window::getWidth(), Window::getHeight(), 1);
-        commandBuffer->copyImage(image, getCurrentColorImage(), vk::ImageLayout::eGeneral,
+        commandBuffer->bindDescriptorSet(m_pipeline, m_descSet);
+        commandBuffer->bindPipeline(m_pipeline);
+        commandBuffer->pushConstants(m_pipeline, &m_pushConstants);
+        commandBuffer->traceRays(m_pipeline, Window::getWidth(), Window::getHeight(), 1);
+        commandBuffer->copyImage(m_image, getCurrentColorImage(), vk::ImageLayout::eGeneral,
                                  vk::ImageLayout::ePresentSrcKHR);
     }
 
-    std::vector<Vertex> vertices{{{-1, 0, 0}}, {{0, -1, 0}}, {{1, 0, 0}}};
-    std::vector<uint32_t> indices{0, 1, 2};
-    Mesh mesh;
+    std::vector<Vertex> m_vertices{{{-1, 0, 0}}, {{0, -1, 0}}, {{1, 0, 0}}};
+    std::vector<uint32_t> m_indices{0, 1, 2};
+    Mesh m_mesh;
 
-    BottomAccelHandle bottomAccel;
-    TopAccelHandle topAccel;
-    ImageHandle image;
+    BottomAccelHandle m_bottomAccel;
+    TopAccelHandle m_topAccel;
+    ImageHandle m_image;
 
-    DescriptorSetHandle descSet;
-    RayTracingPipelineHandle pipeline;
+    DescriptorSetHandle m_descSet;
+    RayTracingPipelineHandle m_pipeline;
 
-    Camera camera;
-    PushConstants pushConstants;
-    int testInt = 0;
+    Camera m_camera;
+    PushConstants m_pushConstants;
+    int m_testInt = 0;
 };
 
 int main() {

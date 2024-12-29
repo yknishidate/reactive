@@ -39,12 +39,12 @@ class SlangCompiler
 public:
     SlangCompiler();
 
-    std::vector<Slang::ComPtr<slang::IBlob>> CompileShaders(
+    std::vector<Slang::ComPtr<slang::IBlob>> compileShaders(
         const std::filesystem::path& shaderPath,
         const std::vector<std::string>& entryPointNames);
 
 private:
-    Slang::ComPtr<slang::IGlobalSession> slangGlobalSession;
+    Slang::ComPtr<slang::IGlobalSession> m_globalSession;
 };
 
 }  // namespace rv

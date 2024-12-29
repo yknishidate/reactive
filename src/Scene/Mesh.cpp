@@ -11,16 +11,16 @@ auto Vertex::getAttributeDescriptions() -> std::vector<VertexAttributeDescriptio
     };
 }
 
-Mesh::Mesh(const Context& _context,
+Mesh::Mesh(const Context& context,
            MeshUsage usage,
            vk::MemoryPropertyFlags memoryProps,
-           std::vector<Vertex> _vertices,
-           std::vector<uint32_t> _indices,
-           std::string _name)
-    : context{&_context},
-      name{std::move(_name)},
-      vertices{std::move(_vertices)},
-      indices{std::move(_indices)} {
+           std::vector<Vertex> vertices,
+           std::vector<uint32_t> indices,
+           std::string name)
+    : m_context{&context},
+      m_name{std::move(name)},
+      m_vertices{std::move(vertices)},
+      m_indices{std::move(indices)} {
     vk::BufferUsageFlags vertexUsage{};
     vk::BufferUsageFlags indexUsage{};
     if (usage == MeshUsage::Graphics) {
@@ -52,27 +52,27 @@ Mesh::Mesh(const Context& _context,
                      vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst;
     }
 
-    vertexBuffer = context->createBuffer({
+    m_vertexBuffer = m_context->createBuffer({
         .usage = vertexUsage,
         .memory = memoryProps,
-        .size = sizeof(Vertex) * vertices.size(),
-        .debugName = name + "::vertexBuffer",
+        .size = sizeof(Vertex) * m_vertices.size(),
+        .debugName = m_name + "::m_vertexBuffer",
     });
 
-    indexBuffer = context->createBuffer({
+    m_indexBuffer = m_context->createBuffer({
         .usage = indexUsage,
         .memory = memoryProps,
-        .size = sizeof(uint32_t) * indices.size(),
-        .debugName = name + "::indexBuffer",
+        .size = sizeof(uint32_t) * m_indices.size(),
+        .debugName = m_name + "::m_indexBuffer",
     });
 
     if (memoryProps & vk::MemoryPropertyFlagBits::eHostVisible) {
-        vertexBuffer->copy(vertices.data());
-        indexBuffer->copy(indices.data());
+        m_vertexBuffer->copy(m_vertices.data());
+        m_indexBuffer->copy(m_indices.data());
     } else {
-        context->oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
-            commandBuffer->copyBuffer(vertexBuffer, vertices.data());
-            commandBuffer->copyBuffer(indexBuffer, indices.data());
+        m_context->oneTimeSubmit([&](CommandBufferHandle commandBuffer) {
+            commandBuffer->copyBuffer(m_vertexBuffer, m_vertices.data());
+            commandBuffer->copyBuffer(m_indexBuffer, m_indices.data());
         });
     }
 }

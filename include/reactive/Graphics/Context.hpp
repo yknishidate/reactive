@@ -191,11 +191,11 @@ public:
                     bool enableRayTracing);
 
     // Getter
-    auto getInstance() const -> vk::Instance { return *instance; }
+    auto getInstance() const -> vk::Instance { return *m_instance; }
 
-    auto getDevice() const -> vk::Device { return *device; }
+    auto getDevice() const -> vk::Device { return *m_device; }
 
-    auto getPhysicalDevice() const -> vk::PhysicalDevice { return physicalDevice; }
+    auto getPhysicalDevice() const -> vk::PhysicalDevice { return m_physicalDevice; }
 
     auto getQueue(vk::QueueFlags flag = QueueFlags::General) const -> vk::Queue;
 
@@ -203,7 +203,7 @@ public:
 
     auto getCommandPool(vk::QueueFlags flag = QueueFlags::General) const -> vk::CommandPool;
 
-    auto getDescriptorPool() const -> vk::DescriptorPool { return *descriptorPool; }
+    auto getDescriptorPool() const -> vk::DescriptorPool { return *m_descriptorPool; }
 
     // Command buffer
     auto allocateCommandBuffer(vk::QueueFlags flag = QueueFlags::General) const
@@ -230,14 +230,14 @@ public:
         vk::PhysicalDeviceProperties2 props2;
         T props;
         props2.pNext = &props;
-        physicalDevice.getProperties2(&props2);
+        m_physicalDevice.getProperties2(&props2);
         return props;
     }
 
     auto getPhysicalDeviceLimits() const -> vk::PhysicalDeviceLimits;
 
     // Debug
-    auto debugEnabled() const -> bool { return debugMessenger.get(); }
+    auto debugEnabled() const -> bool { return m_debugMessenger.get(); }
 
     template <typename T, typename = std::enable_if_t<vk::isVulkanHandleType<T>::value>>
     void setDebugName(T object, const char* debugName) const {
@@ -302,14 +302,14 @@ private:
     };
     auto getThreadQueue(vk::QueueFlags flag) const -> const ThreadQueue&;
 
-    vk::UniqueInstance instance;
-    vk::UniqueDebugUtilsMessengerEXT debugMessenger;
-    vk::UniqueDevice device;
-    vk::PhysicalDevice physicalDevice;
+    vk::UniqueInstance m_instance;
+    vk::UniqueDebugUtilsMessengerEXT m_debugMessenger;
+    vk::UniqueDevice m_device;
+    vk::PhysicalDevice m_physicalDevice;
 
-    mutable std::mutex queueMutex;
-    mutable std::map<vk::QueueFlags, std::vector<ThreadQueue>> queues;
-    std::unordered_map<vk::QueueFlags, uint32_t> queueFamilies;
-    vk::UniqueDescriptorPool descriptorPool;
+    mutable std::mutex m_queueMutex;
+    mutable std::map<vk::QueueFlags, std::vector<ThreadQueue>> m_queues;
+    std::unordered_map<vk::QueueFlags, uint32_t> m_queueFamilies;
+    vk::UniqueDescriptorPool m_descriptorPool;
 };
 }  // namespace rv

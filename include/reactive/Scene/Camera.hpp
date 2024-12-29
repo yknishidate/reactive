@@ -24,11 +24,11 @@ public:
 
     Camera() = default;
 
-    Camera(Type type, float aspect) : type{type}, aspect{aspect} {
-        if (type == Type::FirstPerson) {
-            params = FirstPersonParams{};
+    Camera(Type m_type, float aspect) : m_type{m_type}, m_aspect{aspect} {
+        if (m_type == Type::FirstPerson) {
+            m_params = FirstPersonParams{};
         } else {
-            params = OrbitalParams{};
+            m_params = OrbitalParams{};
         }
     }
 
@@ -51,52 +51,52 @@ public:
     auto getUp() const -> glm::vec3;
     auto getRight() const -> glm::vec3;
 
-    auto getType() const -> Type { return type; }
-    auto getNear() const -> float { return zNear; }
-    auto getFar() const -> float { return zFar; }
-    auto getAspect() const -> float { return aspect; }
-    auto getFovY() const -> float { return fovY; }
-    auto getEulerRotation() const -> glm::vec3 { return eulerRotation; }
+    auto getType() const -> Type { return m_type; }
+    auto getNear() const -> float { return m_zNear; }
+    auto getFar() const -> float { return m_zFar; }
+    auto getAspect() const -> float { return m_aspect; }
+    auto getFovY() const -> float { return m_fovY; }
+    auto getEulerRotation() const -> glm::vec3 { return m_eulerRotation; }
 
     void setType(Type _type);
-    void setAspect(float _aspect) { aspect = _aspect; }
-    void setFovY(float _fovY) { fovY = _fovY; }
+    void setAspect(float _aspect) { m_aspect = _aspect; }
+    void setFovY(float _fovY) { m_fovY = _fovY; }
     void setTarget(glm::vec3 _target);
     void setDistance(float _distance);
     void setPosition(glm::vec3 _position);
-    void setEulerRotation(glm::vec3 rotation) { eulerRotation = rotation; }
+    void setEulerRotation(glm::vec3 rotation) { m_eulerRotation = rotation; }
 
     std::optional<FirstPersonParams> getFirstPersonParams() const {
-        if (type == Type::FirstPerson) {
-            return std::get<FirstPersonParams>(params);
+        if (m_type == Type::FirstPerson) {
+            return std::get<FirstPersonParams>(m_params);
         } else {
             return std::nullopt;
         }
     }
 
     std::optional<OrbitalParams> getOrbitalParams() const {
-        if (type == Type::Orbital) {
-            return std::get<OrbitalParams>(params);
+        if (m_type == Type::Orbital) {
+            return std::get<OrbitalParams>(m_params);
         } else {
             return std::nullopt;
         }
     }
 
-    void setDollySpeed(float speed) { dollySpeed = speed; }
+    void setDollySpeed(float speed) { m_dollySpeed = speed; }
 
 protected:
-    Type type = Type::Orbital;
+    Type m_type = Type::Orbital;
 
     // radians
-    glm::vec3 eulerRotation = {0.0f, 0.0f, 0.0f};
+    glm::vec3 m_eulerRotation = {0.0f, 0.0f, 0.0f};
 
-    float aspect = 1.0f;
-    float zNear = 0.1f;
-    float zFar = 1000.0f;
-    float fovY = glm::radians(45.0f);
+    float m_aspect = 1.0f;
+    float m_zNear = 0.1f;
+    float m_zFar = 1000.0f;
+    float m_fovY = glm::radians(45.0f);
 
-    float dollySpeed = 1.0f;
+    float m_dollySpeed = 1.0f;
 
-    std::variant<FirstPersonParams, OrbitalParams> params = OrbitalParams{};
+    std::variant<FirstPersonParams, OrbitalParams> m_params = OrbitalParams{};
 };
 }  // namespace rv

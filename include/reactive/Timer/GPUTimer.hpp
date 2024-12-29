@@ -15,23 +15,23 @@ class GPUTimer {
 
 public:
     GPUTimer() = default;
-    GPUTimer(const Context& _context, const GPUTimerCreateInfo& createInfo);
+    GPUTimer(const Context& context, const GPUTimerCreateInfo& createInfo);
 
     auto elapsedInNano() -> float;
     auto elapsedInMilli() -> float;
 
-    void start() { state = State::Started; }
-    void stop() { state = State::Stopped; }
+    void start() { m_state = State::Started; }
+    void stop() { m_state = State::Stopped; }
 
 private:
-    const Context* context = nullptr;
+    const Context* m_context = nullptr;
 
-    float timestampPeriod;
+    float m_timestampPeriod;
 
-    vk::UniqueQueryPool queryPool;
+    vk::UniqueQueryPool m_queryPool;
 
-    std::array<uint64_t, 2> timestamps{};
+    std::array<uint64_t, 2> m_timestamps{};
 
-    State state;
+    State m_state;
 };
 }  // namespace rv

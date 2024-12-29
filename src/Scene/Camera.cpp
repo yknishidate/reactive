@@ -4,69 +4,69 @@
 
 namespace rv {
 void Camera::processKey() {
-    if (type == Type::FirstPerson) {
-        auto& _params = std::get<FirstPersonParams>(params);
+    if (m_type == Type::FirstPerson) {
+        auto& params = std::get<FirstPersonParams>(m_params);
         glm::vec3 front = getFront();
         glm::vec3 right = getRight();
         if (Window::isKeyDown(GLFW_KEY_W)) {
-            _params.position += front * 0.15f;
+            params.position += front * 0.15f;
         }
         if (Window::isKeyDown(GLFW_KEY_S)) {
-            _params.position -= front * 0.15f;
+            params.position -= front * 0.15f;
         }
         if (Window::isKeyDown(GLFW_KEY_D)) {
-            _params.position += right * 0.1f;
+            params.position += right * 0.1f;
         }
         if (Window::isKeyDown(GLFW_KEY_A)) {
-            _params.position -= right * 0.1f;
+            params.position -= right * 0.1f;
         }
         if (Window::isKeyDown(GLFW_KEY_SPACE)) {
-            _params.position += glm::vec3{0, 1, 0} * 0.05f;
+            params.position += glm::vec3{0, 1, 0} * 0.05f;
         }
     }
 }
 
 void Camera::processMouseDragLeft(glm::vec2 dragDelta) {
-    if (type == Type::FirstPerson) {
-        eulerRotation.x = eulerRotation.x - dragDelta.y * 0.001f;
-        eulerRotation.y = eulerRotation.y - dragDelta.x * 0.001f;
+    if (m_type == Type::FirstPerson) {
+        m_eulerRotation.x = m_eulerRotation.x - dragDelta.y * 0.001f;
+        m_eulerRotation.y = m_eulerRotation.y - dragDelta.x * 0.001f;
     } else {
-        eulerRotation.x = eulerRotation.x + dragDelta.y * 0.002f;
-        eulerRotation.y = eulerRotation.y - dragDelta.x * 0.002f;
+        m_eulerRotation.x = m_eulerRotation.x + dragDelta.y * 0.002f;
+        m_eulerRotation.y = m_eulerRotation.y - dragDelta.x * 0.002f;
     }
 }
 
 void Camera::processMouseDragRight(glm::vec2 dragDelta) {
-    if (type == Type::FirstPerson) {
-        auto& _params = std::get<FirstPersonParams>(params);
-        _params.position += glm::vec3{0, 1, 0} * dragDelta.y * 0.01f;
+    if (m_type == Type::FirstPerson) {
+        auto& params = std::get<FirstPersonParams>(m_params);
+        params.position += glm::vec3{0, 1, 0} * dragDelta.y * 0.01f;
     } else {
-        auto& _params = std::get<OrbitalParams>(params);
-        _params.target += glm::vec3{0, 1, 0} * dragDelta.y * 0.01f;
+        auto& params = std::get<OrbitalParams>(m_params);
+        params.target += glm::vec3{0, 1, 0} * dragDelta.y * 0.01f;
     }
 }
 
 void Camera::processMouseScroll(float scroll) {
-    if (type == Type::FirstPerson) {
+    if (m_type == Type::FirstPerson) {
         // pass
     } else {
-        auto& _params = std::get<OrbitalParams>(params);
-        _params.distance = std::max(_params.distance - scroll * dollySpeed, 0.001f);
+        auto& params = std::get<OrbitalParams>(m_params);
+        params.distance = std::max(params.distance - scroll * m_dollySpeed, 0.001f);
     }
 }
 
 auto Camera::getView() const -> glm::mat4 {
-    if (type == Type::FirstPerson) {
-        auto& _params = std::get<FirstPersonParams>(params);
-        return glm::lookAt(_params.position, _params.position + getFront(), glm::vec3{0, 1, 0});
+    if (m_type == Type::FirstPerson) {
+        auto& params = std::get<FirstPersonParams>(m_params);
+        return glm::lookAt(params.position, params.position + getFront(), glm::vec3{0, 1, 0});
     } else {
-        auto& _params = std::get<OrbitalParams>(params);
-        return glm::lookAt(getPosition(), _params.target, glm::vec3{0, 1, 0});
+        auto& params = std::get<OrbitalParams>(m_params);
+        return glm::lookAt(getPosition(), params.target, glm::vec3{0, 1, 0});
     }
 }
 
 auto Camera::getProj() const -> glm::mat4 {
-    return glm::perspective(fovY, aspect, zNear, zFar);
+    return glm::perspective(m_fovY, m_aspect, m_zNear, m_zFar);
 }
 
 auto Camera::getInvView() const -> glm::mat4 {
@@ -78,30 +78,30 @@ auto Camera::getInvProj() const -> glm::mat4 {
 }
 
 auto Camera::getPosition() const -> glm::vec3 {
-    if (type == Type::FirstPerson) {
-        auto& _params = std::get<FirstPersonParams>(params);
-        return _params.position;
+    if (m_type == Type::FirstPerson) {
+        auto& params = std::get<FirstPersonParams>(m_params);
+        return params.position;
     } else {
-        auto& _params = std::get<OrbitalParams>(params);
-        glm::mat4 rotX = glm::rotate(eulerRotation.x, glm::vec3(1, 0, 0));
-        glm::mat4 rotY = glm::rotate(eulerRotation.y, glm::vec3(0, 1, 0));
+        auto& params = std::get<OrbitalParams>(m_params);
+        glm::mat4 rotX = glm::rotate(m_eulerRotation.x, glm::vec3(1, 0, 0));
+        glm::mat4 rotY = glm::rotate(m_eulerRotation.y, glm::vec3(0, 1, 0));
         glm::vec3 position =
-            _params.target + glm::vec3{rotY * rotX * glm::vec4{0, 0, _params.distance, 1}};
+            params.target + glm::vec3{rotY * rotX * glm::vec4{0, 0, params.distance, 1}};
         return position;
     }
 }
 
 auto Camera::getFront() const -> glm::vec3 {
-    if (type == Type::FirstPerson) {
+    if (m_type == Type::FirstPerson) {
         glm::mat4 rotation{1.0};
-        rotation *= glm::rotate(eulerRotation.y, glm::vec3{0, 1, 0});
-        rotation *= glm::rotate(eulerRotation.x, glm::vec3{1, 0, 0});
+        rotation *= glm::rotate(m_eulerRotation.y, glm::vec3{0, 1, 0});
+        rotation *= glm::rotate(m_eulerRotation.x, glm::vec3{1, 0, 0});
         // カメラ座標では奥が前
         return glm::normalize(glm::vec3{rotation * glm::vec4{0, 0, -1, 1}});
     } else {
         // カメラ座標では奥が前
-        auto& _params = std::get<OrbitalParams>(params);
-        return glm::normalize(_params.target - getPosition());
+        auto& params = std::get<OrbitalParams>(m_params);
+        return glm::normalize(params.target - getPosition());
     }
 }
 
@@ -114,30 +114,30 @@ auto Camera::getRight() const -> glm::vec3 {
 }
 
 void Camera::setType(Type _type) {
-    type = _type;
+    m_type = _type;
     // TODO: なるべく値を引き継ぐ
-    if (type == Type::FirstPerson) {
-        params = FirstPersonParams{};
+    if (m_type == Type::FirstPerson) {
+        m_params = FirstPersonParams{};
     } else {
-        params = OrbitalParams{};
+        m_params = OrbitalParams{};
     }
 }
 
 void Camera::setTarget(glm::vec3 _target) {
-    assert(type == Type::Orbital);
-    auto& _params = std::get<OrbitalParams>(params);
-    _params.target = _target;
+    assert(m_type == Type::Orbital);
+    auto& params = std::get<OrbitalParams>(m_params);
+    params.target = _target;
 }
 
 void Camera::setDistance(float _distance) {
-    assert(type == Type::Orbital);
-    auto& _params = std::get<OrbitalParams>(params);
-    _params.distance = _distance;
+    assert(m_type == Type::Orbital);
+    auto& params = std::get<OrbitalParams>(m_params);
+    params.distance = _distance;
 }
 
 void Camera::setPosition(glm::vec3 _position) {
-    assert(type == Type::FirstPerson);
-    auto& _params = std::get<FirstPersonParams>(params);
-    _params.position = _position;
+    assert(m_type == Type::FirstPerson);
+    auto& params = std::get<FirstPersonParams>(m_params);
+    params.position = _position;
 }
 }  // namespace rv

@@ -26,12 +26,12 @@ static void diagnoseIfNeeded(slang::IBlob* diagnosticsBlob) {
 }
 
 SlangCompiler::SlangCompiler() {
-    ASSERT_ON_SLANG_FAIL(slang::createGlobalSession(slangGlobalSession.writeRef()));
+    ASSERT_ON_SLANG_FAIL(slang::createGlobalSession(m_globalSession.writeRef()));
 }
 
-std::vector<Slang::ComPtr<slang::IBlob>> SlangCompiler::CompileShaders(const std::filesystem::path& shaderPath,
+std::vector<Slang::ComPtr<slang::IBlob>> SlangCompiler::compileShaders(const std::filesystem::path& shaderPath,
                                                                        const std::vector<std::string>& entryPointNames) {
-    assert(slangGlobalSession);
+    assert(m_globalSession);
 
     spdlog::info("Compiling: {}", shaderPath.string());
 
@@ -39,12 +39,12 @@ std::vector<Slang::ComPtr<slang::IBlob>> SlangCompiler::CompileShaders(const std
     // ----------------------------------------------------
     slang::TargetDesc targetDesc = {};
     targetDesc.format = SLANG_SPIRV;
-    targetDesc.profile = slangGlobalSession->findProfile("spirv_1_5");
+    targetDesc.profile = m_globalSession->findProfile("spirv_1_5");
     targetDesc.flags = 0;
 
-    SlangCapabilityID spvImageQueryId = slangGlobalSession->findCapability("spvImageQuery");
+    SlangCapabilityID spvImageQueryId = m_globalSession->findCapability("spvImageQuery");
     SlangCapabilityID spvSparseResidencyId =
-        slangGlobalSession->findCapability("spvSparseResidency");
+        m_globalSession->findCapability("spvSparseResidency");
 
     std::vector<slang::CompilerOptionEntry> options;
     options.push_back(
@@ -64,7 +64,7 @@ std::vector<Slang::ComPtr<slang::IBlob>> SlangCompiler::CompileShaders(const std
     sessionDesc.compilerOptionEntryCount = (uint32_t)options.size();
 
     Slang::ComPtr<slang::ISession> session;
-    ASSERT_ON_SLANG_FAIL(slangGlobalSession->createSession(sessionDesc, session.writeRef()));
+    ASSERT_ON_SLANG_FAIL(m_globalSession->createSession(sessionDesc, session.writeRef()));
 
     // 2. モジュールをロード (Slangソースをコンパイル)
     // ----------------------------------------------------

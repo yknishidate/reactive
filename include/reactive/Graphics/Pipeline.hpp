@@ -97,60 +97,60 @@ struct RayTracingPipelineCreateInfo {
 
 class Pipeline {
 public:
-    Pipeline(const Context& _context) : context{&_context} {}
+    Pipeline(const Context& context) : m_context{&context} {}
 
-    auto getPipelineBindPoint() const -> vk::PipelineBindPoint { return bindPoint; }
-    auto getPipelineLayout() const -> vk::PipelineLayout { return *pipelineLayout; }
+    auto getPipelineBindPoint() const -> vk::PipelineBindPoint { return m_bindPoint; }
+    auto getPipelineLayout() const -> vk::PipelineLayout { return *m_pipelineLayout; }
 
 protected:
     friend class CommandBuffer;
 
-    const Context* context = nullptr;
-    vk::UniquePipelineLayout pipelineLayout;
-    vk::UniquePipeline pipeline;
-    vk::ShaderStageFlags shaderStageFlags;
-    vk::PipelineBindPoint bindPoint = {};
-    uint32_t pushSize = 0;
+    const Context* m_context = nullptr;
+    vk::UniquePipelineLayout m_pipelineLayout;
+    vk::UniquePipeline m_pipeline;
+    vk::ShaderStageFlags m_shaderStageFlags;
+    vk::PipelineBindPoint m_bindPoint = {};
+    uint32_t m_pushSize = 0;
 };
 
 class GraphicsPipeline : public Pipeline {
 public:
-    GraphicsPipeline(const Context& _context, const GraphicsPipelineCreateInfo& createInfo);
+    GraphicsPipeline(const Context& context, const GraphicsPipelineCreateInfo& createInfo);
 };
 
 class MeshShaderPipeline : public Pipeline {
 public:
-    MeshShaderPipeline(const Context& _context, const MeshShaderPipelineCreateInfo& createInfo);
+    MeshShaderPipeline(const Context& context, const MeshShaderPipelineCreateInfo& createInfo);
 };
 
 class ComputePipeline : public Pipeline {
 public:
-    ComputePipeline(const Context& _context, const ComputePipelineCreateInfo& createInfo);
+    ComputePipeline(const Context& context, const ComputePipelineCreateInfo& createInfo);
 };
 
 class RayTracingPipeline : public Pipeline {
 public:
     RayTracingPipeline() = default;
-    RayTracingPipeline(const Context& _context, const RayTracingPipelineCreateInfo& createInfo);
+    RayTracingPipeline(const Context& context, const RayTracingPipelineCreateInfo& createInfo);
 
 private:
     friend class CommandBuffer;
 
     void createSBT();
 
-    std::vector<vk::ShaderModule> shaderModules;
-    std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
-    std::vector<vk::RayTracingShaderGroupCreateInfoKHR> shaderGroups;
+    std::vector<vk::ShaderModule> m_shaderModules;
+    std::vector<vk::PipelineShaderStageCreateInfo> m_shaderStages;
+    std::vector<vk::RayTracingShaderGroupCreateInfoKHR> m_shaderGroups;
 
-    vk::StridedDeviceAddressRegionKHR raygenRegion;
-    vk::StridedDeviceAddressRegionKHR missRegion;
-    vk::StridedDeviceAddressRegionKHR hitRegion;
-    vk::StridedDeviceAddressRegionKHR callableRegion;
+    vk::StridedDeviceAddressRegionKHR m_raygenRegion;
+    vk::StridedDeviceAddressRegionKHR m_missRegion;
+    vk::StridedDeviceAddressRegionKHR m_hitRegion;
+    vk::StridedDeviceAddressRegionKHR m_callableRegion;
 
-    BufferHandle sbtBuffer;
+    BufferHandle m_sbtBuffer;
 
-    uint32_t rgenCount = 0;
-    uint32_t missCount = 0;
-    uint32_t hitCount = 0;
+    uint32_t m_rgenCount = 0;
+    uint32_t m_missCount = 0;
+    uint32_t m_hitCount = 0;
 };
 }  // namespace rv

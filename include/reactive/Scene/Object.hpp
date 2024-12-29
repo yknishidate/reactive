@@ -33,12 +33,12 @@ public:
     explicit Object(const MeshHandle& mesh);
     virtual void update(float dt) {}
 
-    auto getMesh() const -> MeshHandle { return mesh; }
-    auto getTransform() const -> Transform { return transform; }
+    auto getMesh() const -> MeshHandle { return m_mesh; }
+    auto getTransform() const -> Transform { return m_transform; }
 
 private:
-    MeshHandle mesh;
+    MeshHandle m_mesh;
 
-    Transform transform{};
+    Transform m_transform{};
 };
 }  // namespace rv

@@ -17,7 +17,7 @@ struct DescriptorSetCreateInfo {
 
 class DescriptorSet {
 public:
-    DescriptorSet(const Context& _context, const DescriptorSetCreateInfo& createInfo);
+    DescriptorSet(const Context& context, const DescriptorSetCreateInfo& createInfo);
 
     void update();
 
@@ -25,16 +25,16 @@ public:
     void set(const std::string& name, ArrayProxy<ImageHandle> images);
     void set(const std::string& name, ArrayProxy<TopAccelHandle> accels);
 
-    vk::DescriptorSetLayout getLayout() const { return *descSetLayout; }
-    vk::DescriptorSet getDescriptorSet() const { return *descSet; }
+    vk::DescriptorSetLayout getLayout() const { return *m_descSetLayout; }
+    vk::DescriptorSet getDescriptorSet() const { return *m_descSet; }
 
 private:
     void addResources(ShaderHandle shader);
     void updateBindingMap(const SpvReflectDescriptorBinding* binding, vk::ShaderStageFlags stage);
 
-    const Context* context;
-    vk::UniqueDescriptorSet descSet;
-    vk::UniqueDescriptorSetLayout descSetLayout;
+    const Context* m_context;
+    vk::UniqueDescriptorSet m_descSet;
+    vk::UniqueDescriptorSetLayout m_descSetLayout;
 
     using BufferInfos = std::vector<vk::DescriptorBufferInfo>;
     using ImageInfos = std::vector<vk::DescriptorImageInfo>;
@@ -44,6 +44,6 @@ private:
         std::variant<BufferInfos, ImageInfos, AccelInfos> infos;
     };
 
-    std::unordered_map<std::string, Descriptor> descriptors;
+    std::unordered_map<std::string, Descriptor> m_descriptors;
 };
 }  // namespace rv

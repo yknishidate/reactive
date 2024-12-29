@@ -4,68 +4,68 @@
 #include "reactive/common.hpp"
 
 namespace rv {
-Buffer::Buffer(const Context& _context, const BufferCreateInfo& createInfo)
-    : context{&_context}, size{createInfo.size} {
+Buffer::Buffer(const Context& context, const BufferCreateInfo& createInfo)
+    : m_context{&context}, m_size{createInfo.size} {
     // Create buffer
     vk::BufferCreateInfo bufferInfo;
-    bufferInfo.setSize(size);
+    bufferInfo.setSize(m_size);
     bufferInfo.setUsage(createInfo.usage);
-    buffer = context->getDevice().createBufferUnique(bufferInfo);
+    m_buffer = m_context->getDevice().createBufferUnique(bufferInfo);
 
     // Allocate memory
-    vk::MemoryRequirements requirements = context->getDevice().getBufferMemoryRequirements(*buffer);
-    uint32_t memoryTypeIndex = context->findMemoryTypeIndex(requirements, createInfo.memory);
+    vk::MemoryRequirements requirements = m_context->getDevice().getBufferMemoryRequirements(*m_buffer);
+    uint32_t memoryTypeIndex = m_context->findMemoryTypeIndex(requirements, createInfo.memory);
 
     vk::MemoryAllocateFlagsInfo flagsInfo{vk::MemoryAllocateFlagBits::eDeviceAddress};
     vk::MemoryAllocateInfo memoryInfo;
     memoryInfo.setAllocationSize(requirements.size);
     memoryInfo.setMemoryTypeIndex(memoryTypeIndex);
     memoryInfo.setPNext(&flagsInfo);
-    memory = context->getDevice().allocateMemoryUnique(memoryInfo);
+    m_memory = m_context->getDevice().allocateMemoryUnique(memoryInfo);
 
-    isHostVisible = static_cast<bool>(createInfo.memory & vk::MemoryPropertyFlagBits::eHostVisible);
+    m_isHostVisible = static_cast<bool>(createInfo.memory & vk::MemoryPropertyFlagBits::eHostVisible);
 
     // Bind memory
-    context->getDevice().bindBufferMemory(*buffer, *memory, 0);
+    m_context->getDevice().bindBufferMemory(*m_buffer, *m_memory, 0);
 
     if (!createInfo.debugName.empty()) {
-        context->setDebugName(*buffer, createInfo.debugName.c_str());
-        context->setDebugName(*memory, createInfo.debugName.c_str());
+        m_context->setDebugName(*m_buffer, createInfo.debugName.c_str());
+        m_context->setDebugName(*m_memory, createInfo.debugName.c_str());
     }
 }
 
 auto Buffer::getAddress() const -> vk::DeviceAddress {
-    vk::BufferDeviceAddressInfo addressInfo{*buffer};
-    return context->getDevice().getBufferAddress(&addressInfo);
+    vk::BufferDeviceAddressInfo addressInfo{*m_buffer};
+    return m_context->getDevice().getBufferAddress(&addressInfo);
 }
 
 auto Buffer::map() -> void* {
-    RV_ASSERT(isHostVisible, "");
-    if (!mapped) {
-        mapped = context->getDevice().mapMemory(*memory, 0, VK_WHOLE_SIZE);
+    RV_ASSERT(m_isHostVisible, "");
+    if (!m_mapped) {
+        m_mapped = m_context->getDevice().mapMemory(*m_memory, 0, VK_WHOLE_SIZE);
     }
-    return mapped;
+    return m_mapped;
 }
 
 void Buffer::unmap() {
-    RV_ASSERT(isHostVisible, "This buffer is not host visible.");
-    context->getDevice().unmapMemory(*memory);
-    mapped = nullptr;
+    RV_ASSERT(m_isHostVisible, "This m_buffer is not host visible.");
+    m_context->getDevice().unmapMemory(*m_memory);
+    m_mapped = nullptr;
 }
 
 void Buffer::copy(const void* data) {
-    RV_ASSERT(isHostVisible, "This buffer is not host visible.");
+    RV_ASSERT(m_isHostVisible, "This m_buffer is not host visible.");
     map();
-    std::memcpy(mapped, data, size);
+    std::memcpy(m_mapped, data, m_size);
 }
 
 void Buffer::prepareStagingBuffer() {
-    RV_ASSERT(!isHostVisible, "This buffer is not device buffer.");
-    if (!stagingBuffer) {
-        stagingBuffer = context->createBuffer({
+    RV_ASSERT(!m_isHostVisible, "This m_buffer is not m_device m_buffer.");
+    if (!m_stagingBuffer) {
+        m_stagingBuffer = m_context->createBuffer({
             .usage = BufferUsage::Staging,
             .memory = MemoryUsage::Host,
-            .size = size,
+            .size = m_size,
         });
     }
 }

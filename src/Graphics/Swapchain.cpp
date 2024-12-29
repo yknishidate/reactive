@@ -7,7 +7,7 @@ rv::Swapchain::Swapchain(const Context& context,
                          uint32_t width,
                          uint32_t height,
                          vk::PresentModeKHR presentMode)
-    : context{&context}, surface{surface}, presentMode{presentMode} {
+    : m_context{&context}, m_surface{surface}, m_presentMode{presentMode} {
     resize(width, height);
 }
 
@@ -23,81 +23,81 @@ vk::SurfaceFormatKHR chooseSurfaceFormat(vk::PhysicalDevice physicalDevice,
 }
 
 void Swapchain::resize(uint32_t width, uint32_t height) {
-    swapchainImageViews.clear();
-    swapchainImages.clear();
-    swapchain.reset();
+    m_swapchainImageViews.clear();
+    m_swapchainImages.clear();
+    m_swapchain.reset();
 
-    vk::SurfaceFormatKHR surfaceFormat = chooseSurfaceFormat(context->getPhysicalDevice(), surface);
-    format = surfaceFormat.format;
+    vk::SurfaceFormatKHR surfaceFormat = chooseSurfaceFormat(m_context->getPhysicalDevice(), m_surface);
+    m_format = surfaceFormat.format;
 
     // Create swapchain
-    uint32_t queueFamily = context->getQueueFamily();
-    swapchain = context->getDevice().createSwapchainKHRUnique(
+    uint32_t queueFamily = m_context->getQueueFamily();
+    m_swapchain = m_context->getDevice().createSwapchainKHRUnique(
         vk::SwapchainCreateInfoKHR()
-            .setSurface(surface)
-            .setMinImageCount(minImageCount)
-            .setImageFormat(format)
+            .setSurface(m_surface)
+            .setMinImageCount(m_minImageCount)
+            .setImageFormat(m_format)
             .setImageColorSpace(surfaceFormat.colorSpace)
             .setImageExtent({width, height})
             .setImageArrayLayers(1)
             .setImageUsage(vk::ImageUsageFlagBits::eColorAttachment |
                            vk::ImageUsageFlagBits::eTransferDst)
             .setPreTransform(vk::SurfaceTransformFlagBitsKHR::eIdentity)
-            .setPresentMode(presentMode)
+            .setPresentMode(m_presentMode)
             .setClipped(true)
             .setQueueFamilyIndices(queueFamily));
 
     // Get images
-    swapchainImages = context->getDevice().getSwapchainImagesKHR(*swapchain);
+    m_swapchainImages = m_context->getDevice().getSwapchainImagesKHR(*m_swapchain);
 
     // Create image views
-    for (auto& image : swapchainImages) {
-        swapchainImageViews.push_back(context->getDevice().createImageViewUnique(
+    for (auto& image : m_swapchainImages) {
+        m_swapchainImageViews.push_back(m_context->getDevice().createImageViewUnique(
             vk::ImageViewCreateInfo()
                 .setImage(image)
                 .setViewType(vk::ImageViewType::e2D)
-                .setFormat(format)
+                .setFormat(m_format)
                 .setComponents({vk::ComponentSwizzle::eR, vk::ComponentSwizzle::eG,
                                 vk::ComponentSwizzle::eB, vk::ComponentSwizzle::eA})
                 .setSubresourceRange({vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1})));
     }
 
     // Create command buffers and sync objects
-    imageCount = static_cast<uint32_t>(swapchainImages.size());
+    m_imageCount = static_cast<uint32_t>(m_swapchainImages.size());
 
-    commandBuffers.resize(inflightCount);
-    fences.resize(inflightCount);
-    imageAcquiredSemaphores.resize(inflightCount);
-    renderCompleteSemaphores.resize(inflightCount);
-    for (uint32_t i = 0; i < inflightCount; i++) {
-        commandBuffers[i] = context->allocateCommandBuffer();
-        fences[i] = context->createFence({.signaled = true});
-        imageAcquiredSemaphores[i] = context->getDevice().createSemaphoreUnique({});
-        renderCompleteSemaphores[i] = context->getDevice().createSemaphoreUnique({});
+    m_commandBuffers.resize(m_inflightCount);
+    m_fences.resize(m_inflightCount);
+    m_imageAcquiredSemaphores.resize(m_inflightCount);
+    m_renderCompleteSemaphores.resize(m_inflightCount);
+    for (uint32_t i = 0; i < m_inflightCount; i++) {
+        m_commandBuffers[i] = m_context->allocateCommandBuffer();
+        m_fences[i] = m_context->createFence({.signaled = true});
+        m_imageAcquiredSemaphores[i] = m_context->getDevice().createSemaphoreUnique({});
+        m_renderCompleteSemaphores[i] = m_context->getDevice().createSemaphoreUnique({});
     }
 }
 
 void Swapchain::waitNextFrame() {
     // Wait fence
-    fences[inflightIndex]->wait();
+    m_fences[m_inflightIndex]->wait();
 
     // Acquire next image
-    auto acquireResult = context->getDevice().acquireNextImageKHR(
-        *swapchain, UINT64_MAX, *imageAcquiredSemaphores[inflightIndex]);
-    imageIndex = acquireResult.value;
+    auto acquireResult = m_context->getDevice().acquireNextImageKHR(
+        *m_swapchain, UINT64_MAX, *m_imageAcquiredSemaphores[m_inflightIndex]);
+    m_imageIndex = acquireResult.value;
 
     // Reset fence
-    fences[inflightIndex]->reset();
+    m_fences[m_inflightIndex]->reset();
 }
 
 void Swapchain::presentImage() {
     vk::PresentInfoKHR presentInfo;
-    presentInfo.setWaitSemaphores(*renderCompleteSemaphores[inflightIndex]);
-    presentInfo.setSwapchains(*swapchain);
-    presentInfo.setImageIndices(imageIndex);
-    if (context->getQueue().presentKHR(presentInfo) != vk::Result::eSuccess) {
+    presentInfo.setWaitSemaphores(*m_renderCompleteSemaphores[m_inflightIndex]);
+    presentInfo.setSwapchains(*m_swapchain);
+    presentInfo.setImageIndices(m_imageIndex);
+    if (m_context->getQueue().presentKHR(presentInfo) != vk::Result::eSuccess) {
         return;
     }
-    inflightIndex = (inflightIndex + 1) % inflightCount;
+    m_inflightIndex = (m_inflightIndex + 1) % m_inflightCount;
 }
 }  // namespace rv

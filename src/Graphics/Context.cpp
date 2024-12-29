@@ -27,25 +27,25 @@ void Context::initInstance(bool enableValidation,
     // Create instance
     vk::ApplicationInfo appInfo;
     appInfo.setApiVersion(apiVersion);
-    instance = vk::createInstanceUnique(vk::InstanceCreateInfo()
+    m_instance = vk::createInstanceUnique(vk::InstanceCreateInfo()
                                             .setPApplicationInfo(&appInfo)
                                             .setPEnabledExtensionNames(instanceExtensions)
                                             .setPEnabledLayerNames(layers));
-    VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(*m_instance);
 
     spdlog::info("Enabled layers:");
     for (auto& layer : layers) {
         spdlog::info("  {}", layer);
     }
 
-    spdlog::info("Enabled instance extensions:");
+    spdlog::info("Enabled m_instance extensions:");
     for (auto& extension : instanceExtensions) {
         spdlog::info("  {}", extension);
     }
 
     // Create debug messenger
     if (enableValidation) {
-        debugMessenger = instance->createDebugUtilsMessengerEXTUnique(
+        m_debugMessenger = m_instance->createDebugUtilsMessengerEXTUnique(
             vk::DebugUtilsMessengerCreateInfoEXT()
                 .setMessageSeverity(vk::DebugUtilsMessageSeverityFlagBitsEXT::eError |
                                     vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning)
@@ -57,51 +57,51 @@ void Context::initInstance(bool enableValidation,
 
 void Context::initPhysicalDevice(vk::SurfaceKHR surface) {
     // Select discrete gpu
-    for (auto gpu : instance->enumeratePhysicalDevices()) {
+    for (auto gpu : m_instance->enumeratePhysicalDevices()) {
         if (gpu.getProperties().deviceType == vk::PhysicalDeviceType::eDiscreteGpu) {
-            physicalDevice = gpu;
+            m_physicalDevice = gpu;
         }
     }
     // If discrete gpu not found, select first gpu
-    if (!physicalDevice) {
-        physicalDevice = instance->enumeratePhysicalDevices().front();
+    if (!m_physicalDevice) {
+        m_physicalDevice = m_instance->enumeratePhysicalDevices().front();
     }
-    spdlog::info("Selected GPU: {}", std::string(physicalDevice.getProperties().deviceName.data()));
+    spdlog::info("Selected GPU: {}", std::string(m_physicalDevice.getProperties().deviceName.data()));
 
     // Find queue family
     spdlog::info("Selected queue families:");
-    std::vector properties = physicalDevice.getQueueFamilyProperties();
+    std::vector properties = m_physicalDevice.getQueueFamilyProperties();
     for (uint32_t index = 0; index < properties.size(); index++) {
         auto supportGraphics = properties[index].queueFlags & vk::QueueFlagBits::eGraphics;
         auto supportCompute = properties[index].queueFlags & vk::QueueFlagBits::eCompute;
         auto supportTransfer = properties[index].queueFlags & vk::QueueFlagBits::eTransfer;
         if (surface) {
-            auto supportPresent = physicalDevice.getSurfaceSupportKHR(index, surface);
+            auto supportPresent = m_physicalDevice.getSurfaceSupportKHR(index, surface);
             if (supportGraphics && supportCompute && supportPresent && supportTransfer) {
-                if (!queueFamilies.contains(QueueFlags::General)) {
-                    queueFamilies[QueueFlags::General] = index;
+                if (!m_queueFamilies.contains(QueueFlags::General)) {
+                    m_queueFamilies[QueueFlags::General] = index;
                     spdlog::info("  General: {} x {}", index, properties[index].queueCount);
                     continue;
                 }
             }
             if (supportGraphics && supportPresent) {
-                if (!queueFamilies.contains(QueueFlags::Graphics)) {
-                    queueFamilies[QueueFlags::Graphics] = index;
+                if (!m_queueFamilies.contains(QueueFlags::Graphics)) {
+                    m_queueFamilies[QueueFlags::Graphics] = index;
                     spdlog::info("  Graphics: {} x {}", index, properties[index].queueCount);
                     continue;
                 }
             }
         } else {
             if (supportGraphics && supportCompute && supportTransfer) {
-                if (!queueFamilies.contains(QueueFlags::General)) {
-                    queueFamilies[QueueFlags::General] = index;
+                if (!m_queueFamilies.contains(QueueFlags::General)) {
+                    m_queueFamilies[QueueFlags::General] = index;
                     spdlog::info("  General: {} x {}", index, properties[index].queueCount);
                     continue;
                 }
             }
             if (supportGraphics) {
-                if (!queueFamilies.contains(QueueFlags::Graphics)) {
-                    queueFamilies[QueueFlags::Graphics] = index;
+                if (!m_queueFamilies.contains(QueueFlags::Graphics)) {
+                    m_queueFamilies[QueueFlags::Graphics] = index;
                     spdlog::info("  Graphics: {} x {}", index, properties[index].queueCount);
                     continue;
                 }
@@ -110,21 +110,21 @@ void Context::initPhysicalDevice(vk::SurfaceKHR surface) {
 
         // These are not related to surface
         if (supportCompute) {
-            if (!queueFamilies.contains(QueueFlags::Compute)) {
-                queueFamilies[QueueFlags::Compute] = index;
+            if (!m_queueFamilies.contains(QueueFlags::Compute)) {
+                m_queueFamilies[QueueFlags::Compute] = index;
                 spdlog::info("  Compute: {} x {}", index, properties[index].queueCount);
                 continue;
             }
         }
         if (supportTransfer) {
-            if (!queueFamilies.contains(QueueFlags::Transfer)) {
-                queueFamilies[QueueFlags::Transfer] = index;
+            if (!m_queueFamilies.contains(QueueFlags::Transfer)) {
+                m_queueFamilies[QueueFlags::Transfer] = index;
                 spdlog::info("  Transfer: {} x {}", index, properties[index].queueCount);
             }
         }
     }
 
-    if (!queueFamilies.contains(QueueFlags::General)) {
+    if (!m_queueFamilies.contains(QueueFlags::General)) {
         throw std::runtime_error("Failed to find general queue family.");
     }
 }
@@ -136,8 +136,8 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
     // Create device
     std::unordered_map<vk::QueueFlags, std::vector<float>> queuePriorities;
     std::vector<vk::DeviceQueueCreateInfo> queueInfo;
-    for (const auto& [flag, queueFamily] : queueFamilies) {
-        uint32_t queueCount = physicalDevice.getQueueFamilyProperties()[queueFamily].queueCount;
+    for (const auto& [flag, queueFamily] : m_queueFamilies) {
+        uint32_t queueCount = m_physicalDevice.getQueueFamilyProperties()[queueFamily].queueCount;
         queuePriorities[flag] = {};
         queuePriorities[flag].resize(queueCount);
         std::ranges::fill(queuePriorities[flag], 1.0f);
@@ -146,7 +146,7 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
         info.setQueueFamilyIndex(queueFamily);
         info.setQueuePriorities(queuePriorities[flag]);
         queueInfo.push_back(info);
-        queues[flag] = std::vector<ThreadQueue>(queueCount);
+        m_queues[flag] = std::vector<ThreadQueue>(queueCount);
     }
 
     checkDeviceExtensionSupport(deviceExtensions);
@@ -156,22 +156,22 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
     deviceInfo.setPEnabledExtensionNames(deviceExtensions);
     deviceInfo.setPEnabledFeatures(&deviceFeatures);
     deviceInfo.setPNext(deviceCreateInfoPNext);
-    device = physicalDevice.createDeviceUnique(deviceInfo);
+    m_device = m_physicalDevice.createDeviceUnique(deviceInfo);
 
-    spdlog::info("Enabled device extensions:");
+    spdlog::info("Enabled m_device extensions:");
     for (auto& extension : deviceExtensions) {
         spdlog::info("  {}", extension);
     }
 
     // Get queue and command pool
-    for (const auto& [flag, queueFamily] : queueFamilies) {
-        for (uint32_t i = 0; i < queues[flag].size(); i++) {
-            queues[flag][i].queue = device->getQueue(queueFamily, i);
+    for (const auto& [flag, queueFamily] : m_queueFamilies) {
+        for (uint32_t i = 0; i < m_queues[flag].size(); i++) {
+            m_queues[flag][i].queue = m_device->getQueue(queueFamily, i);
 
             vk::CommandPoolCreateInfo commandPoolCreateInfo;
             commandPoolCreateInfo.setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer);
             commandPoolCreateInfo.setQueueFamilyIndex(queueFamily);
-            queues[flag][i].commandPool = device->createCommandPoolUnique(commandPoolCreateInfo);
+            m_queues[flag][i].commandPool = m_device->createCommandPoolUnique(commandPoolCreateInfo);
         }
     }
 
@@ -193,7 +193,7 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
     descriptorPoolCreateInfo.setPoolSizes(poolSizes);
     descriptorPoolCreateInfo.setMaxSets(100);
     descriptorPoolCreateInfo.setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);
-    descriptorPool = device->createDescriptorPoolUnique(descriptorPoolCreateInfo);
+    m_descriptorPool = m_device->createDescriptorPoolUnique(descriptorPoolCreateInfo);
 }
 
 auto Context::getQueue(vk::QueueFlags flag) const -> vk::Queue {
@@ -201,7 +201,7 @@ auto Context::getQueue(vk::QueueFlags flag) const -> vk::Queue {
 }
 
 auto Context::getQueueFamily(vk::QueueFlags flag) const -> uint32_t {
-    return queueFamilies.at(flag);
+    return m_queueFamilies.at(flag);
 }
 
 auto Context::getCommandPool(vk::QueueFlags flag) const -> vk::CommandPool {
@@ -215,7 +215,7 @@ auto Context::allocateCommandBuffer(vk::QueueFlags flag) const -> CommandBufferH
     commandBufferInfo.setLevel(vk::CommandBufferLevel::ePrimary);
     commandBufferInfo.setCommandBufferCount(1);
 
-    vk::CommandBuffer commandBuffer = device->allocateCommandBuffers(commandBufferInfo).front();
+    vk::CommandBuffer commandBuffer = m_device->allocateCommandBuffers(commandBufferInfo).front();
     return std::make_shared<CommandBuffer>(*this, commandBuffer, commandPool, flag);
 }
 
@@ -228,7 +228,7 @@ void Context::submit(CommandBufferHandle commandBuffer,
 
     vk::SubmitInfo submitInfo;
     submitInfo.setWaitDstStageMask(waitStage);
-    submitInfo.setCommandBuffers(*commandBuffer->commandBuffer);
+    submitInfo.setCommandBuffers(*commandBuffer->m_commandBuffer);
     submitInfo.setWaitSemaphores(waitSemaphore);
     submitInfo.setSignalSemaphores(signalSemaphore);
 
@@ -239,7 +239,7 @@ void Context::submit(CommandBufferHandle commandBuffer, FenceHandle fence) const
     vk::Queue queue = getThreadQueue(commandBuffer->getQueueFlags()).queue;
 
     vk::SubmitInfo submitInfo;
-    submitInfo.setCommandBuffers(*commandBuffer->commandBuffer);
+    submitInfo.setCommandBuffers(*commandBuffer->m_commandBuffer);
 
     queue.submit(submitInfo, fence ? fence->getFence() : nullptr);
 }
@@ -260,18 +260,18 @@ void Context::oneTimeSubmit(const std::function<void(CommandBufferHandle)>& comm
 
 auto Context::findMemoryTypeIndex(vk::MemoryRequirements requirements,
                                   vk::MemoryPropertyFlags memoryProp) const -> uint32_t {
-    vk::PhysicalDeviceMemoryProperties memProperties = physicalDevice.getMemoryProperties();
+    vk::PhysicalDeviceMemoryProperties memProperties = m_physicalDevice.getMemoryProperties();
     for (uint32_t i = 0; i != memProperties.memoryTypeCount; ++i) {
         if ((requirements.memoryTypeBits & (1 << i)) &&
             (memProperties.memoryTypes[i].propertyFlags & memoryProp) == memoryProp) {
             return i;
         }
     }
-    throw std::runtime_error("Failed to find memory type index.");
+    throw std::runtime_error("Failed to find m_memory m_type index.");
 }
 
 auto Context::getPhysicalDeviceLimits() const -> vk::PhysicalDeviceLimits {
-    return physicalDevice.getProperties().limits;
+    return m_physicalDevice.getProperties().limits;
 }
 
 auto Context::createShader(const ShaderCreateInfo& createInfo) const -> ShaderHandle {
@@ -331,7 +331,7 @@ auto Context::createFence(const FenceCreateInfo& createInfo) const -> FenceHandl
 void Context::checkDeviceExtensionSupport(
     const std::vector<const char*>& requiredExtensions) const {
     std::vector<vk::ExtensionProperties> availableExtensions =
-        physicalDevice.enumerateDeviceExtensionProperties();
+        m_physicalDevice.enumerateDeviceExtensionProperties();
     std::vector<std::string> requiredExtensionNames(requiredExtensions.begin(),
                                                     requiredExtensions.end());
 
@@ -341,7 +341,7 @@ void Context::checkDeviceExtensionSupport(
 
     if (!requiredExtensionNames.empty()) {
         std::stringstream message;
-        message << "The following required extensions are not supported by the device:\n";
+        message << "The following required extensions are not supported by the m_device:\n";
         for (const auto& name : requiredExtensionNames) {
             message << "\t" << name << "\n";
         }
@@ -351,10 +351,10 @@ void Context::checkDeviceExtensionSupport(
 
 auto Context::getThreadQueue(vk::QueueFlags flag) const -> const ThreadQueue& {
     std::thread::id tid = std::this_thread::get_id();
-    std::lock_guard<std::mutex> lock(queueMutex);
+    std::lock_guard<std::mutex> lock(m_queueMutex);
 
     // Find used queue
-    auto& matchedQueues = queues.at(flag);
+    auto& matchedQueues = m_queues.at(flag);
     for (auto& queue : matchedQueues) {
         if (queue.tid == tid) {
             return queue;

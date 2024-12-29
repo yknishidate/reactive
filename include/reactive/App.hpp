@@ -78,7 +78,7 @@ public:
     virtual void onRender(const CommandBufferHandle& commandBuffer) {}
     virtual void onShutdown() {}
 
-    void terminate() { running = false; }
+    void terminate() { m_running = false; }
 
     // Getter
     auto getCurrentColorImage() const -> ImageHandle;
@@ -103,9 +103,9 @@ protected:
 
     void listSurfaceFormats();
 
-    Context context;
-    vk::UniqueSurfaceKHR surface;
-    std::unique_ptr<Swapchain> swapchain;
-    bool running = true;
+    Context m_context;
+    vk::UniqueSurfaceKHR m_surface;
+    std::unique_ptr<Swapchain> m_swapchain;
+    bool m_running = true;
 };
 }  // namespace rv

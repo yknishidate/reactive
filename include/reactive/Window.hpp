@@ -8,13 +8,13 @@
 namespace rv {
 class Window {
 public:
-    static void init(uint32_t _width, uint32_t _height, const char* title, bool resizable);
+    static void init(uint32_t width, uint32_t height, const char* title, bool resizable);
 
     static void shutdown();
 
     static void setAppPointer(App* app);
 
-    static bool shouldClose() { return glfwWindowShouldClose(window); }
+    static bool shouldClose() { return glfwWindowShouldClose(m_window); }
 
     static void pollEvents();
 
@@ -30,11 +30,11 @@ public:
     static auto getMouseDragLeft() -> glm::vec2;
     static auto getMouseDragRight() -> glm::vec2;
     static auto getMouseScroll() -> float;
-    static void setSize(uint32_t _width, uint32_t _height);
-    static auto getWidth() { return width; }
-    static auto getHeight() { return height; }
-    static auto getWindow() { return window; }
-    static auto getAspect() { return width / static_cast<float>(height); }
+    static void setSize(uint32_t width, uint32_t height);
+    static auto getWidth() { return m_width; }
+    static auto getHeight() { return m_height; }
+    static auto getWindow() { return m_window; }
+    static auto getAspect() { return m_width / static_cast<float>(m_height); }
 
 protected:
     static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -46,21 +46,21 @@ protected:
     static void dropCallback(GLFWwindow* window, int count, const char** paths);
     static void windowSizeCallback(GLFWwindow* window, int width, int height);
 
-    inline static GLFWwindow* window = nullptr;
-    inline static glm::vec2 lastCursorPos{0.0f};
-    inline static glm::vec2 mouseDragLeft = {0.0f, 0.0f};
-    inline static glm::vec2 mouseDragRight = {0.0f, 0.0f};
+    inline static GLFWwindow* m_window = nullptr;
+    inline static glm::vec2 m_lastCursorPos{0.0f};
+    inline static glm::vec2 m_mouseDragLeft = {0.0f, 0.0f};
+    inline static glm::vec2 m_mouseDragRight = {0.0f, 0.0f};
 
     // GLFW では マウススクロールの絶対値を取得する方法はなく
     // コールバックでオフセットを取得するしかない
     // 1 フレームごとのスクロール量を取るために蓄積する
-    inline static float mouseScrollAccum = 0.0f;
-    inline static float mouseScroll = 0.0f;
+    inline static float m_mouseScrollAccum = 0.0f;
+    inline static float m_mouseScroll = 0.0f;
 
-    inline static bool pendingResize = false;
-    inline static uint32_t width = 0;
-    inline static uint32_t height = 0;
-    inline static uint32_t newWidth = 0;
-    inline static uint32_t newHeight = 0;
+    inline static bool m_pendingResize = false;
+    inline static uint32_t m_width = 0;
+    inline static uint32_t m_height = 0;
+    inline static uint32_t m_newWidth = 0;
+    inline static uint32_t m_newHeight = 0;
 };
 }  // namespace rv
