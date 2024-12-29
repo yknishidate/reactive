@@ -18,6 +18,8 @@ target_include_directories(${TARGET_NAME} PUBLIC
 )
 
 target_compile_definitions(${TARGET_NAME} PRIVATE
-    "ASSET_DIR=std::string{\"${PROJECT_SOURCE_DIR}/asset/\"}")
+    "ASSET_DIR=std::string{\"${PROJECT_SOURCE_DIR}/asset/\"}"
+)
 target_compile_definitions(${TARGET_NAME} PRIVATE
-    "SHADER_DIR=std::string{\"${CMAKE_CURRENT_SOURCE_DIR}/shader/\"}")
+    "SHADER_PATH=std::string{\"${CMAKE_CURRENT_SOURCE_DIR}/shaders.slang\"}"
+)
