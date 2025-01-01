@@ -31,7 +31,7 @@ void Camera::processMouseDragLeft(glm::vec2 dragDelta) {
         m_eulerRotation.x = m_eulerRotation.x - dragDelta.y * 0.001f;
         m_eulerRotation.y = m_eulerRotation.y - dragDelta.x * 0.001f;
     } else {
-        m_eulerRotation.x = m_eulerRotation.x + dragDelta.y * 0.002f;
+        m_eulerRotation.x = m_eulerRotation.x - dragDelta.y * 0.002f;
         m_eulerRotation.y = m_eulerRotation.y - dragDelta.x * 0.002f;
     }
 }

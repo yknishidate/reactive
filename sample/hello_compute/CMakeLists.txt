@@ -4,7 +4,7 @@ set(TARGET_NAME "HelloCompute")
 
 file(GLOB_RECURSE sources *.cpp)
 file(GLOB_RECURSE headers *.hpp)
-file(GLOB_RECURSE shaders shader/*)
+file(GLOB_RECURSE shaders *.slang)
 add_executable(${TARGET_NAME} ${sources} ${headers} ${shaders})
 
 source_group("Shader Files" FILES ${shaders})
