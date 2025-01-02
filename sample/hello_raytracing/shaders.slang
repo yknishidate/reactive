@@ -16,6 +16,12 @@ struct RayPayload
     float3 color;
 };
 
+float2 PixelToScreen(uint2 launchID, uint2 launchSize)
+{
+    float2 screen = ((float2(launchID.xy) + float2(0.5f)) / float2(launchSize.xy)) * 2.0f - 1.0f;
+    return { screen.x, -screen.y };
+}
+
 [shader("raygeneration")]
 void rayGenMain()
 {
@@ -23,12 +29,12 @@ void rayGenMain()
     uint3 launchSize = DispatchRaysDimensions();
 
     // 画面上のUV座標を [(-1) .. (+1)] にマッピング
-    float2 uv = (float2(launchID.xy) / float2(launchSize.xy)) * 2.0f - 1.0f;
+    float2 screen = PixelToScreen(launchID.xy, launchSize.xy);
 
     // 逆行列を使ってワールド座標系でのレイを生成
-    float4 origin = mul(float4(0, 0, 0, 1), gPush.invView);
-    float4 target = mul(float4(uv.x, uv.y, 1.0f, 1.0f), gPush.invProj);
-    float4 direction = mul(float4(normalize(target.xyz), 0), gPush.invView);
+    float4 origin = mul(gPush.invView, float4(0, 0, 0, 1));
+    float4 target = mul(gPush.invProj, float4(screen.xy, 1.0f, 1.0f));
+    float4 direction = mul(gPush.invView, float4(normalize(target.xyz), 0));
 
     // Ray Payload 初期化
     RayPayload payload;

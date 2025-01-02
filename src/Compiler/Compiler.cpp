@@ -62,6 +62,7 @@ std::vector<Slang::ComPtr<slang::IBlob>> SlangCompiler::compileShaders(const std
     sessionDesc.targetCount = 1;
     sessionDesc.compilerOptionEntries = options.data();
     sessionDesc.compilerOptionEntryCount = (uint32_t)options.size();
+    sessionDesc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_COLUMN_MAJOR;
 
     Slang::ComPtr<slang::ISession> session;
     ASSERT_ON_SLANG_FAIL(m_globalSession->createSession(sessionDesc, session.writeRef()));

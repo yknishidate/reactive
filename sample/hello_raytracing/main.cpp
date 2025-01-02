@@ -115,7 +115,7 @@ public:
                                  vk::ImageLayout::ePresentSrcKHR);
     }
 
-    std::vector<Vertex> m_vertices{{{-1, 0, 0}}, {{0, -1, 0}}, {{1, 0, 0}}};
+    std::vector<Vertex> m_vertices{{{-1, 0, 0}}, {{0, 1, 0}}, {{1, 0, 0}}};
     std::vector<uint32_t> m_indices{0, 1, 2};
     Mesh m_mesh;
 
