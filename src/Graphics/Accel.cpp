@@ -48,7 +48,7 @@ BottomAccel::BottomAccel(const Context& context, const BottomAccelCreateInfo& cr
 
     m_scratchBuffer = m_context->createBuffer({
         .usage = BufferUsage::Scratch,
-        .memoryUsage = BufferMemoryUsage::HostVisible,
+        .memoryUsage = BufferMemoryUsage::DeviceLocal,
         .size = buildSizesInfo.buildScratchSize,
     });
 }
