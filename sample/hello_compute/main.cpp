@@ -23,14 +23,16 @@ public:
             .usage = ImageUsage::Storage,
             .extent = {Window::getWidth(), Window::getHeight(), 1},
             .format = vk::Format::eB8G8R8A8Unorm,
+            .memoryUsage = MemoryUsage::GpuOnly,
             .viewInfo = rv::ImageViewCreateInfo{},
+            .debugName = "ComputeOutputImage"
         });
 
         m_buffer = m_context.createBuffer({
             .usage = BufferUsage::Uniform,
-            .memory = MemoryUsage::Device,
             .size = sizeof(MandelbrotParams),
-            .debugName = "m_buffer",
+            .memoryUsage = MemoryUsage::CpuToGpu,
+            .debugName = "MandelbrotParams"
         });
 
         m_context.oneTimeSubmit([&](CommandBufferHandle commandBuffer) {

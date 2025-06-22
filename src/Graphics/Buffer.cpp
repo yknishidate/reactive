@@ -1,72 +1,88 @@
 #include "reactive/Graphics/Buffer.hpp"
-
 #include "reactive/Graphics/CommandBuffer.hpp"
 #include "reactive/common.hpp"
 
 namespace rv {
+
 Buffer::Buffer(const Context& context, const BufferCreateInfo& createInfo)
     : m_context{&context}, m_size{createInfo.size} {
-    // Create buffer
-    vk::BufferCreateInfo bufferInfo;
-    bufferInfo.setSize(m_size);
-    bufferInfo.setUsage(createInfo.usage);
-    m_buffer = m_context->getDevice().createBufferUnique(bufferInfo);
+    
+    // VMA を使用したメモリ管理
+    rv::BufferCreateInfo vmaCreateInfo{
+        .size = static_cast<vk::DeviceSize>(m_size),
+        .usage = createInfo.usage,
+        .memoryUsage = createInfo.memoryUsage,
+        .debugName = createInfo.debugName
+    };
+    
+    m_vmaAllocation = m_context->getMemoryManager().createBuffer(vmaCreateInfo);
+    
+    // ホストアクセス可能かどうかを判定
+    m_isHostVisible = (createInfo.memoryUsage == MemoryUsage::CpuOnly || 
+                      createInfo.memoryUsage == MemoryUsage::CpuToGpu ||
+                      createInfo.memoryUsage == MemoryUsage::GpuToCpu ||
+                      createInfo.memoryUsage == MemoryUsage::CpuCopy);
+    
+    // 既にマップされている場合はポインタを保存
+    if (m_vmaAllocation.isMapped()) {
+        m_mapped = m_vmaAllocation.getMappedData();
+    }
+    
+    spdlog::debug("Created VMA buffer: {} bytes, usage: {}, memory: {}", 
+                 m_size, static_cast<uint32_t>(createInfo.usage), static_cast<int>(createInfo.memoryUsage));
+}
 
-    // Allocate memory
-    vk::MemoryRequirements requirements = m_context->getDevice().getBufferMemoryRequirements(*m_buffer);
-    uint32_t memoryTypeIndex = m_context->findMemoryTypeIndex(requirements, createInfo.memory);
-
-    vk::MemoryAllocateFlagsInfo flagsInfo{vk::MemoryAllocateFlagBits::eDeviceAddress};
-    vk::MemoryAllocateInfo memoryInfo;
-    memoryInfo.setAllocationSize(requirements.size);
-    memoryInfo.setMemoryTypeIndex(memoryTypeIndex);
-    memoryInfo.setPNext(&flagsInfo);
-    m_memory = m_context->getDevice().allocateMemoryUnique(memoryInfo);
-
-    m_isHostVisible = static_cast<bool>(createInfo.memory & vk::MemoryPropertyFlagBits::eHostVisible);
-
-    // Bind memory
-    m_context->getDevice().bindBufferMemory(*m_buffer, *m_memory, 0);
-
-    if (!createInfo.debugName.empty()) {
-        m_context->setDebugName(*m_buffer, createInfo.debugName.c_str());
-        m_context->setDebugName(*m_memory, createInfo.debugName.c_str());
+Buffer::~Buffer() {
+    if (m_vmaAllocation.buffer) {
+        m_context->getMemoryManager().destroyBuffer(m_vmaAllocation);
+        spdlog::debug("Destroyed VMA buffer");
     }
 }
 
 auto Buffer::getAddress() const -> vk::DeviceAddress {
-    vk::BufferDeviceAddressInfo addressInfo{*m_buffer};
+    vk::BufferDeviceAddressInfo addressInfo{getBuffer()};
     return m_context->getDevice().getBufferAddress(&addressInfo);
 }
 
 auto Buffer::map() -> void* {
-    RV_ASSERT(m_isHostVisible, "");
+    RV_ASSERT(m_isHostVisible, "Buffer is not host visible");
+    
     if (!m_mapped) {
-        m_mapped = m_context->getDevice().mapMemory(*m_memory, 0, VK_WHOLE_SIZE);
+        m_mapped = const_cast<MemoryManager&>(m_context->getMemoryManager()).mapMemory(m_vmaAllocation);
     }
     return m_mapped;
 }
 
 void Buffer::unmap() {
-    RV_ASSERT(m_isHostVisible, "This m_buffer is not host visible.");
-    m_context->getDevice().unmapMemory(*m_memory);
-    m_mapped = nullptr;
+    RV_ASSERT(m_isHostVisible, "Buffer is not host visible");
+    
+    if (m_mapped && !m_vmaAllocation.isMapped()) {
+        const_cast<MemoryManager&>(m_context->getMemoryManager()).unmapMemory(m_vmaAllocation);
+        m_mapped = nullptr;
+    }
 }
 
 void Buffer::copy(const void* data) {
-    RV_ASSERT(m_isHostVisible, "This m_buffer is not host visible.");
+    RV_ASSERT(m_isHostVisible, "Buffer is not host visible");
+    RV_ASSERT(data != nullptr, "Data pointer cannot be null");
+    
     map();
     std::memcpy(m_mapped, data, m_size);
 }
 
 void Buffer::prepareStagingBuffer() {
-    RV_ASSERT(!m_isHostVisible, "This m_buffer is not m_device m_buffer.");
+    RV_ASSERT(!m_isHostVisible, "Buffer is already host visible");
+    
     if (!m_stagingBuffer) {
-        m_stagingBuffer = m_context->createBuffer({
+        BufferCreateInfo stagingInfo{
             .usage = BufferUsage::Staging,
-            .memory = MemoryUsage::Host,
             .size = m_size,
-        });
+            .memoryUsage = MemoryUsage::CpuToGpu,
+            .debugName = "StagingBuffer_" + std::to_string(reinterpret_cast<uintptr_t>(this))
+        };
+        
+        m_stagingBuffer = m_context->createBuffer(stagingInfo);
     }
 }
-}  // namespace rv
+
+} // namespace rv

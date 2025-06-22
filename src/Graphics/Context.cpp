@@ -194,6 +194,10 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
     descriptorPoolCreateInfo.setMaxSets(100);
     descriptorPoolCreateInfo.setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);
     m_descriptorPool = m_device->createDescriptorPoolUnique(descriptorPoolCreateInfo);
+    
+    // Initialize VMA Memory Manager
+    m_memoryManager = std::make_unique<MemoryManager>(this);
+    spdlog::info("VMA Memory Manager initialized in Context");
 }
 
 auto Context::getQueue(vk::QueueFlags flag) const -> vk::Queue {
@@ -258,17 +262,6 @@ void Context::oneTimeSubmit(const std::function<void(CommandBufferHandle)>& comm
     queue.waitIdle();
 }
 
-auto Context::findMemoryTypeIndex(vk::MemoryRequirements requirements,
-                                  vk::MemoryPropertyFlags memoryProp) const -> uint32_t {
-    vk::PhysicalDeviceMemoryProperties memProperties = m_physicalDevice.getMemoryProperties();
-    for (uint32_t i = 0; i != memProperties.memoryTypeCount; ++i) {
-        if ((requirements.memoryTypeBits & (1 << i)) &&
-            (memProperties.memoryTypes[i].propertyFlags & memoryProp) == memoryProp) {
-            return i;
-        }
-    }
-    throw std::runtime_error("Failed to find m_memory m_type index.");
-}
 
 auto Context::getPhysicalDeviceLimits() const -> vk::PhysicalDeviceLimits {
     return m_physicalDevice.getProperties().limits;

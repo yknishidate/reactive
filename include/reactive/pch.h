@@ -17,6 +17,9 @@
 #define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include <vulkan/vulkan.hpp>
 
+#define VMA_IMPLEMENTATION
+#include <vk_mem_alloc.h>
+
 #include <spdlog/spdlog.h>
 
 #include <GLFW/glfw3.h>

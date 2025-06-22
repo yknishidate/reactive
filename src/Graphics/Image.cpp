@@ -15,40 +15,38 @@ uint32_t calculateMipLevels(uint32_t width, uint32_t height) {
 
 namespace rv {
 Image::Image(const Context& context, const ImageCreateInfo& createInfo)
-    // NOTE: layout is updated by transitionLayout after this ctor.
     : m_context{&context},
       m_debugName{createInfo.debugName},
       m_hasOwnership{true},
       m_extent{createInfo.extent},
       m_format{createInfo.format},
       m_mipLevels{createInfo.mipLevels} {
+    
     // Compute mipmap level
     if (m_mipLevels == std::numeric_limits<uint32_t>::max()) {
         m_mipLevels = calculateMipLevels(m_extent.width, m_extent.height);
     }
 
-    // NOTE: initialLayout must be Undefined or PreInitialized
-    // NOTE: queueFamily is ignored if sharingMode is not concurrent
-    vk::ImageCreateInfo imageInfo;
-    imageInfo.setImageType(createInfo.imageType);
-    imageInfo.setFormat(m_format);
-    imageInfo.setExtent(m_extent);
-    imageInfo.setMipLevels(m_mipLevels);
-    imageInfo.setSamples(vk::SampleCountFlagBits::e1);
-    imageInfo.setUsage(createInfo.usage);
-    imageInfo.setArrayLayers(m_layerCount);
-    m_image = m_context->getDevice().createImage(imageInfo);
-
-    vk::MemoryRequirements requirements = m_context->getDevice().getImageMemoryRequirements(m_image);
-    uint32_t memoryTypeIndex = m_context->findMemoryTypeIndex(  //
-        requirements, vk::MemoryPropertyFlagBits::eDeviceLocal);
-
-    vk::MemoryAllocateInfo memoryInfo;
-    memoryInfo.setAllocationSize(requirements.size);
-    memoryInfo.setMemoryTypeIndex(memoryTypeIndex);
-    m_memory = m_context->getDevice().allocateMemory(memoryInfo);
-
-    m_context->getDevice().bindImageMemory(m_image, m_memory, 0);
+    // VMA を使用したメモリ管理
+    rv::ImageCreateInfo vmaCreateInfo{
+        .imageType = createInfo.imageType,
+        .format = m_format,
+        .extent = m_extent,
+        .mipLevels = m_mipLevels,
+        .arrayLayers = m_layerCount,
+        .samples = vk::SampleCountFlagBits::e1,
+        .tiling = vk::ImageTiling::eOptimal,
+        .usage = createInfo.usage,
+        .initialLayout = vk::ImageLayout::eUndefined,
+        .memoryUsage = createInfo.memoryUsage,
+        .debugName = createInfo.debugName
+    };
+    
+    m_vmaAllocation = m_context->getMemoryManager().createImage(vmaCreateInfo);
+    
+    spdlog::debug("Created VMA image: {}x{}x{}, format: {}, mips: {}", 
+                 m_extent.width, m_extent.height, m_extent.depth,
+                 static_cast<int>(m_format), m_mipLevels);
 
     // Image view
     if (createInfo.viewInfo.has_value()) {
@@ -86,40 +84,22 @@ Image::Image(const Context& context, const ImageCreateInfo& createInfo)
     }
 }
 
-// KTX から読み取った情報をもとに作成する
-// ImageView と Sampler の作成はアプリ側
-Image::Image(const Context* context,
-             vk::Image image,
-             vk::Format imageFormat,
-             vk::ImageLayout imageLayout,
-             vk::DeviceMemory deviceMemory,
-             vk::ImageViewType viewType,
-             uint32_t width,
-             uint32_t height,
-             uint32_t depth,
-             uint32_t levelCount,
-             uint32_t layerCount)
-    : m_context{context},
-      m_image{image},
-      m_memory{deviceMemory},
-      m_viewType{viewType},
-      m_hasOwnership{true},
-      m_layout{imageLayout},
-      m_extent{width, height, depth},
-      m_format{imageFormat},
-      m_mipLevels{levelCount},
-      m_layerCount{layerCount} {}
 
 Image::~Image() {
-    if (m_hasOwnership) {
+    if (m_hasOwnership && m_context) {
+        // サンプラーとビューは常に破棄
         if (m_sampler) {
             m_context->getDevice().destroySampler(m_sampler);
         }
         if (m_view) {
             m_context->getDevice().destroyImageView(m_view);
         }
-        m_context->getDevice().freeMemory(m_memory);
-        m_context->getDevice().destroyImage(m_image);
+        
+        // VMAで管理されたイメージを破棄
+        if (m_vmaAllocation.image) {
+            m_context->getMemoryManager().destroyImage(m_vmaAllocation);
+            spdlog::debug("Destroyed VMA image");
+        }
     }
 }
 
@@ -382,4 +362,6 @@ void Image::generateMipmaps(const CommandBuffer& commandBuffer) {
 
     m_layout = newLayout;
 }
+
+
 }  // namespace rv

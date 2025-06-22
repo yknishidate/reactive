@@ -11,6 +11,8 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include "MemoryManager.hpp"
+
 namespace std {
 template <>
 struct hash<vk::QueueFlags> {
@@ -126,17 +128,6 @@ static constexpr vk::BufferUsageFlags Scratch =
     vk::BufferUsageFlagBits::eShaderDeviceAddress;
 }  // namespace BufferUsage
 
-namespace MemoryUsage {
-static constexpr vk::MemoryPropertyFlags Device =
-    vk::MemoryPropertyFlagBits::eDeviceLocal;
-static constexpr vk::MemoryPropertyFlags Host =
-    vk::MemoryPropertyFlagBits::eHostVisible |
-    vk::MemoryPropertyFlagBits::eHostCoherent;
-static constexpr vk::MemoryPropertyFlags DeviceHost =
-    vk::MemoryPropertyFlagBits::eDeviceLocal |
-    vk::MemoryPropertyFlagBits::eHostVisible |
-    vk::MemoryPropertyFlagBits::eHostCoherent;
-}  // namespace MemoryUsage
 
 namespace ImageUsage {
 static constexpr vk::ImageUsageFlags ColorAttachment =
@@ -220,10 +211,6 @@ public:
     void oneTimeSubmit(const std::function<void(CommandBufferHandle)>& command,
                        vk::QueueFlags flag = QueueFlags::General) const;
 
-    // Memory
-    auto findMemoryTypeIndex(vk::MemoryRequirements requirements,
-                             vk::MemoryPropertyFlags memoryProp) const -> uint32_t;
-
     // Physical device
     template <typename T>
     auto getPhysicalDeviceProperties2() const -> T {
@@ -280,6 +267,12 @@ public:
 
     auto createFence(const FenceCreateInfo& createInfo) const -> FenceHandle;
 
+    // Memory management
+    auto getMemoryManager() const -> const MemoryManager& { return *m_memoryManager; }
+
+    // Debug utils
+    auto isDebugUtilsEnabled() const -> bool { return m_debugMessenger.get(); }
+
 private:
     static auto VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                                          VkDebugUtilsMessageTypeFlagsEXT messageTypes,
@@ -311,5 +304,7 @@ private:
     mutable std::map<vk::QueueFlags, std::vector<ThreadQueue>> m_queues;
     std::unordered_map<vk::QueueFlags, uint32_t> m_queueFamilies;
     vk::UniqueDescriptorPool m_descriptorPool;
+    
+    std::unique_ptr<MemoryManager> m_memoryManager;
 };
 }  // namespace rv

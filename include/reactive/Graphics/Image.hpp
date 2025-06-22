@@ -1,6 +1,7 @@
 #pragma once
 #include <vulkan/vulkan.hpp>
 #include "Context.hpp"
+#include "MemoryManager.hpp"
 
 namespace rv {
 class Buffer;
@@ -21,21 +22,16 @@ struct SamplerCreateInfo {
 // mipLevels: UINT32_MAX の場合は画像解像度から最大ミップレベルを自動計算する
 struct ImageCreateInfo {
     vk::ImageUsageFlags usage;
-
     vk::Extent3D extent = {1, 1, 1};
-
     vk::ImageType imageType = vk::ImageType::e2D;
-
     vk::Format format;
-
     uint32_t mipLevels = 1;
-
+    MemoryUsage memoryUsage = MemoryUsage::GpuOnly;
+    
     std::optional<ImageViewCreateInfo> viewInfo;
-
     std::optional<SamplerCreateInfo> samplerInfo;
-
-    // Debug
-    std::string debugName{};
+    
+    std::string debugName;
 };
 
 class Image {
@@ -44,6 +40,7 @@ class Image {
 public:
     Image(const Context& context, const ImageCreateInfo& createInfo);
 
+    // 外部イメージ用コンストラクタ（スワップチェーンなど）
     Image(vk::Image image,
           vk::ImageView view,
           vk::Extent3D extent,
@@ -54,23 +51,20 @@ public:
           m_viewType{vk::ImageViewType::e2D},
           m_extent{extent},
           m_format{format},
-          m_aspect{aspect} {}
-
-    Image(const Context* context,
-          vk::Image _image,
-          vk::Format _imageFormat,
-          vk::ImageLayout _imageLayout,
-          vk::DeviceMemory _deviceMemory,
-          vk::ImageViewType _viewType,
-          uint32_t _width,
-          uint32_t _height,
-          uint32_t _depth,
-          uint32_t _levelCount,
-          uint32_t _layerCount);
+          m_aspect{aspect},
+          m_hasOwnership{false} {}
 
     ~Image();
 
-    auto getImage() const -> vk::Image { return m_image; }
+    // コピー・ムーブ禁止（VMA割り当てのため）
+    Image(const Image&) = delete;
+    Image& operator=(const Image&) = delete;
+    Image(Image&&) = delete;
+    Image& operator=(Image&&) = delete;
+
+    auto getImage() const -> vk::Image { 
+        return m_vmaAllocation.image ? m_vmaAllocation.image : m_image; 
+    }
     auto getView() const -> vk::ImageView { return m_view; }
     auto getSampler() const -> vk::Sampler { return m_sampler; }
     auto getInfo() const -> vk::DescriptorImageInfo { return {m_sampler, m_view, m_layout}; }
@@ -81,6 +75,9 @@ public:
     auto getFormat() const -> vk::Format { return m_format; }
     auto getLayerCount() const -> uint32_t { return m_layerCount; }
     auto getViewType() const -> vk::ImageViewType { return m_viewType; }
+    
+    // VMA関連のメソッド
+    const ImageAllocation& getAllocation() const { return m_vmaAllocation; }
 
     // Ensure that data is pre-filled
     // ImageLayout is implicitly shifted to ShaderReadOnlyOptimal
@@ -145,14 +142,15 @@ private:
 
     const Context* m_context = nullptr;
     std::string m_debugName;
+    bool m_hasOwnership = false;
 
-    vk::Image m_image;
-    vk::DeviceMemory m_memory;
+    // VMA管理のイメージまたは外部リソース
+    ImageAllocation m_vmaAllocation;
+    vk::Image m_image;  // 外部リソース用
+    
     vk::ImageView m_view;
     vk::Sampler m_sampler;
     vk::ImageViewType m_viewType;
-
-    bool m_hasOwnership = false;
 
     vk::ImageLayout m_layout = vk::ImageLayout::eUndefined;
     vk::Extent3D m_extent;
