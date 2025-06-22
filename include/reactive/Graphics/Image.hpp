@@ -68,6 +68,19 @@ public:
           uint32_t _levelCount,
           uint32_t _layerCount);
 
+    // Constructor for KTX-loaded images (uses VkDeviceMemory instead of VMA)
+    Image(const Context* context,
+          vk::Image _image,
+          vk::Format _imageFormat,
+          vk::ImageLayout _imageLayout,
+          VkDeviceMemory _deviceMemory,
+          vk::ImageViewType _viewType,
+          uint32_t _width,
+          uint32_t _height,
+          uint32_t _depth,
+          uint32_t _levelCount,
+          uint32_t _layerCount);
+
     ~Image();
 
     auto getImage() const -> vk::Image { return m_image; }
@@ -149,6 +162,7 @@ private:
     vk::Image m_image;
     VmaAllocation m_allocation = VK_NULL_HANDLE;
     VmaAllocationInfo m_allocationInfo{};
+    VkDeviceMemory m_deviceMemory = VK_NULL_HANDLE;  // For KTX-loaded images
     vk::ImageView m_view;
     vk::Sampler m_sampler;
     vk::ImageViewType m_viewType;

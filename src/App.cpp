@@ -5,6 +5,9 @@
 #include <stb_image.h>
 #include <stb_image_write.h>
 
+#define VMA_IMPLEMENTATION
+#include <vk_mem_alloc.h>
+
 #include "reactive/Window.hpp"
 
 #include <imgui.h>

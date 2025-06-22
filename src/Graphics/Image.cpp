@@ -108,6 +108,29 @@ Image::Image(const Context* context,
       m_mipLevels{levelCount},
       m_layerCount{layerCount} {}
 
+// Constructor for KTX-loaded images (uses VkDeviceMemory instead of VMA)
+Image::Image(const Context* context,
+             vk::Image image,
+             vk::Format imageFormat,
+             vk::ImageLayout imageLayout,
+             VkDeviceMemory deviceMemory,
+             vk::ImageViewType viewType,
+             uint32_t width,
+             uint32_t height,
+             uint32_t depth,
+             uint32_t levelCount,
+             uint32_t layerCount)
+    : m_context{context},
+      m_image{image},
+      m_deviceMemory{deviceMemory},
+      m_viewType{viewType},
+      m_hasOwnership{true},
+      m_layout{imageLayout},
+      m_extent{width, height, depth},
+      m_format{imageFormat},
+      m_mipLevels{levelCount},
+      m_layerCount{layerCount} {}
+
 Image::~Image() {
     if (m_hasOwnership) {
         if (m_sampler) {
@@ -118,6 +141,9 @@ Image::~Image() {
         }
         if (m_image && m_allocation != VK_NULL_HANDLE) {
             vmaDestroyImage(m_context->getAllocator(), VkImage(m_image), m_allocation);
+        } else if (m_image && m_deviceMemory != VK_NULL_HANDLE) {
+            m_context->getDevice().destroyImage(m_image);
+            m_context->getDevice().freeMemory(vk::DeviceMemory(m_deviceMemory));
         }
     }
 }
