@@ -285,13 +285,13 @@ public:
     auto createFence(const FenceCreateInfo& createInfo) const -> FenceHandle;
 
 private:
-    static auto VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-                                         VkDebugUtilsMessageTypeFlagsEXT messageTypes,
-                                         VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData,
-                                         void* pUserData) -> VkBool32 {
-        if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
+    static auto VKAPI_CALL debugCallback(vk::DebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                                         vk::DebugUtilsMessageTypeFlagsEXT messageTypes,
+                                         vk::DebugUtilsMessengerCallbackDataEXT const* pCallbackData,
+                                         void* pUserData) -> vk::Bool32 {
+        if (messageSeverity & vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning) {
             spdlog::warn(pCallbackData->pMessage);
-        } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
+        } else if (messageSeverity & vk::DebugUtilsMessageSeverityFlagBitsEXT::eError) {
             spdlog::error(pCallbackData->pMessage);
         }
         return VK_FALSE;

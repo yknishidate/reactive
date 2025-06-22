@@ -448,7 +448,7 @@ void RayTracingPipeline::createSBT() {
     vk::DeviceSize sbtSize = m_raygenRegion.size + m_missRegion.size + m_hitRegion.size;
     m_sbtBuffer = m_context->createBuffer({
         .usage = BufferUsage::ShaderBindingTable,
-        .memory = MemoryUsage::Host,
+        .memoryUsage = BufferMemoryUsage::HostVisible,
         .size = sbtSize,
     });
 

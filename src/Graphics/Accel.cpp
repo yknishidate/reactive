@@ -33,7 +33,7 @@ BottomAccel::BottomAccel(const Context& context, const BottomAccelCreateInfo& cr
 
     m_buffer = m_context->createBuffer({
         .usage = BufferUsage::AccelStorage,
-        .memory = MemoryUsage::Device,
+        .memoryUsage = BufferMemoryUsage::DeviceLocal,
         .size = buildSizesInfo.accelerationStructureSize,
     });
 
@@ -48,7 +48,7 @@ BottomAccel::BottomAccel(const Context& context, const BottomAccelCreateInfo& cr
 
     m_scratchBuffer = m_context->createBuffer({
         .usage = BufferUsage::Scratch,
-        .memory = MemoryUsage::Host,
+        .memoryUsage = BufferMemoryUsage::HostVisible,
         .size = buildSizesInfo.buildScratchSize,
     });
 }
@@ -73,7 +73,7 @@ TopAccel::TopAccel(const Context& context, const TopAccelCreateInfo& createInfo)
     m_primitiveCount = static_cast<uint32_t>(instances.size());
     m_instanceBuffer = m_context->createBuffer({
         .usage = BufferUsage::AccelInput,
-        .memory = MemoryUsage::DeviceHost,
+        .memoryUsage = BufferMemoryUsage::HostCoherent,
         .size = sizeof(vk::AccelerationStructureInstanceKHR) * instances.size(),
     });
     m_instanceBuffer->copy(instances.data());
@@ -96,7 +96,7 @@ TopAccel::TopAccel(const Context& context, const TopAccelCreateInfo& createInfo)
 
     m_buffer = m_context->createBuffer({
         .usage = BufferUsage::AccelStorage,
-        .memory = MemoryUsage::Device,
+        .memoryUsage = BufferMemoryUsage::DeviceLocal,
         .size = buildSizesInfo.accelerationStructureSize,
     });
 
@@ -111,7 +111,7 @@ TopAccel::TopAccel(const Context& context, const TopAccelCreateInfo& createInfo)
 
     m_scratchBuffer = m_context->createBuffer({
         .usage = BufferUsage::Scratch,
-        .memory = MemoryUsage::Device,
+        .memoryUsage = BufferMemoryUsage::DeviceLocal,
         .size = buildSizesInfo.buildScratchSize,
     });
 }

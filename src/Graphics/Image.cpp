@@ -153,7 +153,7 @@ ImageHandle Image::loadFromFile(const Context& context,
     // Copy to image
     BufferHandle stagingBuffer = context.createBuffer({
         .usage = BufferUsage::Staging,
-        .memory = MemoryUsage::Host,
+        .memoryUsage = BufferMemoryUsage::HostVisible,
         .size = width * height * comp * sizeof(unsigned char),
     });
     stagingBuffer->copy(pixels);
@@ -199,7 +199,7 @@ ImageHandle Image::loadFromFileHDR(const Context& context, const std::filesystem
     // Copy to image
     BufferHandle stagingBuffer = context.createBuffer({
         .usage = BufferUsage::Staging,
-        .memory = MemoryUsage::Host,
+        .memoryUsage = BufferMemoryUsage::HostVisible,
         .size = width * height * comp * sizeof(float),
     });
     stagingBuffer->copy(pixels);

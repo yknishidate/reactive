@@ -52,16 +52,23 @@ Mesh::Mesh(const Context& context,
                      vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst;
     }
 
+    BufferMemoryUsage memUsage = BufferMemoryUsage::Auto;
+    if (memoryProps & vk::MemoryPropertyFlagBits::eHostVisible) {
+        memUsage = BufferMemoryUsage::HostVisible;
+    } else {
+        memUsage = BufferMemoryUsage::DeviceLocal;
+    }
+
     m_vertexBuffer = m_context->createBuffer({
         .usage = vertexUsage,
-        .memory = memoryProps,
+        .memoryUsage = memUsage,
         .size = sizeof(Vertex) * m_vertices.size(),
         .debugName = m_name + "::m_vertexBuffer",
     });
 
     m_indexBuffer = m_context->createBuffer({
         .usage = indexUsage,
-        .memory = memoryProps,
+        .memoryUsage = memUsage,
         .size = sizeof(uint32_t) * m_indices.size(),
         .debugName = m_name + "::m_indexBuffer",
     });

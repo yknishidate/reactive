@@ -24,7 +24,7 @@ public:
                         static_cast<float>(Window::getWidth()) / Window::getHeight()};
 
         m_mesh = Mesh{m_context, MeshUsage::RayTracing,
-                    MemoryUsage::Device, m_vertices, m_indices, "Triangle"};
+                    vk::MemoryPropertyFlagBits::eDeviceLocal, m_vertices, m_indices, "Triangle"};
 
         m_bottomAccel = m_context.createBottomAccel({
             .vertexStride = sizeof(Vertex),

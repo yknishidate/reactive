@@ -25,7 +25,7 @@ void Context::initInstance(bool enableValidation,
                            const std::vector<const char*>& instanceExtensions,
                            uint32_t apiVersion) {
     // Setup dynamic loader
-    static const vk::DynamicLoader dl;
+    static const vk::detail::DynamicLoader dl;
     auto vkGetInstanceProcAddr =
         dl.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
     VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);

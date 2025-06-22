@@ -28,7 +28,7 @@ public:
 
         m_buffer = m_context.createBuffer({
             .usage = BufferUsage::Uniform,
-            .memory = MemoryUsage::Device,
+            .memoryUsage = BufferMemoryUsage::DeviceLocal,
             .size = sizeof(MandelbrotParams),
             .debugName = "m_buffer",
         });
