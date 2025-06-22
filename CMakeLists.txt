@@ -57,7 +57,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     spdlog::spdlog_header_only
     tinyobjloader::tinyobjloader
     KTX::ktx
-    VulkanMemoryAllocator::VulkanMemoryAllocator
+    GPUOpen::VulkanMemoryAllocator
 
     optimized ${VULKAN_LIB}/slang.lib
 
