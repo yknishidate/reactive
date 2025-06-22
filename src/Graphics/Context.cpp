@@ -207,6 +207,7 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
     allocatorCreateInfo.physicalDevice = m_physicalDevice;
     allocatorCreateInfo.device = *m_device;
     allocatorCreateInfo.instance = *m_instance;
+    allocatorCreateInfo.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
     vmaCreateAllocator(&allocatorCreateInfo, &m_allocator);
 }
 
