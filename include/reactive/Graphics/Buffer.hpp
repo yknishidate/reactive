@@ -2,10 +2,17 @@
 #include "Context.hpp"
 
 namespace rv {
+enum class BufferMemoryUsage {
+    Auto,
+    DeviceLocal,
+    HostVisible,
+    HostCoherent
+};
+
 struct BufferCreateInfo {
     vk::BufferUsageFlags usage;
 
-    vk::MemoryPropertyFlags memory;
+    BufferMemoryUsage memoryUsage = BufferMemoryUsage::Auto;
 
     size_t size = 0;
 
@@ -17,10 +24,11 @@ class Buffer {
 
 public:
     Buffer(const Context& context, const BufferCreateInfo& createInfo);
+    ~Buffer();
 
-    auto getBuffer() const -> vk::Buffer { return *m_buffer; }
+    auto getBuffer() const -> vk::Buffer { return m_buffer; }
     auto getSize() const -> vk::DeviceSize { return m_size; }
-    auto getInfo() const -> vk::DescriptorBufferInfo { return {*m_buffer, 0, m_size}; }
+    auto getInfo() const -> vk::DescriptorBufferInfo { return {m_buffer, 0, m_size}; }
     auto getAddress() const -> vk::DeviceAddress;
 
     auto map() -> void*;
@@ -32,8 +40,9 @@ public:
 private:
     const Context* m_context = nullptr;
 
-    vk::UniqueBuffer m_buffer;
-    vk::UniqueDeviceMemory m_memory;
+    vk::Buffer m_buffer;
+    VmaAllocation m_allocation = VK_NULL_HANDLE;
+    VmaAllocationInfo m_allocationInfo{};
     vk::DeviceSize m_size = 0u;
 
     // For host buffer

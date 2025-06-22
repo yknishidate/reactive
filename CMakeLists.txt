@@ -46,6 +46,7 @@ find_package(imgui CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(tinyobjloader CONFIG REQUIRED)
+find_package(VulkanMemoryAllocator CONFIG REQUIRED)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC 
     spirv_reflect
@@ -56,6 +57,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     spdlog::spdlog_header_only
     tinyobjloader::tinyobjloader
     KTX::ktx
+    GPUOpen::VulkanMemoryAllocator
 
     optimized ${VULKAN_LIB}/slang.lib
 

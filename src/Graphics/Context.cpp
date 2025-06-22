@@ -14,6 +14,12 @@
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 namespace rv {
+Context::~Context() {
+    if (m_allocator) {
+        vmaDestroyAllocator(m_allocator);
+    }
+}
+
 void Context::initInstance(bool enableValidation,
                            const std::vector<const char*>& layers,
                            const std::vector<const char*>& instanceExtensions,
@@ -194,6 +200,14 @@ void Context::initDevice(const std::vector<const char*>& deviceExtensions,
     descriptorPoolCreateInfo.setMaxSets(100);
     descriptorPoolCreateInfo.setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);
     m_descriptorPool = m_device->createDescriptorPoolUnique(descriptorPoolCreateInfo);
+
+    // Create VMA allocator
+    VmaAllocatorCreateInfo allocatorCreateInfo{};
+    allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_3;
+    allocatorCreateInfo.physicalDevice = m_physicalDevice;
+    allocatorCreateInfo.device = *m_device;
+    allocatorCreateInfo.instance = *m_instance;
+    vmaCreateAllocator(&allocatorCreateInfo, &m_allocator);
 }
 
 auto Context::getQueue(vk::QueueFlags flag) const -> vk::Queue {

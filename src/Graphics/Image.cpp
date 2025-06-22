@@ -27,28 +27,25 @@ Image::Image(const Context& context, const ImageCreateInfo& createInfo)
         m_mipLevels = calculateMipLevels(m_extent.width, m_extent.height);
     }
 
-    // NOTE: initialLayout must be Undefined or PreInitialized
-    // NOTE: queueFamily is ignored if sharingMode is not concurrent
-    vk::ImageCreateInfo imageInfo;
-    imageInfo.setImageType(createInfo.imageType);
-    imageInfo.setFormat(m_format);
-    imageInfo.setExtent(m_extent);
-    imageInfo.setMipLevels(m_mipLevels);
-    imageInfo.setSamples(vk::SampleCountFlagBits::e1);
-    imageInfo.setUsage(createInfo.usage);
-    imageInfo.setArrayLayers(m_layerCount);
-    m_image = m_context->getDevice().createImage(imageInfo);
+    // Create image with VMA
+    VkImageCreateInfo imageInfo{};
+    imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imageInfo.imageType = static_cast<VkImageType>(createInfo.imageType);
+    imageInfo.format = static_cast<VkFormat>(m_format);
+    imageInfo.extent = {m_extent.width, m_extent.height, m_extent.depth};
+    imageInfo.mipLevels = m_mipLevels;
+    imageInfo.arrayLayers = m_layerCount;
+    imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+    imageInfo.usage = static_cast<VkImageUsageFlags>(createInfo.usage);
+    imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-    vk::MemoryRequirements requirements = m_context->getDevice().getImageMemoryRequirements(m_image);
-    uint32_t memoryTypeIndex = m_context->findMemoryTypeIndex(  //
-        requirements, vk::MemoryPropertyFlagBits::eDeviceLocal);
-
-    vk::MemoryAllocateInfo memoryInfo;
-    memoryInfo.setAllocationSize(requirements.size);
-    memoryInfo.setMemoryTypeIndex(memoryTypeIndex);
-    m_memory = m_context->getDevice().allocateMemory(memoryInfo);
-
-    m_context->getDevice().bindImageMemory(m_image, m_memory, 0);
+    VmaAllocationCreateInfo allocInfo{};
+    allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+    
+    VkImage vkImage;
+    vmaCreateImage(m_context->getAllocator(), &imageInfo, &allocInfo, &vkImage, &m_allocation, &m_allocationInfo);
+    m_image = vk::Image(vkImage);
 
     // Image view
     if (createInfo.viewInfo.has_value()) {
@@ -83,6 +80,7 @@ Image::Image(const Context& context, const ImageCreateInfo& createInfo)
     // Debug
     if (!m_debugName.empty()) {
         m_context->setDebugName(m_image, createInfo.debugName.c_str());
+        vmaSetAllocationName(m_context->getAllocator(), m_allocation, createInfo.debugName.c_str());
     }
 }
 
@@ -92,7 +90,7 @@ Image::Image(const Context* context,
              vk::Image image,
              vk::Format imageFormat,
              vk::ImageLayout imageLayout,
-             vk::DeviceMemory deviceMemory,
+             VmaAllocation allocation,
              vk::ImageViewType viewType,
              uint32_t width,
              uint32_t height,
@@ -101,7 +99,7 @@ Image::Image(const Context* context,
              uint32_t layerCount)
     : m_context{context},
       m_image{image},
-      m_memory{deviceMemory},
+      m_allocation{allocation},
       m_viewType{viewType},
       m_hasOwnership{true},
       m_layout{imageLayout},
@@ -118,8 +116,9 @@ Image::~Image() {
         if (m_view) {
             m_context->getDevice().destroyImageView(m_view);
         }
-        m_context->getDevice().freeMemory(m_memory);
-        m_context->getDevice().destroyImage(m_image);
+        if (m_image && m_allocation != VK_NULL_HANDLE) {
+            vmaDestroyImage(m_context->getAllocator(), VkImage(m_image), m_allocation);
+        }
     }
 }
 

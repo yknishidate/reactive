@@ -177,6 +177,8 @@ class Context {
     friend class CommandBuffer;
 
 public:
+    ~Context();
+
     // Initialization
     void initInstance(bool enableValidation,
                       const std::vector<const char*>& layers,
@@ -204,6 +206,8 @@ public:
     auto getCommandPool(vk::QueueFlags flag = QueueFlags::General) const -> vk::CommandPool;
 
     auto getDescriptorPool() const -> vk::DescriptorPool { return *m_descriptorPool; }
+
+    auto getAllocator() const -> VmaAllocator { return m_allocator; }
 
     // Command buffer
     auto allocateCommandBuffer(vk::QueueFlags flag = QueueFlags::General) const
@@ -311,5 +315,6 @@ private:
     mutable std::map<vk::QueueFlags, std::vector<ThreadQueue>> m_queues;
     std::unordered_map<vk::QueueFlags, uint32_t> m_queueFamilies;
     vk::UniqueDescriptorPool m_descriptorPool;
+    VmaAllocator m_allocator;
 };
 }  // namespace rv

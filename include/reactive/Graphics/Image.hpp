@@ -60,7 +60,7 @@ public:
           vk::Image _image,
           vk::Format _imageFormat,
           vk::ImageLayout _imageLayout,
-          vk::DeviceMemory _deviceMemory,
+          VmaAllocation _allocation,
           vk::ImageViewType _viewType,
           uint32_t _width,
           uint32_t _height,
@@ -147,7 +147,8 @@ private:
     std::string m_debugName;
 
     vk::Image m_image;
-    vk::DeviceMemory m_memory;
+    VmaAllocation m_allocation = VK_NULL_HANDLE;
+    VmaAllocationInfo m_allocationInfo{};
     vk::ImageView m_view;
     vk::Sampler m_sampler;
     vk::ImageViewType m_viewType;

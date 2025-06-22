@@ -8,6 +8,7 @@
     "glm",
     "tinyobjloader",
     "spdlog",
+    "vulkan-memory-allocator",
     {
       "name": "imgui",
       "features": ["glfw-binding", "vulkan-binding", "docking-experimental"]
