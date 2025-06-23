@@ -2,10 +2,9 @@
 #include <filesystem>
 #include <fstream>
 
-#define ASSERT_ON_SLANG_FAIL(x)        \
-    {                                  \
-        SlangResult _res = (x);        \
-        assert(SLANG_SUCCEEDED(_res)); \
+#define ASSERT_ON_SLANG_FAIL(x)       \
+    {                                 \
+        assert(SLANG_SUCCEEDED((x))); \
     }
 
 namespace rv {
